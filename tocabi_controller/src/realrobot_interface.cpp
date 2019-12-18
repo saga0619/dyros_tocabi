@@ -29,7 +29,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     }
 }
 
-void RealRobotInterface::ethercatThread()
+void RealRobotInterface::ethercatThread_()
 {
     char IOmap[4096];
 
@@ -396,7 +396,7 @@ void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time)
     }
 }
 
-void RealRobotInterface::ethercatCheck()
+void RealRobotInterface::ethercatCheck_()
 {
     int expectedWKC;
     boolean needlf;
@@ -489,6 +489,12 @@ void RealRobotInterface::ethercatCheck()
     std::cout << "checking thread end !" << std::endl;
 }
 
+void RealRobotInterface::ethercatCheck()
+{
+}
+void RealRobotInterface::ethercatThread()
+{
+}
 void RealRobotInterface::imuThread()
 {
 }
