@@ -489,6 +489,15 @@ void RealRobotInterface::ethercatCheck()
     std::cout << "checking thread end !" << std::endl;
 }
 
+void RealRobotInterface::imuThread()
+{
+}
+void RealRobotInterface::ftsensorThread()
+{
+}
+
+
+
 void RealRobotInterface::ImuCallback(const sensor_msgs::ImuConstPtr &msg)
 {
     q_virtual_(3) = msg->orientation.x;

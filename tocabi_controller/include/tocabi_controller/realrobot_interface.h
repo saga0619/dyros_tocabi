@@ -1,7 +1,8 @@
 #ifndef REALROBOT_INTERFACE_H
 #define REALROBOT_INTERFACE_H
 
-#include "state_manager.h"
+#include "tocabi_controller/state_manager.h"
+#include "tocabi_controller/GainCommand.h"
 //#include "red_ec_master.h"
 
 #include <sched.h>
@@ -31,7 +32,6 @@
 #include "ethercatconfig.h"
 #include "ethercatprint.h"
 
-#include <tocabi_controller/GainCommand.h>
 
 #define NSEC_PER_SEC 1000000000
 
@@ -219,8 +219,12 @@ public:
     //connect to ethercat
     //virtual void connect() override;
 
-    void ethercatCheck();
+    void ethercatCheck_();
+    void ethercatThread_();
     void ethercatThread();
+    void ethercatCheck();
+    void imuThread();
+    void ftsensorThread();
 
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
 
