@@ -4,7 +4,7 @@
 
 #define PRINT_ERR(FUNC)   if ((errcode = FUNC) != S826_ERR_OK) { ROS_INFO("\nERROR: %d\n", errcode); }
 
-const double SAMPLE_RATE = 200; // Hz
+const double SAMPLE_RATE = 1000; // Hz
 
 enum SLOT_TIME {NONE = 0, DEFAULT = 50};
 
