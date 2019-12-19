@@ -1,4 +1,5 @@
 #include "tocabi_controller/realrobot_interface.h"
+#include "sensoray826/sensoray826.h"
 
 std::mutex mtx_torque_command;
 std::mutex mtx_q;
@@ -442,12 +443,18 @@ void RealRobotInterface::ftsensorThread()
     std::chrono::microseconds cycletime(1000);
 
     int cycle_count = 0;
+
+    sensoray826_dev ft = sensoray826_dev(0);
+    ft.analogSingleSamplePrepare(slotAttrs, 16);
+    ft.initCalibration();
+
     while (!dc.shutdown)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
-        //Code here
-        //
+
+        ft.analogOversample();
+        ft.computeFTData();
     }
 
     std::cout << "FTsensor Thread End!" << std::endl;
