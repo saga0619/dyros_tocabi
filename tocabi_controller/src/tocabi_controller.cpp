@@ -2035,7 +2035,9 @@ void TocabiController::tuiThread()
         }
 
         if (control_time_ != before_time)
-            pubfromcontroller();
+            if (dc.mode != "ethercattest")
+                pubfromcontroller();
+        
 
         before_time = control_time_;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
