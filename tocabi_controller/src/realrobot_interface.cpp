@@ -247,7 +247,7 @@ void RealRobotInterface::ethercatThread()
 
                     std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double> time_from_begin;
-                    std::chrono::nanoseconds cycletime(dc.ctime * 1000);
+                    std::chrono::microseconds cycletime(dc.ctime);
                     int cycle_count = 0;
 
                     double to_ratio, to_calib;
@@ -416,10 +416,41 @@ void RealRobotInterface::ethercatThread()
 void RealRobotInterface::imuThread()
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_from_begin;
+
+    std::chrono::microseconds cycletime(1000);
+
+    int cycle_count = 0;
+    while (!dc.shutdown)
+    {
+        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+        cycle_count++;
+        //Code here
+        //
+    }
+
+    std::cout << "IMU Thread End!" << std::endl;
 }
 void RealRobotInterface::ftsensorThread()
 {
+    //wait for
     std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_from_begin;
+
+    std::chrono::microseconds cycletime(1000);
+
+    int cycle_count = 0;
+    while (!dc.shutdown)
+    {
+        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+        cycle_count++;
+        //Code here
+        //
+    }
+
+    std::cout << "FTsensor Thread End!" << std::endl;
 }
 
 void RealRobotInterface::ImuCallback(const sensor_msgs::ImuConstPtr &msg)
