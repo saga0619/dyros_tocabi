@@ -69,3 +69,10 @@ Unzip at ros worksapce (ex:catkin_ws)
 ```sh 
 sudo apt-get install libncurses5-dev
 ```
+
+## Passwordless sudo for ROS launch
+add folowinig line to /etc/sudoers, below the line (includedir /etc/sudoers.d)
+```
+username ALL=(ALL) NOPASSWD: ALL
+```
+
