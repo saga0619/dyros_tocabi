@@ -61,9 +61,6 @@ int main(int argc, char **argv)
         DynamicsManager dym(dc);
         TocabiController tc(dc, rtm, dym);
 
-        //osal_thread_create(&pthr[0], NULL, (void *)&RealRobotInterface::ethercatCheck_, &rtm);
-        //osal_thread_create_rt(&pthr[1], NULL, (void *)&RealRobotInterface::ethercatThread_, &rtm);
-
         std::thread thread[8];
 
         //EthercatElmo Management Thread
@@ -121,9 +118,6 @@ int main(int argc, char **argv)
         DynamicsManager dym(dc);
         TocabiController tc(dc, rtm, dym);
 
-        //osal_thread_create(&pthr[0], NULL, (void *)&RealRobotInterface::ethercatCheck_, &rtm);
-        //osal_thread_create_rt(&pthr[1], NULL, (void *)&RealRobotInterface::ethercatThread_, &rtm);
-
         std::thread thread[8];
 
         //EthercatElmo Management Thread
@@ -148,9 +142,9 @@ int main(int argc, char **argv)
         int policy;
         int priority = 90;
 
-        int rt_thread_num = 3;
+        int rt_thread_num = 3;//3;
         int rt_thread_id[rt_thread_num] = {0, 2, 3};
-        std::string thread_name[] = {"ethercatThread", "ImuThread", "FTsensorThread"};
+        std::string thread_name[] ={"ethercatThread", "ImuThread", "FTsensorThread"};
 
         for (int i = 0; i < rt_thread_num; i++)
         {
@@ -167,7 +161,7 @@ int main(int argc, char **argv)
             }
         }
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 5; i++)//5; i++)
         {
             thread[i].join();
         }
