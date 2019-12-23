@@ -240,7 +240,14 @@ void RealRobotInterface::ethercatThread()
                 {
                     //printf("Operational state reached for all slaves.\n");
                     rprint(dc, 15, 5, "Operational state reached for all slaves.");
-                    rprint(dc, 16, 5, "Enable red controller threads ... ");
+                    rprint(dc, 16, 5, "Starting red controller threads in ... 3");
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    rprint(dc,1,1,"2...");
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    rprint(dc,1,1,"1...");
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    rprint(dc,1,1,"0...Start!");
+
                     dc.connected = true;
                     /* cyclic loop */
                     for (int slave = 1; slave <= ec_slavecount; slave++)
@@ -288,9 +295,6 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     positionElmo(slave - 1) = rxPDO[slave - 1]->positionActualValue * CNT2RAD[slave - 1] * Dr[slave - 1];
 
-                                    positionExternalElmo(slave - 1) = rxPDO[slave - 1]->positionExternal * CNT2RAD[slave - 1] * Dr[slave - 1];
-
-                                    hommingElmo[slave - 1] = rxPDO[slave - 1]->hommingSensor;
 
                                     velocityElmo(slave - 1) =
                                         (((int32_t)ec_slave[slave].inputs[14]) +
@@ -303,6 +307,24 @@ void RealRobotInterface::ethercatThread()
                                         (int16_t)((ec_slave[slave].inputs[18]) +
                                                   (ec_slave[slave].inputs[19] << 8)) *
                                         Dr[slave - 1];
+
+                                        
+                                    positionExternalElmo(slave - 1) =
+                                        (((int32_t)ec_slave[slave].inputs[20]) +
+                                         ((int32_t)ec_slave[slave].inputs[21] << 8) +
+                                         ((int32_t)ec_slave[slave].inputs[22] << 16) +
+                                         ((int32_t)ec_slave[slave].inputs[23] << 24)) *
+                                        CNT2RAD[slave - 1] * Dr[slave - 1];
+
+
+                                        
+                                    hommingElmo[slave - 1] =
+                                        (((uint32_t)ec_slave[slave].inputs[24]) +
+                                         ((uint32_t)ec_slave[slave].inputs[25] << 8) +
+                                         ((uint32_t)ec_slave[slave].inputs[26] << 16) +
+                                         ((uint32_t)ec_slave[slave].inputs[27] << 24));
+
+
                                     torqueElmo(slave - 1) = rxPDO[slave - 1]->torqueActualValue * Dr[slave - 1];
 
                                     ElmoConnected = true;
@@ -385,7 +407,7 @@ void RealRobotInterface::ethercatThread()
                             //rprint(dc, "homming R7 %i %f \n", hommingElmo[2], positionElmo[2]);
                         }
 
-                        //rprint(dc,1,1,"homming R7 %i %f \n", hommingElmo[2], positionElmo[2]);
+                        rprint(dc,1,1,"homming R7 %i %f", (bool)hommingElmo[2], positionElmo[2]);
                         if(dc.shutdown || !ros::ok())
                         {
                             ElmoTerminate = true;

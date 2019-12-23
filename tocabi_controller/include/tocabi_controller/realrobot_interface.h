@@ -246,7 +246,7 @@ public:
     Eigen::VectorQd torqueDesiredController;
      
 
-    bool hommingElmo[MODEL_DOF];
+    unsigned int hommingElmo[MODEL_DOF];
 
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[MODEL_DOF];
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[MODEL_DOF];

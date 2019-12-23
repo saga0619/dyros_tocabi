@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 
 extern std::mutex mtx;
@@ -41,6 +42,7 @@ void rprint(DataContainer &dc, const char *str, ...);
 void rprint_sol(bool ncurse, int y, int x, const char *str, ...);
 
 int kbhit();
+int kbhit2();
 
 
 #endif
