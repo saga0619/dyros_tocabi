@@ -118,15 +118,25 @@ int main(int argc, char **argv)
         DynamicsManager dym(dc);
         TocabiController tc(dc, rtm, dym);
 
-        std::thread thread[8];
+        //Total Number of Thread
+        int thread_num = 3;
+        
+        //Total Number of Real-Time Thread
+        int rt_thread_num = 1;
+
+        
+        std::thread thread[thread_num];
+        int t_id = 0;
+
+        //RT THREAD FIRST!
+        thread[t_id++] = std::thread(&RealRobotInterface::ethercatThread, &rtm);
 
         //EthercatElmo Management Thread
-        thread[0] = std::thread(&RealRobotInterface::ethercatCheck, &rtm);
-        thread[1] = std::thread(&RealRobotInterface::ethercatThread, &rtm);
+        thread[t_id++] = std::thread(&RealRobotInterface::ethercatCheck, &rtm);
 
         //Sensor Data Management Thread
-        thread[2] = std::thread(&RealRobotInterface::imuThread, &rtm);
-        thread[3] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
+        //thread[2] = std::thread(&RealRobotInterface::imuThread, &rtm);
+        //thread[3] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
         //Robot Controller Thread
         //thread[4] = std::thread(&TocabiController::stateThread, &tc);
@@ -134,34 +144,29 @@ int main(int argc, char **argv)
         //thread[6] = std::thread(&TocabiController::dynamicsThreadLow, &tc);
 
         //For Additional functions ..
-        thread[4] = std::thread(&TocabiController::tuiThread, &tc);
+        thread[t_id++] = std::thread(&TocabiController::tuiThread, &tc);
 
         //For RealTime Thread
-
         sched_param sch;
         int policy;
         int priority = 90;
 
-        int rt_thread_num = 3;//3;
-        int rt_thread_id[rt_thread_num] = {0, 2, 3};
-        std::string thread_name[] ={"ethercatThread", "ImuThread", "FTsensorThread"};
-
         for (int i = 0; i < rt_thread_num; i++)
         {
 
-            pthread_getschedparam(thread[rt_thread_id[i]].native_handle(), &policy, &sch);
+            pthread_getschedparam(thread[i].native_handle(), &policy, &sch);
             sch.sched_priority = priority;
-            if (pthread_setschedparam(thread[rt_thread_id[i]].native_handle(), SCHED_FIFO, &sch))
+            if (pthread_setschedparam(thread[i].native_handle(), SCHED_FIFO, &sch))
             {
                 std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
             }
             else
             {
-                std::cout << thread_name[i] << " : setsched success !" << std::endl;
+                std::cout << "Thread #" << i << " : setsched success !" << std::endl;
             }
         }
 
-        for (int i = 0; i < 5; i++)//5; i++)
+        for (int i = 0; i < thread_num; i++)
         {
             thread[i].join();
         }

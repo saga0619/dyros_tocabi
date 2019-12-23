@@ -413,6 +413,8 @@ void RealRobotInterface::ethercatThread()
         printf("No socket connection on %s\nExcecute as root\n", ifname);
         ElmoTerminate = true;
     }
+
+    std::cout <<"Ethercat Thread End!"<<std::endl;
 }
 void RealRobotInterface::imuThread()
 {
