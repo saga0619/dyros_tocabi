@@ -414,7 +414,7 @@ void RealRobotInterface::ethercatThread()
         ElmoTerminate = true;
     }
 
-    std::cout <<"Ethercat Thread End!"<<std::endl;
+    std::cout << "Ethercat Thread End!" << std::endl;
 }
 void RealRobotInterface::imuThread()
 {
@@ -458,8 +458,7 @@ void RealRobotInterface::ftsensorThread()
         ft.analogOversample();
         ft.computeFTData();
 
-
-    std::cout << "FTsensorx" << ft.leftFootAxisData[0]<< "FTsensory" << ft.leftFootAxisData[1]<< "FTsensorz" << ft.leftFootAxisData[2] << std::endl;
+        rprint(dc, "FTsensor x : %f \t y : %f \t z : %f", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
     }
 
     std::cout << "FTsensor Thread End!" << std::endl;

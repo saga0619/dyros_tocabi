@@ -1,6 +1,4 @@
-<robot name="dyros_red_description">
-
-
+<robot name="dyros_tocabi">
 
   <link
     name="Pelvis_Link">
@@ -24,7 +22,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/Pelvis_link.STL" />
+          filename="package://tocabi_description/meshes/Pelvis_link.STL" />
       </geometry>
       <material
         name="">
@@ -87,7 +85,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/HipRoll_R_link.STL" />
+          filename="package://tocabi_description/meshes/HipRoll_R_link.STL" />
       </geometry>
       <material
         name="">
@@ -171,7 +169,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/HipCenter_R_Link.STL" />
+          filename="package://tocabi_description/meshes/HipCenter_R_Link.STL" />
       </geometry>
       <material
         name="">
@@ -230,7 +228,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/Thigh_R_Link.STL" />
+          filename="package://tocabi_description/meshes/Thigh_R_Link.STL" />
       </geometry>
       <material
         name="">
@@ -297,7 +295,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/Knee_R_Link.STL" />
+          filename="package://tocabi_description/meshes/Knee_R_Link.STL" />
       </geometry>
       <material
         name="">
@@ -356,7 +354,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/AnkleCenter_R_Link.STL" />
+          filename="package://tocabi_description/meshes/AnkleCenter_R_Link.STL" />
       </geometry>
       <material
         name="">
@@ -415,7 +413,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/AnkleRoll_R_Link.STL" />
+          filename="package://tocabi_description/meshes/AnkleRoll_R_Link.STL" />
       </geometry>
       <material
         name="">
@@ -485,7 +483,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/HipRoll_L_Link.STL" />
+          filename="package://tocabi_description/meshes/HipRoll_L_Link.STL" />
       </geometry>
       <material
         name="">
@@ -569,7 +567,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/HipCenter_L_Link.STL" />
+          filename="package://tocabi_description/meshes/HipCenter_L_Link.STL" />
       </geometry>
       <material
         name="">
@@ -630,7 +628,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/Thigh_L_Link.STL" />
+          filename="package://tocabi_description/meshes/Thigh_L_Link.STL" />
       </geometry>
       <material
         name="">
@@ -700,7 +698,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/Knee_L_Link.STL" />
+          filename="package://tocabi_description/meshes/Knee_L_Link.STL" />
       </geometry>
       <material
         name="">
@@ -762,7 +760,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/AnkleCenter_L_Link.STL" />
+          filename="package://tocabi_description/meshes/AnkleCenter_L_Link.STL" />
       </geometry>
       <material
         name="">
@@ -823,7 +821,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/AnkleRoll_L_Link.STL" />
+          filename="package://tocabi_description/meshes/AnkleRoll_L_Link.STL" />
       </geometry>
       <material
         name="">
@@ -890,7 +888,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/waist1.STL" />
+          filename="package://tocabi_description/meshes/waist1.STL" />
       </geometry>
       <material
         name="">
@@ -987,7 +985,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/waist2.STL" />
+          filename="package://tocabi_description/meshes/waist2.STL" />
       </geometry>
       <material
         name="">
@@ -1065,7 +1063,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/upperbody.STL" />
+          filename="package://tocabi_description/meshes/upperbody.STL" />
       </geometry>
       <material
         name="">
@@ -1208,7 +1206,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/R_shoulder1.STL" />
+          filename="package://tocabi_description/meshes/R_shoulder1.STL" />
       </geometry>
       <material
         name="">
@@ -1267,7 +1265,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/R_shoulder2.STL" />
+          filename="package://tocabi_description/meshes/R_shoulder2.STL" />
       </geometry>
       <material
         name="">
@@ -1326,7 +1324,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/R_shoulder3.STL" />
+          filename="package://tocabi_description/meshes/R_shoulder3.STL" />
       </geometry>
       <material
         name="">
@@ -1386,7 +1384,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/R_arm.STL" />
+          filename="package://tocabi_description/meshes/R_arm.STL" />
       </geometry>
       <material
         name="">
@@ -1445,7 +1443,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/R_elbow.STL" />
+          filename="package://tocabi_description/meshes/R_elbow.STL" />
       </geometry>
       <material
         name="">
@@ -1516,7 +1514,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/R_forearm.STL" />
+          filename="package://tocabi_description/meshes/R_forearm.STL" />
       </geometry>
       <material
         name="">
@@ -1584,7 +1582,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/R_wrist1.STL" />
+          filename="package://tocabi_description/meshes/R_wrist1.STL" />
       </geometry>
       <material
         name="">
@@ -1704,7 +1702,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/L_shoulder1.STL" />
+          filename="package://tocabi_description/meshes/L_shoulder1.STL" />
       </geometry>
       <material
         name="">
@@ -1764,7 +1762,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/L_shoulder2.STL" />
+          filename="package://tocabi_description/meshes/L_shoulder2.STL" />
       </geometry>
       <material
         name="">
@@ -1823,7 +1821,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/L_shoulder3.STL" />
+          filename="package://tocabi_description/meshes/L_shoulder3.STL" />
       </geometry>
       <material
         name="">
@@ -1883,7 +1881,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/L_arm.STL" />
+          filename="package://tocabi_description/meshes/L_arm.STL" />
       </geometry>
       <material
         name="">
@@ -1942,7 +1940,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/L_elbow.STL" />
+          filename="package://tocabi_description/meshes/L_elbow.STL" />
       </geometry>
       <material
         name="">
@@ -2009,7 +2007,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/L_forearm.STL" />
+          filename="package://tocabi_description/meshes/L_forearm.STL" />
       </geometry>
       <material
         name="">
@@ -2081,7 +2079,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/L_wrist1.STL" />
+          filename="package://tocabi_description/meshes/L_wrist1.STL" />
       </geometry>
       <material
         name="">
@@ -2202,7 +2200,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/neck.STL" />
+          filename="package://tocabi_description/meshes/neck.STL" />
       </geometry>
       <material
         name="">
@@ -2262,7 +2260,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dyros_red_description/meshes/head.STL" />
+          filename="package://tocabi_description/meshes/head.STL" />
       </geometry>
       <material
         name="">

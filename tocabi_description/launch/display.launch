@@ -2,7 +2,7 @@
   <!--arg name="model" /-->
   <!--arg name="gui" default="False" /-->
   <param name="robot_description"
-    textfile="$(find dyros_red_description)/robots/dyros_red_robot.urdf" />
+    textfile="$(find tocabi_description)/robots/dyros_tocabi.urdf" />
 
   <!--node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/-->
     <!--param name="/use_gui" value="true" /-->
@@ -12,5 +12,5 @@
     <!--remap from="/joint_states" to="/mujoco_ros_interface/joint_states"/-->
   </node>
   <!--node name="high_noon" pkg="eye_of_dragon" type="high_noon" /-->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find dyros_red_description)/urdf.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find dyros_tocabi)/urdf.rviz" />
 </launch>

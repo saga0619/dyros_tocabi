@@ -145,6 +145,28 @@ void rprint_sol(bool ncurse, int y, int x, const char *str, ...)
     va_end(lst);
 }
 
+void rprint(DataContainer &dc, const char *str, ...)
+{
+    va_list lst;
+    va_start(lst, str);
+
+    for (int i = 0; i < 100; i++)
+    {
+        if (dc.Tq_[i].update == false)
+        {
+            dc.Tq_[i].update = true;
+            vsnprintf(dc.Tq_[i].text, 255, str, lst);
+        }
+    }
+
+    va_end(lst);
+}
+
+void Tui::que_clear()
+{
+    que = 0;
+}
+
 void Tui::ReadAndPrint(int y, int x, std::string buff)
 {
 
