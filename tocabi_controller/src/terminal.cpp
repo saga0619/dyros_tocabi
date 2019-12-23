@@ -145,6 +145,34 @@ void rprint_sol(bool ncurse, int y, int x, const char *str, ...)
     va_end(lst);
 }
 
+int kbhit()
+{
+    struct termios oldt, newt;
+    int ch;
+
+ 
+
+    tcgetattr( STDIN_FILENO, &oldt );
+    newt = oldt;
+
+ 
+
+    newt.c_lflag &= ~( ICANON | ECHO );
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt );
+
+ 
+
+    ch = getchar();
+
+ 
+
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
+
+ 
+
+    return ch;
+}
+
 void rprint(DataContainer &dc, const char *str, ...)
 {
     va_list lst;

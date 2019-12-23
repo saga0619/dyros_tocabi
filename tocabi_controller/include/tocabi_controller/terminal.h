@@ -3,6 +3,10 @@
 #include "tocabi_controller/data_container.h"
 
 #include <stdarg.h>
+#include <stdio.h>
+#include <termios.h>
+#include <unistd.h>
+
 
 extern std::mutex mtx;
 extern std::mutex mtx_dc;
@@ -35,5 +39,8 @@ void rprint(DataContainer &dc, bool clr_line, int y, int x, const char *str, ...
 void rprint(DataContainer &dc, const char *str, ...);
 
 void rprint_sol(bool ncurse, int y, int x, const char *str, ...);
+
+int kbhit();
+
 
 #endif
