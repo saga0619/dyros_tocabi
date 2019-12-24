@@ -58,7 +58,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     if (dc.mode != "ethercattest")
     {
         std::string desc_package_path = ros::package::getPath("tocabi_description");
-        std::string urdf_path = desc_package_path + "/robots/tocabi_robot.urdf";
+        std::string urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
 
         ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
 
