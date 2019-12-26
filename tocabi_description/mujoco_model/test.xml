@@ -1,0 +1,22 @@
+<mujoco>
+    <worldbody>
+        <light diffuse=".5 .5 .5" pos="0 0 3" dir="0 0 -1"/>
+        <geom type="plane" size="1 1 0.1" rgba=".9 0 0 1"/>
+        <body>
+            <geom type="capsule" fromto="0 0 0.6  0.3 0 0.6" size="0.04"/>
+            <joint name="jnt1" type="hinge" pos="0 0 0.6" axis="0 1 0"/>
+            <body>
+                <geom type="ellipsoid" pos="0.4 0 0.6" size="0.1 0.08 0.02"/>
+                <joint name="jnt2" type="hinge" pos="0.3 0 0.6" axis="0 1 0"/>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+
+        <motor name="act1" joint="jnt1"/>
+        <position name="act2" joint="jnt2" kp="10"/>
+
+    </actuator>
+
+</mujoco>

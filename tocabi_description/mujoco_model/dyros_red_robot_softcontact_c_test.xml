@@ -1,0 +1,110 @@
+<mujoco model="dyros_red_description">
+    <compiler angle="radian" meshdir="../meshes/"/>
+
+    
+    <include file="red_base.xml"/>
+
+    <size njmax="500" nconmax="100" />
+
+    <default>
+        <default class="soft">
+            <joint stiffness="100000" damping="2000" />
+        </default>
+    </default>
+
+    <option timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
+
+    <worldbody>
+          <body name="Base_Plate0" pos="-0.18 0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate00" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint0" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate1" pos="0.18 -0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate01" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint1" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate2" pos="-0.18 -0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate02" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint2" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate3" pos="0.18 0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate03" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint3" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate4" pos="0.54 -0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate04" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint4" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate5" pos="0.54 0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate05" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint5" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate6" pos="0.90 0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate06" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint6" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate7" pos="0.90 -0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate07" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint7" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate8" pos="1.26 -0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate08" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint8" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+
+        <body name="Base_Plate9" pos="1.26 0.18 0.5">
+            <geom type="box" size="0.01 0.01 0.01" class="viz"/>
+            <body name="Plate09" pos="0 0 0">
+                <geom type="box" size="0.17 0.17 0.01"/>
+                <joint name="stjoint9" type="slide" axis="0 0 1" class="soft"/>
+            </body>
+        </body>
+    </worldbody>
+
+    <keyframe>
+        <!--Initial Position Setting -->
+        <key name="soft" time="0" qpos ="-0.18 0 1.43683 1 0 0 0 
+								0 0 -0.24 0.6 -0.36 0 
+								0 0 -0.24 0.6 -0.36 0 
+								0 0 0 
+								-0.3 -0.3 -1.5 1.27 2 0 0 0 
+								0.3 0.3 1.5 -1.27 -2 0 0 0
+                                0 0 0 0 0 0 0 0 0 0"/>
+
+    </keyframe>
+</mujoco>

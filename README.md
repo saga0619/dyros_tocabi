@@ -75,4 +75,7 @@ add folowinig line to /etc/sudoers, below the line (includedir /etc/sudoers.d)
 ```
 username ALL=(ALL) NOPASSWD: ALL
 ```
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/master

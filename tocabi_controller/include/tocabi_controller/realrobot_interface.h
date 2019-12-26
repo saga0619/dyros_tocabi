@@ -190,6 +190,8 @@ struct ElmoGoldDevice
         int8_t modeOfOperationDisplay;
         int32_t velocityActualValue;
         int16_t torqueDemandValue;
+        int32_t positionExternal;
+        uint32_t hommingSensor;
     };
 };
 } // namespace EtherCAT_Elmo
@@ -234,6 +236,7 @@ public:
     int Walking_State;
 
     Eigen::VectorQd positionElmo;
+    Eigen::VectorQd positionExternalElmo;
     Eigen::VectorQd velocityElmo;
     Eigen::VectorQd torqueElmo;
     Eigen::VectorQd torqueDemandElmo;
@@ -241,6 +244,9 @@ public:
     Eigen::VectorQd velocityDesiredElmo;
     Eigen::VectorQd torqueDesiredElmo;
     Eigen::VectorQd torqueDesiredController;
+     
+
+    unsigned int hommingElmo[MODEL_DOF];
 
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[MODEL_DOF];
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[MODEL_DOF];

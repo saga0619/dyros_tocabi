@@ -2038,10 +2038,32 @@ void TocabiController::tuiThread()
             if (dc.mode != "ethercattest")
                 pubfromcontroller();
         
+        //int value = kbhit2();
 
+        if(kbhit2())
+        {
+            dc.shutdown=true;
+        }
+        /*
+        if (value!=-1)
+        {
+            std::cout<<"kbhit : "<<(char)value<<std::endl;
+
+            if (value=='q')
+            {
+                std::cout<<"End Request! "<<std::endl;
+                dc.shutdown=true;
+            }
+        }
+        else 
+        {
+            std::cout<<".";
+        }*/
         before_time = control_time_;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
+
+    std::cout<<"Terminal Thread End !"<<std::endl;
 }
 
 void TocabiController::getState()

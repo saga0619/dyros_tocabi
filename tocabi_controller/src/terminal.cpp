@@ -145,6 +145,56 @@ void rprint_sol(bool ncurse, int y, int x, const char *str, ...)
     va_end(lst);
 }
 
+int kbhit()
+{
+    struct termios oldt, newt;
+    int ch;
+
+ 
+
+    tcgetattr( STDIN_FILENO, &oldt );
+    newt = oldt;
+
+ 
+
+    newt.c_lflag &= ~( ICANON | ECHO );
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt );
+
+ 
+
+    ch = getchar();
+
+ 
+
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
+
+ 
+
+    return ch;
+}
+
+void rprint(DataContainer &dc, const char *str, ...)
+{
+    va_list lst;
+    va_start(lst, str);
+
+    for (int i = 0; i < 100; i++)
+    {
+        if (dc.Tq_[i].update == false)
+        {
+            dc.Tq_[i].update = true;
+            vsnprintf(dc.Tq_[i].text, 255, str, lst);
+        }
+    }
+
+    va_end(lst);
+}
+
+void Tui::que_clear()
+{
+    que = 0;
+}
+
 void Tui::ReadAndPrint(int y, int x, std::string buff)
 {
 
@@ -183,4 +233,32 @@ void wait_for_keypress()
 void wait_for_ms(int ms)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
+
+int kbhit2(void)
+{
+  struct termios oldt, newt;
+  int ch;
+  int oldf;
+
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+  fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+  ch = getchar();
+
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+  fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+  if(ch != EOF)
+  {
+    ungetc(ch, stdin);
+    return 1;
+  }
+
+  return 0;
 }
