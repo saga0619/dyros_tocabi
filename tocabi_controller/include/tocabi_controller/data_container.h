@@ -177,6 +177,7 @@ public:
   double torqueOnTime = 0.0;
   double torqueOffTime = 0.0;
 
+  bool elmo_Ready = false;
   //Simulation switch
 
   bool pubmode = false;      // Publish mode of mujoco, integrated mode(basic), detached mode.

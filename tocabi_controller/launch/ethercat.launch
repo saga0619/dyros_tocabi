@@ -12,6 +12,7 @@
       <param name="debug" value="$(arg debug)" />
       <param name="rviz_pub" value="$(arg rviz)"/>
       <param name="ncurse" value="$(arg ncurse)"/>
+      <param name="ctime" value="1000"/>
     </node>
   </group>
 </launch>
