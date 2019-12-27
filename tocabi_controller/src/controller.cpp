@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     dc.dym_timestep = std::chrono::microseconds((int)(1000000 / dc.dym_hz));
     dc.stm_timestep = std::chrono::microseconds((int)(1000000 / dc.stm_hz));
 
-    Tui tui(dc);
+    Tui tui(dc);                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
     if (!dc.ncurse_mode)
         endwin();

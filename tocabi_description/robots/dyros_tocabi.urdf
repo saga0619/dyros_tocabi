@@ -1,4 +1,7 @@
 <robot name="dyros_tocabi">
+  <mujoco>
+      <compiler meshdir="../meshes/" balanceinertia="true"/>
+  </mujoco>
 
   <link
     name="Pelvis_Link">
@@ -2230,7 +2233,7 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="1.54"
+      lower="-1.54"
       upper="1.54"
       effort="500"
       velocity="100" />
@@ -2282,7 +2285,7 @@
     type="revolute">
     <origin
       xyz="0.0 0.0 0.0275"
-      rpy="0 0 -1.54" />
+      rpy="0 0 0" />
     <parent
       link="Neck_Link" />
     <child
@@ -2290,7 +2293,7 @@
     <axis
       xyz="0 1 0" />
     <limit
-      lower="1.54"
+      lower="-1.54"
       upper="1.54"
       effort="500"
       velocity="100" />

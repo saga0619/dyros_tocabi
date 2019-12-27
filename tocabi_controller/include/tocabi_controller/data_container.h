@@ -30,6 +30,7 @@ const std::string JOINT_NAME[MODEL_DOF] = {
     "Waist1_Joint", "Waist2_Joint", "Upperbody_Joint",
     "L_Shoulder1_Joint", "L_Shoulder2_Joint", "L_Shoulder3_Joint", "L_Armlink_Joint",
     "L_Elbow_Joint", "L_Forearm_Joint", "L_Wrist1_Joint", "L_Wrist2_Joint",
+    "Neck_Joint", "Head_Joint",
     "R_Shoulder1_Joint", "R_Shoulder2_Joint", "R_Shoulder3_Joint", "R_Armlink_Joint",
     "R_Elbow_Joint", "R_Forearm_Joint", "R_Wrist1_Joint", "R_Wrist2_Joint"};
 
@@ -41,6 +42,7 @@ const std::string ACTUATOR_NAME[MODEL_DOF] = {
     "Waist1_Motor", "Waist2_Motor", "Upperbody_Motor",
     "L_Shoulder1_Motor", "L_Shoulder2_Motor", "L_Shoulder3_Motor", "L_Armlink_Motor",
     "L_Elbow_Motor", "L_Forearm_Motor", "L_Wrist1_Motor", "L_Wrist2_Motor",
+    "Neck_Motor", "Head_Motor",
     "R_Shoulder1_Motor", "R_Shoulder2_Motor", "R_Shoulder3_Motor", "R_Armlink_Motor",
     "R_Elbow_Motor", "R_Forearm_Motor", "R_Wrist1_Motor", "R_Wrist2_Motor"};
 
