@@ -33,7 +33,7 @@ sudo make install
 
 * If red controller can't find librbdl.so.2.6.0, Add following line to .bashrc 
 ```sh
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib'>>~/.bashrc
 sudo ldconfig
 ```
 
