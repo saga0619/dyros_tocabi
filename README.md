@@ -2,39 +2,33 @@
 
 ## SOEM Setup
  * install [SOEM](https://github.com/saga0619/SOEM)
-
+ ```sh
+ git clone https://github.com/saga0619/SOEM
+ cd SOEM
+ mkdir build
+ cd build
+ cmake ..
+ make all
+ sudo make install
+ ```
 
 ## mscl install 
  * download [MSCL](https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb) 
 
 ```sh
-dpkg -i c++-mscl_52.2.1_amd64.deb
+wget https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb
+sudo dpkg -i c++-mscl_52.2.1_amd64.deb
 ```
 
 ## RBDL Setup
 ### Installing
 ```sh
-wget https://bitbucket.org/rbdl/rbdl/get/default.zip
-unzip default.zip
-cd rbdl-rbdl-0879ee8c548a
+git clone https://github.com/saga0619/rbdl-orb
 mkdir build
 cd build
-cmake -D RBDL_BUILD_ADDON_URDFREADER=ON ..
+cmake ..
 make all
 sudo make install
-```
-
-### RBDL Error handling
-* If any error related to ROS occurs, open rbdl-rbdl-[commit]/addons/urdfreader/urdfreader.cc and remove following line
-```cpp
-#include <ros.h>
-```
-* If error " 'boost' does not name a type" occurs, open rbdl-rbdl-[commit]/addons/urdfreader/urdfreader.cc and edit boost::shared_ptr to std::shared_ptr. (line 15~18)
-```cpp
-typedef std::shared_ptr<urdf::Link> LinkPtr;
-typedef const std::shared_ptr<const urdf::Link> ConstLinkPtr;
-typedef std::shared_ptr<urdf::Joint> JointPtr;
-typedef std::shared_ptr<urdf::ModelInterface> ModelPtr;
 ```
 
 * If red controller can't find librbdl.so.2.6.0, Add following line to .bashrc 
