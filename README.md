@@ -41,6 +41,8 @@ sudo ldconfig
 ## qpOASES setup
 Download qpOASES [Link](http://www.qpoases.org/go/release) 
 ```sh
+wget http://www.qpoases.org/go/release qpoases.zip
+unzip qpoases.zip
 cd qpOASES-3.2.1
 mkdir build
 cd build
