@@ -158,8 +158,8 @@ void RealRobotInterface::ethercatCheck()
 
         std::cout << std::endl;
 */
-        std::cout<<"hello from checking thread"<<std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        //std::cout<<"hello from checking thread"<<std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         if (ElmoTerminate)
         {
             dc.shutdown = true;
@@ -196,7 +196,7 @@ void RealRobotInterface::ethercatThread()
             }
             ec_statecheck(0, EC_STATE_PRE_OP, EC_TIMEOUTSTATE);
 
-            if (19 == ec_slavecount)
+            if (33 == ec_slavecount)
             {
 
                 for (int slave = 1; slave <= ec_slavecount; slave++)
@@ -292,20 +292,23 @@ void RealRobotInterface::ethercatThread()
                         tp[0] = std::chrono::steady_clock::now();
 
                         //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+/*
                         while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime))
                         {
-                            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-                        }
+                            std::this_thread::sleep_for(std::chrono::nanoseconds(500));
+                        }*/
+
+			std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
 
                         tp[1] = std::chrono::steady_clock::now();
                         time_from_begin = std::chrono::steady_clock::now() - t_begin;
                         control_time_ = time_from_begin.count();
 
                         /** PDO I/O refresh */
-                        ec_send_processdata();
+                        //ec_send_processdata();
 
                         tp[2] = std::chrono::steady_clock::now();
-                        wkc = ec_receive_processdata(500);
+                        wkc = ec_receive_processdata(250);
 
                         tp[3] = std::chrono::steady_clock::now();
 
@@ -315,44 +318,14 @@ void RealRobotInterface::ethercatThread()
                         td[2] = tp[2] - tp[1];
                         td[3] = tp[3] - tp[2];
 
-                        td[4] = tp[2] - (t_begin + cycle_count * cycletime);
 
-                        d_mean = d_mean + td[4].count();
-                        if (d_min > td[4].count())
-                            d_min = td[4].count();
-                        if (d_max < td[4].count())
-                            d_max = td[4].count();
-
-                        d1_mean = d1_mean + td[3].count();
-                        if (d1_min > td[3].count())
-                            d1_min = td[3].count();
-                        if (d1_max < td[3].count())
-                            d1_max = td[3].count();
-
-                        c_count++;
-
-                        if (control_time_ > pwait_time)
-                        {
-                            std::cout << control_time_ << ", " << c_count << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"<<"receive : mean :"<<d1_mean/c_count*1.0E+6 <<" max : "<<d1_max*1.0E+6<<" min : "<<d1_min*1.0E+6 << std::endl;
-
-                            d_min = 1000;
-                            d_max = 0;
-                            d_mean = 0;
-                            c_count = 0;
-
-                            d1_min = 1000;
-                            d1_max = 0;
-                            d1_mean = 0;
-
-                            pwait_time = pwait_time + 1.0;
-                        }
+                       
 
                         if (tp[3] > t_begin + (cycle_count + 1) * cycletime)
                         {
-                            std::cout << " t_wait : " << td[0].count() * 1E+6 << " us, t_start : " << td[1].count() * 1E+6 << " us, ec_send : " << td[2].count() * 1E+6 << " us, ec_receive : " << td[3].count() * 1E+6 << " us" << std::endl;
+                            std::cout <<red<< " t_wait : " << td[0].count() * 1E+6 << " us, t_start : " << td[1].count() * 1E+6 << " us, ec_send : " << td[2].count() * 1E+6 << " us, ec_receive : " << td[3].count() * 1E+6 << " us" <<reset<< std::endl;
                         }
 
-                        cycle_count++;
 
                         if (wkc >= expectedWKC)
                         {
@@ -523,6 +496,50 @@ void RealRobotInterface::ethercatThread()
                             //std::terminate();
                             break;
                         }
+/*
+			while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime +std::chrono::microseconds(100)))
+                        {
+                            std::this_thread::sleep_for(std::chrono::nanoseconds(500));
+                        }*/
+
+			//std::this_thread::sleep_until(t_begin + cycle_count * cycletime +std::chrono::microseconds(250));
+
+                        ec_send_processdata();
+
+                        td[4] = std::chrono::steady_clock::now() - (t_begin + cycle_count * cycletime);
+
+ 			d_mean = d_mean + td[4].count();
+                        if (d_min > td[4].count())
+                            d_min = td[4].count();
+                        if (d_max < td[4].count())
+                            d_max = td[4].count();
+
+                        d1_mean = d1_mean + td[3].count();
+                        if (d1_min > td[3].count())
+                            d1_min = td[3].count();
+                        if (d1_max < td[3].count())
+                            d1_max = td[3].count();
+
+                        c_count++;
+
+                        if (control_time_ > pwait_time)
+                        {
+                            std::cout << control_time_ << ", " << c_count << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"<<"receive : mean :"<<d1_mean/c_count*1.0E+6 <<" max : "<<d1_max*1.0E+6<<" min : "<<d1_min*1.0E+6 << std::endl;
+
+                            d_min = 1000;
+                            d_max = 0;
+                            d_mean = 0;
+                            c_count = 0;
+
+                            d1_min = 1000;
+                            d1_max = 0;
+                            d1_mean = 0;
+
+                            pwait_time = pwait_time + 1.0;
+                        }
+
+                        cycle_count++;
+
                     }
                 }
                 else
