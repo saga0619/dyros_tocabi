@@ -2037,12 +2037,21 @@ void TocabiController::tuiThread()
         if (control_time_ != before_time)
             if (dc.mode != "ethercattest")
                 pubfromcontroller();
-        
+
         //int value = kbhit2();
 
-        if(kbhit2())
+        if (kbhit2())
         {
-            dc.shutdown=true;
+            if (getchar() == 'q')
+                dc.shutdown = true;
+            else if (getchar() == 'p')
+            {
+                std::cout << "position mode" << std::endl;
+            }
+            else if (getchar() == 't')
+            {
+                std::cout << "torque mode " << std::endl;
+            }
         }
         /*
         if (value!=-1)
@@ -2063,7 +2072,7 @@ void TocabiController::tuiThread()
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
-    std::cout<<"Terminal Thread End !"<<std::endl;
+    std::cout << "Terminal Thread End !" << std::endl;
 }
 
 void TocabiController::getState()
