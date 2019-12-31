@@ -1,7 +1,6 @@
 #ifndef REALROBOT_INTERFACE_H
 #define REALROBOT_INTERFACE_H
 
-
 #include <iostream>
 #include <thread>
 
@@ -55,38 +54,25 @@
 #define Kv_Pitch3 30 //Ankle
 #define Kv_Roll2 60  //Ankle
 
-
 #define EC_TIMEOUTMON 500
 
 const double CNT2RAD[MODEL_DOF] =
     {
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46};
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46};
 
 const double RAD2CNT[MODEL_DOF] =
     {
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46};
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46};
 
 const double NM2CNT[MODEL_DOF] =
     {
@@ -150,8 +136,12 @@ const double Kv[MODEL_DOF] =
 
 //Axis correction parameter.
 const double Dr[MODEL_DOF] =
-    {-1, 1, -1, -1, 1, -1,
-     -1, 1, 1, 1, -1, -1};
+    {1, 1, 1, 1, 1, 1,
+     1, 1, 1, 1, 1, 1,
+     1, 1, 1, 1, 1, 1,
+     1, 1, 1, 1, 1, 1,
+     1, 1, 1, 1, 1, 1,
+     1, 1, 1};
 
 using namespace std;
 
@@ -184,14 +174,14 @@ struct ElmoGoldDevice
     struct elmo_gold_rx
     {
         int32_t positionActualValue;
-        int32_t positionFollowingErrrorValue;
-        int16_t torqueActualValue;
-        uint16_t statusWord;
-        int8_t modeOfOperationDisplay;
-        int32_t velocityActualValue;
-        int16_t torqueDemandValue;
-        int32_t positionExternal;
+        //int32_t positionFollowingErrrorValue;
         uint32_t hommingSensor;
+        uint16_t statusWord;
+        //int8_t modeOfOperationDisplay;
+        int32_t velocityActualValue;
+        int16_t torqueActualValue;
+        //int16_t torqueDemandValue;
+        //int32_t positionExternal;
     };
 };
 } // namespace EtherCAT_Elmo
@@ -244,9 +234,10 @@ public:
     Eigen::VectorQd velocityDesiredElmo;
     Eigen::VectorQd torqueDesiredElmo;
     Eigen::VectorQd torqueDesiredController;
-     
+    Eigen::VectorQd positionInitialElmo;
+    Eigen::VectorQd positionZeroElmo;
 
-    unsigned int hommingElmo[MODEL_DOF];
+    bool hommingElmo[MODEL_DOF];
 
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[MODEL_DOF];
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[MODEL_DOF];

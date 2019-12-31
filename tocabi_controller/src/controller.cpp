@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
         sched_param sch;
         int policy;
-        int priority = 90;
+        int priority = 40;
 
         int rt_thread_num = 4;
         int rt_thread_id[rt_thread_num] = {0, 2, 3, 4};
@@ -120,11 +120,10 @@ int main(int argc, char **argv)
 
         //Total Number of Thread
         int thread_num = 3;
-        
+
         //Total Number of Real-Time Thread
         int rt_thread_num = 1;
 
-        
         std::thread thread[thread_num];
         int t_id = 0;
 
@@ -149,12 +148,14 @@ int main(int argc, char **argv)
         //For RealTime Thread
         sched_param sch;
         int policy;
-        int priority = 90;
+        int priority = 39;
 
         for (int i = 0; i < rt_thread_num; i++)
         {
 
             pthread_getschedparam(thread[i].native_handle(), &policy, &sch);
+            
+            
             sch.sched_priority = priority;
             if (pthread_setschedparam(thread[i].native_handle(), SCHED_FIFO, &sch))
             {

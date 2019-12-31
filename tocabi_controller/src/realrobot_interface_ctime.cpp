@@ -4,9 +4,6 @@
 std::mutex mtx_torque_command;
 std::mutex mtx_q;
 
-const std::string red("\033[0;31m");
-const std::string reset("\033[0m");
-
 double rising_time = 3.0;
 bool elmo_init = true;
 
@@ -158,8 +155,7 @@ void RealRobotInterface::ethercatCheck()
 
         std::cout << std::endl;
 */
-        std::cout<<"hello from checking thread"<<std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
         if (ElmoTerminate)
         {
             dc.shutdown = true;
@@ -177,6 +173,13 @@ void RealRobotInterface::ethercatThread()
     bool reachedInitial[MODEL_DOF] = {false};
 
     const char *ifname = dc.ifname.c_str();
+
+    struct timespec current, begin, time;
+    double elapsed = 0.0, elapsed_sum = 0.0, elapsed_avg = 0.0, elapsed_var = 0.0, prev = 0.0, now = 0.0, current_time = 0.0, begin_time = 0.0;
+    double elapsed_time[10000] = {0.0};
+    static int elapsed_cnt = 0, max_cnt = 0, min_cnt = 0;
+    double elapsed_min = 210000000.0, elapsed_max = 0.0;
+    double time_mem[10000] = {0.0};
 
     if (ec_init(ifname))
     {
@@ -196,14 +199,13 @@ void RealRobotInterface::ethercatThread()
             }
             ec_statecheck(0, EC_STATE_PRE_OP, EC_TIMEOUTSTATE);
 
-            if (19 == ec_slavecount)
+            if (2 == ec_slavecount)
             {
 
                 for (int slave = 1; slave <= ec_slavecount; slave++)
                 {
                     uint16 map_1c12[2] = {0x0001, 0x1605};
-                    //uint16 map_1c13[6] = {0x0005, 0x1a04, 0x1a11, 0x1a12, 0x1a1e, 0X1a1c};
-                    uint16 map_1c13[4] = {0x0003, 0x1a00, 0x1a11, 0x1a13}; //, 0x1a12};
+                    uint16 map_1c13[6] = {0x0003, 0x1a00, 0x1a11, 0x1a13};//, 0x1a1e, 0X1a1c};
                     int os;
                     os = sizeof(map_1c12);
                     ec_SDOwrite(slave, 0x1c12, 0, TRUE, os, map_1c12, EC_TIMEOUTRXM);
@@ -260,100 +262,60 @@ void RealRobotInterface::ethercatThread()
                         txPDO[slave - 1] = (EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *)(ec_slave[slave].outputs);
                         rxPDO[slave - 1] = (EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *)(ec_slave[slave].inputs);
                     }
-
-                    std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
+                    
+                    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double> time_from_begin;
-                    std::chrono::duration<double> time_err_reset = std::chrono::seconds(0);
+                    std::chrono::high_resolution_clock::time_point t1;
+                    std::chrono::high_resolution_clock::time_point t2;
+                    std::chrono::high_resolution_clock::time_point t3;
+                    std::chrono::high_resolution_clock::time_point t4;
+                    std::chrono::high_resolution_clock::time_point t5;
+                    std::chrono::high_resolution_clock::time_point t6;
 
+                    t4=std::chrono::high_resolution_clock::now();
+
+                    std::chrono::microseconds mc(500);
+                    std::chrono::duration<double> tptp;
+                    std::chrono::duration<double> tptp2;
+                    /*
                     std::chrono::microseconds cycletime(dc.ctime);
-                    int cycle_count = 0;
+                    int cycle_count = 1;
 
-                    std::chrono::steady_clock::time_point tp[6];
-                    std::chrono::steady_clock::time_point time_until;
-
-                    std::chrono::duration<double> td[7];
+                    std::chrono::high_resolution_clock::time_point t1;
+                    std::chrono::high_resolution_clock::time_point t2;
+                    std::chrono::high_resolution_clock::time_point t3;*/
                     double to_ratio, to_calib;
 
-                    double pwait_time = 1.0;
-                    int c_count = 0;
 
-                    double d_min = 1000;
-                    double d_max = 0;
-                    double d_mean = 0;
+                    struct timespec ts;
+                    int64 cycletime;
 
-                    double d1_min = 1000;
-                    double d1_max = 0;
-                    double d1_mean = 0;
+                    cycletime = dc.ctime* 1000; /* cycletime in ns */
+
+                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                    clock_gettime(CLOCK_MONOTONIC, &begin);
+                    prev = begin.tv_sec;
+                    prev += begin.tv_nsec / 1000000000.0;
 
                     while (1)
                     {
                         //Ethercat Loop begins :: RT Thread
-                        static double ce = 0;
-                        tp[0] = std::chrono::steady_clock::now();
 
                         //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
-                        while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime))
-                        {
-                            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-                        }
+                        
+                        t1 = std::chrono::high_resolution_clock::now();
+                        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, NULL);
 
-                        tp[1] = std::chrono::steady_clock::now();
-                        time_from_begin = std::chrono::steady_clock::now() - t_begin;
+                        //t1 = std::chrono::high_resolution_clock::now();
+                        time_from_begin = t1 - t_begin;
                         control_time_ = time_from_begin.count();
-
                         /** PDO I/O refresh */
                         ec_send_processdata();
 
-                        tp[2] = std::chrono::steady_clock::now();
-                        wkc = ec_receive_processdata(500);
+                        t6 = std::chrono::high_resolution_clock::now();
+                        wkc = ec_receive_processdata(250);
 
-                        tp[3] = std::chrono::steady_clock::now();
-
-                        td[0] = t_begin + cycle_count * cycletime - tp[0];
-                        td[1] = tp[1] - (t_begin + cycle_count * cycletime);
-
-                        td[2] = tp[2] - tp[1];
-                        td[3] = tp[3] - tp[2];
-
-                        td[4] = tp[2] - (t_begin + cycle_count * cycletime);
-
-                        d_mean = d_mean + td[4].count();
-                        if (d_min > td[4].count())
-                            d_min = td[4].count();
-                        if (d_max < td[4].count())
-                            d_max = td[4].count();
-
-                        d1_mean = d1_mean + td[3].count();
-                        if (d1_min > td[3].count())
-                            d1_min = td[3].count();
-                        if (d1_max < td[3].count())
-                            d1_max = td[3].count();
-
-                        c_count++;
-
-                        if (control_time_ > pwait_time)
-                        {
-                            std::cout << control_time_ << ", " << c_count << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"<<"receive : mean :"<<d1_mean/c_count*1.0E+6 <<" max : "<<d1_max*1.0E+6<<" min : "<<d1_min*1.0E+6 << std::endl;
-
-                            d_min = 1000;
-                            d_max = 0;
-                            d_mean = 0;
-                            c_count = 0;
-
-                            d1_min = 1000;
-                            d1_max = 0;
-                            d1_mean = 0;
-
-                            pwait_time = pwait_time + 1.0;
-                        }
-
-                        if (tp[3] > t_begin + (cycle_count + 1) * cycletime)
-                        {
-                            std::cout << " t_wait : " << td[0].count() * 1E+6 << " us, t_start : " << td[1].count() * 1E+6 << " us, ec_send : " << td[2].count() * 1E+6 << " us, ec_receive : " << td[3].count() * 1E+6 << " us" << std::endl;
-                        }
-
-                        cycle_count++;
-
+                        t2 = std::chrono::high_resolution_clock::now();
                         if (wkc >= expectedWKC)
                         {
 
@@ -380,7 +342,7 @@ void RealRobotInterface::ethercatThread()
                                          ((int32_t)ec_slave[slave].inputs[12] << 16) +
                                          ((int32_t)ec_slave[slave].inputs[13] << 24)) *
                                         CNT2RAD[slave - 1] * Dr[slave - 1];
-                                    /*
+/*
                                     torqueDemandElmo(slave - 1) =
                                         (int16_t)((ec_slave[slave].inputs[18]) +
                                                   (ec_slave[slave].inputs[19] << 8)) *
@@ -398,18 +360,16 @@ void RealRobotInterface::ethercatThread()
                                          ((uint32_t)ec_slave[slave].inputs[25] << 8) +
                                          ((uint32_t)ec_slave[slave].inputs[26] << 16) +
                                          ((uint32_t)ec_slave[slave].inputs[27] << 24));
-*/
-                                    //torqueElmo(slave - 1) = rxPDO[slave - 1]->torqueActualValue * Dr[slave - 1];
+
+  */
+//                                  torqueElmo(slave - 1) = rxPDO[slave - 1]->torqueActualValue * Dr[slave - 1];
 
                                     ElmoConnected = true;
                                     if (elmo_init)
                                     {
                                         positionInitialElmo = positionElmo;
                                         if (control_time_ > 1.0)
-                                        {
                                             elmo_init = false;
-                                            std::cout << red << "command activate!" << reset << std::endl;
-                                        }
 
                                         txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
                                         txPDO[slave - 1]->targetTorque = 0.0;
@@ -428,19 +388,21 @@ void RealRobotInterface::ethercatThread()
                                     //txPDO[slave - 1]->targetTorque = (int)(torqueDesiredElmo(slave - 1) * NM2CNT[slave - 1] * Dr[slave - 1]);
                                     //mtx_q.unlock();
                                     //std::cout << ec_slave[0].state << std::endl;
+
                                     if (!dc.elmo_Ready)
                                     {
                                         if (!elmo_init)
                                         {
                                             //Homming test for R7 +20 -20 for
-                                            if (slave == 50)
+                                            if (slave == 2)
                                             {
                                                 txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-                                                txPDO[slave - 1]->targetPosition = (int)((positionInitialElmo(slave - 1) + sin((control_time_ - 1.0) * 3.141592) * 0.5) * RAD2CNT[slave - 1] * Dr[slave - 1]);
+                                                txPDO[slave - 1]->targetPosition = (int)(positionInitialElmo(slave - 1) * RAD2CNT[slave - 1] * Dr[slave - 1]);
                                                 //std::cout<<"commanding ... "<<control_time_<<std::endl;
 
-                                                //txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                                                //txPDO[slave - 1]->targetTorque = (int)200;
+//                                                txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+  //                                              txPDO[slave - 1]->targetTorque = 100;
+                                                
                                             }
                                             else
                                             {
@@ -508,14 +470,10 @@ void RealRobotInterface::ethercatThread()
                             }
                         }
 
-                        if (control_time_ > 1.0)
-                        {
-                            //txPDO[1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                            txPDO[1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
 
-                            txPDO[1]->targetPosition = (int)((positionInitialElmo(1) + sin((control_time_ - 1.0) * 3.141592)) * RAD2CNT[1] * Dr[1]);
-                            //txPDO[1]->targetTorque = 130 * sin((control_time_ - 1.0) * 3.141592);
-                            //txPDO[1]->targetTorque = 120;
+                        if((t3- t1)>mc)
+                        {
+                            std::cout<<"Warning! time over!"<<std::endl;
                         }
                         if (dc.shutdown || !ros::ok())
                         {
@@ -523,6 +481,68 @@ void RealRobotInterface::ethercatThread()
                             //std::terminate();
                             break;
                         }
+                        clock_gettime(CLOCK_MONOTONIC, &time);
+                        now = time.tv_sec;
+                        now += time.tv_nsec / 1000000000.0;
+                        elapsed_time[elapsed_cnt] = now - prev;
+                        prev = now;
+
+                    
+                        elapsed_sum += elapsed_time[elapsed_cnt];
+                        if (elapsed_min > elapsed_time[elapsed_cnt])
+                            elapsed_min = elapsed_time[elapsed_cnt];
+                        if (elapsed_max < elapsed_time[elapsed_cnt])
+                            elapsed_max = elapsed_time[elapsed_cnt];
+
+                        time_mem[elapsed_cnt] = (elapsed_time[elapsed_cnt] - (cycletime / 1000000000.0)) * 1000;
+
+                        if (++elapsed_cnt >= 100)
+                        {
+                            elapsed_avg = elapsed_sum / elapsed_cnt;
+                            for (int i = 0; i < elapsed_cnt; i++)
+                            {
+                                elapsed_var += (elapsed_time[i] - elapsed_avg) * (elapsed_time[i] - elapsed_avg);
+                                if (elapsed_time[i] > elapsed_avg + 0.00010)
+                                    max_cnt++;
+                                if (elapsed_time[i] < elapsed_avg - 0.00010)
+                                    min_cnt++;
+                            }
+
+                            elapsed_var = elapsed_var / elapsed_cnt;
+                            printf("avg = %.3lf\tmin = %.3lf\tmax = %.3lf\tvar = %.6lf\tmax_cnt=%d\tmin_cnt=%d\tcnt = %d\n", elapsed_avg*1000, elapsed_min*1000, elapsed_max*1000, elapsed_var*1000000, max_cnt, min_cnt, elapsed_cnt);
+                            //printf("torqued %d %d \n",D_torque,torqueDemandElmo(1));
+
+                            max_cnt = 0;
+                            min_cnt = 0;
+                            elapsed_sum = 0;
+                            elapsed_var = 0;
+                            elapsed_cnt = 0;
+                            elapsed_min = 210000000.0;
+                            elapsed_max = 0.0;
+                        }
+
+                        add_timespec(&ts, cycletime);
+
+
+                        tptp2 = t1-t5;
+                        t3= std::chrono::high_resolution_clock::now();
+
+                        tptp = t3-t4;
+                        double dt1= tptp.count();
+
+                        tptp= t6-t1;
+                        
+                        if(dt1*1000>5)
+                        {
+                            std::cout<<"!!!! Time check : "<<dt1*1000<<"\tloop check !"<<tptp.count()*1000;
+                            tptp=t2-t6;
+                            std::cout<<"\tloop check 2 : " << tptp.count()*1000<<"\tloop check 3 : "<<tptp2.count()*1000<<std::endl;
+                            
+                        }
+
+                        t4=t3;
+                        
+                        t5= std::chrono::high_resolution_clock::now();
                     }
                 }
                 else

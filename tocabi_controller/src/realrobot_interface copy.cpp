@@ -1,6 +1,10 @@
 #include "tocabi_controller/realrobot_interface.h"
 #include "sensoray826/sensoray826.h"
 
+
+
+
+
 std::mutex mtx_torque_command;
 std::mutex mtx_q;
 
@@ -158,8 +162,7 @@ void RealRobotInterface::ethercatCheck()
 
         std::cout << std::endl;
 */
-        std::cout<<"hello from checking thread"<<std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
         if (ElmoTerminate)
         {
             dc.shutdown = true;
@@ -261,99 +264,66 @@ void RealRobotInterface::ethercatThread()
                         rxPDO[slave - 1] = (EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *)(ec_slave[slave].inputs);
                     }
 
-                    std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
+                    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double> time_from_begin;
                     std::chrono::duration<double> time_err_reset = std::chrono::seconds(0);
 
                     std::chrono::microseconds cycletime(dc.ctime);
                     int cycle_count = 0;
 
-                    std::chrono::steady_clock::time_point tp[6];
-                    std::chrono::steady_clock::time_point time_until;
+                    std::chrono::high_resolution_clock::time_point tp[6];
+                    std::chrono::high_resolution_clock::time_point time_until;
 
                     std::chrono::duration<double> td[7];
                     double to_ratio, to_calib;
-
-                    double pwait_time = 1.0;
-                    int c_count = 0;
-
-                    double d_min = 1000;
-                    double d_max = 0;
-                    double d_mean = 0;
-
-                    double d1_min = 1000;
-                    double d1_max = 0;
-                    double d1_mean = 0;
 
                     while (1)
                     {
                         //Ethercat Loop begins :: RT Thread
                         static double ce = 0;
-                        tp[0] = std::chrono::steady_clock::now();
+                        tp[0] = std::chrono::high_resolution_clock::now();
 
-                        //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
-                        while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime))
+                        while (tp[0] > (t_begin + cycle_count * cycletime))
                         {
-                            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+                            cycle_count++;
+                            std::cout << red << "cycle count added ! " << reset << std::endl;
                         }
 
-                        tp[1] = std::chrono::steady_clock::now();
-                        time_from_begin = std::chrono::steady_clock::now() - t_begin;
+                        for (int i = 1; i < 6; i++)
+                        {
+                            if (!(std::chrono::high_resolution_clock::now() > (t_begin + cycle_count * cycletime / 5*i)))
+                            {
+                                std::this_thread::sleep_until(t_begin + cycle_count * cycletime / 5*i);
+                            }
+                        }
+
+                        tp[1] = std::chrono::high_resolution_clock::now();
+                        time_from_begin = std::chrono::high_resolution_clock::now() - t_begin;
                         control_time_ = time_from_begin.count();
 
                         /** PDO I/O refresh */
                         ec_send_processdata();
-
-                        tp[2] = std::chrono::steady_clock::now();
-                        wkc = ec_receive_processdata(500);
-
-                        tp[3] = std::chrono::steady_clock::now();
-
-                        td[0] = t_begin + cycle_count * cycletime - tp[0];
-                        td[1] = tp[1] - (t_begin + cycle_count * cycletime);
-
-                        td[2] = tp[2] - tp[1];
-                        td[3] = tp[3] - tp[2];
-
-                        td[4] = tp[2] - (t_begin + cycle_count * cycletime);
-
-                        d_mean = d_mean + td[4].count();
-                        if (d_min > td[4].count())
-                            d_min = td[4].count();
-                        if (d_max < td[4].count())
-                            d_max = td[4].count();
-
-                        d1_mean = d1_mean + td[3].count();
-                        if (d1_min > td[3].count())
-                            d1_min = td[3].count();
-                        if (d1_max < td[3].count())
-                            d1_max = td[3].count();
-
-                        c_count++;
-
-                        if (control_time_ > pwait_time)
-                        {
-                            std::cout << control_time_ << ", " << c_count << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"<<"receive : mean :"<<d1_mean/c_count*1.0E+6 <<" max : "<<d1_max*1.0E+6<<" min : "<<d1_min*1.0E+6 << std::endl;
-
-                            d_min = 1000;
-                            d_max = 0;
-                            d_mean = 0;
-                            c_count = 0;
-
-                            d1_min = 1000;
-                            d1_max = 0;
-                            d1_mean = 0;
-
-                            pwait_time = pwait_time + 1.0;
-                        }
-
-                        if (tp[3] > t_begin + (cycle_count + 1) * cycletime)
-                        {
-                            std::cout << " t_wait : " << td[0].count() * 1E+6 << " us, t_start : " << td[1].count() * 1E+6 << " us, ec_send : " << td[2].count() * 1E+6 << " us, ec_receive : " << td[3].count() * 1E+6 << " us" << std::endl;
-                        }
+                        tp[2] = std::chrono::high_resolution_clock::now();
+                        td[5] = tp[2] - (t_begin + cycle_count * cycletime);
+                        wkc = ec_receive_processdata(750);
 
                         cycle_count++;
 
+                        tp[3] = std::chrono::high_resolution_clock::now();
+                        if (td[5].count() * 1.0E+6 > dc.ctime * 0.1)
+                        {
+                            if (td[5].count() * 1.0E+6 > dc.ctime * 0.2)
+                            {
+                                std::cout << control_time_ << red << " : command time error : " << td[5].count() * 1E+6 << " us, " << td[5].count() * 1.0E+8 / dc.ctime << "%"
+                                          << " while mean error : " << ce * 1E+6 << "us" << reset << std::endl;
+                                std::cout << red << "td0 : " << td[0].count() * 1E+6 << " td1 : " << td[1].count() * 1E+6 << " td2 : " << td[2].count() * 1E+6 << " td3 : " << td[3].count() * 1E+6 << " td4 : " << td[4].count() * 1E+6 << reset << std::endl;
+                            }
+                            else
+                            {
+                                //std::cout << control_time_ << " : command time error : " << td[5].count() * 1E+6 << " us, " << td[5].count() * 1.0E+8 / dc.ctime << "%"
+                                //          << " while mean error : " << ce * 1E+6<<"us" << std::endl;
+                            }
+                        }
                         if (wkc >= expectedWKC)
                         {
 
@@ -510,18 +480,125 @@ void RealRobotInterface::ethercatThread()
 
                         if (control_time_ > 1.0)
                         {
-                            //txPDO[1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                            txPDO[1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-
-                            txPDO[1]->targetPosition = (int)((positionInitialElmo(1) + sin((control_time_ - 1.0) * 3.141592)) * RAD2CNT[1] * Dr[1]);
-                            //txPDO[1]->targetTorque = 130 * sin((control_time_ - 1.0) * 3.141592);
-                            //txPDO[1]->targetTorque = 120;
+                            txPDO[1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                            //txPDO[1]->targetPosition = (int)((positionInitialElmo(1) + sin((control_time_ - 1.0) * 3.141592) * 0.5) * RAD2CNT[1] * Dr[1]);
+                            txPDO[1]->targetTorque = 130 *sin((control_time_-1.0)*3.141592);
                         }
                         if (dc.shutdown || !ros::ok())
                         {
                             ElmoTerminate = true;
                             //std::terminate();
                             break;
+                        }
+
+                        static std::chrono::high_resolution_clock::time_point time_in_loop = std::chrono::high_resolution_clock::now();
+                        static std::chrono::high_resolution_clock::time_point time_in_loop_before = std::chrono::high_resolution_clock::now();
+                        static std::chrono::duration<double> dur_in_loop;
+
+                        time_in_loop = std::chrono::high_resolution_clock::now();
+                        dur_in_loop = time_in_loop - time_in_loop_before;
+                        time_in_loop_before = time_in_loop;
+
+                        static double inloop_time;
+                        static int inloop_count = 0;
+
+                        static double inloop_max = 0;
+                        static double inloop_min = 1000;
+                        static double inloop_mean = 0;
+
+                        if (inloop_max < dur_in_loop.count())
+                        {
+                            inloop_max = dur_in_loop.count();
+                        }
+                        if (inloop_min > dur_in_loop.count())
+                        {
+                            if (dur_in_loop.count() > 1E-6)
+                            {
+                                inloop_min = dur_in_loop.count();
+                            }
+                        }
+                        inloop_count++;
+
+                        inloop_mean = inloop_mean + dur_in_loop.count();
+
+                        static double in1_max[6] = {0, 0, 0, 0, 0};
+                        static double in1_min[6] = {1000, 1000, 1000, 1000, 1000};
+                        static double in1_mean[6] = {0, 0, 0, 0, 0};
+                        static double sec1 = 1.0;
+
+                        tp[4] = std::chrono::high_resolution_clock::now();
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            td[i] = tp[i + 1] - tp[i];
+
+                            if (in1_max[i] < td[i].count())
+                            {
+                                in1_max[i] = td[i].count();
+                            }
+                            if (in1_min[i] > td[i].count())
+                            {
+                                in1_min[i] = td[i].count();
+                            }
+                            in1_mean[i] = in1_mean[i] + td[i].count();
+                        }
+
+                        {
+                            int i = 5;
+
+                            if (in1_max[i] < td[i].count())
+                            {
+                                in1_max[i] = td[i].count();
+                            }
+                            if (in1_min[i] > td[i].count())
+                            {
+                                in1_min[i] = td[i].count();
+                            }
+                            in1_mean[i] = in1_mean[i] + td[i].count();
+                        }
+
+                        td[4] = tp[0] - tp[5];
+
+                        if (in1_max[4] < td[4].count())
+                        {
+                            in1_max[4] = td[4].count();
+                        }
+                        if (in1_min[4] > td[4].count())
+                        {
+                            in1_min[4] = td[4].count();
+                        }
+                        in1_mean[4] = in1_mean[4] + td[4].count();
+
+                        if (control_time_ > sec1)
+                        {
+
+                            //std::cout << "Time : " << control_time_ << " Max : " << inloop_max * 1000 << " Min : " << inloop_min * 1000 << " Mean : " << inloop_mean / inloop_count * 1000 << " count : " << inloop_count << std::endl;
+                            ce = in1_mean[5] / cycle_count;
+                            for (int i = 5; i < 6; i++)
+                            {
+                                std::cout << control_time_ << " in " << i << " max : " << in1_max[i] * 1000 << " min : " << in1_min[i] * 1000 << " mean : " << in1_mean[i] / inloop_count * 1000 << std::endl;
+
+                                in1_max[i] = 0;
+                                in1_min[i] = 1000;
+                                in1_mean[i] = 0;
+                            }
+                            sec1 = sec1 + 1.0;
+                            inloop_max = 0;
+                            inloop_min = 1000;
+                            inloop_mean = 0;
+                            inloop_count = 0;
+                        }
+
+                        tp[5] = std::chrono::high_resolution_clock::now();
+
+                        if (td[5].count() * 1.0E+6 > dc.ctime * 0.2)
+                        {
+                            std::cout << red << "td0 : " << td[0].count() * 1E+6 << " td1 : " << td[1].count() * 1E+6 << " td2 : " << td[2].count() * 1E+6 << " td3 : " << td[3].count() * 1E+6 << " td4 : " << td[4].count() * 1E+6 << reset << std::endl;
+                        }
+                        else
+                        {
+                            //std::cout << control_time_ << " : command time error : " << td[5].count() * 1E+6 << " us, " << td[5].count() * 1.0E+8 / dc.ctime << "%"
+                            //          << " while mean error : " << ce * 1E+6<<"us" << std::endl;
                         }
                     }
                 }
