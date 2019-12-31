@@ -13,5 +13,9 @@
       <param name="rviz_pub" value="$(arg rviz)"/>
       <param name="ncurse" value="$(arg ncurse)"/>
     </node>
+    <node name="mujoco_ros" pkg="mujoco_ros" type="mujoco_ros" required="true" respawn="false" output="screen">
+      <param name="license" type="string" value="$(env HOME)/mjkey.txt" />
+      <param name="model_file" type="string" value="$(find tocabi_description)/mujoco_model/dyros_tocabi.xml"/>
+    </node>
   </group>
 </launch>

@@ -233,6 +233,7 @@
                                             <joint name="R_Elbow_Joint" pos="0 0 0" axis="1 0 0" limited="true" range="-2.967 3.14159" damping="5" />
                                             <geom size="0.04 0.04" pos="0 -0.08 0.0325" quat="0.707107 0.707107 0 0" type="cylinder" class="cls" />
                                             <geom size="0.04 0.04" quat="0.707107 0 0.707107 0" type="cylinder" class="cls" />
+                                            <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="R_elbow" />
                                             <body name="R_Forearm_Link" pos="0 -0.1244 0.0325">
                                                 <inertial pos="0.01426 -0.0767 0.00033" quat="0.55187 0.502809 -0.506596 0.431257" mass="0.30234" diaginertia="0.00126963 0.00106149 0.000388409" />
                                                 <joint name="R_Forearm_Joint" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14159 3.14159" damping="5" />

@@ -76,7 +76,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         else
         {
             // ROS_INFO("id:0 name is : %s",model_.GetBodyName(0));
-            for (int i = 0; i < MODEL_DOF + 1; i++)
+            for (int i = 0; i < LINK_NUMBER; i++)
             {
                 link_id_[i] = model_.GetBodyId(RED::LINK_NAME[i]);
                 if (i == 0)
@@ -100,7 +100,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
                 // //joint_name_map_[JOINT_NAME[i]] = i;
             }
 
-            for (int i = 0; i < MODEL_DOF + 1; i++)
+            for (int i = 0; i < LINK_NUMBER; i++)
             {
                 link_[i].initialize(model_, link_id_[i], RED::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
             }
