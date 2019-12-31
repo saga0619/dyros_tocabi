@@ -489,6 +489,11 @@ void RealRobotInterface::ethercatThread()
                             txPDO[1]->targetPosition = (int)((positionInitialElmo(1) + sin((control_time_ - 1.0) * 3.141592)) * RAD2CNT[1] * Dr[1]);
                             //txPDO[1]->targetTorque = 130 * sin((control_time_ - 1.0) * 3.141592);
                             //txPDO[1]->targetTorque = 120;
+
+                            txPDO[0]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+
+                            txPDO[0]->targetPosition = (int)((positionInitialElmo(0) + 0.5*sin((control_time_ - 1.0) * 3.141592)) * RAD2CNT[1] * Dr[1]);
+
                         }
                         if (dc.shutdown || !ros::ok())
                         {
