@@ -1,11 +1,9 @@
 #include "tocabi_controller/realrobot_interface.h"
 #include "sensoray826/sensoray826.h"
+#include <errno.h>
 
 std::mutex mtx_torque_command;
 std::mutex mtx_q;
-
-const std::string red("\033[0;31m");
-const std::string reset("\033[0m");
 
 double rising_time = 3.0;
 bool elmo_init = true;
@@ -160,16 +158,32 @@ void RealRobotInterface::ethercatCheck()
 */
         //std::cout<<"hello from checking thread"<<std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        if (ElmoTerminate)
+        if (ElmoTerminate || shutdown_tocabi)
         {
             dc.shutdown = true;
             break;
         }
     }
-    std::cout << "checking thread end !" << std::endl;
+    std::cout <<cyellow<< "checking thread end !"<<creset << std::endl;
 }
 void RealRobotInterface::ethercatThread()
 {
+    cpu_set_t cpuset;
+    pthread_t thread;
+    thread = pthread_self();
+
+    CPU_ZERO(&cpuset);
+    CPU_SET(7, &cpuset);
+    //sched_setaffinity(getpid(),sizeof(cpuset),&cpuset);
+    if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset))
+    {
+        std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
+    }
+    else
+    {
+        std::cout << " setaffinity success !" << std::endl;
+    }
+
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "ethercatThread Start" << std::endl;
 
@@ -292,13 +306,13 @@ void RealRobotInterface::ethercatThread()
                         tp[0] = std::chrono::steady_clock::now();
 
                         //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
-/*
+                        /*
                         while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime))
                         {
                             std::this_thread::sleep_for(std::chrono::nanoseconds(500));
                         }*/
 
-			std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+                        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
 
                         tp[1] = std::chrono::steady_clock::now();
                         time_from_begin = std::chrono::steady_clock::now() - t_begin;
@@ -308,7 +322,7 @@ void RealRobotInterface::ethercatThread()
                         //ec_send_processdata();
 
                         tp[2] = std::chrono::steady_clock::now();
-                        wkc = ec_receive_processdata(250);
+                        wkc = ec_receive_processdata(200);
 
                         tp[3] = std::chrono::steady_clock::now();
 
@@ -318,14 +332,10 @@ void RealRobotInterface::ethercatThread()
                         td[2] = tp[2] - tp[1];
                         td[3] = tp[3] - tp[2];
 
-
-                       
-
                         if (tp[3] > t_begin + (cycle_count + 1) * cycletime)
                         {
-                            std::cout <<red<< " t_wait : " << td[0].count() * 1E+6 << " us, t_start : " << td[1].count() * 1E+6 << " us, ec_send : " << td[2].count() * 1E+6 << " us, ec_receive : " << td[3].count() * 1E+6 << " us" <<reset<< std::endl;
+                            std::cout << cred << " t_wait : " << td[0].count() * 1E+6 << " us, t_start : " << td[1].count() * 1E+6 << " us, ec_send : " << td[2].count() * 1E+6 << " us, ec_receive : " << td[3].count() * 1E+6 << " us" << creset << std::endl;
                         }
-
 
                         if (wkc >= expectedWKC)
                         {
@@ -381,7 +391,7 @@ void RealRobotInterface::ethercatThread()
                                         if (control_time_ > 1.0)
                                         {
                                             elmo_init = false;
-                                            std::cout << red << "command activate!" << reset << std::endl;
+                                            std::cout << cred << "command activate!" << creset << std::endl;
                                         }
 
                                         txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
@@ -492,28 +502,27 @@ void RealRobotInterface::ethercatThread()
 
                             txPDO[0]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
 
-                            txPDO[0]->targetPosition = (int)((positionInitialElmo(0) + 0.5*sin((control_time_ - 1.0) * 3.141592)) * RAD2CNT[1] * Dr[1]);
-
+                            txPDO[0]->targetPosition = (int)((positionInitialElmo(0) + 0.5 * sin((control_time_ - 1.0) * 3.141592)) * RAD2CNT[1] * Dr[1]);
                         }
-                        if (dc.shutdown || !ros::ok())
+                        if (dc.shutdown || !ros::ok() || shutdown_tocabi)
                         {
                             ElmoTerminate = true;
                             //std::terminate();
                             break;
                         }
-/*
+                        /*
 			while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime +std::chrono::microseconds(100)))
                         {
                             std::this_thread::sleep_for(std::chrono::nanoseconds(500));
                         }*/
 
-			//std::this_thread::sleep_until(t_begin + cycle_count * cycletime +std::chrono::microseconds(250));
+                        //std::this_thread::sleep_until(t_begin + cycle_count * cycletime +std::chrono::microseconds(250));
 
                         ec_send_processdata();
 
                         td[4] = std::chrono::steady_clock::now() - (t_begin + cycle_count * cycletime);
 
- 			d_mean = d_mean + td[4].count();
+                        d_mean = d_mean + td[4].count();
                         if (d_min > td[4].count())
                             d_min = td[4].count();
                         if (d_max < td[4].count())
@@ -529,7 +538,10 @@ void RealRobotInterface::ethercatThread()
 
                         if (control_time_ > pwait_time)
                         {
-                            std::cout << control_time_ << ", " << c_count << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"<<"receive : mean :"<<d1_mean/c_count*1.0E+6 <<" max : "<<d1_max*1.0E+6<<" min : "<<d1_min*1.0E+6 << std::endl;
+                            printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us \n", control_time_, c_count, d_min * 1.0E+6,
+                                   d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
+                            //std::cout << control_time_ << ", " << c_count << std::setprecision(4) << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"
+                            //          << "receive : mean :" << d1_mean / c_count * 1.0E+6 << " max : " << d1_max * 1.0E+6 << " min : " << d1_min * 1.0E+6 << std::endl;
 
                             d_min = 1000;
                             d_max = 0;
@@ -544,7 +556,6 @@ void RealRobotInterface::ethercatThread()
                         }
 
                         cycle_count++;
-
                     }
                 }
                 else
@@ -585,7 +596,7 @@ void RealRobotInterface::ethercatThread()
         ElmoTerminate = true;
     }
 
-    std::cout << "Ethercat Thread End!" << std::endl;
+    std::cout << cyellow << "Ethercat Thread End !" << creset << std::endl;
     ElmoTerminate = true;
 }
 void RealRobotInterface::imuThread()

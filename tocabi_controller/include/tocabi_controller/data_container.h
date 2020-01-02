@@ -17,6 +17,10 @@
 #include "tocabi_controller/link.h"
 #include <fstream>
 
+#include <stdlib.h>
+#include <signal.h>
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //robot definition variables here
 
@@ -203,5 +207,14 @@ public:
 
   bool initialize_request = false;
 };
+
+
+static volatile sig_atomic_t shutdown_tocabi=0;
+
+const std::string cred("\033[0;31m");
+const std::string creset("\033[0m");
+const std::string cblue("\033[0;34m");
+const std::string cgreen("\033[0;32m");
+const std::string cyellow("\033[0;33m");
 
 #endif

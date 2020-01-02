@@ -2072,7 +2072,7 @@ void TocabiController::tuiThread()
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
-    std::cout << "Terminal Thread End !" << std::endl;
+    std::cout << cyellow << "Terminal Thread End !" << creset << std::endl;
 }
 
 void TocabiController::getState()
