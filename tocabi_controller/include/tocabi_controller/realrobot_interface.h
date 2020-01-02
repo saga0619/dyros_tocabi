@@ -236,8 +236,23 @@ public:
     Eigen::VectorQd torqueDesiredController;
     Eigen::VectorQd positionInitialElmo;
     Eigen::VectorQd positionZeroElmo;
+    Eigen::VectorQd initTimeElmo;
 
+    int findzeroElmo_status[MODEL_DOF] = 
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0};
+    int findzeroElmo_sefound[MODEL_DOF]=
+        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0};
     bool hommingElmo[MODEL_DOF];
+    bool hommingElmo_before[MODEL_DOF];
+
+    Eigen::VectorQd positionHStart;
+    Eigen::VectorQd positionHEnd;
 
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[MODEL_DOF];
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[MODEL_DOF];
@@ -256,6 +271,8 @@ private:
     ros::Subscriber gainSubscriber;
     Eigen::VectorQd CustomGain;
     void gainCallbak(const tocabi_controller::GainCommandConstPtr &msg);
+
+    double lookaround(double init, double angle, double start_time, double traj_time);
 
     mujoco_ros_msgs::JointSet mujoco_joint_set_msg_;
 
