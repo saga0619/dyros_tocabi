@@ -2,7 +2,7 @@
 #include "sensoray826/sensoray826.h"
 #include <errno.h>
 
-std::mutex mtx_torque_command;
+std::mutex mtx_elmo_command;
 std::mutex mtx_q;
 
 double rising_time = 3.0;
@@ -44,8 +44,17 @@ void RealRobotInterface::updateState()
     ros::spinOnce();
     if (mtx_q.try_lock())
     {
-        q_ = positionElmo;
-        q_dot_ = velocityElmo;
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::JOINT_NAME[i] == RED::ELMO_NAME[j])
+                {
+                    q_(i) = positionElmo(j);
+                    q_dot_(i) = velocityElmo(j);
+                }
+            }
+        }
         mtx_q.unlock();
         q_virtual_.segment(6, MODEL_DOF) = q_;
         q_dot_virtual_.segment(6, MODEL_DOF) = q_dot_;
@@ -54,19 +63,47 @@ void RealRobotInterface::updateState()
 
 Eigen::VectorQd RealRobotInterface::getCommand()
 {
-    mtx_torque_command.lock();
-    Eigen::VectorQd ttemp = torqueDesiredController;
-    mtx_torque_command.unlock();
+    Eigen::VectorQd ttemp;
+    if(dc.positionControl)
+    {
+        mtx_elmo_command.lock();
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                {
+                    //ttemp(i) = positionDesiredController(j);
+                }
+            }
+        }
+        mtx_elmo_command.unlock();        
+    }    
+    else
+    {
+        mtx_elmo_command.lock();
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                {
+                    ttemp(i) = torqueDesiredController(j);
+                }
+            }
+        }
+        mtx_elmo_command.unlock();
+    }
     return ttemp;
 }
 
 void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time)
 {
-    if (mtx_torque_command.try_lock())
+    if (mtx_elmo_command.try_lock())
     {
         torqueDesiredController = command;
         torque_desired = command;
-        mtx_torque_command.unlock();
+        mtx_elmo_command.unlock();
     }
 }
 
@@ -363,9 +400,15 @@ void RealRobotInterface::ethercatThread()
                                     reachedInitial[slave - 1] = true;
                                 }
                             }
+                            if(dc.positionControl)
+                            {
+                                positionDesiredElmo = getCommand();
+                            }
+                            else
+                            {
+                                torqueDesiredElmo = getCommand();                       
+                            }
 
-                            torqueDesiredElmo = getCommand();
-                            positionDesiredElmo = dc.positionDesired;
                             for (int slave = 1; slave <= ec_slavecount; slave++)
                             {
                                 if (reachedInitial[slave - 1])
@@ -562,6 +605,8 @@ void RealRobotInterface::ethercatThread()
                                                 txPDO[slave - 1]->targetTorque = (int)0;
                                             }
                                         }
+                               //         file[0]<<hommingElmo[2]<<"\t"<<hommingElmo[3]<<"\t"<<hommingElmo[4]<<"\t"<<hommingElmo[5]<<"\t"<<hommingElmo[6]<<"\t"<<hommingElmo[7]<<"\t"<<hommingElmo[8]<<"\t"<<hommingElmo[9]<<"\t"<<hommingElmo[10]<<"\t"<<hommingElmo[11]<<"\t"<<hommingElmo[12]<<"\t"<<hommingElmo[13]<<"\t"<<hommingElmo[14]<<"\t"<<hommingElmo[15]<<"\t"<<hommingElmo[16]<<"\t"<<hommingElmo[17]<<"\t"<<hommingElmo[18]<<"\t"<<hommingElmo[19]<<endl;  
+                                          file[0]<<hommingElmo[18]<<"\t"<<positionElmo[18]<<"\t"<<hommingElmo[19]<<"\t"<<positionElmo[19]<<"\t"<<hommingElmo[26]<<"\t"<<positionElmo[26]<<"\t"<<endl;  
                                     }
                                     else if (dc.emergencyoff)
                                     {

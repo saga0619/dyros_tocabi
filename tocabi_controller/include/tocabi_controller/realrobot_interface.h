@@ -242,6 +242,7 @@ public:
     Eigen::VectorQd velocityDesiredElmo;
     Eigen::VectorQd torqueDesiredElmo;
     Eigen::VectorQd torqueDesiredController;
+    Eigen::VectorQd positionDesiredController;
     Eigen::VectorQd positionInitialElmo;
     Eigen::VectorQd positionZeroElmo;
     Eigen::VectorQd initTimeElmo;

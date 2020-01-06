@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController rc(dc, stm, dym);
-
+/*
         std::thread thread[4];
         thread[0] = std::thread(&TocabiController::stateThread, &rc);
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
         for (int i = 0; i < 3; i++)
         {
             thread[i].join();
-        }
+        }*/
     }
     else if (dc.mode == "realrobot")
     {
