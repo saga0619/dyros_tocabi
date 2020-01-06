@@ -562,8 +562,6 @@ void RealRobotInterface::ethercatThread()
                                                 txPDO[slave - 1]->targetTorque = (int)0;
                                             }
                                         }
-                               //         file[0]<<hommingElmo[2]<<"\t"<<hommingElmo[3]<<"\t"<<hommingElmo[4]<<"\t"<<hommingElmo[5]<<"\t"<<hommingElmo[6]<<"\t"<<hommingElmo[7]<<"\t"<<hommingElmo[8]<<"\t"<<hommingElmo[9]<<"\t"<<hommingElmo[10]<<"\t"<<hommingElmo[11]<<"\t"<<hommingElmo[12]<<"\t"<<hommingElmo[13]<<"\t"<<hommingElmo[14]<<"\t"<<hommingElmo[15]<<"\t"<<hommingElmo[16]<<"\t"<<hommingElmo[17]<<"\t"<<hommingElmo[18]<<"\t"<<hommingElmo[19]<<endl;  
-                                          file[0]<<hommingElmo[18]<<"\t"<<positionElmo[18]<<"\t"<<hommingElmo[19]<<"\t"<<positionElmo[19]<<"\t"<<hommingElmo[26]<<"\t"<<positionElmo[26]<<"\t"<<endl;  
                                     }
                                     else if (dc.emergencyoff)
                                     {
@@ -647,7 +645,7 @@ void RealRobotInterface::ethercatThread()
                             break;
                         }
                         /*
-			while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime +std::chrono::microseconds(100)))
+		             	while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime +std::chrono::microseconds(100)))
                         {
                             std::this_thread::sleep_for(std::chrono::nanoseconds(500));
                         }*/
@@ -674,7 +672,7 @@ void RealRobotInterface::ethercatThread()
 
                         if (control_time_ > pwait_time)
                         {
-                            //printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us \n", control_time_, c_count, d_min * 1.0E+6,
+                            printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us \n", control_time_, c_count, d_min * 1.0E+6,
                             //       d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
                             //std::cout << control_time_ << ", " << c_count << std::setprecision(4) << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"
                             //          << "receive : mean :" << d1_mean / c_count * 1.0E+6 << " max : " << d1_max * 1.0E+6 << " min : " << d1_min * 1.0E+6 << std::endl;
