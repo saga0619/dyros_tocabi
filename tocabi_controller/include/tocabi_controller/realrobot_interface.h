@@ -146,9 +146,8 @@ const double Dr[MODEL_DOF] =
 //homingsensorcheck
 const int FILE_CNT = 1;
 const std::string FILE_NAMES[FILE_CNT] =
-{
-  "/home/dyros/homing/0_homing.txt"
-};
+    {
+        "/home/dyros/homing/0_homing.txt"};
 
 using namespace std;
 
@@ -193,9 +192,35 @@ struct ElmoGoldDevice
 };
 } // namespace EtherCAT_Elmo
 
+namespace ElmoHommingStatus
+{
+enum FZResult
+{
+    SUCCESS,
+    FAILURE
+};
+}; // namespace ElmoHomming
+
+struct ElmoHomming
+{
+    bool hommingElmo;
+    bool hommingElmo_before;
+    bool startFound = false;
+    bool endFound = false;
+    int findZeroSequence = 0;
+    double initTime;
+    double initPos;
+    double posStart;
+    double posEnd;
+    double req_length = 0.15;
+
+    int result;
+};
+
 class RealRobotInterface : public StateManager
 {
     fstream file[FILE_CNT];
+
 public:
     RealRobotInterface(DataContainer &dc_global);
     virtual ~RealRobotInterface() {}
@@ -215,6 +240,8 @@ public:
     void imuThread();
     void ftsensorThread();
 
+    void findZeroPoint(int slv_number);
+
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
 
     const int FAULT_BIT = 3;
@@ -229,6 +256,8 @@ public:
         CW_ENABLEOP = 15,
         CW_DISABLEOP = 7,
     };
+
+    ElmoHomming elmofz[MODEL_DOF];
 
     int wkc;
     int Walking_State;
@@ -247,16 +276,23 @@ public:
     Eigen::VectorQd positionZeroElmo;
     Eigen::VectorQd initTimeElmo;
 
-    int findzeroElmo_status[MODEL_DOF] = 
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0};
-    int findzeroElmo_sefound[MODEL_DOF]=
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0};
+    int findzeroElmo_status[MODEL_DOF] =
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0};
+    int findzeroElmo_sefound[MODEL_DOF] =
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0};
+
+    int findzeroElmo_ssfound[MODEL_DOF] =
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0};
+
     bool hommingElmo[MODEL_DOF];
     bool hommingElmo_before[MODEL_DOF];
 

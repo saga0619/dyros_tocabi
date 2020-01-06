@@ -131,6 +131,180 @@ Eigen::VectorQd RealRobotInterface::getCommand()
     return ttemp;
 }
 
+void RealRobotInterface::findZeroPoint(int slv_number)
+{
+    if (elmofz[slv_number].findZeroSequence == 0)
+    {
+        if (hommingElmo[slv_number])
+        {
+            std::cout << "motor " << slv_number << " init state : homming on" << std::endl;
+            elmofz[slv_number].findZeroSequence = 1;
+            elmofz[slv_number].initTime = control_time_;
+        }
+        else
+        {
+            std::cout << "motor " << slv_number << " init state : homming off" << std::endl;
+            elmofz[slv_number].findZeroSequence = 3;
+            elmofz[slv_number].initTime = control_time_;
+        }
+    }
+    else if (elmofz[slv_number].findZeroSequence == 1)
+    {
+        //go to + 0.3rad until homming sensor turn off
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * lookaround(positionInitialElmo(slv_number), 0.3, elmofz[slv_number].initTime, 2.0));
+
+        if (hommingElmo[slv_number] == 0)
+        {
+            hommingElmo_before[slv_number] = hommingElmo[slv_number];
+            elmofz[slv_number].findZeroSequence = 2;
+            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].posStart = positionElmo[slv_number];
+        }
+    }
+    else if (elmofz[slv_number].findZeroSequence == 2)
+    {
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * lookaround(elmofz[slv_number].posStart, -0.3, elmofz[slv_number].initTime, 2.0));
+
+        //go to -20deg until homming turn on, and turn off
+        if ((hommingElmo_before[slv_number] == 1) && (hommingElmo[slv_number] == 0))
+        {
+            if (abs(elmofz[slv_number].posStart - positionElmo[slv_number]) > elmofz[slv_number].req_length)
+            {
+                elmofz[slv_number].posEnd = positionElmo[slv_number];
+                elmofz[slv_number].endFound = 1;
+            }
+            else
+            {
+                printf("Motor %d : Not enough length start point : %f, Current Point %f \n", slv_number, elmofz[slv_number].posStart, positionElmo[slv_number]);
+
+                //std::cout << "off : homming turned off, but not enough length start point : " << elmofz[slv_number].posStart << " Current off point : " << positionElmo[slv_number] << std::endl;
+            }
+        }
+        else if ((hommingElmo_before[slv_number] == 0) && (hommingElmo[slv_number] == 0))
+        {
+            if (elmofz[slv_number].endFound == 1)
+            {
+                elmofz[slv_number].findZeroSequence = 4;
+                positionZeroElmo[slv_number] = (elmofz[slv_number].posEnd + elmofz[slv_number].posStart) * 0.5;
+                elmofz[slv_number].initTime = control_time_;
+                //std::cout << "on : Motor " << slv_number << " zero point found : " << positionZeroElmo[slv_number] << std::endl;
+            }
+        }
+
+        if (control_time_ > elmofz[slv_number].initTime + 3.0)
+        {
+            //std::cout << "Motor" << slv_number << " : Failed to find zero point ... moving to initial point ! " << std::endl;
+            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].findZeroSequence = 7;
+        }
+    }
+    else if (elmofz[slv_number].findZeroSequence == 3)
+    { //start from unknown
+
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * lookaround(positionInitialElmo(slv_number), 0.3, elmofz[slv_number].initTime, 2.0));
+        if (control_time_ > (elmofz[slv_number].initTime + 2.0))
+        {
+            txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * lookaround(positionInitialElmo(slv_number) + 0.3, -0.6, elmofz[slv_number].initTime + 2.0, 4.0));
+        }
+
+        //go to -20deg until homming turn on, and turn off
+        if ((!elmofz[slv_number].startFound) && (hommingElmo_before[slv_number] == 0) && (hommingElmo[slv_number]))
+        {
+            //std::cout << "off : motor " << slv_number << " : start point found " << std::endl;
+            elmofz[slv_number].posStart = positionElmo[slv_number];
+            elmofz[slv_number].startFound = 1;
+            //elmofz[slv_number].endFound = 1;
+        }
+        else if (elmofz[slv_number].startFound && (hommingElmo_before[slv_number] == 1) && (hommingElmo[slv_number] == 0))
+        {
+            if (abs(elmofz[slv_number].posStart - positionElmo[slv_number]) > elmofz[slv_number].req_length)
+            {
+                //std::cout << "off : motor " << slv_number << " : end point found " << std::endl;
+                elmofz[slv_number].posEnd = positionElmo[slv_number];
+                elmofz[slv_number].endFound = 1;
+            }
+            else
+            {
+                printf("Motor %d : Not enough length start point : %f, Current Point %f \n", slv_number, elmofz[slv_number].posStart, positionElmo[slv_number]);
+                //std::cout << "off : homming turned off, but not enough length start point : " << elmofz[slv_number].posStart << " Current off point : " << positionElmo[slv_number] << std::endl;
+            }
+        }
+        else if ((hommingElmo_before[slv_number] == 0) && (hommingElmo[slv_number] == 0) && (elmofz[slv_number].startFound) && (elmofz[slv_number].endFound))
+        {
+            if (elmofz[slv_number].endFound)
+            {
+                elmofz[slv_number].findZeroSequence = 4;
+                positionZeroElmo[slv_number] = (elmofz[slv_number].posEnd + elmofz[slv_number].posStart) * 0.5;
+                elmofz[slv_number].initTime = control_time_;
+                //std::cout << "off : Motor " << slv_number << " zero point found : " << positionZeroElmo[slv_number] << std::endl;
+            }
+        }
+
+        if (control_time_ > elmofz[slv_number].initTime + 7.0)
+        {
+            //std::cout << "Motor" << slv_number << " : Failed to find zero point ... moving to initial point ! " << std::endl;
+            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].findZeroSequence = 6;
+        }
+    }
+    else if (elmofz[slv_number].findZeroSequence == 4)
+    {
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * lookaround(elmofz[slv_number].posEnd, positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, 1.0));
+        //go to zero position
+        if (control_time_ > (elmofz[slv_number].initTime + 1.0))
+        {
+            //std::cout << "go to zero complete !" << std::endl;
+            printf("Motor %d : Zero Point Found ! \n", slv_number);
+            elmofz[slv_number].result = ElmoHommingStatus::SUCCESS;
+            //std::cout << slv_number << "Start : " << elmofz[slv_number].posStart << "End:" << elmofz[slv_number].posEnd << std::endl;
+            txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * positionZeroElmo(slv_number));
+            elmofz[slv_number].findZeroSequence = 5;
+        }
+    }
+    else if (elmofz[slv_number].findZeroSequence == 5)
+    {
+        //find zero complete, hold zero position.
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * positionZeroElmo(slv_number));
+    }
+    else if (elmofz[slv_number].findZeroSequence == 6)
+    {
+        //find zero point failed
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * lookaround(positionInitialElmo(slv_number) - 0.3, positionInitialElmo(slv_number), elmofz[slv_number].initTime, 1.0));
+        if (control_time_ > (elmofz[slv_number].initTime + 1.0))
+        {
+            elmofz[slv_number].findZeroSequence = 8;
+            printf("Motor %d : Failed to find Zero Point \n", slv_number);
+
+            elmofz[slv_number].result = ElmoHommingStatus::FAILURE;
+            //std::cout << "motor " << slv_number << " : torque zero " << std::endl;
+        }
+    }
+    else if (elmofz[slv_number].findZeroSequence == 7)
+    {
+        //find zero point failed
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = (int)(RAD2CNT[slv_number] * Dr[slv_number] * lookaround(elmofz[slv_number].posStart - 0.3, positionInitialElmo(slv_number), elmofz[slv_number].initTime, 1.0));
+        if (control_time_ > (elmofz[slv_number].initTime + 1.0))
+        {
+            elmofz[slv_number].findZeroSequence = 8;
+            printf("Motor %d : Failed to find Zero Point \n", slv_number);
+
+            elmofz[slv_number].result = ElmoHommingStatus::FAILURE;
+        }
+    }
+    else if (elmofz[slv_number].findZeroSequence == 8)
+    {
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+        txPDO[slv_number]->targetTorque = (int)0;
+    }
+}
+
 void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time)
 {
     if (mtx_elmo_command.try_lock())
@@ -388,6 +562,10 @@ void RealRobotInterface::ethercatThread()
                     double d1_max = 0;
                     double d1_mean = 0;
 
+                    elmofz[10].req_length = 0.05;
+                    elmofz[13].req_length = 0.05;
+                    elmofz[12].req_length = 0.05;
+
                     while (1)
                     {
                         //Ethercat Loop begins :: RT Thread
@@ -493,7 +671,7 @@ void RealRobotInterface::ethercatThread()
                                     //torqueElmo(slave - 1) = rxPDO[slave - 1]->torqueActualValue * Dr[slave - 1];
                                     ElmoConnected = true;
 
-                                    if (slave == 19 | slave == 20)
+                                    if (slave == 1 || slave == 2 || slave == 19 || slave == 20)
                                     {
                                         hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                     }
@@ -524,122 +702,21 @@ void RealRobotInterface::ethercatThread()
                                         if (!elmo_init)
                                         {
                                             //Homming test for slave 1,2
-                                            if (slave <3)
-                                            {
-                                                if (findzeroElmo_status[slave - 1] == 0)
-                                                {
-                                                    if (hommingElmo[slave - 1])
-                                                    {
-                                                        std::cout << "motor " << slave - 1 << " init state : homming off" << std::endl;
-                                                        findzeroElmo_status[slave - 1] = 3;
-                                                        initTimeElmo[slave - 1] = control_time_;
-                                                    }
-                                                    else
-                                                    {
-                                                        std::cout << "motor " << slave - 1 << "homming on" << std::endl;
-                                                        findzeroElmo_status[slave - 1] = 1;
-                                                        initTimeElmo[slave - 1] = control_time_;
-                                                    }
-                                                }
-                                                else if (findzeroElmo_status[slave - 1] == 1)
-                                                {
-                                                    //go to + 0.3rad until homming sensor turn off
-                                                    txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-                                                    txPDO[slave - 1]->targetPosition = (int)(RAD2CNT[slave - 1] * Dr[slave - 1] * lookaround(positionInitialElmo(slave - 1), 0.3, initTimeElmo[slave - 1], 2.0));
+                                            txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                                            txPDO[slave - 1]->targetTorque = (int)0;
 
-                                                    if (hommingElmo[slave - 1] == 1)
-                                                    {
-                                                        hommingElmo_before[slave - 1] = hommingElmo[slave - 1];
-                                                        findzeroElmo_status[slave - 1] = 2;
-                                                        initTimeElmo[slave - 1] = control_time_;
-                                                        positionHStart[slave - 1] = positionElmo[slave - 1];
-                                                    }
-                                                }
-                                                else if (findzeroElmo_status[slave - 1] == 2)
-                                                {
-                                                    txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-                                                    txPDO[slave - 1]->targetPosition = (int)(RAD2CNT[slave - 1] * Dr[slave - 1] * lookaround(positionHStart(slave - 1), -0.6, initTimeElmo[slave - 1], 4.0));
+                                            if (slave == 1 || slave == 2 || slave == 3 || slave == 6 || slave == 12 || slave == 13 || slave == 8 || slave == 9 || slave == 11 || slave == 14)
+                                                findZeroPoint(slave - 1);
+                                            //if (slave == 1 || slave == 2 ||slave == 11 || slave == 14)
 
-                                                    //go to -20deg until homming turn on, and turn off
-                                                    if ((hommingElmo_before[slave - 1] == 0) && (hommingElmo[slave - 1] == 1))
-                                                    {
-                                                        positionHEnd[slave - 1] = positionElmo[slave - 1];
-                                                        findzeroElmo_sefound[slave - 1] = 1;
-                                                    }
-                                                    else if ((hommingElmo_before[slave - 1] == 1) && (hommingElmo[slave - 1] == 1))
-                                                    {
-                                                        if (findzeroElmo_sefound[slave - 1] == 1)
-                                                        {
-                                                            findzeroElmo_status[slave - 1] = 4;
-                                                            positionZeroElmo[slave - 1] = (positionHEnd[slave - 1] + positionHStart[slave - 1]) * 0.5;
-                                                            initTimeElmo[slave - 1] = control_time_;
-                                                            std::cout << "on : Motor " << slave - 1 << " zero point found : " << positionZeroElmo[slave - 1] << std::endl;
-                                                        }
-                                                    }
-                                                }
-                                                else if (findzeroElmo_status[slave - 1] == 3)
-                                                { //start from unknown
 
-                                                    txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-                                                    txPDO[slave - 1]->targetPosition = (int)(RAD2CNT[slave - 1] * Dr[slave - 1] * lookaround(positionHStart(slave - 1), 0.3, initTimeElmo[slave - 1], 2.0));
-                                                    if (control_time_ > (initTimeElmo[slave - 1] + 2.0))
-                                                    {
-                                                        txPDO[slave - 1]->targetPosition = (int)(RAD2CNT[slave - 1] * Dr[slave - 1] * lookaround(positionHStart(slave - 1) + 0.3, -0.6, initTimeElmo[slave - 1] + 2.0, 4.0));
-                                                    }
+                                            //txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+                                            //txPDO[slave - 1]->targetPosition = (int)((positionInitialElmo(slave - 1) + sin((control_time_ - 1.0) * 3.141592) * 0.5) * RAD2CNT[slave - 1] * Dr[slave - 1]);
+                                            //std::cout<<"commanding ... "<<control_time_<<std::endl;
+                                            //txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                                            //txPDO[slave - 1]->targetTorque = (int)200;
 
-                                                    //go to -20deg until homming turn on, and turn off
-                                                    if ((hommingElmo_before[slave - 1] == 1) && (hommingElmo[slave - 1] == 0))
-                                                    {
-                                                        positionHStart[slave - 1] = positionElmo[slave - 1];
-                                                        //findzeroElmo_sefound[slave - 1] = 1;
-                                                    }
-                                                    else if ((hommingElmo_before[slave - 1] == 0) && (hommingElmo[slave - 1] == 1))
-                                                    {
-                                                        positionHEnd[slave - 1] = positionElmo[slave - 1];
-                                                        findzeroElmo_sefound[slave - 1] = 1;
-                                                    }
-                                                    else if ((hommingElmo_before[slave - 1] == 1) && (hommingElmo[slave - 1] == 1))
-                                                    {
-                                                        if (findzeroElmo_sefound[slave - 1] == 1)
-                                                        {
-                                                            findzeroElmo_status[slave - 1] = 4;
-                                                            positionZeroElmo[slave - 1] = (positionHEnd[slave - 1] + positionHStart[slave - 1]) * 0.5;
-                                                            initTimeElmo[slave - 1] = control_time_;
-                                                            std::cout << "off : Motor " << slave - 1 << " zero point found : " << positionZeroElmo[slave - 1] << std::endl;
-                                                        }
-                                                    }
-                                                }
-                                                else if (findzeroElmo_status[slave - 1] == 4)
-                                                {
-                                                    txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-                                                    txPDO[slave - 1]->targetPosition = (int)(RAD2CNT[slave - 1] * Dr[slave - 1] * lookaround(positionHEnd(slave - 1), positionZeroElmo(slave - 1) - positionHEnd(slave - 1), initTimeElmo[slave - 1], 1));
-                                                    //go to zero position
-                                                    if (control_time_ > (initTimeElmo(slave - 1) + 1.0))
-                                                    {
-                                                        std::cout << "go to zero complete !" << std::endl;
-                                                        txPDO[slave - 1]->targetPosition = (int)(RAD2CNT[slave - 1] * Dr[slave - 1] * positionZeroElmo(slave - 1));
-                                                        findzeroElmo_status[slave - 1] = 5;
-                                                    }
-                                                }
-                                                else if (findzeroElmo_status[slave - 1] == 5)
-                                                {
-                                                    txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-                                                    txPDO[slave - 1]->targetPosition = (int)(RAD2CNT[slave - 1] * Dr[slave - 1] * positionZeroElmo(slave - 1));
-                                                }
-
-                                                //txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-                                                //txPDO[slave - 1]->targetPosition = (int)((positionInitialElmo(slave - 1) + sin((control_time_ - 1.0) * 3.141592) * 0.5) * RAD2CNT[slave - 1] * Dr[slave - 1]);
-                                                //std::cout<<"commanding ... "<<control_time_<<std::endl;
-                                                //txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                                                //txPDO[slave - 1]->targetTorque = (int)200;
-
-                                                hommingElmo_before[slave - 1] = hommingElmo[slave - 1];
-                                            }
-                                            else
-                                            {
-                                                txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                                                txPDO[slave - 1]->targetTorque = (int)0;
-                                            }
+                                            hommingElmo_before[slave - 1] = hommingElmo[slave - 1];
                                         }
                                         //         file[0]<<hommingElmo[2]<<"\t"<<hommingElmo[3]<<"\t"<<hommingElmo[4]<<"\t"<<hommingElmo[5]<<"\t"<<hommingElmo[6]<<"\t"<<hommingElmo[7]<<"\t"<<hommingElmo[8]<<"\t"<<hommingElmo[9]<<"\t"<<hommingElmo[10]<<"\t"<<hommingElmo[11]<<"\t"<<hommingElmo[12]<<"\t"<<hommingElmo[13]<<"\t"<<hommingElmo[14]<<"\t"<<hommingElmo[15]<<"\t"<<hommingElmo[16]<<"\t"<<hommingElmo[17]<<"\t"<<hommingElmo[18]<<"\t"<<hommingElmo[19]<<endl;
                                         //file[0] << hommingElmo[18] << "\t" << positionElmo[18] << "\t" << hommingElmo[19] << "\t" << positionElmo[19] << "\t" << hommingElmo[26] << "\t" << positionElmo[26] << "\t" << endl;
@@ -753,8 +830,11 @@ void RealRobotInterface::ethercatThread()
 
                         if (control_time_ > pwait_time)
                         {
-                            printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us \n", control_time_, c_count, d_min * 1.0E+6,
-                                   d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
+                            if (dc.print_delay_info)
+                            {
+                                rprint(dc, "%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us", control_time_, c_count, d_min * 1.0E+6,
+                                       d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
+                            }
                             //std::cout << control_time_ << ", " << c_count << std::setprecision(4) << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"
                             //          << "receive : mean :" << d1_mean / c_count * 1.0E+6 << " max : " << d1_max * 1.0E+6 << " min : " << d1_min * 1.0E+6 << std::endl;
 

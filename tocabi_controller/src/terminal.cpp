@@ -30,22 +30,33 @@ void rprint(DataContainer &dc, const char *str, ...)
     va_end(lst);
 }
 
-int kbhit()
+int kbhit(void)
 {
-  struct termios oldt, newt;
-  int ch;
 
-  tcgetattr(STDIN_FILENO, &oldt);
-  newt = oldt;
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
 
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO | ISIG);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
 
-  ch = getchar();
+    int nread = read(0, &ch, 1);
 
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
 
-return ch;
+    if (nread >= 1)
+    {
+        return ch;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 void wait_for_ms(int ms)

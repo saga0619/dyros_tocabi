@@ -13,7 +13,6 @@
 #include <mujoco_ros_msgs/JointSet.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Imu.h>
-#include <ncurses.h>
 #include "tocabi_controller/link.h"
 #include <fstream>
 
@@ -109,6 +108,7 @@ public:
   bool connected = false;
   bool firstcalcdone = false;
   bool statemanager_ready = false;
+  bool print_delay_info = false;
 
   std::string mode;
 

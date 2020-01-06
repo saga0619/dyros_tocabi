@@ -1994,38 +1994,61 @@ void TocabiController::dynamicsThreadLow()
 
 void TocabiController::tuiThread()
 {
-    int kch;
+    int ch;
     double before_time;
+    bool pub_ = false;
+    std::string str_text;
+
     while (!dc.shutdown && ros::ok())
     {
-        for (int i = 0; i < 40; i++)
+        for (int i = 0; i < 50; i++)
         {
-            if (dc.Tq_[i].update)
+            if (mtx_terminal.try_lock())
             {
-                std::cout << dc.Tq_[i].text << std::endl;
-                dc.Tq_[i].update = false;
+                if (dc.Tq_[i].update)
+                {
+                    str_text = std::string(dc.Tq_[i].text);
+                    dc.Tq_[i].update = false;
+                    pub_ = true;
+                }
+                mtx_terminal.unlock();
+            }
+            if (pub_)
+            {
+                std::cout << str_text << std::endl;
+                pub_ = false;
             }
         }
+
         if (control_time_ != before_time)
             if (dc.mode != "ethercattest")
                 pubfromcontroller();
 
-        kch = kbhit();
-        if (kch!=-1)
+        ch = kbhit();
+        //kch = -1;
+        if (ch != -1)
         {
-            if (kch == 'q')
+            //std::cout<<"working?"<<ch<<std::endl;
+            if ((ch % 256 == 'q'))
+            {
                 dc.shutdown = true;
-            else if (kch == 'p')
+            }
+            else if ((ch % 256 == 'p'))
             {
                 std::cout << "position mode" << std::endl;
             }
-            else if (kch == 't')
+            else if ((ch % 256 == 't'))
             {
                 std::cout << "torque mode " << std::endl;
             }
+            else if (ch%256 == 'd')
+            {
+                dc.print_delay_info = !dc.print_delay_info;
+            }
         }
         before_time = control_time_;
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        //std::cout<<control_time_<<"tui test"<<std::endl;
     }
 
     std::cout << cyellow << "Terminal Thread End !" << creset << std::endl;
