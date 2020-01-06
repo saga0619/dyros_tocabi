@@ -31,6 +31,11 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     {
         dc.currentGain(i) = NM2CNT[i];
     }
+    for(int i=0; i<FILE_CNT;i++)
+    {
+      file[i].open(FILE_NAMES[i].c_str(),ios_base::out);
+    }
+    file[0]<<"R7"<<"\t"<<"R8"<<"\t"<<"L8"<<"\t"<<"L7"<<"\t"<<"L3"<<"\t"<<"L4"<<"\t"<<"R4"<<"\t"<<"R3"<<"\t"<<"R5"<<"\t"<<"R6"<<"\t"<<"L6"<<"\t"<<"L5"<<"\t"<<"L1"<<"\t"<<"L2"<<"\t"<<"R2"<<"\t"<<"R1"<<"\t"<<"w1"<<"\t"<<"w2"<<endl;
 }
 
 void RealRobotInterface::updateState()
@@ -409,6 +414,11 @@ void RealRobotInterface::ethercatThread()
                                     //torqueElmo(slave - 1) = rxPDO[slave - 1]->torqueActualValue * Dr[slave - 1];
                                     ElmoConnected = true;
 
+                                    if(slave == 19 | slave == 20)
+                                    {
+                                        hommingElmo[slave - 1] = !hommingElmo[slave - 1];
+                                    }
+
                                     if (elmo_init)
                                     {
                                         positionInitialElmo = positionElmo;
@@ -552,6 +562,8 @@ void RealRobotInterface::ethercatThread()
                                                 txPDO[slave - 1]->targetTorque = (int)0;
                                             }
                                         }
+                               //         file[0]<<hommingElmo[2]<<"\t"<<hommingElmo[3]<<"\t"<<hommingElmo[4]<<"\t"<<hommingElmo[5]<<"\t"<<hommingElmo[6]<<"\t"<<hommingElmo[7]<<"\t"<<hommingElmo[8]<<"\t"<<hommingElmo[9]<<"\t"<<hommingElmo[10]<<"\t"<<hommingElmo[11]<<"\t"<<hommingElmo[12]<<"\t"<<hommingElmo[13]<<"\t"<<hommingElmo[14]<<"\t"<<hommingElmo[15]<<"\t"<<hommingElmo[16]<<"\t"<<hommingElmo[17]<<"\t"<<hommingElmo[18]<<"\t"<<hommingElmo[19]<<endl;  
+                                          file[0]<<hommingElmo[18]<<"\t"<<positionElmo[18]<<"\t"<<hommingElmo[19]<<"\t"<<positionElmo[19]<<"\t"<<hommingElmo[26]<<"\t"<<positionElmo[26]<<"\t"<<endl;  
                                     }
                                     else if (dc.emergencyoff)
                                     {

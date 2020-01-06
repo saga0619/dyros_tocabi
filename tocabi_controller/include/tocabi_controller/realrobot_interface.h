@@ -143,6 +143,13 @@ const double Dr[MODEL_DOF] =
      1, 1, 1, 1, 1, 1,
      1, 1, 1};
 
+//homingsensorcheck
+const int FILE_CNT = 1;
+const std::string FILE_NAMES[FILE_CNT] =
+{
+  "/home/dyros/homing/0_homing.txt"
+};
+
 using namespace std;
 
 namespace EtherCAT_Elmo
@@ -188,6 +195,7 @@ struct ElmoGoldDevice
 
 class RealRobotInterface : public StateManager
 {
+    fstream file[FILE_CNT];
 public:
     RealRobotInterface(DataContainer &dc_global);
     virtual ~RealRobotInterface() {}
