@@ -29,20 +29,15 @@ public:
   void tuiThread();
   void endTui();
 
-  std::string menu(int y_start, int x_start, int y_dis, int x_dis, int y_length, int x_length, std::string menu_list[10][10]);
 };
 
 void wait_for_keypress();
 void wait_for_ms(int ms);
 
-void rprint(DataContainer &dc, int y, int x, const char *str, ...);
-void rprint(DataContainer &dc, bool clr_line, int y, int x, const char *str, ...);
 void rprint(DataContainer &dc, const char *str, ...);
 
-void rprint_sol(bool ncurse, int y, int x, const char *str, ...);
 
 int kbhit();
-int kbhit2();
 
 
 #endif

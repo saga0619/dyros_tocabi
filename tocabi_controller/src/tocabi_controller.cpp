@@ -1994,80 +1994,36 @@ void TocabiController::dynamicsThreadLow()
 
 void TocabiController::tuiThread()
 {
+    int kch;
+    double before_time;
     while (!dc.shutdown && ros::ok())
     {
-        static double before_time;
-
-        mtx_terminal.lock();
-        if (dc.ncurse_mode)
-            mvprintw(4, 30, "I'm alive : %f", ros::Time::now().toSec());
-        mtx_terminal.unlock();
         for (int i = 0; i < 40; i++)
         {
-            if (dc.Tq_[i].update && dc.ncurse_mode)
-            {
-                mtx_terminal.lock();
-                mvprintw(dc.Tq_[i].y, dc.Tq_[i].x, dc.Tq_[i].text);
-                dc.Tq_[i].update = false;
-                if (dc.Tq_[i].clr_line)
-                {
-                    move(dc.Tq_[i].y, 0);
-                    clrtoeol();
-                }
-                mtx_terminal.unlock();
-            }
-            else if (dc.Tq_[i].update && (!dc.ncurse_mode))
+            if (dc.Tq_[i].update)
             {
                 std::cout << dc.Tq_[i].text << std::endl;
                 dc.Tq_[i].update = false;
             }
         }
-        if (dc.ncurse_mode)
-        {
-            if (getch() == 'q')
-            {
-                dc.shutdown = true;
-            }
-        }
-        else if (!ros::ok())
-        {
-            dc.shutdown = true;
-        }
-
         if (control_time_ != before_time)
             if (dc.mode != "ethercattest")
                 pubfromcontroller();
 
-        //int value = kbhit2();
-
-        if (kbhit2())
+        kch = kbhit();
+        if (kch!=-1)
         {
-            if (getchar() == 'q')
+            if (kch == 'q')
                 dc.shutdown = true;
-            else if (getchar() == 'p')
+            else if (kch == 'p')
             {
                 std::cout << "position mode" << std::endl;
             }
-            else if (getchar() == 't')
+            else if (kch == 't')
             {
                 std::cout << "torque mode " << std::endl;
             }
         }
-        /*
-        if (value!=-1)
-        {
-            std::cout<<"kbhit : "<<(char)value<<std::endl;
-
-            if (value=='q')
-            {
-                std::cout<<"End Request! "<<std::endl;
-                dc.shutdown=true;
-            }
-        }
-        else 
-        {
-            std::cout<<".";
-        }*/
         before_time = control_time_;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }

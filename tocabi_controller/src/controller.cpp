@@ -14,7 +14,6 @@ int main(int argc, char **argv)
     DataContainer dc;
 
     dc.nh.param<std::string>("/tocabi_controller/run_mode", dc.mode, "default");
-    dc.nh.param("/tocabi_controller/ncurse", dc.ncurse_mode, false);
     dc.nh.param<std::string>("/tocabi_controller/ifname", dc.ifname, "enp0s31f6");
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 250);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, false);
@@ -27,8 +26,6 @@ int main(int argc, char **argv)
 
     Tui tui(dc);
 
-    if (!dc.ncurse_mode)
-        endwin();
     std::cout << "Tocabi Controller : ";
     if (dc.mode == "simulation")
     {

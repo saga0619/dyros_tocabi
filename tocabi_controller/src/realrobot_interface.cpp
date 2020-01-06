@@ -31,11 +31,45 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     {
         dc.currentGain(i) = NM2CNT[i];
     }
-    for(int i=0; i<FILE_CNT;i++)
+    for (int i = 0; i < FILE_CNT; i++)
     {
-      file[i].open(FILE_NAMES[i].c_str(),ios_base::out);
+        file[i].open(FILE_NAMES[i].c_str(), ios_base::out);
     }
-    file[0]<<"R7"<<"\t"<<"R8"<<"\t"<<"L8"<<"\t"<<"L7"<<"\t"<<"L3"<<"\t"<<"L4"<<"\t"<<"R4"<<"\t"<<"R3"<<"\t"<<"R5"<<"\t"<<"R6"<<"\t"<<"L6"<<"\t"<<"L5"<<"\t"<<"L1"<<"\t"<<"L2"<<"\t"<<"R2"<<"\t"<<"R1"<<"\t"<<"w1"<<"\t"<<"w2"<<endl;
+    file[0] << "R7"
+            << "\t"
+            << "R8"
+            << "\t"
+            << "L8"
+            << "\t"
+            << "L7"
+            << "\t"
+            << "L3"
+            << "\t"
+            << "L4"
+            << "\t"
+            << "R4"
+            << "\t"
+            << "R3"
+            << "\t"
+            << "R5"
+            << "\t"
+            << "R6"
+            << "\t"
+            << "L6"
+            << "\t"
+            << "L5"
+            << "\t"
+            << "L1"
+            << "\t"
+            << "L2"
+            << "\t"
+            << "R2"
+            << "\t"
+            << "R1"
+            << "\t"
+            << "w1"
+            << "\t"
+            << "w2" << endl;
 }
 
 void RealRobotInterface::updateState()
@@ -44,11 +78,11 @@ void RealRobotInterface::updateState()
     ros::spinOnce();
     if (mtx_q.try_lock())
     {
-        for(int i=0; i<MODEL_DOF; i++)
+        for (int i = 0; i < MODEL_DOF; i++)
         {
-            for(int j=0; j<MODEL_DOF; j++)
+            for (int j = 0; j < MODEL_DOF; j++)
             {
-                if(RED::JOINT_NAME[i] == RED::ELMO_NAME[j])
+                if (RED::JOINT_NAME[i] == RED::ELMO_NAME[j])
                 {
                     q_(i) = positionElmo(j);
                     q_dot_(i) = velocityElmo(j);
@@ -64,29 +98,29 @@ void RealRobotInterface::updateState()
 Eigen::VectorQd RealRobotInterface::getCommand()
 {
     Eigen::VectorQd ttemp;
-    if(dc.positionControl)
+    if (dc.positionControl)
     {
         mtx_elmo_command.lock();
-        for(int i=0; i<MODEL_DOF; i++)
+        for (int i = 0; i < MODEL_DOF; i++)
         {
-            for(int j=0; j<MODEL_DOF; j++)
+            for (int j = 0; j < MODEL_DOF; j++)
             {
-                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                if (RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
                 {
                     //ttemp(i) = positionDesiredController(j);
                 }
             }
         }
-        mtx_elmo_command.unlock();        
-    }    
+        mtx_elmo_command.unlock();
+    }
     else
     {
         mtx_elmo_command.lock();
-        for(int i=0; i<MODEL_DOF; i++)
+        for (int i = 0; i < MODEL_DOF; i++)
         {
-            for(int j=0; j<MODEL_DOF; j++)
+            for (int j = 0; j < MODEL_DOF; j++)
             {
-                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                if (RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
                 {
                     ttemp(i) = torqueDesiredController(j);
                 }
@@ -250,9 +284,11 @@ void RealRobotInterface::ethercatThread()
                 printf("Has Slave[%d] CA? %s\n", slave, ec_slave[slave].CoEdetails & ECT_COEDET_SDOCA ? "true" : "false");
                 ec_slave[slave].CoEdetails ^= ECT_COEDET_SDOCA;
             }
+            printf("Checking EC STATE ... \n");
             ec_statecheck(0, EC_STATE_PRE_OP, EC_TIMEOUTSTATE);
+            printf("Checking EC STATE Complete \n");
 
-            if (33 == ec_slavecount)
+            if (MODEL_DOF == ec_slavecount)
             {
 
                 for (int slave = 1; slave <= ec_slavecount; slave++)
@@ -311,14 +347,14 @@ void RealRobotInterface::ethercatThread()
                 if (ec_slave[0].state == EC_STATE_OPERATIONAL)
                 {
                     //printf("Operational state reached for all slaves.\n");
-                    rprint(dc, 15, 5, "Operational state reached for all slaves.");
-                    rprint(dc, 16, 5, "Starting red controller threads in ... 3");
+                    rprint(dc, "Operational state reached for all slaves.");
+                    rprint(dc, "Starting red controller threads in ... 3");
                     std::this_thread::sleep_for(std::chrono::seconds(1));
-                    rprint(dc, 1, 1, "2...");
+                    rprint(dc, "2...");
                     std::this_thread::sleep_for(std::chrono::seconds(1));
-                    rprint(dc, 1, 1, "1...");
+                    rprint(dc, "1...");
                     std::this_thread::sleep_for(std::chrono::seconds(1));
-                    rprint(dc, 1, 1, "0...Start!");
+                    rprint(dc, "0...Start!");
 
                     dc.connected = true;
                     /* cyclic loop */
@@ -400,13 +436,13 @@ void RealRobotInterface::ethercatThread()
                                     reachedInitial[slave - 1] = true;
                                 }
                             }
-                            if(dc.positionControl)
+                            if (dc.positionControl)
                             {
-                                positionDesiredElmo = getCommand();
+                                //positionDesiredElmo = getCommand();
                             }
                             else
                             {
-                                torqueDesiredElmo = getCommand();                       
+                                //torqueDesiredElmo = getCommand();
                             }
 
                             for (int slave = 1; slave <= ec_slavecount; slave++)
@@ -457,7 +493,7 @@ void RealRobotInterface::ethercatThread()
                                     //torqueElmo(slave - 1) = rxPDO[slave - 1]->torqueActualValue * Dr[slave - 1];
                                     ElmoConnected = true;
 
-                                    if(slave == 19 | slave == 20)
+                                    if (slave == 19 | slave == 20)
                                     {
                                         hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                     }
@@ -487,20 +523,20 @@ void RealRobotInterface::ethercatThread()
                                     {
                                         if (!elmo_init)
                                         {
-                                            //Homming test for slave 1,2 
-                                            if (slave < 3)
+                                            //Homming test for slave 1,2
+                                            if (slave <3)
                                             {
                                                 if (findzeroElmo_status[slave - 1] == 0)
                                                 {
                                                     if (hommingElmo[slave - 1])
                                                     {
-                                                        //std::cout << "homming off" << std::endl;
+                                                        std::cout << "motor " << slave - 1 << " init state : homming off" << std::endl;
                                                         findzeroElmo_status[slave - 1] = 3;
                                                         initTimeElmo[slave - 1] = control_time_;
                                                     }
                                                     else
                                                     {
-                                                        //std::cout << "homming on" << std::endl;
+                                                        std::cout << "motor " << slave - 1 << "homming on" << std::endl;
                                                         findzeroElmo_status[slave - 1] = 1;
                                                         initTimeElmo[slave - 1] = control_time_;
                                                     }
@@ -605,8 +641,8 @@ void RealRobotInterface::ethercatThread()
                                                 txPDO[slave - 1]->targetTorque = (int)0;
                                             }
                                         }
-                               //         file[0]<<hommingElmo[2]<<"\t"<<hommingElmo[3]<<"\t"<<hommingElmo[4]<<"\t"<<hommingElmo[5]<<"\t"<<hommingElmo[6]<<"\t"<<hommingElmo[7]<<"\t"<<hommingElmo[8]<<"\t"<<hommingElmo[9]<<"\t"<<hommingElmo[10]<<"\t"<<hommingElmo[11]<<"\t"<<hommingElmo[12]<<"\t"<<hommingElmo[13]<<"\t"<<hommingElmo[14]<<"\t"<<hommingElmo[15]<<"\t"<<hommingElmo[16]<<"\t"<<hommingElmo[17]<<"\t"<<hommingElmo[18]<<"\t"<<hommingElmo[19]<<endl;  
-                                          file[0]<<hommingElmo[18]<<"\t"<<positionElmo[18]<<"\t"<<hommingElmo[19]<<"\t"<<positionElmo[19]<<"\t"<<hommingElmo[26]<<"\t"<<positionElmo[26]<<"\t"<<endl;  
+                                        //         file[0]<<hommingElmo[2]<<"\t"<<hommingElmo[3]<<"\t"<<hommingElmo[4]<<"\t"<<hommingElmo[5]<<"\t"<<hommingElmo[6]<<"\t"<<hommingElmo[7]<<"\t"<<hommingElmo[8]<<"\t"<<hommingElmo[9]<<"\t"<<hommingElmo[10]<<"\t"<<hommingElmo[11]<<"\t"<<hommingElmo[12]<<"\t"<<hommingElmo[13]<<"\t"<<hommingElmo[14]<<"\t"<<hommingElmo[15]<<"\t"<<hommingElmo[16]<<"\t"<<hommingElmo[17]<<"\t"<<hommingElmo[18]<<"\t"<<hommingElmo[19]<<endl;
+                                        //file[0] << hommingElmo[18] << "\t" << positionElmo[18] << "\t" << hommingElmo[19] << "\t" << positionElmo[19] << "\t" << hommingElmo[26] << "\t" << positionElmo[26] << "\t" << endl;
                                     }
                                     else if (dc.emergencyoff)
                                     {
@@ -718,7 +754,7 @@ void RealRobotInterface::ethercatThread()
                         if (control_time_ > pwait_time)
                         {
                             printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us \n", control_time_, c_count, d_min * 1.0E+6,
-                            //       d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
+                                   d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
                             //std::cout << control_time_ << ", " << c_count << std::setprecision(4) << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"
                             //          << "receive : mean :" << d1_mean / c_count * 1.0E+6 << " max : " << d1_max * 1.0E+6 << " min : " << d1_min * 1.0E+6 << std::endl;
 

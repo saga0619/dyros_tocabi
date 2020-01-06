@@ -94,9 +94,6 @@ class TQue
 {
 public:
   bool update;
-  bool clr_line;
-  int x;
-  int y;
   //std::string text;
   char text[256];
 };
@@ -111,7 +108,6 @@ public:
   bool shutdown = false;
   bool connected = false;
   bool firstcalcdone = false;
-  bool ncurse_mode = false;
   bool statemanager_ready = false;
 
   std::string mode;

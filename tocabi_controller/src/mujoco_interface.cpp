@@ -68,59 +68,27 @@ void MujocoInterface::connect()
     //std::cout << "________________________________________________________________________________\n\n";
     std::cout << "\tConnecting to Mujoco ..." << std::flush;
 
-    int w_y;
 
-    w_y = 12;
-    rprint(dc, 14, 10, "Press any key to stop ");
-    rprint(dc, 13, 10, "Connecting to Mujoco .... ");
+    rprint(dc, "Press any key to stop ");
+    rprint(dc, "Connecting to Mujoco .... ");
     ros::Rate r(100);
     ros::Time start_time = ros::Time::now();
     int cnt = 0;
-    int kbhit = -1;
     int loading = 0;
     while (!mujoco_ready & ros::ok())
     {
-        kbhit = getch();
-        cnt++;
         r.sleep();
         ros::spinOnce();
-        if ((cnt % 10) == 0)
-        {
-            if (loading == 0)
-                rprint(dc, 13, 31, ":    ");
-            else if (loading == 1)
-                rprint(dc, 13, 31, " :   ");
-            else if (loading == 2)
-                rprint(dc, 13, 31, "  :  ");
-            else if (loading == 3)
-                rprint(dc, 13, 31, "   : ");
-            else if (loading == 4)
-                rprint(dc, 13, 31, "    :");
-            else if (loading == 5)
-                rprint(dc, 13, 31, "   : ");
-            else if (loading == 6)
-                rprint(dc, 13, 31, "  :  ");
-            else if (loading == 7)
-                rprint(dc, 13, 31, " :  ");
 
-            loading++;
-            if (loading > 7)
-                loading = 0;
-        }
-        if (!(kbhit == -1))
-        {
-            rprint(dc, 13, 31, "::::");
-            rprint(dc, 13, 36, "Stopping");
-            break;
-        }
         if ((ros::Time::now().toSec() - start_time.toSec()) > 5.0)
         {
-            rprint(dc, 13, 31, "::::");
-            rprint(dc, 13, 36, "Stopping");
+            rprint(dc, "No response from Mujoco for 5 seconds ... Stop Connecting Mujoco");
             break;
         }
     }
+
     start_time = ros::Time::now();
+
     if (mujoco_ready)
     {
         while (!mujoco_init_receive & ros::ok())
@@ -136,17 +104,13 @@ void MujocoInterface::connect()
     {
         mujoco_init_receive = false;
         mujoco_ready = false;
-        //std::cout << "\tConnection failed. \n"                  << std::flush;
     }
     else if (mujoco_init_receive && mujoco_ready)
     {
         mujoco_init_receive = false;
         mujoco_ready = false;
-        rprint(dc, 13, 31, "::::");
-        rprint(dc, 13, 36, "Connected");
+        rprint(dc, "Connected!");
         dc.connected = true;
-        //return 1;
-        //std::cout << "\tConnected! \n"                  << std::flush;
     }
 }
 

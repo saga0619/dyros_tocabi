@@ -178,7 +178,7 @@ void StateManager::stateThread(void)
         if (e_s > sec10)
         {
             StartTime = std::chrono::high_resolution_clock::now();
-            //rprint(dc, 0, 0, "s count : %d", ThreadCount - (i - 1) * 4000);
+            //rprint(dc, "s count : %d", ThreadCount - (i - 1) * 4000);
 
             if (dc.checkfreqency)
                 std::cout << control_time_ << " ::: state thread : " << ThreadCount - ThreadCount2 << " hz ";
@@ -360,12 +360,12 @@ void StateManager::testThread()
         if ((ThreadCount % 2000) == 0)
         {
             e_s = std::chrono::high_resolution_clock::now() - StartTime;
-            rprint(dc, 19, 10, "Kinematics update %8.4f hz                         ", 2000 / e_s.count());
+            rprint(dc, "Kinematics update %8.4f hz                         ", 2000 / e_s.count());
             StartTime = std::chrono::high_resolution_clock::now();
         }
         if (dc.shutdown)
         {
-            rprint(dc, true, 19, 10, "state end");
+            rprint(dc, "state end");
             break;
         }
         ThreadCount++;
