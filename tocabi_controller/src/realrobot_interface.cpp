@@ -44,8 +44,17 @@ void RealRobotInterface::updateState()
     ros::spinOnce();
     if (mtx_q.try_lock())
     {
-        q_ = positionElmo;
-        q_dot_ = velocityElmo;
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::JOINT_NAME[i] == RED::ELMO_NAME[j])
+                {
+                    q_(i) = positionElmo(j);
+                    q_dot_(i) = velocityElmo(j);
+                }
+            }
+        }
         mtx_q.unlock();
         q_virtual_.segment(6, MODEL_DOF) = q_;
         q_dot_virtual_.segment(6, MODEL_DOF) = q_dot_;
