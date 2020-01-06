@@ -5,7 +5,7 @@
 
 
 
-std::mutex mtx_torque_command;
+std::mutex mtx_elmo_command;
 std::mutex mtx_q;
 
 const std::string red("\033[0;31m");
@@ -55,9 +55,37 @@ void RealRobotInterface::updateState()
 
 Eigen::VectorQd RealRobotInterface::getCommand()
 {
-    mtx_torque_command.lock();
-    Eigen::VectorQd ttemp = torqueDesiredController;
-    mtx_torque_command.unlock();
+    Eigen::VectorQd ttemp;
+    if(dc.positionControl)
+    {
+        mtx_elmo_command.lock();
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                {
+                    //ttemp(i) = positionDesiredController(j);
+                }
+            }
+        }
+        mtx_elmo_command.unlock();        
+    }    
+    else
+    {
+        mtx_elmo_command.lock();
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                {
+                    ttemp(i) = torqueDesiredController(j);
+                }
+            }
+        }
+        mtx_elmo_command.unlock();
+    }
     return ttemp;
 }
 

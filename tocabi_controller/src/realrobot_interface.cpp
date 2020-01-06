@@ -2,7 +2,7 @@
 #include "sensoray826/sensoray826.h"
 #include <errno.h>
 
-std::mutex mtx_torque_command;
+std::mutex mtx_elmo_command;
 std::mutex mtx_q;
 
 double rising_time = 3.0;
@@ -54,19 +54,47 @@ void RealRobotInterface::updateState()
 
 Eigen::VectorQd RealRobotInterface::getCommand()
 {
-    mtx_torque_command.lock();
-    Eigen::VectorQd ttemp = torqueDesiredController;
-    mtx_torque_command.unlock();
+    Eigen::VectorQd ttemp;
+    if(dc.positionControl)
+    {
+        mtx_elmo_command.lock();
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                {
+                    //ttemp(i) = positionDesiredController(j);
+                }
+            }
+        }
+        mtx_elmo_command.unlock();        
+    }    
+    else
+    {
+        mtx_elmo_command.lock();
+        for(int i=0; i<MODEL_DOF; i++)
+        {
+            for(int j=0; j<MODEL_DOF; j++)
+            {
+                if(RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                {
+                    ttemp(i) = torqueDesiredController(j);
+                }
+            }
+        }
+        mtx_elmo_command.unlock();
+    }
     return ttemp;
 }
 
 void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time)
 {
-    if (mtx_torque_command.try_lock())
+    if (mtx_elmo_command.try_lock())
     {
         torqueDesiredController = command;
         torque_desired = command;
-        mtx_torque_command.unlock();
+        mtx_elmo_command.unlock();
     }
 }
 
@@ -363,9 +391,15 @@ void RealRobotInterface::ethercatThread()
                                     reachedInitial[slave - 1] = true;
                                 }
                             }
+                            if(dc.positionControl)
+                            {
+                                positionDesiredElmo = getCommand();
+                            }
+                            else
+                            {
+                                torqueDesiredElmo = getCommand();                       
+                            }
 
-                            torqueDesiredElmo = getCommand();
-                            positionDesiredElmo = dc.positionDesired;
                             for (int slave = 1; slave <= ec_slavecount; slave++)
                             {
                                 if (reachedInitial[slave - 1])

@@ -36,7 +36,8 @@ const std::string JOINT_NAME[MODEL_DOF] = {
     "L_Elbow_Joint", "L_Forearm_Joint", "L_Wrist1_Joint", "L_Wrist2_Joint",
     "Neck_Joint", "Head_Joint",
     "R_Shoulder1_Joint", "R_Shoulder2_Joint", "R_Shoulder3_Joint", "R_Armlink_Joint",
-    "R_Elbow_Joint", "R_Forearm_Joint", "R_Wrist1_Joint", "R_Wrist2_Joint"};
+    "R_Elbow_Joint", "R_Forearm_Joint", "R_Wrist1_Joint", "R_Wrist2_Joint"
+    };
 
 const std::string ACTUATOR_NAME[MODEL_DOF] = {
     "L_HipRoll_Motor", "L_HipCenter_Motor", "L_Thigh_Motor",
@@ -48,7 +49,8 @@ const std::string ACTUATOR_NAME[MODEL_DOF] = {
     "L_Elbow_Motor", "L_Forearm_Motor", "L_Wrist1_Motor", "L_Wrist2_Motor",
     "Neck_Motor", "Head_Motor",
     "R_Shoulder1_Motor", "R_Shoulder2_Motor", "R_Shoulder3_Motor", "R_Armlink_Motor",
-    "R_Elbow_Motor", "R_Forearm_Motor", "R_Wrist1_Motor", "R_Wrist2_Motor"};
+    "R_Elbow_Motor", "R_Forearm_Motor", "R_Wrist1_Motor", "R_Wrist2_Motor"
+    };
 
 static constexpr const char *LINK_NAME[LINK_NUMBER] = {
     "Pelvis_Link", "Waist1_Link", "Waist2_Link", "Upperbody_Link",
@@ -58,6 +60,19 @@ static constexpr const char *LINK_NAME[LINK_NUMBER] = {
     "R_Shoulder1_Link", "R_Shoulder2_Link", "R_Shoulder3_Link", "R_Armlink_Link", "R_Elbow_Link", "R_Forearm_Link", "R_Wrist1_Link", "R_Wrist2_Link",
     "Neck_Link", "Head_Link"
     };
+
+const std::string ELMO_NAME[MODEL_DOF] = {
+    "L_HipRoll_Joint", "L_HipCenter_Joint", "L_Thigh_Joint",
+    "L_Knee_Joint", "L_AnkleCenter_Joint", "L_AnkleRoll_Joint",
+    "R_HipRoll_Joint", "R_HipCenter_Joint", "R_Thigh_Joint",
+    "R_Knee_Joint", "R_AnkleCenter_Joint", "R_AnkleRoll_Joint",
+    "Waist1_Joint", "Waist2_Joint", "Upperbody_Joint",
+    "L_Shoulder1_Joint", "L_Shoulder2_Joint", "L_Shoulder3_Joint", "L_Armlink_Joint",
+    "L_Elbow_Joint", "L_Forearm_Joint", "L_Wrist1_Joint", "L_Wrist2_Joint",
+    "Neck_Joint", "Head_Joint",
+    "R_Shoulder1_Joint", "R_Shoulder2_Joint", "R_Shoulder3_Joint", "R_Armlink_Joint",
+    "R_Elbow_Joint", "R_Forearm_Joint", "R_Wrist1_Joint", "R_Wrist2_Joint"
+    };    
 } // namespace RED
 
 const int Pelvis = 0;
