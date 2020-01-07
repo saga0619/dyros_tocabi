@@ -78,7 +78,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
             // ROS_INFO("id:0 name is : %s",model_.GetBodyName(0));
             for (int i = 0; i < LINK_NUMBER; i++)
             {
-                link_id_[i] = model_.GetBodyId(RED::LINK_NAME[i]);
+                link_id_[i] = model_.GetBodyId(TOCABI::LINK_NAME[i]);
                 if (i == 0)
                 {
                     int li = link_id_[Pelvis];
@@ -90,7 +90,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
                 if (!model_.IsBodyId(link_id_[i]))
                 {
-                    ROS_INFO_COND(verbose, "Failed to get body id at link %d : %s", i, RED::LINK_NAME[i]);
+                    ROS_INFO_COND(verbose, "Failed to get body id at link %d : %s", i, TOCABI::LINK_NAME[i]);
                 }
                 // ROS_INFO("%s: \t\t id = %d \t parent link = %d",LINK_NAME[i],
                 // link_id_[i],model_.GetParentBodyId(link_id_[i]));
@@ -102,7 +102,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
             for (int i = 0; i < LINK_NUMBER; i++)
             {
-                link_[i].initialize(model_, link_id_[i], RED::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
+                link_[i].initialize(model_, link_id_[i], TOCABI::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
             }
 
             Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
@@ -122,7 +122,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
             joint_state_msg.name.resize(MODEL_DOF);
             for (int i = 0; i < MODEL_DOF; i++)
             {
-                joint_state_msg.name[i] = RED::JOINT_NAME[i];
+                joint_state_msg.name[i] = TOCABI::JOINT_NAME[i];
             }
             // RigidBodyDynamics::Joint J_temp;
             // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);

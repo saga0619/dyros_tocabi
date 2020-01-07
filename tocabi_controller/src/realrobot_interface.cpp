@@ -82,7 +82,7 @@ void RealRobotInterface::updateState()
         {
             for (int j = 0; j < MODEL_DOF; j++)
             {
-                if (RED::JOINT_NAME[i] == RED::ELMO_NAME[j])
+                if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j])
                 {
                     q_(i) = positionElmo(j);
                     q_dot_(i) = velocityElmo(j);
@@ -105,7 +105,7 @@ Eigen::VectorQd RealRobotInterface::getCommand()
         {
             for (int j = 0; j < MODEL_DOF; j++)
             {
-                if (RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
                 {
                     //ttemp(i) = positionDesiredController(j);
                 }
@@ -120,7 +120,7 @@ Eigen::VectorQd RealRobotInterface::getCommand()
         {
             for (int j = 0; j < MODEL_DOF; j++)
             {
-                if (RED::ELMO_NAME[i] == RED::JOINT_NAME[j])
+                if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
                 {
                     ttemp(i) = torqueDesiredController(j);
                 }
@@ -132,7 +132,32 @@ Eigen::VectorQd RealRobotInterface::getCommand()
 }
 int RealRobotInterface::checkTrajContinuity(int slv_number)
 {
-	
+}
+
+void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
+{
+    if (!ElmoSafteyMode[slv_number])
+    {
+        if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis)
+        {
+            std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command too far" << std::endl;
+            ElmoSafteyMode[slv_number] = true;
+            positionSafteyHoldElmo[slv_number]=positionElmo[slv_number];
+        }
+
+        if (abs(velocityElmo(slv_number)) > max_vel)
+        {
+            std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Velocity Over Limit" << std::endl;
+            ElmoSafteyMode[slv_number] = true;
+            positionSafteyHoldElmo[slv_number]=positionElmo[slv_number];
+        }
+    }
+    
+    if(ElmoSafteyMode[slv_number])
+    {
+        txPDO[slv_number]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+        txPDO[slv_number]->targetPosition = positionSafteyHoldElmo[slv_number];
+    }
 }
 
 void RealRobotInterface::findZeroPoint(int slv_number)
@@ -570,6 +595,11 @@ void RealRobotInterface::ethercatThread()
                     elmofz[13].req_length = 0.05;
                     elmofz[12].req_length = 0.05;
 
+                    for (int i = 0; i < MODEL_DOF; i++)
+                    {
+                        ElmoSafteyMode[i] = false;
+                    }
+
                     while (1)
                     {
                         //Ethercat Loop begins :: RT Thread
@@ -713,7 +743,6 @@ void RealRobotInterface::ethercatThread()
                                                 findZeroPoint(slave - 1);
                                             //if (slave == 1 || slave == 2 ||slave == 11 || slave == 14)
 
-
                                             //txPDO[slave - 1]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
                                             //txPDO[slave - 1]->targetPosition = (int)((positionInitialElmo(slave - 1) + sin((control_time_ - 1.0) * 3.141592) * 0.5) * RAD2CNT[slave - 1] * Dr[slave - 1]);
                                             //std::cout<<"commanding ... "<<control_time_<<std::endl;
@@ -814,34 +843,39 @@ void RealRobotInterface::ethercatThread()
 
                         //std::this_thread::sleep_until(t_begin + cycle_count * cycletime +std::chrono::microseconds(250));
 
-			for(int i=0;i<MODEL_DOF;i++)
-			{ 
-			    if(ElmoMode[i] = EM_POSITION)
-			    {
-				positionDesiredElmo[i] =     
+                        for (int i = 0; i < MODEL_DOF; i++)
+                        {
+                            if (ElmoMode[i] = EM_POSITION)
+                            {
                                 txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
-				txPDO[i]->targetPosition = (int)(Dr[i]*RAD2CNT[i]*positionDesiredElmo[i]);
-			    }
-			    else if(ElmoMode[i] = EM_TORQUE)
-			    {
+                                txPDO[i]->targetPosition = (int)(Dr[i] * RAD2CNT[i] * positionDesiredElmo[i]);
+                            }
+                            else if (ElmoMode[i] = EM_TORQUE)
+                            {
+                                txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                                txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * NM2CNT[i] * Dr[i]);
+                            }
+                            else
+                            {
+
                                 txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
                                 txPDO[i]->targetTorque = (int)0;
-			    }
-			    else 
-			    {
-				    
+                            }
+                        }
+
+                        for (int i = 0; i < MODEL_DOF; i++)
+                        {
+                            checkSafety(i, 0.5, 0.5 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position //
+                        }
+
+                        if (dc.emergencyoff)
+                        {
+                            for (int i = 0; i < MODEL_DOF; i++)
+                            {
                                 txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
                                 txPDO[i]->targetTorque = (int)0;
-			    }
-			}
-			if(dc.emergencyoff)
-			{
-				for(int i=0;i<MODEL_DOF;i++)
-				{
-				    txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                                    txPDO[i]->targetTorque = (int)0;
-				}
-			}
+                            }
+                        }
                         ec_send_processdata();
 
                         td[4] = std::chrono::steady_clock::now() - (t_begin + cycle_count * cycletime);

@@ -48,7 +48,7 @@ void MujocoInterface::sendCommand(Eigen::VectorQd command, double simt)
     {
         for (int j = 0; j < MODEL_DOF; j++)
         {
-            if (RED::ACTUATOR_NAME[i] == joint_name_mj[j])
+            if (TOCABI::ACTUATOR_NAME[i] == joint_name_mj[j])
             {
                 mujoco_joint_set_msg_.torque[j] = command[i];
             }
@@ -138,7 +138,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     {
         for (int j = 0; j < msg->name.size(); j++)
         {
-            if (RED::ACTUATOR_NAME[i] == msg->name[j].data())
+            if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
             {
                 q_(i) = msg->position[j];
                 q_virtual_(i + 6) = msg->position[j];
@@ -280,7 +280,7 @@ void MujocoInterface::jointStateCallback(const sensor_msgs::JointStateConstPtr &
     {
         for (int j = 0; j < msg->name.size(); j++)
         {
-            if (RED::ACTUATOR_NAME[i] == msg->name[j].data())
+            if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
             {
                 q_(i) = msg->position[j];
                 q_virtual_(i + 6) = msg->position[j];

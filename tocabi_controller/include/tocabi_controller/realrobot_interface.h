@@ -241,6 +241,7 @@ public:
     void ftsensorThread();
 
     int checkTrajContinuity(int slv_number);
+    void checkSafety(int slv_number, double max_vel, double max_dis);
     void findZeroPoint(int slv_number);
 
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
@@ -266,8 +267,8 @@ public:
     
     enum
     {
-        EM_POSITION = 11;
-        EM_TORQUE = 22;
+        EM_POSITION = 11,
+        EM_TORQUE = 22,
     };
 
     Eigen::VectorQd positionElmo;
@@ -284,6 +285,9 @@ public:
     Eigen::VectorQd positionInitialElmo;
     Eigen::VectorQd positionZeroElmo;
     Eigen::VectorQd initTimeElmo;
+    Eigen::VectorQd positionSafteyHoldElmo;
+
+
 
     int findzeroElmo_status[MODEL_DOF] =
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -304,6 +308,7 @@ public:
 
     bool hommingElmo[MODEL_DOF];
     bool hommingElmo_before[MODEL_DOF];
+    bool ElmoSafteyMode[MODEL_DOF];
 
     Eigen::VectorQd positionHStart;
     Eigen::VectorQd positionHEnd;

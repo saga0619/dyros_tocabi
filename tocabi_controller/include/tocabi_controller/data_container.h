@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //robot definition variables here
 
-namespace RED
+namespace TOCABI
 {
 const std::string JOINT_NAME[MODEL_DOF] = {
     "L_HipRoll_Joint", "L_HipCenter_Joint", "L_Thigh_Joint",
@@ -162,7 +162,7 @@ public:
 
   //For real robot
   std::string ifname;
-  int ctime;
+  volatile int ctime;
 
   Eigen::VectorQd q_init_;
   Eigen::VectorQd q_elmo_;
