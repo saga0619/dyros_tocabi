@@ -109,6 +109,8 @@ public:
   bool firstcalcdone = false;
   bool statemanager_ready = false;
   bool print_delay_info = false;
+  bool print_elmo_info_tofile = false;
+
 
   std::string mode;
 
@@ -162,7 +164,7 @@ public:
 
   //For real robot
   std::string ifname;
-  volatile int ctime;
+  int ctime;
 
   Eigen::VectorQd q_init_;
   Eigen::VectorQd q_elmo_;
