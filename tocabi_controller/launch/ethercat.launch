@@ -4,14 +4,12 @@
   <arg name="controller" default="true" />
   <arg name="gui" default="true"/>
   <arg name="run_mode" default="ethercattest"/>
-  <arg name="ncurse" default="false"/>
   
   <group if="$(arg controller)">
     <node name="tocabi_controller" pkg="tocabi_controller" type="tocabi_controller" output="screen">
       <param name="run_mode" value="$(arg run_mode)"/>
       <param name="debug" value="$(arg debug)" />
       <param name="rviz_pub" value="$(arg rviz)"/>
-      <param name="ncurse" value="$(arg ncurse)"/>
       <param name="ctime" value="2000"/>
       <param name="ifname" value="enp0s31f6"/>
     </node>

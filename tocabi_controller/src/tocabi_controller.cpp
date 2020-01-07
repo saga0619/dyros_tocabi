@@ -2001,6 +2001,11 @@ void TocabiController::tuiThread()
 
     while (!dc.shutdown && ros::ok())
     {
+        while(!dc.connected)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
         for (int i = 0; i < 50; i++)
         {
             if (mtx_terminal.try_lock())
@@ -2047,7 +2052,7 @@ void TocabiController::tuiThread()
             }
         }
         before_time = control_time_;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
         //std::cout<<control_time_<<"tui test"<<std::endl;
     }
 

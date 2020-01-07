@@ -55,79 +55,76 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     initialize();
     bool verbose = true; //set verbose true for State Manager initialization info
 
-    if (dc.mode != "ethercattest")
+    std::string desc_package_path = ros::package::getPath("tocabi_description");
+    std::string urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
+
+    ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
+
+    RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true, verbose);
+
+    ROS_INFO_COND(verbose, "Successfully loaded.");
+    ROS_INFO_COND(verbose, "MODEL DOF COUNT = %d and MODEL Q SIZE = %d ", model_.dof_count, model_.q_size);
+
+    // model_.mJoints[0].)
+    if (model_.dof_count != MODEL_DOF + 6)
     {
-        std::string desc_package_path = ros::package::getPath("tocabi_description");
-        std::string urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
-
-        ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
-
-        RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true, verbose);
-
-        ROS_INFO_COND(verbose, "Successfully loaded.");
-        ROS_INFO_COND(verbose, "MODEL DOF COUNT = %d and MODEL Q SIZE = %d ", model_.dof_count, model_.q_size);
-
-        // model_.mJoints[0].)
-        if (model_.dof_count != MODEL_DOF + 6)
+        ROS_WARN("The DoF in the model file and the code do not match.");
+        ROS_WARN("Model file = %d, Code = %d", model_.dof_count, (int)MODEL_DOF + 6);
+    }
+    else
+    {
+        // ROS_INFO("id:0 name is : %s",model_.GetBodyName(0));
+        for (int i = 0; i < LINK_NUMBER; i++)
         {
-            ROS_WARN("The DoF in the model file and the code do not match.");
-            ROS_WARN("Model file = %d, Code = %d", model_.dof_count, (int)MODEL_DOF + 6);
+            link_id_[i] = model_.GetBodyId(TOCABI::LINK_NAME[i]);
+            if (i == 0)
+            {
+                int li = link_id_[Pelvis];
+                std::cout << "Pelvis center of mass? : " << model_.mBodies[li].mCenterOfMass[0] << "  " << model_.mBodies[li].mCenterOfMass[1] << "  " << model_.mBodies[li].mCenterOfMass[2] << std::endl;
+                std::cout << "mass : " << model_.mBodies[li].mMass << std::endl;
+
+                //model_.mBodies[li].mCenterOfMass[0] = 0.005; //modify inertial properties of body
+            }
+
+            if (!model_.IsBodyId(link_id_[i]))
+            {
+                ROS_INFO_COND(verbose, "Failed to get body id at link %d : %s", i, TOCABI::LINK_NAME[i]);
+            }
+            // ROS_INFO("%s: \t\t id = %d \t parent link = %d",LINK_NAME[i],
+            // link_id_[i],model_.GetParentBodyId(link_id_[i]));
+            // ROS_INFO("%dth parent
+            // %d",link_id_[i],model_.GetParentBodyId(link_id_[i]));
+            // std::cout << model_.mBodies[link_id_[i]].mCenterOfMass << std::endl;
+            // //joint_name_map_[JOINT_NAME[i]] = i;
         }
-        else
+
+        for (int i = 0; i < LINK_NUMBER; i++)
         {
-            // ROS_INFO("id:0 name is : %s",model_.GetBodyName(0));
-            for (int i = 0; i < LINK_NUMBER; i++)
-            {
-                link_id_[i] = model_.GetBodyId(TOCABI::LINK_NAME[i]);
-                if (i == 0)
-                {
-                    int li = link_id_[Pelvis];
-                    std::cout << "Pelvis center of mass? : " << model_.mBodies[li].mCenterOfMass[0] << "  " << model_.mBodies[li].mCenterOfMass[1] << "  " << model_.mBodies[li].mCenterOfMass[2] << std::endl;
-                    std::cout << "mass : " << model_.mBodies[li].mMass << std::endl;
-
-                    //model_.mBodies[li].mCenterOfMass[0] = 0.005; //modify inertial properties of body
-                }
-
-                if (!model_.IsBodyId(link_id_[i]))
-                {
-                    ROS_INFO_COND(verbose, "Failed to get body id at link %d : %s", i, TOCABI::LINK_NAME[i]);
-                }
-                // ROS_INFO("%s: \t\t id = %d \t parent link = %d",LINK_NAME[i],
-                // link_id_[i],model_.GetParentBodyId(link_id_[i]));
-                // ROS_INFO("%dth parent
-                // %d",link_id_[i],model_.GetParentBodyId(link_id_[i]));
-                // std::cout << model_.mBodies[link_id_[i]].mCenterOfMass << std::endl;
-                // //joint_name_map_[JOINT_NAME[i]] = i;
-            }
-
-            for (int i = 0; i < LINK_NUMBER; i++)
-            {
-                link_[i].initialize(model_, link_id_[i], TOCABI::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
-            }
-
-            Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
-            lf_c << 0.0317, 0, -0.1368;
-            rf_c << 0.0317, 0, -0.1368;
-
-            link_[Right_Foot].contact_point = rf_c;
-            link_[Right_Foot].sensor_point << 0.0, 0.0, -0.1098;
-            link_[Left_Foot].contact_point = lf_c;
-            link_[Left_Foot].sensor_point << 0.0, 0.0, -0.1098;
-
-            link_[Right_Hand].contact_point << 0, 0.092, 0.0;
-            link_[Right_Hand].sensor_point << 0.0, 0.0, 0.0;
-            link_[Left_Hand].contact_point << 0, 0.092, 0.0;
-            link_[Left_Hand].sensor_point << 0.0, 0.0, 0.0;
-
-            joint_state_msg.name.resize(MODEL_DOF);
-            for (int i = 0; i < MODEL_DOF; i++)
-            {
-                joint_state_msg.name[i] = TOCABI::JOINT_NAME[i];
-            }
-            // RigidBodyDynamics::Joint J_temp;
-            // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
-            // model_.mJoints[2] = J_temp;
+            link_[i].initialize(model_, link_id_[i], TOCABI::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
         }
+
+        Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
+        lf_c << 0.0317, 0, -0.1368;
+        rf_c << 0.0317, 0, -0.1368;
+
+        link_[Right_Foot].contact_point = rf_c;
+        link_[Right_Foot].sensor_point << 0.0, 0.0, -0.1098;
+        link_[Left_Foot].contact_point = lf_c;
+        link_[Left_Foot].sensor_point << 0.0, 0.0, -0.1098;
+
+        link_[Right_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Right_Hand].sensor_point << 0.0, 0.0, 0.0;
+        link_[Left_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Left_Hand].sensor_point << 0.0, 0.0, 0.0;
+
+        joint_state_msg.name.resize(MODEL_DOF);
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            joint_state_msg.name[i] = TOCABI::JOINT_NAME[i];
+        }
+        // RigidBodyDynamics::Joint J_temp;
+        // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
+        // model_.mJoints[2] = J_temp;
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
@@ -152,10 +149,8 @@ void StateManager::stateThread(void)
     while (ros::ok())
     {
 
-        //std::cout << ThreadCount<<" : update state, ";
         updateState();
 
-        //std::cout << "update rbdl, ";
         updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
         //std::cout <<" state estimation ";
@@ -163,10 +158,8 @@ void StateManager::stateThread(void)
 
         //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
-        //std::cout << "store states, ";
         storeState();
 
-        //std::cout << "store states complete !" <<std::endl;
         dc.firstcalcdone = true;
 
         if (dc.shutdown)

@@ -35,7 +35,7 @@ void MujocoInterface::updateState()
         {
             break;
         }
-        std::this_thread::sleep_for(std::chrono::microseconds(1));
+        std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
 }
 
@@ -412,7 +412,6 @@ void MujocoInterface::simCommandCallback(const std_msgs::StringConstPtr &msg)
     std::string buf;
     buf = msg->data;
 
-    //ROS_INFO("CB from simulator : %s", buf.c_str());
     if (buf == "RESET")
     {
         //parameterInitialize();
