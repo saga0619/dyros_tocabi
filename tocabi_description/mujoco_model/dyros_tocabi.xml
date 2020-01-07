@@ -96,7 +96,6 @@
             <geom size="0.05 0.13 0.05" pos="-0.1 0 0.03" type="box" group="1"/>
             <site name="Pelvis_IMU" type="cylinder" size="0.005 0.005" group="4" rgba=".1 .1 .9 1"/>
 
-
             <body name="R_HipRoll_Link" pos="0 -0.1025 -0.1225">
                 <inertial pos="-0.06477 0 0.05149" quat="-4.55125e-06 0.706109 4.5641e-06 0.708103" mass="2.679" diaginertia="0.114073 0.114073 0.114073" />
                 <joint name="R_HipRoll_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14 3.14" />
@@ -132,6 +131,11 @@
                                     <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="AnkleRoll_R_Link" />
                                     <geom size="0.13 0.05 0.0135" pos="0.0317 0 -0.1233" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                     <geom size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
+                                    <body name="R_Foot_Plate" pos="0 0 -0.1233">
+                                        <inertial pos="0.0 0.0 0.0" quat="0.0 0.0 0 1" mass="0.0001" diaginertia="0.0001 0.0001 0.0001" />
+                                        <geom size="0.13 0.05 0.0135" pos="0.0317 0 0" type="box" class="cls_f"/>
+                                        <site class="FTsensor" name="RF_FT" pos="0 0 0.0135"/>
+                                    </body>
                                 </body>
                             </body>
                         </body>
@@ -173,6 +177,11 @@
                                     <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="AnkleRoll_L_Link" />
                                     <geom size="0.13 0.05 0.0135" pos="0.0317 0 -0.1233" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                     <geom size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
+                                    <body name="L_Foot_Plate" pos="0 0 -0.1233">
+                                        <inertial pos="0.0 0.0 0.0" quat="0.0 0.0 0 1" mass="0.0001" diaginertia="0.0001 0.0001 0.0001" />
+                                        <geom size="0.13 0.05 0.0135" pos="0.0317 0 0" type="box" class="cls_f"/>
+                                        <site class="FTsensor" name="LF_FT" pos="0 0 0.0135"/>                                    
+                                    </body>
                                 </body>
                             </body>
                         </body>
@@ -307,13 +316,13 @@
                             <inertial pos="0 -0.00363 -0.0023" quat="0.635583 0.664622 -0.284996 0.270349" mass="0.248" diaginertia="5.85426e-05 5.79997e-05 3.64427e-05" />
                             <joint name="Neck_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-1.54 1.54" />
                             <geom size="0.07 0.0215" pos="0 0 0.05" type="cylinder" class="cls" />
-                            <geom class="viz" rgba="0.20313 0.20313 0.20313 1" pos="-0.036 0 0.3795" mesh="neck" />
+                            <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="neck" />
                             <!--geom class="cls" size="0.08 0.07 0.1" type="box" pos="-0.016 0 0.547"/-->
                             <body name="Head_Link" pos="0 0 0.0275">
                                 <inertial pos="-0.0036 0.0031 0.1289" quat="0.686556 0.0929367 0.0744515 0.717259" mass="3.46332" diaginertia="0.0215996 0.0203681 0.0145263" />
                                 <joint name="Head_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-1.54 1.54" />
                                 <geom size="0.07 0.0215" pos="0 0 0.05" type="cylinder" class="cls" />
-                                <geom class="viz" rgba="0.85938 0.07813 0.23438 1" pos="-0.036 0 0.407" mesh="head" />
+                                <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="head" />
                             </body>
                         </body>
                     </body>
@@ -344,7 +353,6 @@
         <motor name="Neck_Motor" joint="Neck_Joint"/>
         <motor name="Head_Motor" joint="Head_Joint"/>
 
-
         <motor name="R_Shoulder1_Motor" joint="R_Shoulder1_Joint"/>
         <motor name="R_Shoulder2_Motor" joint="R_Shoulder2_Joint"/>
         <motor name="R_Shoulder3_Motor" joint="R_Shoulder3_Joint"/>
@@ -364,6 +372,21 @@
         <motor name="L_Wrist2_Motor" joint="L_Wrist2_Joint"/>
     </actuator>
 
+    <sensor>
+        <force name="LF_Force_sensor" site="LF_FT"/>
+        <torque name="LF_Torque_sensor" site="LF_FT"/>
+        <force name="RF_Force_sensor" site="RF_FT"/>
+        <torque name="RF_Torque_sensor" site="RF_FT"/>
+
+        <accelerometer name="Acc_Pelvis_IMU" site="Pelvis_IMU"/>
+        <gyro name="Gyro_Pelvis_IMU" site="Pelvis_IMU"/>
+        <magnetometer name="Magnet_Pelvis_IMU" site="Pelvis_IMU"/>
+
+        <framequat name="Pelvis_quat" objtype="site" objname="Pelvis_IMU"/>
+        <framelinvel name="Pelvis_linear_vel" objtype="site" objname="Pelvis_IMU"/>
+        <frameangvel name="Pelvis_angular_vel" objtype="site" objname="Pelvis_IMU"/>
+
+    </sensor>
 
     <keyframe>
         <!--Initial Position Setting -->
@@ -371,9 +394,9 @@
 								0 0 -0.24 0.6 -0.36 0 
 								0 0 -0.24 0.6 -0.36 0 
 								0 0 0 
-                                0 0
 								-0.3 -0.3 -1.5 1.27 1 0 1 0 
-								0.3 0.3 1.5 -1.27 -1 0 -1 0"/>
+								0.3 0.3 1.5 -1.27 -1 0 -1 0
+                                0 0"/>
     </keyframe>
 
 </mujoco>
