@@ -110,6 +110,7 @@ public:
   bool statemanager_ready = false;
   bool print_delay_info = false;
   bool print_elmo_info_tofile = false;
+  bool start_initialize_sequence = false;
 
 
   std::string mode;

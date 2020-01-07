@@ -53,7 +53,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gravity_(2) = GRAVITY;
 
     initialize();
-    bool verbose = true; //set verbose true for State Manager initialization info
+    bool verbose = false; //set verbose true for State Manager initialization info
 
     std::string desc_package_path = ros::package::getPath("tocabi_description");
     std::string urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";

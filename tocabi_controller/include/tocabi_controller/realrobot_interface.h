@@ -212,7 +212,7 @@ struct ElmoHomming
     double initPos;
     double posStart;
     double posEnd;
-    double req_length = 0.15;
+    double req_length = 0.2;
 
     int result;
 };
@@ -269,6 +269,7 @@ public:
     {
         EM_POSITION = 11,
         EM_TORQUE = 22,
+        EM_DEFAULT = 33,
     };
 
     Eigen::VectorQd positionElmo;

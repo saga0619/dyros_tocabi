@@ -2001,7 +2001,7 @@ void TocabiController::tuiThread()
 
     while (!dc.shutdown && ros::ok())
     {
-        while(!dc.connected)
+        while ((!dc.connected) && (!dc.shutdown))
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -2046,9 +2046,15 @@ void TocabiController::tuiThread()
             {
                 std::cout << "torque mode " << std::endl;
             }
-            else if (ch%256 == 'd')
+            else if (ch % 256 == 'd')
             {
                 dc.print_delay_info = !dc.print_delay_info;
+            }
+            else if (ch % 256 == 'i')
+            {
+                std::cout << "starting init seqence " << std::endl;
+
+                dc.start_initialize_sequence = true;
             }
         }
         before_time = control_time_;
