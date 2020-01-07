@@ -130,6 +130,10 @@ Eigen::VectorQd RealRobotInterface::getCommand()
     }
     return ttemp;
 }
+int RealRobotInterface::checkTrajContinuity(int slv_number)
+{
+	
+}
 
 void RealRobotInterface::findZeroPoint(int slv_number)
 {
@@ -810,6 +814,34 @@ void RealRobotInterface::ethercatThread()
 
                         //std::this_thread::sleep_until(t_begin + cycle_count * cycletime +std::chrono::microseconds(250));
 
+			for(int i=0;i<MODEL_DOF;i++)
+			{ 
+			    if(ElmoMode[i] = EM_POSITION)
+			    {
+				positionDesiredElmo[i] =     
+                                txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
+				txPDO[i]->targetPosition = (int)(Dr[i]*RAD2CNT[i]*positionDesiredElmo[i]);
+			    }
+			    else if(ElmoMode[i] = EM_TORQUE)
+			    {
+                                txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                                txPDO[i]->targetTorque = (int)0;
+			    }
+			    else 
+			    {
+				    
+                                txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                                txPDO[i]->targetTorque = (int)0;
+			    }
+			}
+			if(dc.emergencyoff)
+			{
+				for(int i=0;i<MODEL_DOF;i++)
+				{
+				    txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                                    txPDO[i]->targetTorque = (int)0;
+				}
+			}
                         ec_send_processdata();
 
                         td[4] = std::chrono::steady_clock::now() - (t_begin + cycle_count * cycletime);
