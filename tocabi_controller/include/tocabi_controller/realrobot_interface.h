@@ -240,6 +240,7 @@ public:
     void imuThread();
     void ftsensorThread();
 
+    int checkTrajContinuity(int slv_number);
     void findZeroPoint(int slv_number);
 
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
@@ -261,16 +262,24 @@ public:
 
     int wkc;
     int Walking_State;
+    int ElmoMode[MODEL_DOF];
+    
+    enum
+    {
+        EM_POSITION = 11;
+        EM_TORQUE = 22;
+    };
 
     Eigen::VectorQd positionElmo;
     Eigen::VectorQd positionExternalElmo;
     Eigen::VectorQd velocityElmo;
     Eigen::VectorQd torqueElmo;
     Eigen::VectorQd torqueDemandElmo;
-    Eigen::VectorQd positionDesiredElmo;
     Eigen::VectorQd velocityDesiredElmo;
     Eigen::VectorQd torqueDesiredElmo;
     Eigen::VectorQd torqueDesiredController;
+    Eigen::VectorQd positionDesiredElmo;
+    Eigen::VectorQd positionDesiredElmo_Before;
     Eigen::VectorQd positionDesiredController;
     Eigen::VectorQd positionInitialElmo;
     Eigen::VectorQd positionZeroElmo;
