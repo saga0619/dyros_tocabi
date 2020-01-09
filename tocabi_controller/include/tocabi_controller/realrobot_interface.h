@@ -213,6 +213,7 @@ struct ElmoHomming
     double posStart;
     double posEnd;
     double req_length = 0.2;
+    double firstPos;
 
     int result;
 };
@@ -261,9 +262,22 @@ public:
 
     ElmoHomming elmofz[MODEL_DOF];
 
-    int wkc;
+    int expectedWKC;
+    boolean needlf;
+    volatile int wkc;
+    boolean inOP;
+    uint8 currentgroup = 0;
+
+
+
     int Walking_State;
     int ElmoMode[MODEL_DOF];
+    bool checkPosSafety[MODEL_DOF];
+    //int ElmoState[MODEL_DOF];
+    //int ElmoState_before[MODEL_DOF];
+
+    int stateElmo[MODEL_DOF];
+    int stateElmo_before[MODEL_DOF];
     
     enum
     {
@@ -285,31 +299,13 @@ public:
     Eigen::VectorQd positionDesiredController;
     Eigen::VectorQd positionInitialElmo;
     Eigen::VectorQd positionZeroElmo;
+    Eigen::VectorQd positionZeroModElmo;
     Eigen::VectorQd initTimeElmo;
     Eigen::VectorQd positionSafteyHoldElmo;
 
-
-
-    int findzeroElmo_status[MODEL_DOF] =
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0};
-    int findzeroElmo_sefound[MODEL_DOF] =
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0};
-
-    int findzeroElmo_ssfound[MODEL_DOF] =
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0};
-
     bool hommingElmo[MODEL_DOF];
     bool hommingElmo_before[MODEL_DOF];
-    bool ElmoSafteyMode[MODEL_DOF];
+    int ElmoSafteyMode[MODEL_DOF];
 
     Eigen::VectorQd positionHStart;
     Eigen::VectorQd positionHEnd;
