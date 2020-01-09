@@ -34,7 +34,7 @@ public:
 void wait_for_keypress();
 void wait_for_ms(int ms);
 
-void rprint(DataContainer &dc, const char *str, ...);
+//void rprint(DataContainer &dc, const char *str, ...);
 
 
 int kbhit();

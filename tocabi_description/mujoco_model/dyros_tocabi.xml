@@ -321,7 +321,7 @@
                             <body name="Head_Link" pos="0 0 0.0275">
                                 <inertial pos="-0.0036 0.0031 0.1289" quat="0.686556 0.0929367 0.0744515 0.717259" mass="3.46332" diaginertia="0.0215996 0.0203681 0.0145263" />
                                 <joint name="Head_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-1.54 1.54" />
-                                <geom size="0.07 0.0215" pos="0 0 0.05" type="cylinder" class="cls" />
+                                <geom size="0.07 0.0515" pos="0 0 0.15" type="cylinder" class="cls" />
                                 <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="head" />
                             </body>
                         </body>

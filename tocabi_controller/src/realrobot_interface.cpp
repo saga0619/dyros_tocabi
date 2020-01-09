@@ -980,7 +980,7 @@ void RealRobotInterface::ftsensorThread()
         ft.analogOversample();
         ft.computeFTData();
 
-        rprint(dc, "FTsensor x : %f \t y : %f \t z : %f", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
+        printf("FTsensor x : %f \t y : %f \t z : %f\n", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
     }
 
     std::cout << "FTsensor Thread End!" << std::endl;

@@ -118,7 +118,6 @@ public:
   //Tui Var..
   bool state_end;
   bool dynamics_end;
-  TQue Tq_[100];
   int t_que = 0;
 
   double time;

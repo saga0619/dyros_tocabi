@@ -2012,7 +2012,7 @@ void TocabiController::tuiThread()
         if (dc.shutdown)
             break;
         for (int i = 0; i < 50; i++)
-        {
+        {/*
             if (mtx_terminal.try_lock())
             {
                 if (dc.Tq_[i].update)
@@ -2027,7 +2027,7 @@ void TocabiController::tuiThread()
             {
                 std::cout << str_text << std::endl;
                 pub_ = false;
-            }
+            }*/
         }
 
         if (control_time_ != before_time)
@@ -2041,6 +2041,7 @@ void TocabiController::tuiThread()
             //std::cout<<"working?"<<ch<<std::endl;
             if ((ch % 256 == 'q'))
             {
+                std::cout << "shutdown request"<<std::endl;
                 dc.shutdown = true;
             }
             else if ((ch % 256 == 'p'))
@@ -2077,7 +2078,7 @@ void TocabiController::getState()
     {
         while ((time == dc.time) && ros::ok())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
             count++;
         }
     }
