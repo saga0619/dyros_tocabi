@@ -74,20 +74,77 @@ const double RAD2CNT[MODEL_DOF] =
         RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
         RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46};
 
-const double NM2CNT[MODEL_DOF] =
-    {
-        0.1724,
+const double CNT2NM[MODEL_DOF] =
+    {   //Elmo 순서
+        0.010526, //head
+        0.010526,
+        0.010526, //wrist
+        0.010526,
+        0.010526,
+        0.010526,
+        0.064516, //shoulder3
+        0.064516, //arm
+        0.064516, //arm
+        0.064516, //shoulder3
+        0.02381,  //Elbow
+        0.02381,  //Forearm
+        0.02381,  //Forearm
+        0.02381,  //Elbow
+        0.064516, //shoulder1
+        0.064516, //shoulder2
+        0.064516, //shoulder2
+        0.064516, //shoulder1
+        0.30303,  //Waist
+        0.30303,
+        0.1724,   //rightLeg
         0.2307,
-        0.2834,
-        0.2834,
+        0.2635,
+        0.2890,
         0.2834,
         0.0811,
-        0.1724,
+        0.30303,  //upperbody
+        0.1724,   //leftLeg
         0.2307,
         0.2635,
         0.2890,
         0.2834,
         0.0811};
+
+const double NM2CNT[MODEL_DOF] =
+    {   //Elmo 순서
+        95, //head
+        95,
+        95, //wrist
+        95,
+        95,
+        95,
+        15.5, //shoulder3
+        15.5, //arm
+        15.5, //arm
+        15.5, //shoulder3
+        42,  //Elbow
+        42,  //Forearm
+        42,  //Forearm
+        42,  //Elbow
+        15.5, //shoulder1
+        15.5, //shoulder2
+        15.5, //shoulder2
+        15.5, //shoulder1
+        3.3,  //Waist
+        3.3,
+        5.8,   //rightLeg
+        4.3,
+        3.8,
+        3.46,
+        3.52,
+        0.0811,
+        3.3,  //upperbody
+        5.8,   //leftLeg
+        4.3,
+        3.8,
+        3.46,
+        3.52,
+        3.3};
 
 const double MOTORCONTSTANT[MODEL_DOF] =
     {

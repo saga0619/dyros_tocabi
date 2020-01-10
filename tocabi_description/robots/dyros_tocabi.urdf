@@ -1,4 +1,4 @@
-<robot name="dyros_tocabi">
+<robot name="dyros_tocabi_description">
   <mujoco>
       <compiler meshdir="../meshes/" balanceinertia="true"/>
   </mujoco>
@@ -7,17 +7,17 @@
     name="Pelvis_Link">
     <inertial>
       <origin
-        xyz="-0.0099622 0 0.012618"
+        xyz="-0.03191 0.00017 0.01985"
         rpy="0 0 0" />
       <mass
-        value="0.90054" />
+        value="12.19525" />
       <inertia
-        ixx="0.0094751"
-        ixy="0"
-        ixz="0"
-        iyy="0.0022311"
-        iyz="0"
-        izz="0.010198" />
+        ixx="0.101833182"
+        ixy="-0.000070812"
+        ixz="-0.003831096"
+        iyy="0.072400662"
+        iyz="0.000079272"
+        izz="0.144478157" />
     </inertial>
     <visual>
       <origin
@@ -398,17 +398,17 @@
     name="R_AnkleRoll_Link">
 <inertial>
       <origin
-        xyz="-0.00802 0 -0.08535"
+        xyz="-0.007 0.00005 -0.086"
         rpy="0 0 0" />
       <mass
-        value="3.464" />
+        value="3.590" />
       <inertia
         ixx="0.1466"
-        ixy="1.434E-05"
-        ixz="-0.004731"
-        iyy="0.05808"
-        iyz="-2.508E-05"
-        izz="0.0238" />
+        ixy="1.5827E-05"
+        ixz="-0.007151108"
+        iyy="0.030647"
+        iyz="-8.672E-06"
+        izz="0.0232" />
     </inertial>
     <visual>
       <origin
@@ -426,10 +426,10 @@
     </visual>
 	<collision>
       <origin
-        xyz="0.0317 0 -0.1233"
+        xyz="0.03 0 -0.145"
         rpy="0 0 0" />
       <geometry>
-		<box size="0.26 0.1 0.027"/>
+		<box size="0.3 0.17 0.027"/>
       </geometry>
     </collision>
 	<collision>
@@ -446,7 +446,7 @@
     type="revolute">
     <origin
       xyz="0 0 0"
-      rpy="2.77555756156282E-17 1.48042453629419E-16 -5.37756273475549E-16" />
+      rpy="0 0 0" />
     <parent
       link="R_AnkleCenter_Link" />
     <child
@@ -461,9 +461,6 @@
     <dynamics
       damping="5" />
   </joint>
-
-
-
   <link
     name="L_HipRoll_Link">
     <inertial>
@@ -804,19 +801,19 @@
 
   <link
     name="L_AnkleRoll_Link">
-     <inertial>
+    <inertial>
       <origin
-        xyz="-0.00802 0 -0.08535"
+        xyz="-0.007 0.00005 -0.086"
         rpy="0 0 0" />
       <mass
-        value="3.464" />
+        value="3.590" />
       <inertia
         ixx="0.1466"
-        ixy="1.434E-05"
-        ixz="-0.004731"
-        iyy="0.05808"
-        iyz="-2.508E-05"
-        izz="0.0238" />
+        ixy="1.5827E-05"
+        ixz="-0.007151108"
+        iyy="0.030647"
+        iyz="-8.672E-06"
+        izz="0.0232" />
     </inertial>
     <visual>
       <origin
@@ -834,10 +831,10 @@
     </visual>
     <collision>
       <origin
-        xyz="0.0317 0 -0.1233"
+        xyz="0.03 0 -0.145"
         rpy="0 0 0" />
       <geometry>
-		<box size="0.26 0.1 0.027"/>
+		<box size="0.3 0.17 0.027"/>
       </geometry>
     </collision>
 	<collision>
@@ -873,17 +870,17 @@
     name="Waist1_Link">
     <inertial>
       <origin
-        xyz="0 0 -0.04182"
+        xyz="0 -0.013 -0.03647"
         rpy="0 0 0" />
       <mass
-        value="0.74235" />
+        value="0.89722" />
       <inertia
-        ixx="0.003254680"
-        ixy="0"
-        ixz="0"
-        iyy="0.001655456"
-        iyz="0"
-        izz="0.002701880" />
+        ixx="0.003744227"
+        ixy="-0.000023489"
+        ixz="0.000037149"
+        iyy="0.002030963"
+        iyz="-0.000424890"
+        izz="0.003165743" />
     </inertial>
     <visual>
       <origin
@@ -950,7 +947,7 @@
     name="Waist1_Joint"
     type="revolute">
     <origin
-      xyz="0 0 0.18"
+      xyz="0 0 0.1779"
       rpy="0 0 0" />
     <parent
       link="Pelvis_Link" />
@@ -970,17 +967,17 @@
     name="Waist2_Link">
     <inertial>
       <origin
-        xyz="-0.00065 0 0.00001"
+        xyz="-0.00029 0.00913 0"
         rpy="0 0 0" />
       <mass
-        value="3.27104" />
+        value="3.752" />
       <inertia
-        ixx="0.004622862"
-        ixy="0"
-        ixz="0"
-        iyy="0.004974601"
-        iyz="0"
-        izz="0.006022159" />
+        ixx="0.006020606"
+        ixy="0.000011504"
+        ixz="-0.000000053"
+        iyy="0.007150561"
+        iyz="0.000001147"
+        izz="0.007561688" />
     </inertial>
     <visual>
       <origin
@@ -1048,17 +1045,17 @@
     name="Upperbody_Link">
     <inertial>
       <origin
-        xyz="-0.04733 0 0.16266"
+        xyz="-0.04294 0.00024 0.14798"
         rpy="0 0 0" />
       <mass
-        value="16.43395" />
+        value="16.43384" />
       <inertia
-        ixx="0.267654041"
-        ixy="0"
-        ixz="0.024637907"
-        iyy="0.242243423"
-        iyz="0"
-        izz="0.179727804" />
+        ixx="0.266233438"
+        ixy="0.000113985"
+        ixz="0.029533458"
+        iyy="0.238938452"
+        iyz="-0.000028977"
+        izz="0.179864207" />
     </inertial>
     <visual>
       <origin
@@ -1630,7 +1627,7 @@
         xyz="0.00063 -0.0536 0.00178"
         rpy="0 0 0" />
       <mass
-        value="1" />
+        value="0.001" />
       <inertia
         ixx="0.000865450"
         ixy="0"
@@ -2128,7 +2125,7 @@
         xyz="0.00063 0.0536 0.00178"
         rpy="0 0 0" />
       <mass
-        value="1" />
+        value="0.001" />
       <inertia
         ixx="0.000865450"
         ixy="0"
@@ -2179,8 +2176,6 @@
 	<dynamics
       damping="5" />
   </joint>
-  
-  
   <link
     name="Neck_Link">
     <inertial>
