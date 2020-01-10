@@ -110,6 +110,7 @@ public:
   bool statemanager_ready = false;
   bool print_delay_info = false;
   bool print_elmo_info_tofile = false;
+  bool start_initialize_sequence = false;
 
 
   std::string mode;
@@ -117,7 +118,6 @@ public:
   //Tui Var..
   bool state_end;
   bool dynamics_end;
-  TQue Tq_[100];
   int t_que = 0;
 
   double time;

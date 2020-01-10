@@ -27,6 +27,7 @@ int main(int argc, char **argv)
     Tui tui(dc);
 
     std::cout << "Tocabi Controller : ";
+
     if (dc.mode == "simulation")
     {
         std::cout << "Simulation Mode " << std::endl;
@@ -112,7 +113,6 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
-
     else if (dc.mode == "ethercattest")
     {
         std::cout << "EtherCat Test Mode " << std::endl;
@@ -174,6 +174,25 @@ int main(int argc, char **argv)
             thread[i].join();
         }
         std::cout << cgreen << "EthercatTest Mode :: All threads are completely terminated !" << creset << std::endl;
+    }
+    else if(dc.mode=="testmode")
+    {
+        MujocoInterface stm(dc);
+        DynamicsManager dym(dc);
+        TocabiController tc(dc, stm, dym);
+        std::cout<<"testmode"<<std::endl;
+
+        std::thread thread[2];
+        thread[0] = std::thread(&StateManager::testThread, &stm);
+
+        //thread[1] = std::thread(&DynamicsManager::testThread, &dym);
+
+        thread[1] = std::thread(&TocabiController::tuiThread, &tc);
+
+        for (int i = 0; i < 2; i++)
+        {
+            thread[i].join();
+        }
     }
     return 0;
 }

@@ -69,8 +69,8 @@ void MujocoInterface::connect()
     std::cout << "\tConnecting to Mujoco ..." << std::flush;
 
 
-    rprint(dc, "Press any key to stop ");
-    rprint(dc, "Connecting to Mujoco .... ");
+    printf("Press any key to stop \n");
+    printf("Connecting to Mujoco .... \n");
     ros::Rate r(100);
     ros::Time start_time = ros::Time::now();
     int cnt = 0;
@@ -82,7 +82,7 @@ void MujocoInterface::connect()
 
         if ((ros::Time::now().toSec() - start_time.toSec()) > 5.0)
         {
-            rprint(dc, "No response from Mujoco for 5 seconds ... Stop Connecting Mujoco");
+            printf("No response from Mujoco for 5 seconds ... Stop Connecting Mujoco\n");
             break;
         }
     }
@@ -109,7 +109,7 @@ void MujocoInterface::connect()
     {
         mujoco_init_receive = false;
         mujoco_ready = false;
-        rprint(dc, "Connected!");
+        printf("Connected!\n");
         dc.connected = true;
     }
 }

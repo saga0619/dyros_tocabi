@@ -9,7 +9,7 @@ Tui::Tui(DataContainer &dc_global) : dc(dc_global)
 void Tui::tuiThread()
 { //100hz
 }
-
+/*
 void rprint(DataContainer &dc, const char *str, ...)
 {
     va_list lst;
@@ -29,7 +29,7 @@ void rprint(DataContainer &dc, const char *str, ...)
 
     va_end(lst);
 }
-
+*/
 int kbhit(void)
 {
 

@@ -77,14 +77,14 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         for (int i = 0; i < LINK_NUMBER; i++)
         {
             link_id_[i] = model_.GetBodyId(TOCABI::LINK_NAME[i]);
-            if (i == 0)
+           /* if (i == 0)
             {
                 int li = link_id_[Pelvis];
                 std::cout << "Pelvis center of mass? : " << model_.mBodies[li].mCenterOfMass[0] << "  " << model_.mBodies[li].mCenterOfMass[1] << "  " << model_.mBodies[li].mCenterOfMass[2] << std::endl;
                 std::cout << "mass : " << model_.mBodies[li].mMass << std::endl;
 
                 //model_.mBodies[li].mCenterOfMass[0] = 0.005; //modify inertial properties of body
-            }
+            }*/
 
             if (!model_.IsBodyId(link_id_[i]))
             {
@@ -335,30 +335,43 @@ void StateManager::testThread()
     std::chrono::milliseconds ms(50);
 
     std::chrono::duration<double> e_s(0);
-    //ROS_INFO("START");
+    ROS_INFO("Test Thread START");
     int ThreadCount = 0;
+    
+    std::chrono::high_resolution_clock::time_point t[4];
+    int wait_t = 1;
 
-    while (ros::ok())
+    std::chrono::duration<double> dur[3];
+
+    while (!dc.shutdown)
     {
-
+        t[0] = std::chrono::high_resolution_clock::now();
         updateState();
-        updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
-        stateEstimate();
+        t[1] = std::chrono::high_resolution_clock::now();
         updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+        t[2] = std::chrono::high_resolution_clock::now();
 
+        //stateEstimate();
+        //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+
+       
         storeState();
+        t[3] = std::chrono::high_resolution_clock::now();
 
-        //std::this_thread::sleep_until(StartTime + ThreadCount * dc.stm_timestep);
-        if ((ThreadCount % 2000) == 0)
+        dur[0] = t[1] - t[0];
+        dur[1] = t[2] - t[1];
+        dur[2] = t[3] - t[2];
+
+        if(t[3] > (StartTime + sec10 * wait_t))
         {
-            e_s = std::chrono::high_resolution_clock::now() - StartTime;
-            rprint(dc, "Kinematics update %8.4f hz                         ", 2000 / e_s.count());
-            StartTime = std::chrono::high_resolution_clock::now();
+            printf("state thread calc, up.state %f up.kin. %f st.state %f \n", dur[0].count()*1000, dur[1].count()*1000, dur[2].count()*1000);
+            wait_t++;
         }
+
         if (dc.shutdown)
         {
-            rprint(dc, "state end");
+            printf("state end\n");
             break;
         }
         ThreadCount++;
@@ -452,13 +465,16 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
    * */
 
     //std::cout << control_time_ << " : q_v(0) : " << q_virtual(0) << " : q_v(1) : " << q_virtual(1) << " : q_v(2) : " << q_virtual(2) << std::endl;
+
+    
     mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_, &q_virtual, &q_dot_virtual, &q_ddot_virtual);
+    
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, A_temp_, false);
+
     //Eigen::VectorXd tau_coriolis;
     //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
     mtx_rbdl.unlock();
-
     tf::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
 
     tf::Matrix3x3 m(q);
@@ -599,7 +615,7 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     RigidBodyDynamics::NonlinearEffects(model_, q_virtual_, q_dot_virtual_, tau_);
     tau_nonlinear_ = tau_;
 
-    //contactJacUpdate
+ //contactJacUpdate
     //link_[Right_Foot].Set_Contact(model_, q_virtual_, link_[Right_Foot].contact_point);
     //link_[Left_Foot].Set_Contact(model_, q_virtual_, link_[Left_Foot].contact_point);
     //link_[Right_Hand].Set_Contact(model_, q_virtual_, link_[Right_Hand].contact_point);
