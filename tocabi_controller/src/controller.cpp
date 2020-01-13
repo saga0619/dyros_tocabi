@@ -41,8 +41,6 @@ int main(int argc, char **argv)
         thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
         thread[3] = std::thread(&TocabiController::tuiThread, &rc);
 
-        
-        /*
         sched_param sch;
         int policy;
         for (int i = 0; i < 4; i++)
@@ -53,7 +51,7 @@ int main(int argc, char **argv)
             {
                 std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
             }
-        }*/
+        }
 
         for (int i = 0; i < 3; i++)
         {
