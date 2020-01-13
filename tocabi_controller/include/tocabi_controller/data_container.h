@@ -48,7 +48,7 @@ const std::string ACTUATOR_NAME[MODEL_DOF] = {
     "R_Shoulder1_Motor", "R_Shoulder2_Motor", "R_Shoulder3_Motor", "R_Armlink_Motor",
     "R_Elbow_Motor", "R_Forearm_Motor", "R_Wrist1_Motor", "R_Wrist2_Motor"};
 
-static constexpr const char *LINK_NAME[LINK_NUMBER + 1] = {
+static constexpr const char *LINK_NAME[LINK_NUMBER] = {
     "Pelvis_Link", "Waist1_Link", "Waist2_Link", "Upperbody_Link",
     "L_HipRoll_Link", "L_HipCenter_Link", "L_Thigh_Link", "L_Knee_Link", "L_AnkleCenter_Link", "L_AnkleRoll_Link",
     "R_HipRoll_Link", "R_HipCenter_Link", "R_Thigh_Link", "R_Knee_Link", "R_AnkleCenter_Link", "R_AnkleRoll_Link",

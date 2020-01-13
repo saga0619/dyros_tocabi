@@ -3,6 +3,7 @@
 #include "tocabi_controller/terminal.h"
 void terminate_signal(int sig)
 {
+    std::cout << "shutdown signal received " << std::endl;
     shutdown_tocabi = 1;
 }
 
@@ -15,7 +16,7 @@ int main(int argc, char **argv)
 
     dc.nh.param<std::string>("/tocabi_controller/run_mode", dc.mode, "default");
     dc.nh.param<std::string>("/tocabi_controller/ifname", dc.ifname, "enp0s31f6");
-    dc.nh.param("/tocabi_controller/ctime", dc.ctime, 250);
+    dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, false);
 
     bool simulation = true;
@@ -34,7 +35,7 @@ int main(int argc, char **argv)
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController rc(dc, stm, dym);
-        
+
         std::thread thread[4];
         thread[0] = std::thread(&TocabiController::stateThread, &rc);
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
             }
         }
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             thread[i].join();
         }
@@ -108,7 +109,7 @@ int main(int argc, char **argv)
             }
         }
 
-        for (int i = 1; i < 8; i++)
+        for (int i = 0; i < 8; i++)
         {
             thread[i].join();
         }
@@ -168,19 +169,17 @@ int main(int argc, char **argv)
             }
         }
 
-
         for (int i = 0; i < thread_num; i++)
         {
             thread[i].join();
         }
-        std::cout << cgreen << "EthercatTest Mode :: All threads are completely terminated !" << creset << std::endl;
     }
-    else if(dc.mode=="testmode")
+    else if (dc.mode == "testmode")
     {
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController tc(dc, stm, dym);
-        std::cout<<"testmode"<<std::endl;
+        std::cout << "testmode" << std::endl;
 
         std::thread thread[2];
         thread[0] = std::thread(&StateManager::testThread, &stm);
@@ -194,5 +193,6 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
+    std::cout << cgreen << "EthercatTest Mode :: All threads are completely terminated !" << creset << std::endl;
     return 0;
 }

@@ -333,8 +333,6 @@ public:
     //int ElmoState[MODEL_DOF];
     //int ElmoState_before[MODEL_DOF];
 
-    int stateElmo[MODEL_DOF];
-    int stateElmo_before[MODEL_DOF];
     
     enum
     {
@@ -360,12 +358,17 @@ public:
     Eigen::VectorQd initTimeElmo;
     Eigen::VectorQd positionSafteyHoldElmo;
 
+    Eigen::VectorQd rq_;
+    Eigen::VectorQd rq_dot_;
+
+    int stateElmo[MODEL_DOF];
+    int stateElmo_before[MODEL_DOF];
+
     bool hommingElmo[MODEL_DOF];
     bool hommingElmo_before[MODEL_DOF];
-    int ElmoSafteyMode[MODEL_DOF];
 
-    Eigen::VectorQd positionHStart;
-    Eigen::VectorQd positionHEnd;
+
+    int ElmoSafteyMode[MODEL_DOF];
 
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[MODEL_DOF];
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[MODEL_DOF];
@@ -378,14 +381,14 @@ private:
 
     Eigen::VectorQd getCommand();
     void ImuCallback(const sensor_msgs::ImuConstPtr &msg);
-    void add_timespec(struct timespec *ts, int64 addtime);
+    
 
     ros::Subscriber imuSubscriber;
     ros::Subscriber gainSubscriber;
     Eigen::VectorQd CustomGain;
     void gainCallbak(const tocabi_controller::GainCommandConstPtr &msg);
 
-    double lookaround(double init, double angle, double start_time, double traj_time);
+    double elmoJointMove(double init, double angle, double start_time, double traj_time);
 
     mujoco_ros_msgs::JointSet mujoco_joint_set_msg_;
 
