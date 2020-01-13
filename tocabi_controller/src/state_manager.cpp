@@ -55,11 +55,11 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     initialize();
     bool verbose = true; //set verbose true for State Manager initialization info
     bool urdfmode;
-    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);        
+    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
     std::string urdf_path, desc_package_path;
     desc_package_path = ros::package::getPath("tocabi_description");
-    
-    if(urdfmode)
+
+    if (urdfmode)
     {
         urdf_path = desc_package_path + "/robots/dyros_tocabi_ankleRollDamping.urdf";
     }
@@ -67,7 +67,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     {
         urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
     }
-    
+
     ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
 
     RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true, verbose);
@@ -87,14 +87,10 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         for (int i = 0; i < LINK_NUMBER; i++)
         {
             link_id_[i] = model_.GetBodyId(TOCABI::LINK_NAME[i]);
-            /* if (i == 0)
-            {
-                int li = link_id_[Pelvis];
-                std::cout << "Pelvis center of mass? : " << model_.mBodies[li].mCenterOfMass[0] << "  " << model_.mBodies[li].mCenterOfMass[1] << "  " << model_.mBodies[li].mCenterOfMass[2] << std::endl;
-                std::cout << "mass : " << model_.mBodies[li].mMass << std::endl;
+            
 
-                //model_.mBodies[li].mCenterOfMass[0] = 0.005; //modify inertial properties of body
-            }*/
+            std::cout << TOCABI::LINK_NAME[i]<<" mass : "<<model_.mBodies[link_id_[i]].mMass <<"center of mass? : " << model_.mBodies[link_id_[i]].mCenterOfMass[0] << " " << model_.mBodies[link_id_[i]].mCenterOfMass[1] << " " << model_.mBodies[link_id_[i]].mCenterOfMass[2] << std::endl;
+
 
             if (!model_.IsBodyId(link_id_[i]))
             {
@@ -554,6 +550,7 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     com_.mass = com_mass;
     com_.pos = com_pos;
 
+    ROS_INFO_ONCE("COM POS : %f %f %f", com_pos(0),com_pos(1),com_pos(2));
     //RigidBodyDynamics::Utils::
     /*
     if (com_pos(1) < link_[Right_Foot].xpos(1))
