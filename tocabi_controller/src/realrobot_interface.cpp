@@ -755,7 +755,7 @@ void RealRobotInterface::ethercatThread()
                                         }
                                         else
                                         {
-                                            txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) / NM2CNT[i] * Dr[i]);
+                                            txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) * NM2CNT[i] * Dr[i]);
                                         }
                                     }
                                 }
@@ -782,7 +782,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                     else
                                     {
-                                        txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) / NM2CNT[i] * Dr[i]);
+                                        txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) * NM2CNT[i] * Dr[i]);
                                     }
                                 }
                             }
@@ -795,7 +795,7 @@ void RealRobotInterface::ethercatThread()
                             else if (ElmoMode[i] == EM_TORQUE)
                             {
                                 txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                                txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] / NM2CNT[i] * Dr[i]);
+                                txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * NM2CNT[i] * Dr[i]);
                             }
                             else
                             {
