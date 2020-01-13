@@ -137,7 +137,7 @@ const double NM2CNT[MODEL_DOF] =
         3.8,
         3.46,
         3.52,
-        0.0811,
+        3.3,
         3.3,  //upperbody
         5.8,   //leftLeg
         4.3,

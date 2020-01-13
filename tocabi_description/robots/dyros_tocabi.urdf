@@ -2,7 +2,6 @@
   <mujoco>
       <compiler meshdir="../meshes/" balanceinertia="true"/>
   </mujoco>
-
   <link
     name="Pelvis_Link">
     <inertial>
@@ -396,19 +395,19 @@
   </joint>
   <link
     name="R_AnkleRoll_Link">
-<inertial>
+    <inertial>
       <origin
-        xyz="-0.007 0.00005 -0.086"
+        xyz="-0.05196 0.00005 -0.0219"
         rpy="0 0 0" />
       <mass
-        value="3.590" />
+        value="1.26426" />
       <inertia
-        ixx="0.1466"
-        ixy="1.5827E-05"
-        ixz="-0.007151108"
-        iyy="0.030647"
-        iyz="-8.672E-06"
-        izz="0.0232" />
+        ixx="0.418697"
+        ixy="1.5176E-08"
+        ixz="-0.001095976"
+        iyy="0.006211405"
+        iyz="-5.435E-08"
+        izz="0.008575514" />
     </inertial>
     <visual>
       <origin
@@ -424,15 +423,7 @@
           rgba="0.79216 0.81961 0.93333 1" />
       </material>
     </visual>
-	<collision>
-      <origin
-        xyz="0.03 0 -0.145"
-        rpy="0 0 0" />
-      <geometry>
-		<box size="0.3 0.17 0.027"/>
-      </geometry>
-    </collision>
-	<collision>
+    <collision>
       <origin
         xyz="-0.08875 0 0"
         rpy="0 -1.5707963 0" />
@@ -461,6 +452,73 @@
     <dynamics
       damping="5" />
   </joint>
+  <link
+    name="R_Foot_Link">
+    <inertial>
+      <origin
+        xyz="-0.0162 0.00008 -0.1209"
+        rpy="0 0 0" />
+      <mass
+        value="2.326" />
+      <inertia
+        ixx="0.003386409"
+        ixy="1.1237E-05"
+        ixz="-0.000526477"
+        iyy="0.012600125"
+        iyz="-1.976E-06"
+        izz="0.014296" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tocabi_description/meshes/Foot_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.03 0 -0.145"
+        rpy="0 0 0" />
+      <geometry>
+		<box size="0.3 0.17 0.027"/>
+      </geometry>
+    </collision>
+	<collision>
+      <origin
+        xyz="-0.08875 0 0"
+        rpy="0 -1.5707963 0" />
+      <geometry>
+		<cylinder length="0.0625" radius="0.045"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="R_Foot_Joint"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="R_AnkleRoll_Link" />
+    <child
+      link="R_Foot_Link" />
+    <axis
+      xyz="0 0 0" />
+	  <limit
+	  lower="-3.14"
+	  upper="3.14"
+      effort="500"
+      velocity="100" />
+    <dynamics
+      damping="5" />
+  </joint> 
   <link
     name="L_HipRoll_Link">
     <inertial>
@@ -604,8 +662,6 @@
     <dynamics
       damping="5" />
   </joint>
-
-
   <link
     name="L_Thigh_Link">
    <inertial>
@@ -653,8 +709,6 @@
       </geometry>
     </collision>
   </link>
-
-
   <joint
     name="L_Thigh_Joint"
     type="revolute">
@@ -735,9 +789,6 @@
     <dynamics
       damping="5" />
   </joint>
-
-
-
   <link
     name="L_AnkleCenter_Link">
      <inertial>
@@ -797,23 +848,21 @@
     <dynamics
       damping="5" />
   </joint>
-
-
   <link
     name="L_AnkleRoll_Link">
     <inertial>
       <origin
-        xyz="-0.007 0.00005 -0.086"
+        xyz="-0.05196 0.00005 -0.0219"
         rpy="0 0 0" />
       <mass
-        value="3.590" />
+        value="1.26426" />
       <inertia
-        ixx="0.1466"
-        ixy="1.5827E-05"
-        ixz="-0.007151108"
-        iyy="0.030647"
-        iyz="-8.672E-06"
-        izz="0.0232" />
+        ixx="0.418697"
+        ixy="1.5176E-08"
+        ixz="-0.001095976"
+        iyy="0.006211405"
+        iyz="-5.435E-08"
+        izz="0.008575514" />
     </inertial>
     <visual>
       <origin
@@ -830,14 +879,6 @@
       </material>
     </visual>
     <collision>
-      <origin
-        xyz="0.03 0 -0.145"
-        rpy="0 0 0" />
-      <geometry>
-		<box size="0.3 0.17 0.027"/>
-      </geometry>
-    </collision>
-	<collision>
       <origin
         xyz="-0.08875 0 0"
         rpy="0 -1.5707963 0" />
@@ -867,6 +908,73 @@
       damping="5" />
   </joint>
   <link
+    name="L_Foot_Link">
+    <inertial>
+      <origin
+        xyz="-0.0162 0.00008 -0.1209"
+        rpy="0 0 0" />
+      <mass
+        value="2.326" />
+      <inertia
+        ixx="0.003386409"
+        ixy="1.1237E-05"
+        ixz="-0.000526477"
+        iyy="0.012600125"
+        iyz="-1.976E-06"
+        izz="0.014296" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tocabi_description/meshes/Foot_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.03 0 -0.145"
+        rpy="0 0 0" />
+      <geometry>
+		<box size="0.3 0.17 0.027"/>
+      </geometry>
+    </collision>
+	<collision>
+      <origin
+        xyz="-0.08875 0 0"
+        rpy="0 -1.5707963 0" />
+      <geometry>
+		<cylinder length="0.0625" radius="0.045"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="L_Foot_Joint"
+    type="fixed">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="L_AnkleRoll_Link" />
+    <child
+      link="L_Foot_Link" />
+    <axis
+      xyz="0 0 0" />
+	  <limit
+	  lower="-3.14"
+	  upper="3.14"
+      effort="500"
+      velocity="100" />
+    <dynamics
+      damping="5" />
+  </joint>
+  <link
     name="Waist1_Link">
     <inertial>
       <origin
@@ -880,7 +988,7 @@
         ixz="0.000037149"
         iyy="0.002030963"
         iyz="-0.000424890"
-        izz="0.003165743" />
+        izz="1.007723743" />
     </inertial>
     <visual>
       <origin
@@ -975,7 +1083,7 @@
         ixx="0.006020606"
         ixy="0.000011504"
         ixz="-0.000000053"
-        iyy="0.007150561"
+        iyy="1.011708561"
         iyz="0.000001147"
         izz="0.007561688" />
     </inertial>
@@ -1050,7 +1158,7 @@
       <mass
         value="16.43384" />
       <inertia
-        ixx="0.266233438"
+        ixx="1.270791438"
         ixy="0.000113985"
         ixz="0.029533458"
         iyy="0.238938452"
@@ -1182,9 +1290,7 @@
   </joint>
   <link
     name="R_Shoulder1_Link">
-	
-	
-	    <inertial>
+    <inertial>
       <origin
         xyz="-0.00003 -0.00397 0.06029"
         rpy="0 0 0" />
@@ -1196,10 +1302,8 @@
         ixz="0.000002313"
         iyy="0.001936576"
         iyz="-0.000078962"
-        izz="0.001678498" />
+        izz="0.185330098" />
     </inertial>
-	
-	
     <visual>
       <origin
         xyz="0 0 0"
@@ -1255,7 +1359,7 @@
         ixx="0.000989903"
         ixy="-0.000028237"
         ixz="-0.000000465"
-        iyy="0.000624253"
+        iyy="0.184275853"
         iyz="-0.000000133"
         izz="0.001067575" />
     </inertial>
@@ -1311,7 +1415,7 @@
       <mass
         value="2.90141" />
       <inertia
-        ixx="0.008441559"
+        ixx="0.192093159"
         ixy="0.000365084"
         ixz="-0.000002746"
         iyy="0.002493784"
@@ -1374,7 +1478,7 @@
         ixx="0.002878609"
         ixy="-0.000302586"
         ixz="-0.000036001"
-        iyy="0.000730323"
+        iyy="0.184381923"
         iyz="-0.000398377"
         izz="0.003117058" />
     </inertial>
@@ -1430,7 +1534,7 @@
       <mass
         value="1.96511" />
       <inertia
-        ixx="0.006375466"
+        ixx="0.055865466"
         ixy="-0.000151764"
         ixz="0.000055158"
         iyy="0.001895543"
@@ -1490,8 +1594,6 @@
 	<dynamics
       damping="5" />
   </joint>
-  
-  
   <link
     name="R_Forearm_Link">
     <inertial>
@@ -1504,7 +1606,7 @@
         ixx="0.001053636"
         ixy="-0.000084568"
         ixz="0.000022117"
-        iyy="0.000399479"
+        iyy="0.049889479"
         iyz="-0.000019539"
         izz="0.001266418" />
     </inertial>
@@ -1559,7 +1661,6 @@
 	<dynamics
       damping="5" />
   </joint>
-
   <link
     name="R_Wrist1_Link">
     <inertial>
@@ -1569,7 +1670,7 @@
       <mass
         value="0.70923" />
       <inertia
-        ixx="0.000648197"
+        ixx="0.015205197"
         ixy="-0.000024218"
         ixz="-0.000000263"
         iyy="0.000396376"
@@ -1619,7 +1720,6 @@
 	<dynamics
       damping="5" />
   </joint>
-  
   <link
     name="R_Wrist2_Link">
     <inertial>
@@ -1634,7 +1734,7 @@
         ixz="0"
         iyy="0.000696917"
         iyz="0"
-        izz="0.000820823" />
+        izz="0.015377823" />
     </inertial>
     <visual>
       <origin
@@ -1677,9 +1777,7 @@
       velocity="100" />
 	<dynamics
       damping="5" />
-  </joint>
-	
-  
+  </joint>  
   <link
     name="L_Shoulder1_Link">
     <inertial>
@@ -2015,9 +2113,6 @@
           rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
-    
-	
-	
 		<collision>
       <origin
         xyz="0 0.05 0"
@@ -2034,8 +2129,6 @@
         <cylinder length="0.08" radius="0.025"/>
       </geometry>
     </collision>
-	
-	
   </link>
   <joint
     name="L_Forearm_Joint"
@@ -2116,8 +2209,6 @@
 	<dynamics
       damping="5" />
   </joint>
-
-
   <link
     name="L_Wrist2_Link">
     <inertial>

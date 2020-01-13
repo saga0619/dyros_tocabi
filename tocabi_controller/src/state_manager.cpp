@@ -54,10 +54,20 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
     initialize();
     bool verbose = true; //set verbose true for State Manager initialization info
-
-    std::string desc_package_path = ros::package::getPath("tocabi_description");
-    std::string urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
-
+    bool urdfmode;
+    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);        
+    std::string urdf_path, desc_package_path;
+    desc_package_path = ros::package::getPath("tocabi_description");
+    
+    if(urdfmode)
+    {
+        urdf_path = desc_package_path + "/robots/dyros_tocabi_ankleRollDamping.urdf";
+     }
+    else
+    {
+        urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
+    }
+    
     ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
 
     RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true, verbose);
