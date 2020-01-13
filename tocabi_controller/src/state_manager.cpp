@@ -62,7 +62,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     if(urdfmode)
     {
         urdf_path = desc_package_path + "/robots/dyros_tocabi_ankleRollDamping.urdf";
-     }
+    }
     else
     {
         urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
