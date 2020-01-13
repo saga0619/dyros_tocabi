@@ -20,6 +20,7 @@ public:
   DataContainer &dc;
   virtual void connect();
   virtual void stateThread(); //main thread managing state
+  virtual void stateThread2(); //main thread managing state
   virtual void updateState();
   //virtual void sendCommand(Eigen::VectorQd command);
   virtual void sendCommand(Eigen::VectorQd command, double sim_time);
@@ -73,6 +74,9 @@ public:
   Com com_;
 
   Eigen::Vector6d RF_FT, LF_FT, LH_FT, RH_FT;
+
+  std::chrono::steady_clock::time_point st_start_time;
+
 
   //Communication Subscriber!
 

@@ -87,7 +87,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         for (int i = 0; i < LINK_NUMBER; i++)
         {
             link_id_[i] = model_.GetBodyId(TOCABI::LINK_NAME[i]);
-           /* if (i == 0)
+            /* if (i == 0)
             {
                 int li = link_id_[Pelvis];
                 std::cout << "Pelvis center of mass? : " << model_.mBodies[li].mCenterOfMass[0] << "  " << model_.mBodies[li].mCenterOfMass[1] << "  " << model_.mBodies[li].mCenterOfMass[2] << std::endl;
@@ -140,8 +140,40 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     ROS_INFO_COND(verbose, "State manager Init complete");
 }
 
+void StateManager::stateThread2(void)
+{
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    while (!dc.connected)
+    {
+        //wait for realrobot thread start
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
+        if (dc.shutdown)
+            break;
+    }
+    std::cout << "state thread start! " << std::endl;
+    std::chrono::microseconds cycletime(dc.ctime);
+    int cycle_count = 0;
+    if (dc.connected)
+    {
+        while (!dc.shutdown)
+        {
+            std::this_thread::sleep_until(st_start_time + cycle_count * cycletime + std::chrono::microseconds(250));
+            cycle_count++;
+            //Code here
+            //
+            updateState();
+            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+            storeState();
+
+            dc.firstcalcdone = true;
+        }
+    }
+}
+
 void StateManager::stateThread(void)
 {
+
     std::chrono::high_resolution_clock::time_point StartTime = std::chrono::high_resolution_clock::now();
     //std::chrono::high_resolution_clock::time_point StartTime2 = std::chrono::high_resolution_clock::now();
     std::chrono::seconds sec10(1);
@@ -158,16 +190,11 @@ void StateManager::stateThread(void)
 
     while (ros::ok())
     {
-
         updateState();
-
         updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-
         //std::cout <<" state estimation ";
         //stateEstimate();
-
         //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-
         storeState();
 
         dc.firstcalcdone = true;
@@ -337,6 +364,8 @@ void StateManager::stateThread(void)
         //std::this_thread::sleep_until(int_StartTime + dc.stm_timestep);
         int_StartTime = std::chrono::high_resolution_clock::now();
     }
+
+    std::cout << cyellow << "Status Thread End !" << creset << std::endl;
 }
 void StateManager::testThread()
 {
@@ -347,7 +376,7 @@ void StateManager::testThread()
     std::chrono::duration<double> e_s(0);
     ROS_INFO("Test Thread START");
     int ThreadCount = 0;
-    
+
     std::chrono::high_resolution_clock::time_point t[4];
     int wait_t = 1;
 
@@ -365,7 +394,6 @@ void StateManager::testThread()
         //stateEstimate();
         //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
-       
         storeState();
         t[3] = std::chrono::high_resolution_clock::now();
 
@@ -373,9 +401,9 @@ void StateManager::testThread()
         dur[1] = t[2] - t[1];
         dur[2] = t[3] - t[2];
 
-        if(t[3] > (StartTime + sec10 * wait_t))
+        if (t[3] > (StartTime + sec10 * wait_t))
         {
-            printf("state thread calc, up.state %f up.kin. %f st.state %f \n", dur[0].count()*1000, dur[1].count()*1000, dur[2].count()*1000);
+            printf("state thread calc, up.state %f up.kin. %f st.state %f \n", dur[0].count() * 1000, dur[1].count() * 1000, dur[2].count() * 1000);
             wait_t++;
         }
 
@@ -476,10 +504,9 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
 
     //std::cout << control_time_ << " : q_v(0) : " << q_virtual(0) << " : q_v(1) : " << q_virtual(1) << " : q_v(2) : " << q_virtual(2) << std::endl;
 
-    
     mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_, &q_virtual, &q_dot_virtual, &q_ddot_virtual);
-    
+
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, A_temp_, false);
 
     //Eigen::VectorXd tau_coriolis;
@@ -625,7 +652,7 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     RigidBodyDynamics::NonlinearEffects(model_, q_virtual_, q_dot_virtual_, tau_);
     tau_nonlinear_ = tau_;
 
- //contactJacUpdate
+    //contactJacUpdate
     //link_[Right_Foot].Set_Contact(model_, q_virtual_, link_[Right_Foot].contact_point);
     //link_[Left_Foot].Set_Contact(model_, q_virtual_, link_[Left_Foot].contact_point);
     //link_[Right_Hand].Set_Contact(model_, q_virtual_, link_[Right_Hand].contact_point);

@@ -223,6 +223,8 @@ void TocabiController::dynamicsThreadHigh()
 
         r.sleep();
     }
+
+    std::cout << cyellow << "Dynamics fast Thread End !" << creset << std::endl;
 }
 
 void TocabiController::dynamicsThreadLow()
@@ -1990,6 +1992,7 @@ void TocabiController::dynamicsThreadLow()
 
         //std::this_thread::sleep_until(dyn_loop_start + dc.dym_timestep);
     }
+    std::cout << cyellow << "Dynamics slow Thread End !" << creset << std::endl;
 }
 
 void TocabiController::tuiThread()
@@ -2011,6 +2014,12 @@ void TocabiController::tuiThread()
 
         if (dc.shutdown)
             break;
+        if(shutdown_tocabi)
+        {
+            dc.shutdown = true;
+            break;
+        }
+        
         for (int i = 0; i < 50; i++)
         {/*
             if (mtx_terminal.try_lock())

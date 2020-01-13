@@ -23,13 +23,20 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     velocityElmo.setZero();
     torqueElmo.setZero();
     torqueDemandElmo.setZero();
-    positionDesiredElmo.setZero();
     velocityDesiredElmo.setZero();
     torqueDesiredElmo.setZero();
-
     torqueDesiredController.setZero();
-
+    positionDesiredElmo.setZero();
+    positionDesiredElmo_Before.setZero();
+    positionDesiredController.setZero();
+    positionInitialElmo.setZero();
+    positionZeroElmo.setZero();
     positionZeroModElmo.setZero();
+    initTimeElmo.setZero();
+    positionSafteyHoldElmo.setZero();
+
+    rq_.setZero();
+    rq_dot_.setZero();
 
     positionZeroModElmo(8) = 15.46875 * DEG2RAD;
     positionZeroModElmo(7) = 16.875 * DEG2RAD;
@@ -51,20 +58,12 @@ void RealRobotInterface::updateState()
     ros::spinOnce();
     if (mtx_q.try_lock())
     {
-        for (int i = 0; i < MODEL_DOF; i++)
-        {
-            for (int j = 0; j < MODEL_DOF; j++)
-            {
-                if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j])
-                {
-                    q_(i) = positionElmo(j);
-                    q_dot_(i) = velocityElmo(j);
-                }
-            }
-        }
+        q_ = rq_;
+        q_dot_ = rq_dot_;
         mtx_q.unlock();
         q_virtual_.segment(6, MODEL_DOF) = q_;
         q_dot_virtual_.segment(6, MODEL_DOF) = q_dot_;
+        mtx_q.unlock();
     }
 }
 
@@ -182,7 +181,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     {
         //go to + 0.3rad until homming sensor turn off
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = lookaround(elmofz[slv_number].initPos, 0.3, elmofz[slv_number].initTime, 2.0);
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, 0.3, elmofz[slv_number].initTime, 2.0);
 
         if ((hommingElmo[slv_number] == 0) && (hommingElmo_before[slv_number] == 0))
         {
@@ -196,7 +195,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     else if (elmofz[slv_number].findZeroSequence == 2)
     {
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = lookaround(elmofz[slv_number].posStart, -0.3, elmofz[slv_number].initTime, 2.0);
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posStart, -0.3, elmofz[slv_number].initTime, 2.0);
 
         //go to -20deg until homming turn on, and turn off
         if ((hommingElmo_before[slv_number] == 1) && (hommingElmo[slv_number] == 0))
@@ -237,10 +236,10 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     { //start from unknown
 
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = lookaround(elmofz[slv_number].initPos, 0.3, elmofz[slv_number].initTime, 2.0);
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, 0.3, elmofz[slv_number].initTime, 2.0);
         if (control_time_ > (elmofz[slv_number].initTime + 2.0))
         {
-            positionDesiredElmo[slv_number] = lookaround(elmofz[slv_number].initPos + 0.3, -0.6, elmofz[slv_number].initTime + 2.0, 4.0);
+            positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos + 0.3, -0.6, elmofz[slv_number].initTime + 2.0, 4.0);
         }
 
         if (hommingElmo[slv_number] && hommingElmo_before[slv_number])
@@ -262,7 +261,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     else if (elmofz[slv_number].findZeroSequence == 4)
     {
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = lookaround(elmofz[slv_number].posEnd, positionZeroModElmo(slv_number) + positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, 2.0);
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posEnd, positionZeroModElmo(slv_number) + positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, 2.0);
         //go to zero position
         if (control_time_ > (elmofz[slv_number].initTime + 2.0))
         {
@@ -284,7 +283,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     {
         //find zero point failed
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = lookaround(elmofz[slv_number].initPos, elmofz[slv_number].firstPos - elmofz[slv_number].initPos, elmofz[slv_number].initTime, 2.0);
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, elmofz[slv_number].firstPos - elmofz[slv_number].initPos, elmofz[slv_number].initTime, 2.0);
         if (control_time_ > (elmofz[slv_number].initTime + 2.0))
         {
             elmofz[slv_number].findZeroSequence = 7;
@@ -532,7 +531,9 @@ void RealRobotInterface::ethercatThread()
                         rxPDO[slave - 1] = (EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *)(ec_slave[slave].inputs);
                     }
 
-                    std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
+                    //std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
+                    st_start_time = std::chrono::steady_clock::now();
+
                     std::chrono::duration<double> time_from_begin;
                     std::chrono::duration<double> time_err_reset = std::chrono::seconds(0);
 
@@ -583,10 +584,10 @@ void RealRobotInterface::ethercatThread()
                             std::this_thread::sleep_for(std::chrono::nanoseconds(500));
                         }*/
 
-                        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+                        std::this_thread::sleep_until(st_start_time + cycle_count * cycletime);
 
                         tp[1] = std::chrono::steady_clock::now();
-                        time_from_begin = std::chrono::steady_clock::now() - t_begin;
+                        time_from_begin = std::chrono::steady_clock::now() - st_start_time;
                         control_time_ = time_from_begin.count();
 
                         /** PDO I/O refresh */
@@ -597,13 +598,13 @@ void RealRobotInterface::ethercatThread()
 
                         tp[3] = std::chrono::steady_clock::now();
 
-                        td[0] = t_begin + cycle_count * cycletime - tp[0];
-                        td[1] = tp[1] - (t_begin + cycle_count * cycletime);
+                        td[0] = st_start_time + cycle_count * cycletime - tp[0];
+                        td[1] = tp[1] - (st_start_time + cycle_count * cycletime);
 
                         td[2] = tp[2] - tp[1];
                         td[3] = tp[3] - tp[2];
 
-                        if (tp[3] > t_begin + (cycle_count + 1) * cycletime)
+                        if (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                         {
                             std::cout << cred << " t_wait : " << td[0].count() * 1E+6 << " us, t_start : " << td[1].count() * 1E+6 << " us, ec_send : " << td[2].count() * 1E+6 << " us, ec_receive : " << td[3].count() * 1E+6 << " us" << creset << std::endl;
                         }
@@ -676,6 +677,21 @@ void RealRobotInterface::ethercatThread()
                                 }
                             }
                         }
+
+                        mtx_q.lock();
+                        for (int i = 0; i < MODEL_DOF; i++)
+                        {
+                            for (int j = 0; j < MODEL_DOF; j++)
+                            {
+                                if (TOCABI::LINK_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
+                                {
+                                    rq_[i] = positionElmo[j] - positionZeroElmo[j] - positionZeroModElmo[j];
+                                    rq_dot_[i] = velocityElmo[j];
+                                }
+                            }
+                        }
+                        mtx_q.unlock();
+
                         //Get State Seqence End, user controller start
 
                         dc.torqueElmo = torqueElmo;
@@ -808,7 +824,7 @@ void RealRobotInterface::ethercatThread()
                             }
                         }
 
-                        std::this_thread::sleep_until(t_begin + cycle_count * cycletime + std::chrono::microseconds(250));
+                        std::this_thread::sleep_until(st_start_time + cycle_count * cycletime + std::chrono::microseconds(250));
                         ec_send_processdata();
 
                         positionDesiredElmo_Before = positionDesiredElmo;
@@ -821,7 +837,7 @@ void RealRobotInterface::ethercatThread()
                             }
                         }
 
-                        td[4] = std::chrono::steady_clock::now() - (t_begin + cycle_count * cycletime);
+                        td[4] = std::chrono::steady_clock::now() - (st_start_time + cycle_count * cycletime);
 
                         d_mean = d_mean + td[4].count();
                         if (d_min > td[4].count())
@@ -914,7 +930,7 @@ void RealRobotInterface::ethercatThread()
     ElmoTerminate = true;
     dc.shutdown = true;
 }
-double RealRobotInterface::lookaround(double init, double angle, double start_time, double traj_time)
+double RealRobotInterface::elmoJointMove(double init, double angle, double start_time, double traj_time)
 {
     double des_pos;
 
@@ -1039,22 +1055,6 @@ bool RealRobotInterface::controlWordGenerate(const uint16_t statusWord, uint16_t
     }
     controlWord = 0;
     return false;
-}
-
-void RealRobotInterface::add_timespec(struct timespec *ts, int64 addtime)
-{
-    int64 sec, nsec;
-
-    nsec = addtime % NSEC_PER_SEC;
-    sec = (addtime - nsec) / NSEC_PER_SEC;
-    ts->tv_sec += sec;
-    ts->tv_nsec += nsec;
-    if (ts->tv_nsec > NSEC_PER_SEC)
-    {
-        nsec = ts->tv_nsec % NSEC_PER_SEC;
-        ts->tv_sec += (ts->tv_nsec - nsec) / NSEC_PER_SEC;
-        ts->tv_nsec = nsec;
-    }
 }
 
 void RealRobotInterface::gainCallbak(const tocabi_controller::GainCommandConstPtr &msg)
