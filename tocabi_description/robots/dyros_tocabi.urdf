@@ -129,7 +129,7 @@
     </collision>
   </link>
   <joint
-    name="R_HipRoll_Joint"
+    name="R_HipYaw_Joint"
     type="revolute">
     <origin
       xyz="0 -0.1025 -0.1225"
@@ -189,7 +189,7 @@
     </collision>
   </link>
   <joint
-    name="R_HipCenter_Joint"
+    name="R_HipRoll_Joint"
     type="revolute">
     <origin
       xyz="0 0 0"
@@ -256,7 +256,7 @@
     </collision>
   </link>
   <joint
-    name="R_Thigh_Joint"
+    name="R_HipPitch_Joint"
     type="revolute">
     <origin
       xyz="0 0 0"
@@ -374,7 +374,7 @@
     </collision>
   </link>
   <joint
-    name="R_AnkleCenter_Joint"
+    name="R_AnklePitch_Joint"
     type="revolute">
     <origin
       xyz="0 0 -0.35"
@@ -583,7 +583,7 @@
     </collision>
   </link>
   <joint
-    name="L_HipRoll_Joint"
+    name="L_HipYaw_Joint"
     type="revolute">
     <origin
       xyz="0 0.1025 -0.1225"
@@ -643,7 +643,7 @@
     </collision>
   </link>
   <joint
-    name="L_HipCenter_Joint"
+    name="L_HipRoll_Joint"
     type="revolute">
     <origin
       xyz="0 0 0"
@@ -710,7 +710,7 @@
     </collision>
   </link>
   <joint
-    name="L_Thigh_Joint"
+    name="L_HipPitch_Joint"
     type="revolute">
     <origin
       xyz="0 0 0"
@@ -829,7 +829,7 @@
     </collision>
   </link>
   <joint
-    name="L_AnkleCenter_Joint"
+    name="L_AnklePitch_Joint"
     type="revolute">
     <origin
       xyz="0 0 -0.350000000051828"

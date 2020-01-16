@@ -165,7 +165,14 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
 void TocabiController::stateThread()
 {
     s_.connect();
-    s_.stateThread();
+    if (dc.mode == "realrobot")
+    {
+        s_.stateThread2();
+    }
+    else
+    {
+        s_.stateThread();
+    }
 }
 
 void TocabiController::dynamicsThreadHigh()
@@ -2014,14 +2021,14 @@ void TocabiController::tuiThread()
 
         if (dc.shutdown)
             break;
-        if(shutdown_tocabi)
+        if (shutdown_tocabi)
         {
             dc.shutdown = true;
             break;
         }
-        
+
         for (int i = 0; i < 50; i++)
-        {/*
+        { /*
             if (mtx_terminal.try_lock())
             {
                 if (dc.Tq_[i].update)
@@ -2050,16 +2057,22 @@ void TocabiController::tuiThread()
             //std::cout<<"working?"<<ch<<std::endl;
             if ((ch % 256 == 'q'))
             {
-                std::cout << "shutdown request"<<std::endl;
+                std::cout << "shutdown request" << std::endl;
                 dc.shutdown = true;
             }
             else if ((ch % 256 == 'p'))
             {
                 std::cout << "position mode" << std::endl;
             }
+            else if ((ch % 255 == 'r'))
+            {
+                std::cout << "disable safety lock" << std::endl;
+                dc.disableSafetyLock = true;
+            }
             else if ((ch % 256 == 't'))
             {
                 std::cout << "torque mode " << std::endl;
+                dc.torquezeroByTerminal = true;
             }
             else if (ch % 256 == 'd')
             {

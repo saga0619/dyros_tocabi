@@ -5,6 +5,7 @@
 #include <thread>
 
 #include <Eigen/Dense>
+#include <vector>
 
 #include "ethercattype.h"
 #include "nicdrv.h"
@@ -75,7 +76,7 @@ const double RAD2CNT[MODEL_DOF] =
         RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46};
 
 const double CNT2NM[MODEL_DOF] =
-    {   //Elmo 순서
+    {             //Elmo 순서
         0.010526, //head
         0.010526,
         0.010526, //wrist
@@ -96,14 +97,14 @@ const double CNT2NM[MODEL_DOF] =
         0.064516, //shoulder1
         0.30303,  //Waist
         0.30303,
-        0.1724,   //rightLeg
+        0.1724, //rightLeg
         0.2307,
         0.2635,
         0.2890,
         0.2834,
         0.0811,
-        0.30303,  //upperbody
-        0.1724,   //leftLeg
+        0.30303, //upperbody
+        0.1724,  //leftLeg
         0.2307,
         0.2635,
         0.2890,
@@ -111,7 +112,7 @@ const double CNT2NM[MODEL_DOF] =
         0.0811};
 
 const double NM2CNT[MODEL_DOF] =
-    {   //Elmo 순서
+    {       //Elmo 순서
         95, //head
         95,
         95, //wrist
@@ -122,29 +123,38 @@ const double NM2CNT[MODEL_DOF] =
         15.5, //arm
         15.5, //arm
         15.5, //shoulder3
-        42,  //Elbow
-        42,  //Forearm
-        42,  //Forearm
-        42,  //Elbow
+        42,   //Elbow
+        42,   //Forearm
+        42,   //Forearm
+        42,   //Elbow
         15.5, //shoulder1
         15.5, //shoulder2
         15.5, //shoulder2
         15.5, //shoulder1
         3.3,  //Waist
         3.3,
-        5.8,   //rightLeg
+        5.8, //rightLeg
         4.3,
         3.8,
         3.46,
         3.52,
         3.3,
-        3.3,  //upperbody
-        5.8,   //leftLeg
+        3.3, //upperbody
+        5.8, //leftLeg
         4.3,
         3.8,
         3.46,
         3.52,
         3.3};
+
+const int positionExternalModElmo[MODEL_DOF] =
+    {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 3942, 5148, 3234, 7499, 4288,
+        0,
+        0, 2522, 735, 8132, 2127, 7155};
 
 const double MOTORCONTSTANT[MODEL_DOF] =
     {
@@ -244,7 +254,7 @@ struct ElmoGoldDevice
         int32_t velocityActualValue;
         int16_t torqueActualValue;
         //int16_t torqueDemandValue;
-        //int32_t positionExternal;
+        int32_t positionExternal;
     };
 };
 } // namespace EtherCAT_Elmo
@@ -256,7 +266,7 @@ enum FZResult
     SUCCESS,
     FAILURE
 };
-}; // namespace ElmoHomming
+}; // namespace ElmoHommingStatus
 
 struct ElmoHomming
 {
@@ -301,6 +311,7 @@ public:
     int checkTrajContinuity(int slv_number);
     void checkSafety(int slv_number, double max_vel, double max_dis);
     void findZeroPoint(int slv_number);
+    void findZeroLeg();
 
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
 
@@ -317,6 +328,19 @@ public:
         CW_DISABLEOP = 7,
     };
 
+    enum
+    {
+        FZ_CHECKHOMMINGSTATUS,
+        FZ_FINDHOMMINGSTART,
+        FZ_FINDHOMMINGEND,
+        FZ_FINDHOMMING,
+        FZ_GOTOZEROPOINT,
+        FZ_HOLDZEROPOINT,
+        FZ_FAILEDANDRETURN,
+        FZ_MANUALDETECTION,
+        FZ_TORQUEZERO,
+    };
+
     ElmoHomming elmofz[MODEL_DOF];
 
     int expectedWKC;
@@ -325,15 +349,12 @@ public:
     boolean inOP;
     uint8 currentgroup = 0;
 
-
-
     int Walking_State;
     int ElmoMode[MODEL_DOF];
     bool checkPosSafety[MODEL_DOF];
     //int ElmoState[MODEL_DOF];
     //int ElmoState_before[MODEL_DOF];
 
-    
     enum
     {
         EM_POSITION = 11,
@@ -363,10 +384,10 @@ public:
 
     int stateElmo[MODEL_DOF];
     int stateElmo_before[MODEL_DOF];
+    int positionExternalModElmo[MODEL_DOF];
 
     bool hommingElmo[MODEL_DOF];
     bool hommingElmo_before[MODEL_DOF];
-
 
     int ElmoSafteyMode[MODEL_DOF];
 
@@ -376,12 +397,15 @@ public:
     bool ElmoConnected = false;
     bool ElmoTerminate = false;
 
+    std::vector<int> fz_group1;
+    std::vector<int> fz_group2;
+    std::vector<int> fz_group3;
+
 private:
     DataContainer &dc;
 
     Eigen::VectorQd getCommand();
     void ImuCallback(const sensor_msgs::ImuConstPtr &msg);
-    
 
     ros::Subscriber imuSubscriber;
     ros::Subscriber gainSubscriber;

@@ -25,10 +25,10 @@
 namespace TOCABI
 {
 const std::string JOINT_NAME[MODEL_DOF] = {
-    "L_HipRoll_Joint", "L_HipCenter_Joint", "L_Thigh_Joint",
-    "L_Knee_Joint", "L_AnkleCenter_Joint", "L_AnkleRoll_Joint",
-    "R_HipRoll_Joint", "R_HipCenter_Joint", "R_Thigh_Joint",
-    "R_Knee_Joint", "R_AnkleCenter_Joint", "R_AnkleRoll_Joint",
+    "L_HipYaw_Joint", "L_HipRoll_Joint", "L_HipPitch_Joint",
+    "L_Knee_Joint", "L_AnklePitch_Joint", "L_AnkleRoll_Joint",
+    "R_HipYaw_Joint", "R_HipRoll_Joint", "R_HipPitch_Joint",
+    "R_Knee_Joint", "R_AnklePitch_Joint", "R_AnkleRoll_Joint",
     "Waist1_Joint", "Waist2_Joint", "Upperbody_Joint",
     "L_Shoulder1_Joint", "L_Shoulder2_Joint", "L_Shoulder3_Joint", "L_Armlink_Joint",
     "L_Elbow_Joint", "L_Forearm_Joint", "L_Wrist1_Joint", "L_Wrist2_Joint",
@@ -36,11 +36,55 @@ const std::string JOINT_NAME[MODEL_DOF] = {
     "R_Shoulder1_Joint", "R_Shoulder2_Joint", "R_Shoulder3_Joint", "R_Armlink_Joint",
     "R_Elbow_Joint", "R_Forearm_Joint", "R_Wrist1_Joint", "R_Wrist2_Joint"};
 
+const std::string ELMO_NAME[MODEL_DOF] = {
+    "Head_Joint", "Neck_Joint", "R_Wrist1_Joint", "R_Wrist2_Joint", "L_Wrist2_Joint", "L_Wrist1_Joint", "L_Shoulder3_Joint", "L_Armlink_Joint",
+    "R_Armlink_Joint", "R_Shoulder3_Joint", "R_Elbow_Joint", "R_Forearm_Joint", "L_Forearm_Joint", "L_Elbow_Joint", "L_Shoulder1_Joint", "L_Shoulder2_Joint",
+    "R_Shoulder2_Joint", "R_Shoulder1_Joint", "Waist2_Joint", "Waist1_Joint", "R_HipYaw_Joint", "R_HipRoll_Joint", "R_HipPitch_Joint",
+    "R_Knee_Joint", "R_AnklePitch_Joint", "R_AnkleRoll_Joint", "Upperbody_Joint", "L_HipYaw_Joint", "L_HipRoll_Joint", "L_HipPitch_Joint",
+    "L_Knee_Joint", "L_AnklePitch_Joint", "L_AnkleRoll_Joint"};
+
+enum
+{
+  Head_Joint,
+  Neck_Joint,
+  R_Wrist1_Joint,
+  R_Wrist2_Joint,
+  L_Wrist2_Joint,
+  L_Wrist1_Joint,
+  L_Shoulder3_Joint,
+  L_Armlink_Joint,
+  R_Armlink_Joint,
+  R_Shoulder3_Joint,
+  R_Elbow_Joint,
+  R_Forearm_Joint,
+  L_Forearm_Joint,
+  L_Elbow_Joint,
+  L_Shoulder1_Joint,
+  L_Shoulder2_Joint,
+  R_Shoulder2_Joint,
+  R_Shoulder1_Joint,
+  Waist2_Joint,
+  Waist1_Joint,
+  R_HipYaw_Joint,
+  R_HipRoll_Joint,
+  R_HipPitch_Joint,
+  R_Knee_Joint,
+  R_AnklePitch_Joint,
+  R_AnkleRoll_Joint,
+  Upperbody_Joint,
+  L_HipYaw_Joint,
+  L_HipRoll_Joint,
+  L_HipPitch_Joint,
+  L_Knee_Joint,
+  L_AnklePitch_Joint,
+  L_AnkleRoll_Joint
+};
+
 const std::string ACTUATOR_NAME[MODEL_DOF] = {
-    "L_HipRoll_Motor", "L_HipCenter_Motor", "L_Thigh_Motor",
-    "L_Knee_Motor", "L_AnkleCenter_Motor", "L_AnkleRoll_Motor",
-    "R_HipRoll_Motor", "R_HipCenter_Motor", "R_Thigh_Motor",
-    "R_Knee_Motor", "R_AnkleCenter_Motor", "R_AnkleRoll_Motor",
+    "L_HipYaw_Motor", "L_HipRoll_Motor", "L_HipPitch_Motor",
+    "L_Knee_Motor", "L_AnklePitch_Motor", "L_AnkleRoll_Motor",
+    "R_HipYaw_Motor", "R_HipRoll_Motor", "R_HipPitch_Motor",
+    "R_Knee_Motor", "R_AnklePitch_Motor", "R_AnkleRoll_Motor",
     "Waist1_Motor", "Waist2_Motor", "Upperbody_Motor",
     "L_Shoulder1_Motor", "L_Shoulder2_Motor", "L_Shoulder3_Motor", "L_Armlink_Motor",
     "L_Elbow_Motor", "L_Forearm_Motor", "L_Wrist1_Motor", "L_Wrist2_Motor",
@@ -55,14 +99,6 @@ static constexpr const char *LINK_NAME[LINK_NUMBER] = {
     "L_Shoulder1_Link", "L_Shoulder2_Link", "L_Shoulder3_Link", "L_Armlink_Link", "L_Elbow_Link", "L_Forearm_Link", "L_Wrist1_Link", "L_Wrist2_Link",
     "R_Shoulder1_Link", "R_Shoulder2_Link", "R_Shoulder3_Link", "R_Armlink_Link", "R_Elbow_Link", "R_Forearm_Link", "R_Wrist1_Link", "R_Wrist2_Link",
     "Neck_Link", "Head_Link"};
-
-const std::string ELMO_NAME[MODEL_DOF] = {
-    "Neck_Joint", "Head_Joint",
-    "R_Wrist1_Joint", "R_Wrist2_Joint", "L_Wrist2_Joint", "L_Wrist1_Joint", "L_Shoulder3_Joint", "L_Armlink_Joint",
-    "R_Armlink_Joint", "R_Shoulder3_Joint", "R_Elbow_Joint", "R_Forearm_Joint", "L_Forearm_Joint", "L_Elbow_Joint", "L_Shoulder1_Joint", "L_Shoulder2_Joint",
-    "R_Shoulder2_Joint", "R_Shoulder1_Joint", "Waist1_Joint", "Waist2_Joint", "R_HipRoll_Joint", "R_HipCenter_Joint", "R_Thigh_Joint",
-    "R_Knee_Joint", "R_AnkleCenter_Joint", "R_AnkleRoll_Joint", "Upperbody_Joint", "L_HipRoll_Joint", "L_HipCenter_Joint", "L_Thigh_Joint",
-    "L_Knee_Joint", "L_AnkleCenter_Joint", "L_AnkleRoll_Joint"};
 } // namespace TOCABI
 
 const int Pelvis = 0;
@@ -106,6 +142,9 @@ public:
   bool print_delay_info = false;
   bool print_elmo_info_tofile = false;
   bool start_initialize_sequence = false;
+
+  bool torquezeroByTerminal = false;
+  bool disableSafetyLock = false;
 
   std::string mode;
 

@@ -33,6 +33,11 @@ public:
   void stateEstimate();
   //private functions
 
+
+  //advertise informations to ROS
+  void adv2ROS();
+
+
   //update kinematic information with RBDL
   void updateKinematics(const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
 

@@ -89,7 +89,7 @@
             <site name="Pelvis_IMU" type="cylinder" size="0.005 0.005" group="4" rgba=".1 .1 .9 1"/>
             <body name="L_HipRoll_Link" pos="0 0.1025 -0.1225">
                 <inertial pos="-0.06477 0 0.05149" mass="2.679" fullinertia="0.01821 0.03121 0.2928 -1.676E-07 -0.0007745 -4.53E-09" />
-                <joint name="L_HipRoll_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14 3.14"   />
+                <joint name="L_HipYaw_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14 3.14"   />
                 <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="HipRoll_L_Link" />
                 <geom size="0.045 0.04" pos="-0.1 0 0" quat="0.707107 0 0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                 <geom size="0.077 0.05 0.01" pos="-0.016 0 0.085" type="box" rgba="0.79216 0.81961 0.93333 1" />
@@ -97,12 +97,12 @@
                 <geom size="0.006 0.036 0.0475" pos="-0.087 0 0.0475" type="box" rgba="0.79216 0.81961 0.93333 1" />
                 <body name="L_HipCenter_Link" pos="0 0 0">
                     <inertial pos="-0.04801 0.0022 2e-05" mass="2.67" fullinertia="0.3553 0.009161 0.00876 1.725E-08 -3.236E-06 -4.778E-06" />
-                    <joint name="L_HipCenter_Joint" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14"   />
+                    <joint name="L_HipRoll_Joint" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14"   />
                     <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="HipCenter_L_Link" />
                     <geom size="0.05225 0.03 0.0475" pos="-0.0045 0 0" type="box" rgba="0.79216 0.81961 0.93333 1" />
                     <body name="L_Thigh_Link" pos="0 0 0">
                         <inertial pos="-0.00042 0.00032 -0.18904" mass="5.366" fullinertia="0.2987 0.7088 0.00982 -4.284E-05 -0.000196 0.002406" />
-                        <joint name="L_Thigh_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"   />
+                        <joint name="L_HipPitch_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"   />
                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Thigh_L_Link" />
                         <geom size="0.049 0.038815" pos="0 0 -0.35" quat="0.707107 0.707107 0 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                         <geom size="0.06 0.10875" pos="0 0 -0.1923" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
@@ -113,7 +113,7 @@
                             <geom size="0.06 0.1" pos="0 0 -0.175" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                             <body name="L_AnkleCenter_Link" pos="0 0 -0.35">
                                 <inertial pos="-0.00419 0.0018 -0.0003" mass="2.51" fullinertia="0.002857 0.4135 0.003345 -1.422E-07 2.222E-06 4.611E-06" />
-                                <joint name="L_AnkleCenter_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"/>
+                                <joint name="L_AnklePitch_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"/>
                                 <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="AnkleCenter_L_Link" />
                                 <geom size="0.05225 0.03 0.0475" pos="-0.0045 0 0" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                 <body name="L_AnkleRoll_Link" pos="0 0 0">
@@ -137,7 +137,7 @@
 
             <body name="R_HipRoll_Link" pos="0 -0.1025 -0.1225">
                 <inertial pos="-0.06477 0 0.05149" mass="2.679" fullinertia="0.01821 0.03121 0.2928 -1.676E-07 -0.0007745 -4.53E-09" />
-                <joint name="R_HipRoll_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14 3.14"   />
+                <joint name="R_HipYaw_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14 3.14"   />
                 <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="HipRoll_R_link" />
                 <geom size="0.045 0.04" pos="-0.1 0 0" quat="0.707107 0 0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                 <geom size="0.077 0.05 0.01" pos="-0.016 0 0.085" type="box" rgba="0.79216 0.81961 0.93333 1" />
@@ -145,12 +145,12 @@
                 <geom size="0.006 0.036 0.0475" pos="-0.087 0 0.0475" type="box" rgba="0.79216 0.81961 0.93333 1" />
                 <body name="R_HipCenter_Link" pos="0 0 0">
                     <inertial pos="-0.04801 -0.0022 2e-05" mass="2.67" fullinertia="0.3553 0.009161 0.00876 1.725E-08 -3.236E-06 -4.778E-06" />
-                    <joint name="R_HipCenter_Joint" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14"   />
+                    <joint name="R_HipRoll_Joint" pos="0 0 0" axis="1 0 0" limited="true" range="-3.14 3.14"   />
                     <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="HipCenter_R_Link" />
                     <geom size="0.05225 0.03 0.0475" pos="-0.0045 0 0" type="box" rgba="0.79216 0.81961 0.93333 1" />
                     <body name="R_Thigh_Link" pos="0 0 0">
                         <inertial pos="-0.00042 -0.00032 -0.18904" mass="5.366" fullinertia="0.2987 0.7088 0.00982 -4.284E-05 -0.000196 0.002406" />
-                        <joint name="R_Thigh_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"   />
+                        <joint name="R_HipPitch_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"   />
                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Thigh_R_Link" />
                         <geom size="0.049 0.038815" pos="0 0 -0.35" quat="0.707107 0.707107 0 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                         <geom size="0.06 0.10875" pos="0 0 -0.1923" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
@@ -161,7 +161,7 @@
                             <geom size="0.06 0.1" pos="0 0 -0.175" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                             <body name="R_AnkleCenter_Link" pos="0 0 -0.35">
                                 <inertial pos="-0.00419 -0.0018 -0.0003" mass="2.51" fullinertia="0.002857 0.4135 0.003345 -1.422E-07 2.222E-06 4.611E-06" />
-                                <joint name="R_AnkleCenter_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"   />
+                                <joint name="R_AnklePitch_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14 3.14"   />
                                 <geom class="viz" rgba="0.20313 0.20313 0.20313 1" mesh="AnkleCenter_R_Link" />
                                 <geom size="0.05225 0.03 0.0475" pos="-0.0045 0 0" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                 <body name="R_AnkleRoll_Link" pos="0 0 0">
@@ -324,21 +324,22 @@
                     </body>
                 </body>
             </body>
-        </body>    
+        </body> 
+
     </worldbody>
     <actuator>
+        <motor name="L_HipYaw_Motor" joint="L_HipYaw_Joint"/>
         <motor name="L_HipRoll_Motor" joint="L_HipRoll_Joint"/>
-        <motor name="L_HipCenter_Motor" joint="L_HipCenter_Joint"/>
-        <motor name="L_Thigh_Motor" joint="L_Thigh_Joint"/>
+        <motor name="L_HipPitch_Motor" joint="L_HipPitch_Joint"/>
         <motor name="L_Knee_Motor" joint="L_Knee_Joint"/>
-        <motor name="L_AnkleCenter_Motor" joint="L_AnkleCenter_Joint"/>
+        <motor name="L_AnklePitch_Motor" joint="L_AnklePitch_Joint"/>
         <motor name="L_AnkleRoll_Motor" joint="L_AnkleRoll_Joint"/>
 
+        <motor name="R_HipYaw_Motor" joint="R_HipYaw_Joint"/>
         <motor name="R_HipRoll_Motor" joint="R_HipRoll_Joint"/>
-        <motor name="R_HipCenter_Motor" joint="R_HipCenter_Joint"/>
-        <motor name="R_Thigh_Motor" joint="R_Thigh_Joint"/>
+        <motor name="R_HipPitch_Motor" joint="R_HipPitch_Joint"/>
         <motor name="R_Knee_Motor" joint="R_Knee_Joint"/>
-        <motor name="R_AnkleCenter_Motor" joint="R_AnkleCenter_Joint"/>
+        <motor name="R_AnklePitch_Motor" joint="R_AnklePitch_Joint"/>
         <motor name="R_AnkleRoll_Motor" joint="R_AnkleRoll_Joint"/>
 
         <motor name="Waist1_Motor" joint="Waist1_Joint"/>

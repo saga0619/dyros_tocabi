@@ -52,6 +52,10 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     file[0] << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 }
 
+void RealRobotInterface::findZeroLeg()
+{
+}
+
 void RealRobotInterface::updateState()
 {
     //State is updated by main state loop of realrobot interface !
@@ -108,6 +112,7 @@ int RealRobotInterface::checkTrajContinuity(int slv_number)
 
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
 {
+
     if (ElmoSafteyMode[slv_number] == 0)
     {
         if (checkPosSafety[slv_number])
@@ -270,7 +275,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             elmofz[slv_number].result = ElmoHommingStatus::SUCCESS;
             //std::cout << slv_number << "Start : " << elmofz[slv_number].posStart << "End:" << elmofz[slv_number].posEnd << std::endl;
             positionDesiredElmo[slv_number] = positionZeroModElmo(slv_number) + positionZeroElmo(slv_number);
-            elmofz[slv_number].findZeroSequence = 5;
+            elmofz[slv_number].findZeroSequence = 8; // torque to zero -> 8 position hold -> 5
         }
     }
     else if (elmofz[slv_number].findZeroSequence == 5)
@@ -302,7 +307,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             elmofz[slv_number].initTime = control_time_;
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
-        if (control_time_ > (elmofz[slv_number].initTime + 20.0))
+        if (control_time_ > (elmofz[slv_number].initTime + 30.0))
         {
             printf("Motor %d %s :  Manual Detection Failed. \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
             elmofz[slv_number].findZeroSequence = 8;
@@ -454,19 +459,20 @@ void RealRobotInterface::ethercatThread()
 
                 for (int slave = 1; slave <= ec_slavecount; slave++)
                 {
-                    //0x1605 :  Target Position         32bit
-                    //          Target Velocity         32bit
-                    //          Max Torque              16bit
-                    //          Control word            16bit
-                    //          Modes of Operation      16bit
+                    //0x1605 :  Target Position             32bit
+                    //          Target Velocity             32bit
+                    //          Max Torque                  16bit
+                    //          Control word                16bit
+                    //          Modes of Operation          16bit
                     uint16 map_1c12[2] = {0x0001, 0x1605};
 
-                    //0x1a00 :  position actual value   32bit
-                    //          Digital Inputs          32bit
-                    //          Status word             16bit
-                    //0x1a11 :  velocity actual value   32bit
-                    //0x1a13 :  Torque actual value     16bit
-                    uint16 map_1c13[4] = {0x0003, 0x1a00, 0x1a11, 0x1a13}; //, 0x1a12};
+                    //0x1a00 :  position actual value       32bit
+                    //          Digital Inputs              32bit
+                    //          Status word                 16bit
+                    //0x1a11 :  velocity actual value       32bit
+                    //0x1a13 :  Torque actual value         16bit
+                    //0x1a1e :  Auxiliart position value    32bit
+                    uint16 map_1c13[5] = {0x0004, 0x1a00, 0x1a11, 0x1a13, 0x1a1e}; //, 0x1a12};
                     //uint16 map_1c13[6] = {0x0005, 0x1a04, 0x1a11, 0x1a12, 0x1a1e, 0X1a1c};
                     int os;
                     os = sizeof(map_1c12);
@@ -507,7 +513,7 @@ void RealRobotInterface::ethercatThread()
 
                 if (ec_slave[0].state == EC_STATE_OPERATIONAL)
                 {
-                    dc.connected = true;
+                    //dc.connected = true;
                     //printf("Operational state reached for all slaves.\n");
                     printf("Operational state reached for all slaves. \n");
 
@@ -523,7 +529,6 @@ void RealRobotInterface::ethercatThread()
                     std::this_thread::sleep_for(std::chrono::seconds(1));
                     printf("0... Loop Start! \n");
 
-                    dc.connected = true;
                     /* cyclic loop */
                     for (int slave = 1; slave <= ec_slavecount; slave++)
                     {
@@ -532,7 +537,6 @@ void RealRobotInterface::ethercatThread()
                     }
 
                     //std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
-                    st_start_time = std::chrono::steady_clock::now();
 
                     std::chrono::duration<double> time_from_begin;
                     std::chrono::duration<double> time_err_reset = std::chrono::seconds(0);
@@ -571,10 +575,11 @@ void RealRobotInterface::ethercatThread()
                         ElmoSafteyMode[i] = 0;
                     }
 
+                    dc.connected = true;
+                    st_start_time = std::chrono::steady_clock::now();
                     while (1)
                     {
                         //Ethercat Loop begins :: RT Thread
-                        static double ce = 0;
                         tp[0] = std::chrono::steady_clock::now();
 
                         //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
@@ -654,17 +659,14 @@ void RealRobotInterface::ethercatThread()
 
                                     torqueElmo(slave - 1) =
                                         (((int16_t)ec_slave[slave].inputs[14]) +
-                                         ((int16_t)ec_slave[slave].inputs[15] << 8) +
-                                         ((int16_t)ec_slave[slave].inputs[16] << 16) +
-                                         ((int16_t)ec_slave[slave].inputs[17] << 24));
+                                         ((int16_t)ec_slave[slave].inputs[15] << 8));
 
-                                    /*
                                     positionExternalElmo(slave - 1) =
-                                        (((int32_t)ec_slave[slave].inputs[20]) +
-                                         ((int32_t)ec_slave[slave].inputs[21] << 8) +
-                                         ((int32_t)ec_slave[slave].inputs[22] << 16) +
-                                         ((int32_t)ec_slave[slave].inputs[23] << 24)) *
-                                        CNT2RAD[slave - 1] * Dr[slave - 1];*/
+                                        (((int32_t)ec_slave[slave].inputs[16]) +
+                                         ((int32_t)ec_slave[slave].inputs[17] << 8) +
+                                         ((int32_t)ec_slave[slave].inputs[18] << 16) +
+                                         ((int32_t)ec_slave[slave].inputs[19] << 24) + positionExternalModElmo[slave - 1]) *
+                                        CNT2RAD[slave - 1] * Dr[slave - 1];
 
                                     ElmoConnected = true;
 
@@ -683,10 +685,28 @@ void RealRobotInterface::ethercatThread()
                         {
                             for (int j = 0; j < MODEL_DOF; j++)
                             {
-                                if (TOCABI::LINK_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
+                                if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
                                 {
-                                    rq_[i] = positionElmo[j] - positionZeroElmo[j] - positionZeroModElmo[j];
-                                    rq_dot_[i] = velocityElmo[j];
+                                    if (cycle_count == 1)
+                                    {
+                                        std::cout << i << " JN : " << TOCABI::JOINT_NAME[i] << " " << j << " EN : " << TOCABI::ELMO_NAME[j] << std::endl;
+                                    }
+
+                                    if ((j >= 21) && (j <= 25))
+                                    {
+                                        rq_[i] = positionExternalElmo[j];
+                                        rq_dot_[i] = velocityElmo[j];
+                                    }
+                                    else if ((j >= 28) && (j <= 32))
+                                    {
+                                        rq_[i] = positionExternalElmo[j];
+                                        rq_dot_[i] = velocityElmo[j];
+                                    }
+                                    else
+                                    {
+                                        rq_[i] = positionElmo[j] - positionZeroElmo[j] - positionZeroModElmo[j];
+                                        rq_dot_[i] = velocityElmo[j];
+                                    }
                                 }
                             }
                         }
@@ -708,6 +728,9 @@ void RealRobotInterface::ethercatThread()
                             positionInitialElmo = positionElmo;
                             elmo_init = false;
                             std::cout << cred << "Robot Initialize Process ! Finding Zero Point !" << creset << std::endl;
+                            
+                            elmofz[TOCABI::R_Shoulder3_Joint].findZeroSequence=7;
+                            elmofz[TOCABI::L_Shoulder3_Joint].findZeroSequence=7;
                             for (int j = 0; j < MODEL_DOF; j++)
                             {
                                 hommingElmo_before[j] = hommingElmo[j];
@@ -721,13 +744,25 @@ void RealRobotInterface::ethercatThread()
                                 if (!elmo_init)
                                 {
 
-                                    if (i <= 17)
+                                    if (dc.torquezeroByTerminal)
                                     {
-                                        if ((i != 6) && (i != 9) && (i != 15) && (i != 16) && (i != 3) && (i != 4))
+                                        ElmoMode[i]=EM_TORQUE;
+                                        torqueDesiredElmo[i] = 0;
+                                        
+                                    }
+                                    else
+                                    {
+                                        if (i <= 17)
                                         {
-                                            findZeroPoint(i);
+                                            if ((i != 6) && (i != 9) && (i != 15) && (i != 16) && (i != 3) && (i != 4))
+                                            {
+                                                
+                                                
+                                                findZeroPoint(i);
+                                            }
                                         }
                                     }
+
                                     //if (slave == 1 || slave == 2 ||slave == 11 || slave == 14)
                                     //if (i == 1 || i == 0)
                                     //    findZeroPoint(i);
@@ -828,7 +863,14 @@ void RealRobotInterface::ethercatThread()
                         ec_send_processdata();
 
                         positionDesiredElmo_Before = positionDesiredElmo;
-
+                        if (dc.disableSafetyLock)
+                        {
+                            for (int i = 0; i < MODEL_DOF; i++)
+                            {
+                                ElmoSafteyMode[i] = 0;
+                            }
+                            dc.disableSafetyLock = false;
+                        }
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
                             if (ElmoMode[i] == EM_POSITION)
@@ -836,9 +878,7 @@ void RealRobotInterface::ethercatThread()
                                 checkPosSafety[i] = true;
                             }
                         }
-
-                        td[4] = std::chrono::steady_clock::now() - (st_start_time + cycle_count * cycletime);
-
+                        td[4] = std::chrono::steady_clock::now() - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
                         d_mean = d_mean + td[4].count();
                         if (d_min > td[4].count())
                             d_min = td[4].count();
