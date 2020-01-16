@@ -728,9 +728,12 @@ void RealRobotInterface::ethercatThread()
                             positionInitialElmo = positionElmo;
                             elmo_init = false;
                             std::cout << cred << "Robot Initialize Process ! Finding Zero Point !" << creset << std::endl;
-                            
-                            elmofz[TOCABI::R_Shoulder3_Joint].findZeroSequence=7;
-                            elmofz[TOCABI::L_Shoulder3_Joint].findZeroSequence=7;
+
+                            elmofz[TOCABI::R_Shoulder3_Joint].findZeroSequence = 7;
+                            elmofz[TOCABI::R_Shoulder3_Joint].initTime=control_time_;
+                            elmofz[TOCABI::L_Shoulder3_Joint].findZeroSequence = 7;
+                            elmofz[TOCABI::L_Shoulder3_Joint].initTime=control_time_;
+
                             for (int j = 0; j < MODEL_DOF; j++)
                             {
                                 hommingElmo_before[j] = hommingElmo[j];
@@ -746,18 +749,15 @@ void RealRobotInterface::ethercatThread()
 
                                     if (dc.torquezeroByTerminal)
                                     {
-                                        ElmoMode[i]=EM_TORQUE;
+                                        ElmoMode[i] = EM_TORQUE;
                                         torqueDesiredElmo[i] = 0;
-                                        
                                     }
                                     else
                                     {
                                         if (i <= 17)
                                         {
-                                            if ((i != 6) && (i != 9) && (i != 15) && (i != 16) && (i != 3) && (i != 4))
+                                            if ((i != 15) && (i != 16) && (i != 3) && (i != 4))
                                             {
-                                                
-                                                
                                                 findZeroPoint(i);
                                             }
                                         }

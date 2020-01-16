@@ -203,12 +203,12 @@ const double Kv[MODEL_DOF] =
 
 //Axis correction parameter.
 const double Dr[MODEL_DOF] =
-    {1, 1, 1, 1, 1, 1,
-     1, 1, 1, 1, 1, 1,
-     1, 1, 1, 1, 1, 1,
-     1, 1, 1, 1, 1, 1,
-     1, 1, 1, 1, 1, 1,
-     1, 1, 1};
+    {1, -1, 1, 1, 1, 1,
+     1, 1, 1, -1, -1, 1,
+     1, -1, 1, 1, 1, 1,
+     1, 1, -1, -1, -1, -1,
+     1, 1, 1, 1, -1, 1,
+     1, -1, 1};
 
 //homingsensorcheck
 const int FILE_CNT = 1;
