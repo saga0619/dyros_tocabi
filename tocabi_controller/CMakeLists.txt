@@ -50,7 +50,14 @@ catkin_package(
 include_directories(
   include
   /usr/local/include/soem
+  /usr/share/c++-mscl/source
+  /usr/share/c++-mscl/Boost/include
   ${catkin_INCLUDE_DIRS}
+)
+
+
+link_directories(
+  /usr/share/c++-mscl
 )
 
 add_library(tocabi_controller_lib
@@ -63,12 +70,14 @@ add_library(tocabi_controller_lib
   src/mujoco_interface.cpp
   src/tocabi_controller.cpp
   src/wholebody_controller.cpp
+  src/mx5_imu.cpp
 )
 
 add_executable(tocabi_controller src/controller.cpp)
 
 target_link_libraries(tocabi_controller_lib
   ${catkin_LIBRARIES}
+  -lmscl
   -lrbdl
   -lrbdl_urdfreader
   -lrt

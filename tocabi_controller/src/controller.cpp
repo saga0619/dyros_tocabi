@@ -68,7 +68,7 @@ int main(int argc, char **argv)
         TocabiController tc(dc, rtm, dym);
 
         //Total Number of Thread
-        int thread_num = 4;
+        int thread_num = 5;
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
         thread[t_id++] = std::thread(&RealRobotInterface::ethercatCheck, &rtm);
 
         //Sensor Data Management Thread
-        //thread[2] = std::thread(&RealRobotInterface::imuThread, &rtm);
+        thread[t_id++] = std::thread(&RealRobotInterface::imuThread, &rtm);
         //thread[3] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
         //Robot Controller Threadx

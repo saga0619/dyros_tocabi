@@ -17,6 +17,7 @@
 #include "ethercatconfig.h"
 #include "ethercatprint.h"
 
+#include "tocabi_controller/mx5_imu.h"
 //#include "ethercat.h"
 
 #include "tocabi_controller/state_manager.h"
@@ -263,8 +264,8 @@ namespace ElmoHommingStatus
 {
 enum FZResult
 {
-    SUCCESS,
-    FAILURE
+    SUCCESS = 11,
+    FAILURE = 22
 };
 }; // namespace ElmoHommingStatus
 
@@ -281,6 +282,7 @@ struct ElmoHomming
     double posEnd;
     double req_length = 0.2;
     double firstPos;
+    double init_direction = 1;
 
     int result;
 };
@@ -398,8 +400,12 @@ public:
     bool ElmoTerminate = false;
 
     std::vector<int> fz_group1;
+    bool fz_group1_check = false;
     std::vector<int> fz_group2;
+    bool fz_group2_check = false;
     std::vector<int> fz_group3;
+    bool fz_group3_check = false;
+    int fz_group = 0;
 
 private:
     DataContainer &dc;

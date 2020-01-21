@@ -563,11 +563,11 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
 
     //CS.AddContactConstraint(link_[Right_Foot].id,)
 
-    ROS_INFO_ONCE("TOTAL MASS : %f", com_mass);
+    //ROS_INFO_ONCE("TOTAL MASS : %f", com_mass);
     com_.mass = com_mass;
     com_.pos = com_pos;
 
-    ROS_INFO_ONCE("COM POS : %f %f %f", com_pos(0), com_pos(1), com_pos(2));
+    //ROS_INFO_ONCE("COM POS : %f %f %f", com_pos(0), com_pos(1), com_pos(2));
     //RigidBodyDynamics::Utils::
     /*
     if (com_pos(1) < link_[Right_Foot].xpos(1))
