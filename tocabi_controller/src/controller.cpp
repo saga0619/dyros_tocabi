@@ -108,10 +108,6 @@ int main(int argc, char **argv)
             {
                 std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
             }
-            else
-            {
-                std::cout << "Thread #" << i << " : setsched success !" << std::endl;
-            }
         }
 
         for (int i = 0; i < thread_num; i++)
@@ -168,10 +164,6 @@ int main(int argc, char **argv)
             {
                 std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
             }
-            else
-            {
-                std::cout << "Thread #" << i << " : setsched success !" << std::endl;
-            }
         }
 
         for (int i = 0; i < thread_num; i++)
@@ -198,6 +190,6 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
-    std::cout << cgreen << "EthercatTest Mode :: All threads are completely terminated !" << creset << std::endl;
+    std::cout << cgreen << "All threads are completely terminated !" << creset << std::endl;
     return 0;
 }

@@ -14,7 +14,7 @@ void MX5IMU::initIMU()
 {
     imu_pub = dc.nh.advertise<sensor_msgs::Imu>("gx5test", 1);
 
-    cout << "IMU connection success " << std::endl;
+    cout << "IMU : connection success " << std::endl;
     /*
     cout << "Node Info : " << endl;
     cout << "Model Name : " << node.modelName() << endl;
@@ -110,27 +110,12 @@ sensor_msgs::Imu MX5IMU::getIMU()
                     count++;
                     tf2::Quaternion q(dataPoint.as_Vector().as_floatAt(1), dataPoint.as_Vector().as_floatAt(2), dataPoint.as_Vector().as_floatAt(3), dataPoint.as_Vector().as_floatAt(0));
                     tf2::Quaternion q_rot, q_rot2;
-                    tf2::Transform transform;
 
                     q_rot.setRPY(M_PI, 0, M_PI / 2);
 
                     q_rot2.setRPY(M_PI, M_PI, 0);
                     q = q_rot * q * q_rot2;
 
-                    transform.setRotation(q);
-
-                    static tf2_ros::TransformBroadcaster br;
-                    geometry_msgs::TransformStamped transformStamped;
-
-                    transformStamped.header.stamp = ros::Time::now();
-                    transformStamped.header.frame_id = "world";
-                    transformStamped.child_frame_id = "Pelvis_Link";
-                    transformStamped.transform.rotation.x = q.x();
-                    transformStamped.transform.rotation.y = q.y();
-                    transformStamped.transform.rotation.z = q.z();
-                    transformStamped.transform.rotation.w = q.w();
-                    br.sendTransform(transformStamped);
-
                     imu_pub_msg.orientation = tf2::toMsg(q);
                     imu_pub_msg.header.stamp = ros::Time::now();
                     imu_pub_msg.header.frame_id = "imu";
@@ -172,7 +157,7 @@ sensor_msgs::Imu MX5IMU::getIMU()
             //if the dataPoint is invalid
             if (!dataPoint.valid())
             {
-                //cout << "[Invalid] ";
+                //cout << "IMU : Invalid dataPoint received. reconnect IMU! ";
             }
         }
     }
@@ -182,228 +167,51 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
         if (ef_state == 0)
         {
-            std::cout << "imu start up" << std::endl;
+            std::cout << "IMU : start up" << std::endl;
         }
         else if (ef_state == 1)
         {
             if (ef_state_flag == 4096)
             {
-                std::cout << cred << "imu initialization, Attitude not initialized" << creset << std::endl;
+                std::cout << cyellow << "IMU : initialization, Attitude not initialized" << creset << std::endl;
             }
             else if (ef_state_flag == 8192)
             {
-                std::cout << cred << "imu initialization, Position & Velocity not initialized " << creset << std::endl;
+                std::cout << cyellow << "IMU : initialization, Position & Velocity not initialized " << creset << std::endl;
             }
             else
             {
-                std::cout << "imu initialization, flags : " << std::hex << ef_state_flag << std::dec << std::endl;
+                std::cout << cyellow << "IMU : initialization, flags : " << std::hex << ef_state_flag << std::dec << creset << std::endl;
             }
         }
         else if (ef_state == 2)
         {
-            std::cout << cgreen << "imu running, solution valid" << creset << std::endl;
+            std::cout << cgreen << "IMU : running, solution valid" << creset << std::endl;
         }
         else if (ef_state == 3)
         {
-            std::cout << cyellow << "imu running, solution error" << std::hex << ef_state_flag << std::dec << creset << std::endl;
+            std::cout << cyellow << "IMU : running, solution error" << std::hex << ef_state_flag << std::dec << creset << std::endl;
         }
         else
         {
-            std::cout << "ef state : " << std::hex << ef_state << std::dec << std::endl;
+            std::cout << cred << "IMU : unknown ef state : " << std::hex << ef_state << std::dec << creset << std::endl;
         }
     }
 
     ef_state_flag_before = ef_state_flag;
     ef_state_before = ef_state;
 
+    //imu_pub.publish(imu_pub_msg);
     return imu_pub_msg;
-    imu_pub.publish(imu_pub_msg);
 }
 
 void MX5IMU::startIMU()
 {
-    mscl::MipDataPackets packets = node.getDataPackets(1);
-
-    for (mscl::MipDataPacket packet : packets)
-    {
-        //print out the data
-        //cout << "Packet Received: " <<packet.collectedTimestamp().str()<<packets.size()<< endl;
-
-        //get the data in the packet
-        mscl::MipDataPoints data = packet.data();
-        mscl::MipDataPoint dataPoint;
-
-        //loop through all the data points in the packet
-        for (unsigned int itr = 0; itr < data.size(); itr++)
-        {
-            mscl::Timestamp time_data = packet.collectedTimestamp();
-
-            //time_data.seconds();
-
-            static int seconds;
-            static int count;
-            if (seconds != time_data.seconds())
-            {
-                count = 0;
-            }
-            seconds = time_data.seconds();
-
-            dataPoint = data[itr];
-            if (dataPoint.channelName() == "estFilterState")
-            {
-                ef_state = dataPoint.as_int16();
-            }
-
-            if (dataPoint.channelName() == "estFilterStatusFlags")
-            {
-                ef_state_flag = dataPoint.as_int16();
-                /*
-                if (dataPoint.as_int32())
-                {
-                    if (rst_pub_once)
-                    {
-                        cout << "############ resetting EF filter ############" << endl;
-                        rst_pub_once = false;
-                    }
-                }
-                else if (dataPoint.as_int16() == 0)
-                {
-                    if (!rst_pub_once)
-                    {
-                        if (rst_pub_once2)
-                        {
-                            cout << "############ EF filter reset complete ############" << endl;
-                            rst_pub_once2 = false;
-                        }
-                    }
-                }
-                if (!rst_pub_once2)
-                {
-                    if (dataPoint.as_int16() != 0)
-                    {
-                        //ROS_INFO("WARNING ::::: estFilterStatusFlags : %d", dataPoint.as_int16());
-                    }
-                }*/
-            }
-
-            if (ef_state == 2)
-            {
-                if (dataPoint.channelName() == "estOrientQuaternion")
-                {
-                    count++;
-                    tf2::Quaternion q(dataPoint.as_Vector().as_floatAt(1), dataPoint.as_Vector().as_floatAt(2), dataPoint.as_Vector().as_floatAt(3), dataPoint.as_Vector().as_floatAt(0));
-                    tf2::Quaternion q_rot, q_rot2;
-                    tf2::Transform transform;
-
-                    q_rot.setRPY(M_PI, 0, M_PI / 2);
-
-                    q_rot2.setRPY(0, M_PI, 0);
-                    q = q_rot * q * q_rot2;
-
-                    transform.setRotation(q);
-
-                    static tf2_ros::TransformBroadcaster br;
-                    geometry_msgs::TransformStamped transformStamped;
-
-                    transformStamped.header.stamp = ros::Time::now();
-                    transformStamped.header.frame_id = "world";
-                    transformStamped.child_frame_id = "Pelvis_Link";
-                    transformStamped.transform.rotation.x = q.x();
-                    transformStamped.transform.rotation.y = q.y();
-                    transformStamped.transform.rotation.z = q.z();
-                    transformStamped.transform.rotation.w = q.w();
-                    br.sendTransform(transformStamped);
-
-                    imu_pub_msg.orientation = tf2::toMsg(q);
-                    imu_pub_msg.header.stamp = ros::Time::now();
-                    imu_pub_msg.header.frame_id = "imu";
-                }
-
-                if (dataPoint.channelName() == "estLinearAccelX")
-                {
-                    imu_pub_msg.linear_acceleration.x = dataPoint.as_float();
-                }
-                if (dataPoint.channelName() == "estLinearAccelY")
-                {
-                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
-                }
-                if (dataPoint.channelName() == "estLinearAccelZ")
-                {
-                    imu_pub_msg.linear_acceleration.z = dataPoint.as_float();
-                }
-
-                if (dataPoint.channelName() == "estAngularRateX")
-                {
-                    imu_pub_msg.angular_velocity.x = dataPoint.as_float();
-                }
-                if (dataPoint.channelName() == "estAngularRateY")
-                {
-                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
-                }
-                if (dataPoint.channelName() == "estAngularRateZ")
-                {
-                    imu_pub_msg.angular_velocity.z = dataPoint.as_float();
-                }
-            }
-            //cout << dataPoint.channelName() << ": ";
-
-            //print out the channel data
-            //Note: The as_string() function is being used here for simplicity.
-            //      Other methods (ie. as_float, as_uint16, as_Vector) are also available.
-            //      To determine the format that a dataPoint is stored in, use dataPoint.storedAs().
-
-            //if the dataPoint is invalid
-            if (!dataPoint.valid())
-            {
-                //cout << "[Invalid] ";
-            }
-        }
-    }
-
-    if ((ef_state_before != ef_state) || (ef_state_before != ef_state))
-    {
-
-        if (ef_state == 0)
-        {
-            std::cout << "imu start up" << std::endl;
-        }
-        else if (ef_state == 1)
-        {
-            if (ef_state_flag == 4096)
-            {
-                std::cout << "imu initialization, Attitude not initialized" << std::endl;
-            }
-            else if (ef_state_flag == 8192)
-            {
-                std::cout << "imu initialization, Position & Velocity not initialized " << std::endl;
-            }
-            else
-            {
-                std::cout << "imu initialization, flags : " << std::hex << ef_state_flag << std::dec << std::endl;
-            }
-        }
-        else if (ef_state == 2)
-        {
-            std::cout << "imu running, solution valid" << std::endl;
-        }
-        else if (ef_state == 3)
-        {
-            std::cout << "imu running, solution error" << std::hex << ef_state_flag << std::dec << std::endl;
-        }
-        else
-        {
-            std::cout << "ef state : " << std::hex << ef_state << std::dec << std::endl;
-        }
-    }
-
-    ef_state_flag_before = ef_state_flag;
-    ef_state_before = ef_state;
-
-    imu_pub.publish(imu_pub_msg);
 }
 
 void MX5IMU::endIMU()
 {
+    cout<<"IMU : Setting IMU to Idle "<<std::endl;
     node.setToIdle();
 }
 

@@ -2,7 +2,7 @@
 #include <ros/package.h>
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/urdfreader/urdfreader.h>
-#include <tf/transform_datatypes.h>
+//#include <tf/transform_datatypes.h>
 #include <sstream>
 
 StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
@@ -135,6 +135,17 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 }
 void StateManager::adv2ROS(void)
 {
+
+    static tf2_ros::TransformBroadcaster br;
+    geometry_msgs::TransformStamped transformStamped;
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.frame_id = "world";
+    transformStamped.child_frame_id = "Pelvis_Link";
+    transformStamped.transform.rotation.x = q_virtual_(3);
+    transformStamped.transform.rotation.y = q_virtual_(4);
+    transformStamped.transform.rotation.z = q_virtual_(5);
+    transformStamped.transform.rotation.w = q_virtual_(MODEL_DOF_VIRTUAL);
+    br.sendTransform(transformStamped);
 
     joint_state_msg.header.stamp = ros::Time::now();
     for (int i = 0; i < MODEL_DOF; i++)
@@ -269,36 +280,41 @@ void StateManager::stateThread2(void)
         if (dc.shutdown)
             break;
     }
-    std::cout << "State thread start! " << std::endl;
+
     std::chrono::microseconds cycletime(dc.ctime);
     int cycle_count = 0;
-    while (!dc.shutdown)
+    if (!dc.shutdown)
     {
-        //std::cout<<"t : "<<control_time_<<std::flush;
+        std::cout << "State thread start! " << std::endl;
 
-        std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
-        //std::cout<<" wait done,  "<<std::flush;
-
-        //Code here
-        //
-        updateState();
-        //std::cout<<" us done,  "<<std::flush;
-
-        updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-        //std::cout<<" uk done, "<<std::flush;
-
-        storeState();
-        //std::cout<<" ss done, "<<std::flush;
-
-        if ((cycle_count % 10) == 0)
+        while (!dc.shutdown)
         {
-            //ROS_INFO("publish start? \n");
-            adv2ROS();
-        }
-        //std::cout<<" pb done, "<<std::endl;
+            //std::cout<<"t : "<<control_time_<<std::flush;
 
-        dc.firstcalcdone = true;
-        cycle_count++;
+            std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
+            //std::cout<<" wait done,  "<<std::flush;
+
+            //Code here
+            //
+            updateState();
+            //std::cout<<" us done,  "<<std::flush;
+
+            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+            //std::cout<<" uk done, "<<std::flush;
+
+            storeState();
+            //std::cout<<" ss done, "<<std::flush;
+
+            if ((cycle_count % 10) == 0)
+            {
+                //ROS_INFO("publish start? \n");
+                adv2ROS();
+            }
+            //std::cout<<" pb done, "<<std::endl;
+
+            dc.firstcalcdone = true;
+            cycle_count++;
+        }
     }
     std::cout << cyellow << "State Thread End !" << creset << std::endl;
 }
@@ -525,9 +541,9 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     //Eigen::VectorXd tau_coriolis;
     //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
     mtx_rbdl.unlock();
-    tf::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
+    tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
 
-    tf::Matrix3x3 m(q);
+    tf2::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
 
     A_ = A_temp_;

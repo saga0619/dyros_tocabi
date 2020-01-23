@@ -2,6 +2,7 @@
 #include "sensoray826/sensoray826.h"
 #include <errno.h>
 #include <bitset>
+#include <ros/package.h>
 
 std::mutex mtx_elmo_command;
 std::mutex mtx_q;
@@ -14,7 +15,8 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     imuSubscriber = dc.nh.subscribe("/imu/data", 1, &RealRobotInterface::ImuCallback, this);
     gainSubscriber = dc.nh.subscribe("/tocabi_controller/gain_command", 100, &RealRobotInterface::gainCallbak, this);
 
-    printf("Starting red ethercat master\n");
+    pack_path = ros::package::getPath("tocabi_controller");
+    zp_path = pack_path + "/zp.txt";
 
     torque_desired.setZero();
 
@@ -53,14 +55,14 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     }
     file[0] << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
-    fz_group1.resize(14);
+    fz_group1.resize(16);
     int i = 0;
     fz_group1[i++] = TOCABI::Neck_Joint;
     fz_group1[i++] = TOCABI::Head_Joint;
 
     fz_group1[i++] = TOCABI::R_Shoulder1_Joint;
     fz_group1[i++] = TOCABI::R_Shoulder2_Joint;
-    //fz_group1[i++] = TOCABI::R_Shoulder3_Joint;
+    fz_group1[i++] = TOCABI::R_Shoulder3_Joint;
     fz_group1[i++] = TOCABI::R_Armlink_Joint;
     fz_group1[i++] = TOCABI::R_Elbow_Joint;
     fz_group1[i++] = TOCABI::R_Forearm_Joint;
@@ -68,7 +70,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
 
     fz_group1[i++] = TOCABI::L_Shoulder1_Joint;
     fz_group1[i++] = TOCABI::L_Shoulder2_Joint;
-    //fz_group1[i++] = TOCABI::L_Shoulder3_Joint;
+    fz_group1[i++] = TOCABI::L_Shoulder3_Joint;
     fz_group1[i++] = TOCABI::L_Armlink_Joint;
     fz_group1[i++] = TOCABI::L_Elbow_Joint;
     fz_group1[i++] = TOCABI::L_Forearm_Joint;
@@ -77,6 +79,22 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     elmofz[TOCABI::R_Armlink_Joint].init_direction = -1.0;
     elmofz[TOCABI::L_Armlink_Joint].init_direction = -1.0;
     elmofz[TOCABI::R_Elbow_Joint].init_direction = -1.0;
+    elmofz[TOCABI::Upperbody_Joint].init_direction = -1.0;
+
+    elmofz[TOCABI::R_Elbow_Joint].req_length = 0.06;
+    elmofz[TOCABI::L_Elbow_Joint].req_length = 0.09;
+    elmofz[TOCABI::L_Forearm_Joint].req_length = 0.09;
+    elmofz[TOCABI::R_Forearm_Joint].req_length = 0.14;
+
+    elmofz[TOCABI::L_Shoulder1_Joint].req_length = 0.18;
+    elmofz[TOCABI::L_Shoulder2_Joint].req_length = 0.17;
+    elmofz[TOCABI::R_Shoulder2_Joint].req_length = 0.08;
+
+    elmofz[TOCABI::R_Shoulder3_Joint].req_length = 0.03;
+    elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.07;
+
+    elmofz[TOCABI::Waist2_Joint].req_length = 0.07;
+    elmofz[TOCABI::Waist1_Joint].req_length = 0.07;
 
     fz_group2.resize(3);
     i = 0;
@@ -87,6 +105,14 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
 
 void RealRobotInterface::findZeroLeg()
 {
+    //std::cout << "lower leg check " << std::endl;
+    for (int i = 0; i < 5; i++)
+    {
+        positionZeroElmo[i + TOCABI::R_HipRoll_Joint] = positionElmo[i + TOCABI::R_HipRoll_Joint] - positionExternalElmo[i + TOCABI::R_HipRoll_Joint];
+        positionZeroElmo[i + TOCABI::L_HipRoll_Joint] = positionElmo[i + TOCABI::L_HipRoll_Joint] - positionExternalElmo[i + TOCABI::L_HipRoll_Joint];
+        //std::cout << TOCABI::ELMO_NAME[i + TOCABI::R_HipRoll_Joint] << " pz IE P : " << positionElmo[i + TOCABI::R_HipRoll_Joint] << " pz EE P : " << positionExternalElmo[i + TOCABI::R_HipRoll_Joint] << std::endl;
+        //std::cout << TOCABI::ELMO_NAME[i + TOCABI::L_HipRoll_Joint] << " pz ELMO : " << positionElmo[i + TOCABI::L_HipRoll_Joint] << " pz ELMO : " << positionExternalElmo[i + TOCABI::L_HipRoll_Joint] << std::endl;
+    }
 }
 
 void RealRobotInterface::updateState()
@@ -150,7 +176,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
     {
         if (checkPosSafety[slv_number])
         {
-            if (abs(positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) > max_dis)
+            if (abs(positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) > max_dis * 5.0)
             {
                 std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " trajectory discontinuity " << creset << std::endl;
                 ElmoSafteyMode[slv_number] = 1;
@@ -159,7 +185,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
         }
         if (ElmoMode[slv_number] == EM_POSITION)
         {
-            if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 3.0)
+            if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 5.0)
             {
                 std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command discontinuity" << creset << std::endl;
                 ElmoSafteyMode[slv_number] = 1;
@@ -258,7 +284,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             {
                 //std::cout << "motor " << slv_number << " seq 2 complete" << std::endl;
                 elmofz[slv_number].findZeroSequence = 4;
-                positionZeroElmo[slv_number] = (elmofz[slv_number].posEnd + elmofz[slv_number].posStart) * 0.5;
+                positionZeroElmo[slv_number] = (elmofz[slv_number].posEnd + elmofz[slv_number].posStart) * 0.5 + positionZeroModElmo[slv_number];
                 elmofz[slv_number].initTime = control_time_;
                 //std::cout << "on : Motor " << slv_number << " zero point found : " << positionZeroElmo[slv_number] << std::endl;
             }
@@ -301,7 +327,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     else if (elmofz[slv_number].findZeroSequence == 4)
     {
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posEnd, positionZeroModElmo(slv_number) + positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, fztime);
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posEnd, positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, fztime);
         //go to zero position
         if (control_time_ > (elmofz[slv_number].initTime + fztime))
         {
@@ -309,7 +335,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             printf("Motor %d %s : Zero Point Found : %8.6f, homming length : %8.6f ! \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str(), positionZeroElmo[slv_number], abs(elmofz[slv_number].posStart - elmofz[slv_number].posEnd));
             elmofz[slv_number].result = ElmoHommingStatus::SUCCESS;
             //std::cout << slv_number << "Start : " << elmofz[slv_number].posStart << "End:" << elmofz[slv_number].posEnd << std::endl;
-            positionDesiredElmo[slv_number] = positionZeroModElmo(slv_number) + positionZeroElmo(slv_number);
+            positionDesiredElmo[slv_number] = positionZeroElmo(slv_number);
             elmofz[slv_number].findZeroSequence = 8; // torque to zero -> 8 position hold -> 5
         }
     }
@@ -317,7 +343,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     {
         //find zero complete, hold zero position.
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = positionZeroModElmo(slv_number) + positionZeroElmo(slv_number);
+        positionDesiredElmo[slv_number] = positionZeroElmo(slv_number);
     }
     else if (elmofz[slv_number].findZeroSequence == 6)
     {
@@ -414,6 +440,7 @@ void RealRobotInterface::ethercatCheck()
                         if (!ec_slave[slave].state)
                         {
                             ec_slave[slave].islost = TRUE;
+                            ConnectionUnstableBeforeStart = true;
                             printf("%sERROR : slave %d lost%s\n", cred.c_str(), slave - 1, creset.c_str());
                         }
                     }
@@ -456,10 +483,6 @@ void RealRobotInterface::ethercatThread()
     {
         std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
     }
-    else
-    {
-        std::cout << " setaffinity success !" << std::endl;
-    }
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "ethercatThread Start" << std::endl;
@@ -473,21 +496,21 @@ void RealRobotInterface::ethercatThread()
 
     if (ec_init(ifname))
     {
-        printf("ec_init on %s succeeded.\n", ifname);
+        printf("ELMO : ec_init on %s succeeded.\n", ifname);
 
         /* find and auto-config slaves */
         /* network discovery */
         if (ec_config_init(FALSE) > 0) // TRUE when using configtable to init slaves, FALSE otherwise
         {
-            printf("%d slaves found and configured.\n", ec_slavecount); // ec_slavecount -> slave num
+            printf("ELMO : %d slaves found and configured.\n", ec_slavecount); // ec_slavecount -> slave num
 
             /** CompleteAccess disabled for Elmo driver */
             for (int slave = 1; slave <= ec_slavecount; slave++)
             {
-                printf("Has Slave[%d] CA? %s\n", slave, ec_slave[slave].CoEdetails & ECT_COEDET_SDOCA ? "true" : "false");
+                //printf("ELMO : Has Slave[%d] CA? %s\n", slave, ec_slave[slave].CoEdetails & ECT_COEDET_SDOCA ? "true" : "false");
                 if (!(ec_slave[slave].CoEdetails & ECT_COEDET_SDOCA))
                 {
-                    printf("slave[%d] : false detected, shutdown request \n ", slave);
+                    printf("ELMO : slave[%d] CA? : false , shutdown request \n ", slave);
                     exit_middle = true;
                     dc.shutdown = true;
                 }
@@ -527,11 +550,11 @@ void RealRobotInterface::ethercatThread()
                     ec_config_map(&IOmap);
 
                     /* wait for all slaves to reach SAFE_OP state */
+                    printf("ELMO : EC WAITING STATE TO SAFE_OP\n");
                     ec_statecheck(0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 4);
 
-                    printf("Request operational state for all slaves\n");
                     expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
-                    printf("Calculated workcounter %d\n", expectedWKC);
+                    printf("ELMO : Request operational state for all slaves. Calculated workcounter : %d\n", expectedWKC);
 
                     /** going operational */
                     ec_slave[0].state = EC_STATE_OPERATIONAL;
@@ -557,10 +580,8 @@ void RealRobotInterface::ethercatThread()
                     {
                         //dc.connected = true;
                         //printf("Operational state reached for all slaves.\n");
-                        printf("Operational state reached for all slaves. \n");
-
                         inOP = TRUE;
-                        printf("Starting red controller threads in ... 3... ");
+                        printf("ELMO : Operational state reached for all slaves! Starting in ... 3... ");
                         fflush(stdout);
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                         printf("2... ");
@@ -569,7 +590,12 @@ void RealRobotInterface::ethercatThread()
                         printf("1... ");
                         fflush(stdout);
                         std::this_thread::sleep_for(std::chrono::seconds(1));
-                        printf("0... Loop Start! \n");
+                        printf("0... Start! \n");
+
+                        if (ConnectionUnstableBeforeStart)
+                        {
+                            dc.shutdown = true;
+                        }
 
                         /* cyclic loop */
                         for (int slave = 1; slave <= ec_slavecount; slave++)
@@ -603,21 +629,6 @@ void RealRobotInterface::ethercatThread()
                         double d1_max = 0;
                         double d1_mean = 0;
 
-                        elmofz[10].req_length = 0.06;
-                        elmofz[13].req_length = 0.09;
-                        elmofz[12].req_length = 0.09;
-                        elmofz[11].req_length = 0.14;
-
-                        elmofz[14].req_length = 0.18;
-                        elmofz[15].req_length = 0.17;
-                        elmofz[16].req_length = 0.08;
-
-                        elmofz[TOCABI::R_Shoulder3_Joint].req_length = 0.03;
-                        elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.07;
-
-                        elmofz[TOCABI::Waist2_Joint].req_length = 0.07;
-                        elmofz[TOCABI::Waist1_Joint].req_length = 0.07;
-
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
                             ElmoSafteyMode[i] = 0;
@@ -625,7 +636,7 @@ void RealRobotInterface::ethercatThread()
 
                         dc.connected = true;
                         st_start_time = std::chrono::steady_clock::now();
-                        while (1)
+                        while (!dc.shutdown)
                         {
                             //Ethercat Loop begins :: RT Thread
                             tp[0] = std::chrono::steady_clock::now();
@@ -713,8 +724,8 @@ void RealRobotInterface::ethercatThread()
                                             (((int32_t)ec_slave[slave].inputs[16]) +
                                              ((int32_t)ec_slave[slave].inputs[17] << 8) +
                                              ((int32_t)ec_slave[slave].inputs[18] << 16) +
-                                             ((int32_t)ec_slave[slave].inputs[19] << 24) + positionExternalModElmo[slave - 1]) *
-                                            CNT2RAD[slave - 1] * Dr[slave - 1];
+                                             ((int32_t)ec_slave[slave].inputs[19] << 24) - positionExternalModElmo[slave - 1]) *
+                                            CNT2RAD[slave - 1] * -100.0 * Dr[slave - 1];
 
                                         ElmoConnected = true;
 
@@ -736,19 +747,8 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
                                     {
-                                        if ((j >= 21) && (j <= 25))
                                         {
-                                            rq_[i] = positionExternalElmo[j];
-                                            rq_dot_[i] = velocityElmo[j];
-                                        }
-                                        else if ((j >= 28) && (j <= 32))
-                                        {
-                                            rq_[i] = positionExternalElmo[j];
-                                            rq_dot_[i] = velocityElmo[j];
-                                        }
-                                        else
-                                        {
-                                            rq_[i] = positionElmo[j] - positionZeroElmo[j] - positionZeroModElmo[j];
+                                            rq_[i] = positionElmo[j] - positionZeroElmo[j];
                                             rq_dot_[i] = velocityElmo[j];
                                         }
                                     }
@@ -759,6 +759,7 @@ void RealRobotInterface::ethercatThread()
                             //Get State Seqence End, user controller start
 
                             dc.torqueElmo = torqueElmo;
+                            checkfirst = (stateElmo[0] & al);
 
                             if (dc.shutdown || !ros::ok() || shutdown_tocabi)
                             {
@@ -767,11 +768,126 @@ void RealRobotInterface::ethercatThread()
                                 break;
                             }
 
+                            if (elmo_init)
+                            {
+                                if (checkfirst_before != checkfirst)
+                                {
+                                    //std::cout << "firstRun ON " << std::endl;
+
+                                    if ((bootseq == 0) && (checkfirst == 0))
+                                        bootseq++;
+                                    if ((bootseq == 1) && (checkfirst == 33))
+                                        bootseq++;
+                                    if ((bootseq == 2) && (checkfirst == 35))
+                                        bootseq++;
+                                    if (bootseq == 3)
+                                    {
+                                        if (checkfirst == 39)
+                                        {
+                                            bootseq++;
+                                        }
+                                        else if (checkfirst == 8)
+                                        {
+                                            bootseq = 5;
+                                        }
+                                    }
+                                    if ((bootseq == 4) && (checkfirst == 39))
+                                    {
+                                        std::cout << cgreen << "ELMO : READY, WARMSTART ! LOADING ZERO POINT ... " << creset << std::endl;
+
+                                        string tmp;
+                                        double last_boot_time = 1;
+                                        double last_save_time = 0;
+                                        double zp[MODEL_DOF];
+                                        bool loadfailed = false;
+
+                                        elmo_zp_log.open(pack_path + "/zp_log.txt", ios_base::in);
+
+                                        if (elmo_zp_log.is_open())
+                                        {
+                                            getline(elmo_zp_log, tmp);
+                                            last_boot_time = atof(tmp.c_str());
+                                        }
+                                        elmo_zp.open(zp_path, ios_base::in);
+
+                                        if (elmo_zp.is_open())
+                                        {
+                                            getline(elmo_zp, tmp);
+                                            last_save_time = atof(tmp.c_str());
+                                        }
+
+                                        if (last_save_time < last_boot_time)
+                                        {
+                                            cout << "ELMO : ERROR WITH LOADING ZERO POINT! " << std::endl;
+                                        }
+                                        else
+                                        {
+                                            if (elmo_zp.is_open())
+                                            {
+                                                for (int i = 0; i < MODEL_DOF; i++)
+                                                {
+                                                    if (elmo_zp.eof())
+                                                    {
+                                                        std::cout << "ELMO : ERROR WITH LOADING ZERO POINT ! press i to check zeropoint !" << std::endl;
+                                                        loadfailed = true;
+                                                        break;
+                                                    }
+                                                    getline(elmo_zp, tmp);
+                                                    zp[i] = atof(tmp.c_str());
+                                                }
+                                                if (!loadfailed)
+                                                {
+                                                    std::cout << cgreen << "ELMO : ZERO POINT LOADED ! " << creset << std::endl;
+                                                    elmo_init = false;
+                                                    for (int i = 0; i < MODEL_DOF; i++)
+                                                    {
+                                                        positionZeroElmo[i] = zp[i];
+                                                    }
+                                                    positionInitialElmo = positionElmo;
+                                                    dc.elmo_Ready = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if ((bootseq == 5) && (checkfirst == 64))
+                                    {
+                                        std::cout << cyellow << "ELMO : COMMUTATION INITIALIZING ! " << creset << std::endl;
+                                        bootseq = 6;
+                                    }
+                                }
+                                if ((bootseq == 6))
+                                {
+                                    bool waitop = true;
+                                    for (int i = 0; i < MODEL_DOF; i++)
+                                    {
+                                        waitop = waitop && ((stateElmo[i] & al) == 39);
+                                    }
+                                    if (waitop)
+                                    {
+                                        elmo_zp_log.open(pack_path + "/zp_log.txt", ios_base::out);
+                                        if (elmo_zp_log.is_open())
+                                        {
+                                            elmo_zp_log << setprecision(12) << ros::Time::now().toSec() << "\n";
+                                            elmo_zp_log.close();
+                                            std::cout << cgreen << "ELMO : COMMUTATION INITIALIZE COMPLETE ! Press i to check zeropoint ! " << cred << std::endl;
+                                        }
+                                        else
+                                        {
+                                            std::cout << cgreen << "ELMO : COMMUTATION INITIALIZE COMPLETE ! but error with logging" << cred << std::endl;
+                                        }
+
+                                        bootseq++;
+                                    }
+                                }
+                            }
+
+                            checkfirst_before = checkfirst;
                             if (elmo_init && dc.start_initialize_sequence)
                             {
                                 positionInitialElmo = positionElmo;
                                 elmo_init = false;
-                                std::cout << cred << "Robot Initialize Process ! Finding Zero Point !" << creset << std::endl;
+                                std::cout << cred << "ELMO : Robot Initialize Process ! Finding Zero Point !" << creset << std::endl;
+                                findZeroLeg();
 
                                 elmofz[TOCABI::R_Shoulder3_Joint].findZeroSequence = 7;
                                 elmofz[TOCABI::R_Shoulder3_Joint].initTime = control_time_;
@@ -799,12 +915,21 @@ void RealRobotInterface::ethercatThread()
                             if (fz_group1_check && (fz_group == 0))
                             {
                                 fz_group++;
-                                std::cout << cgreen << "Upperbody zero point check complete " << creset << std::endl;
+                                std::cout << cgreen << "ELMO : Upperbody zero point check complete " << creset << std::endl;
                             }
                             if (fz_group2_check && (fz_group == 1))
                             {
                                 fz_group++;
-                                std::cout << cgreen << "Waist zero point check complete " << creset << std::endl;
+                                elmo_zp.open(zp_path, ios_base::out);
+                                elmo_zp << setprecision(12) << ros::Time::now().toSec() << "\n";
+                                for (int i = 0; i < MODEL_DOF; i++)
+                                {
+                                    elmo_zp << positionZeroElmo[i] << "\n";
+                                }
+                                elmo_zp.close();
+
+                                std::cout << cgreen << "ELMO : Waist zero point check complete and zero point saved. " << creset << std::endl;
+                                dc.elmo_Ready = true;
                             }
 
                             for (int i = 0; i < MODEL_DOF; i++)
@@ -898,6 +1023,11 @@ void RealRobotInterface::ethercatThread()
                                             txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) * NM2CNT[i] * Dr[i]);
                                         }
                                     }
+                                    else
+                                    {
+                                        ElmoMode[i] = EM_TORQUE;
+                                        torqueDesiredElmo[i] = 0.0;
+                                    }
                                 }
 
                                 if (ElmoMode[i] == EM_POSITION)
@@ -977,8 +1107,20 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us \n", control_time_, c_count, d_min * 1.0E+6,
                                            d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
-                                    //std::bitset<16> stx(stateElmo[0]);
-                                    //std::cout<<"current statusword : "<< stx << std::endl;
+
+                                    //int al = 63;
+                                    std::bitset<16> stx(stateElmo[0]);
+                                    std::bitset<16> stx2(stateElmo[0] & al);
+                                    //std::cout << "current statusword : " << stx << std::endl;
+                                    //std::cout << stx2 << std::endl;
+
+                                    for (int i = 0; i < MODEL_DOF; i++)
+                                    {
+                                        if ((stateElmo[i] & al) != 39)
+                                        {
+                                            std::cout << "Joint " << i << "Not operational, " << (stateElmo[i] & al) << std::endl;
+                                        }
+                                    }
                                 }
                                 //std::cout << control_time_ << ", " << c_count << std::setprecision(4) << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"
                                 //          << "receive : mean :" << d1_mean / c_count * 1.0E+6 << " max : " << d1_max * 1.0E+6 << " min : " << d1_min * 1.0E+6 << std::endl;
@@ -1008,18 +1150,17 @@ void RealRobotInterface::ethercatThread()
                     }
                     else
                     {
-                        printf("Not all slaves reached operational state.\n");
+                        printf("%sELMO : Not all slaves reached operational state.%s\n", cred.c_str(), creset.c_str());
                         ec_readstate();
                         for (int slave = 1; slave <= ec_slavecount; slave++)
                         {
                             if (ec_slave[slave - 1].state != EC_STATE_OPERATIONAL)
                             {
-                                printf("EtherCAT State Operation Error : Slave %d State=0x%2.2x StatusCode=0x%4.4x : %s\n",
-                                       slave - 1, ec_slave[slave - 1].state, ec_slave[slave - 1].ALstatuscode, ec_ALstatuscode2string(ec_slave[slave - 1].ALstatuscode));
+                                printf("%sELMO : EtherCAT State Operation Error : Slave %d State=0x%2.2x StatusCode=0x%4.4x : %s%s\n", cred.c_str(), slave - 1, ec_slave[slave - 1].state, ec_slave[slave - 1].ALstatuscode, ec_ALstatuscode2string(ec_slave[slave - 1].ALstatuscode), creset.c_str());
                             }
                         }
                     }
-                    printf("\nRequest init state for all slaves\n");
+                    printf("\nELMO : Request init state for all slaves\n");
                     /** request INIT state for all slaves
              *  slave number = 0 -> write to all slaves
              */
@@ -1028,24 +1169,24 @@ void RealRobotInterface::ethercatThread()
                 }
                 else
                 {
-                    printf("Ethercat Slave Count insufficient ! model_dof : %d , ec slave count : %d\n", MODEL_DOF, ec_slavecount);
+                    std::cout << cred << "ELMO : Ethercat Slave Count insufficient ! model_dof : " << MODEL_DOF << " , ec slave count : " << ec_slavecount << creset << std::endl;
                     ElmoTerminate = true;
                 }
             }
 
-            printf("Checking EC STATE ... \n");
+            printf("ELMO : Checking EC STATE ... \n");
             ec_statecheck(0, EC_STATE_PRE_OP, EC_TIMEOUTSTATE);
-            printf("Checking EC STATE Complete \n");
+            printf("ELMO : Checking EC STATE Complete \n");
         }
         else
         {
-            printf("No slaves found!\n");
+            printf("%sELMO : No slaves found!%s\n", cred.c_str(), creset.c_str());
             ElmoTerminate = true;
         }
     }
     else
     {
-        printf("No socket connection on %s\nExcecute as root\n", ifname);
+        printf("ELMO : No socket connection on %s\nExcecute as root\n", ifname);
         ElmoTerminate = true;
     }
 
@@ -1085,26 +1226,51 @@ void RealRobotInterface::imuThread()
 
     std::chrono::microseconds cycletime(1000);
 
-    mscl::Connection connection = mscl::Connection::Serial("/dev/ttyACM0", 115200);
-    mscl::InertialNode node(connection);
-    sensor_msgs::Imu imu_msg;
+    mscl::Connection con_;
 
-    MX5IMU mx5(dc, node);
+    bool imu_connection_error = false;
 
-    mx5.initIMU();
-    int cycle_count = 0;
-
-    std::cout << "IMU Thread Start ! " << std::endl;
-    while (!dc.shutdown)
+    try
     {
-        //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
-        cycle_count++;
-        //Code here
-        //
-        imu_msg = mx5.getIMU();
+        con_ = mscl::Connection::Serial("/dev/ttyACM0", 115200);
+    }
+    catch (mscl::Error &err)
+    {
+        std::cout << cred << "IMU CONNECTION ERROR : " << err.what() << creset << std::endl;
+        imu_connection_error = true;
     }
 
-    mx5.endIMU();
+    if (!imu_connection_error)
+    {
+        mscl::InertialNode node(con_);
+        sensor_msgs::Imu imu_msg;
+        MX5IMU mx5(dc, node);
+        mx5.initIMU();
+        int cycle_count = 0;
+
+        std::cout << "IMU Thread Start ! " << std::endl;
+        while (!dc.shutdown)
+        {
+            //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+            cycle_count++;
+            //Code here
+            //
+            imu_msg = mx5.getIMU();
+            q_virtual_(3) = imu_msg.orientation.x;
+            q_virtual_(4) = imu_msg.orientation.y;
+            q_virtual_(5) = imu_msg.orientation.z;
+            q_virtual_(MODEL_DOF_VIRTUAL) = imu_msg.orientation.w;
+
+            q_dot_virtual_(3) = imu_msg.angular_velocity.x;
+            q_dot_virtual_(4) = imu_msg.angular_velocity.y;
+            q_dot_virtual_(5) = imu_msg.angular_velocity.z;
+
+            q_ddot_virtual_(0) = imu_msg.linear_acceleration.x;
+            q_ddot_virtual_(1) = imu_msg.linear_acceleration.y;
+            q_ddot_virtual_(2) = imu_msg.linear_acceleration.z;
+        }
+        mx5.endIMU();
+    }
 
     std::cout << cyellow << "IMU Thread End!" << creset << std::endl;
 }

@@ -289,8 +289,6 @@ struct ElmoHomming
 
 class RealRobotInterface : public StateManager
 {
-    fstream file[FILE_CNT];
-
 public:
     RealRobotInterface(DataContainer &dc_global);
     virtual ~RealRobotInterface() {}
@@ -356,6 +354,16 @@ public:
     bool checkPosSafety[MODEL_DOF];
     //int ElmoState[MODEL_DOF];
     //int ElmoState_before[MODEL_DOF];
+    fstream file[FILE_CNT];
+    fstream elmo_zp;
+    fstream elmo_zp_log;
+    std::string zp_path, pack_path;
+
+
+    int checkfirst = -1;
+    int checkfirst_before = -1;
+    int al = 111;
+    int fr_count = 0;
 
     enum
     {
@@ -386,7 +394,6 @@ public:
 
     int stateElmo[MODEL_DOF];
     int stateElmo_before[MODEL_DOF];
-    int positionExternalModElmo[MODEL_DOF];
 
     bool hommingElmo[MODEL_DOF];
     bool hommingElmo_before[MODEL_DOF];
@@ -406,6 +413,13 @@ public:
     std::vector<int> fz_group3;
     bool fz_group3_check = false;
     int fz_group = 0;
+
+    bool ConnectionUnstableBeforeStart = false;
+
+    int bootseq = 0;
+    //int bootseq
+    const int firstbootseq[5] = {0, 33, 35, 8, 64};
+    const int secondbootseq[4] = {0, 33, 35, 39};
 
 private:
     DataContainer &dc;
