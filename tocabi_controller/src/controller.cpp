@@ -1,6 +1,11 @@
 #include <ros/ros.h>
 #include "tocabi_controller/tocabi_controller.h"
 #include "tocabi_controller/terminal.h"
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
 void terminate_signal(int sig)
 {
     std::cout << "shutdown signal received " << std::endl;
@@ -26,6 +31,14 @@ int main(int argc, char **argv)
     dc.stm_timestep = std::chrono::microseconds((int)(1000000 / dc.stm_hz));
 
     Tui tui(dc);
+    const char *homedir;
+
+    if ((homedir = getenv("HOME")) == NULL)
+    {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+
+    dc.homedir = std::string(homedir) + "/tocabi_data";
 
     std::cout << "Tocabi Controller : ";
 
@@ -42,6 +55,7 @@ int main(int argc, char **argv)
         thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
         thread[3] = std::thread(&TocabiController::tuiThread, &rc);
 
+        /*
         sched_param sch;
         int policy;
         for (int i = 0; i < 4; i++)
@@ -52,7 +66,7 @@ int main(int argc, char **argv)
             {
                 std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
             }
-        }
+        }*/
 
         for (int i = 0; i < 4; i++)
         {
@@ -60,7 +74,7 @@ int main(int argc, char **argv)
         }
     }
     else if (dc.mode == "realrobot")
-    {        
+    {
         std::cout << "RealRobot Mode" << std::endl;
 
         RealRobotInterface rtm(dc);
@@ -68,7 +82,7 @@ int main(int argc, char **argv)
         TocabiController tc(dc, rtm, dym);
 
         //Total Number of Thread
-        int thread_num = 5;
+        int thread_num = 7;
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
@@ -88,8 +102,8 @@ int main(int argc, char **argv)
         //thread[3] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
         //Robot Controller Threadx
-        //thread[5] = std::thread(&TocabiController::dynamicsThreadHigh, &tc);
-        //thread[6] = std::thread(&TocabiController::dynamicsThreadLow, &tc);
+        thread[t_id++] = std::thread(&TocabiController::dynamicsThreadHigh, &tc);
+        thread[t_id++] = std::thread(&TocabiController::dynamicsThreadLow, &tc);
 
         //For Additional functions ..
         thread[t_id++] = std::thread(&TocabiController::tuiThread, &tc);

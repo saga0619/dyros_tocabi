@@ -7,15 +7,15 @@
 
 StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 {
-    gui_command = dc.nh.subscribe("/tocabi_controller/command", 100, &StateManager::CommandCallback, this);
+    gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
 
-    joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi_controller/jointstates", 1);
-    time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi_controller/time", 1);
-    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi_controller/accdifinfo", 1);
-    tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi_controller/torquegain", 100);
-    point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi_controller/point", 100);
-    point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi_controller/point2", 100);
-    ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi_controller/ft_viz", 0);
+    joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 1);
+    time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 1);
+    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 1);
+    tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi/torquegain", 100);
+    point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
+    point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point2", 100);
+    ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
     ft_viz_msg.markers.resize(4);
 
     for (int i = 0; i < 4; i++)
@@ -38,7 +38,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
     if (dc.mode == "realrobot")
     {
-        motor_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi_controller/motorinfo", 1);
+        motor_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/motorinfo", 1);
         motor_info_msg.motorinfo1.resize(MODEL_DOF);
         motor_info_msg.motorinfo2.resize(MODEL_DOF);
     }
@@ -55,7 +55,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     initialize();
     bool verbose = false; //set verbose true for State Manager initialization info
     bool urdfmode;
-    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
+    ros::param::get("/tocabi/urdfAnkleRollDamping", urdfmode);
     std::string urdf_path, desc_package_path;
     desc_package_path = ros::package::getPath("tocabi_description");
 

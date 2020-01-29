@@ -152,6 +152,8 @@ public:
   bool state_end;
   bool dynamics_end;
   int t_que = 0;
+  
+  std::chrono::steady_clock::time_point start_time_point;
 
   double time;
   double com_time;
@@ -194,6 +196,8 @@ public:
 
   //Model var
 
+  std::string homedir;
+
   //For real robot
   std::string ifname;
   int ctime;
@@ -230,7 +234,7 @@ public:
   //Simulation switch
 
   bool pubmode = false;      // Publish mode of mujoco, integrated mode(basic), detached mode.
-  bool checkfreqency = true; // check running frequency of state thread and dynamics thread.
+  bool checkfreqency = false; // check running frequency of state thread and dynamics thread.
 
   bool testmode = false; // switch for controller test mode.
 

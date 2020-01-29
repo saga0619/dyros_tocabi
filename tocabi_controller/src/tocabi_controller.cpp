@@ -178,60 +178,53 @@ void TocabiController::stateThread()
 void TocabiController::dynamicsThreadHigh()
 {
     std::cout << "DynamicsThreadHigh : READY ?" << std::endl;
-    ros::Rate r(4000);
-    while ((!dc.connected) && (!dc.shutdown) && ros::ok())
+    while ((!dc.connected) && (!dc.firstcalcdone) && (!dc.shutdown))
     {
-        r.sleep();
+        //wait for realrobot thread start
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
     }
-    while ((!dc.firstcalcdone) && (!dc.shutdown) && ros::ok())
-    {
-        r.sleep();
-    }
-    std::cout << "DynamicsThreadHigh : START" << std::endl;
-    std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
-    int cnt = 0;
-    std::chrono::duration<double> time_now = std::chrono::high_resolution_clock::now() - start_time;
-    bool set_q_init = true;
-    while (!dc.shutdown && ros::ok())
-    {
-        time_now = std::chrono::high_resolution_clock::now() - start_time;
+    std::chrono::microseconds cycletime(dc.ctime);
+    int cycle_count = 0;
 
-        if (dc.mode == "simulation")
+    if (!dc.shutdown)
+    {
+        std::cout << "DynamicsThreadHigh : START" << std::endl;
+
+        while (!dc.shutdown)
         {
-        }
-        else if (dc.mode == "realrobot")
-        {
-        }
-        if (dc.positionControl)
-        {
-            if (set_q_init)
+            //std::cout<<"t : "<<control_time_<<std::flush;
+
+            std::this_thread::sleep_until(dc.start_time_point + (cycle_count * cycletime));
+            cycle_count++;
+            if (dc.mode == "simulation")
             {
-                q_desired_ = q_;
-                set_q_init = false;
             }
-            for (int i = 0; i < MODEL_DOF; i++)
+            else if (dc.mode == "realrobot")
             {
-                torque_desired(i) = Kps[i] * (q_desired_(i) - q_(i)) - Kvs[i] * (q_dot_(i));
             }
-        }
+            if (dc.positionControl)
+            { /*
+                if (set_q_init)
+                {
+                    q_desired_ = q_;
+                    set_q_init = false;
+                }*/
+                for (int i = 0; i < MODEL_DOF; i++)
+                {
+                    torque_desired(i) = Kps[i] * (q_desired_(i) - q_(i)) - Kvs[i] * (q_dot_(i));
+                }
+            }
 
-        if (dc.emergencyoff)
-        {
-            torque_desired.setZero();
+            if (dc.emergencyoff)
+            {
+                torque_desired.setZero();
+            }
+            mtx.lock();
+            s_.sendCommand(torque_desired, sim_time);
+            mtx.unlock();
         }
-        cnt++;
-        mtx.lock();
-        if ((abs(tocabi_.roll) > 30.0 / 180.0 * 3.141592) || (abs(tocabi_.pitch) > 30.0 / 180.0 * 3.141592))
-        {
-            //torque_desired.setZero();
-        }
-        s_.sendCommand(torque_desired, sim_time);
-        mtx.unlock();
-
-        r.sleep();
     }
-
-    std::cout << cyellow << "Dynamics fast Thread End !" << creset << std::endl;
+    std::cout << cyellow << "DynamicsThreadHigh : End !" << creset << std::endl;
 }
 
 void TocabiController::dynamicsThreadLow()
@@ -316,7 +309,7 @@ void TocabiController::dynamicsThreadLow()
 
     //const char *file_name = "/home/saga/sim_data.txt";
 
-    std::string path = "/home/saga/red_sim_data/";
+    std::string path = dc.homedir + "/red_sim_data/";
     std::string current_time;
 
     time_t now = std::time(0);
@@ -2054,7 +2047,7 @@ void TocabiController::tuiThread()
         //kch = -1;
         if (ch != -1)
         {
-            //std::cout<<"working?"<<ch<<std::endl;
+            std::cout << "key input : " << (char)(ch % 256) << std::endl;
             if ((ch % 256 == 'q'))
             {
                 std::cout << "shutdown request" << std::endl;
@@ -2064,7 +2057,7 @@ void TocabiController::tuiThread()
             {
                 std::cout << "position mode" << std::endl;
             }
-            else if ((ch % 255 == 'r'))
+            else if ((ch % 256 == 'r'))
             {
                 std::cout << "disable safety lock" << std::endl;
                 dc.disableSafetyLock = true;

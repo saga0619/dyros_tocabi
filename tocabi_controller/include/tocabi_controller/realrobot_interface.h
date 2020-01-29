@@ -211,12 +211,6 @@ const double Dr[MODEL_DOF] =
      1, 1, 1, 1, -1, 1,
      1, -1, 1};
 
-//homingsensorcheck
-const int FILE_CNT = 1;
-const std::string FILE_NAMES[FILE_CNT] =
-    {
-        "/home/dyros/homing/0_homing.txt"};
-
 using namespace std;
 
 namespace EtherCAT_Elmo
@@ -354,10 +348,10 @@ public:
     bool checkPosSafety[MODEL_DOF];
     //int ElmoState[MODEL_DOF];
     //int ElmoState_before[MODEL_DOF];
-    fstream file[FILE_CNT];
+    fstream file_homming;
     fstream elmo_zp;
     fstream elmo_zp_log;
-    std::string zp_path, pack_path;
+    std::string zp_path, zplog_path, pack_path;
 
 
     int checkfirst = -1;

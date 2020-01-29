@@ -4,6 +4,8 @@
 #include <bitset>
 #include <ros/package.h>
 
+const char *homedir;
+
 std::mutex mtx_elmo_command;
 std::mutex mtx_q;
 
@@ -13,10 +15,11 @@ bool elmo_init = true;
 RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global), StateManager(dc_global)
 {
     imuSubscriber = dc.nh.subscribe("/imu/data", 1, &RealRobotInterface::ImuCallback, this);
-    gainSubscriber = dc.nh.subscribe("/tocabi_controller/gain_command", 100, &RealRobotInterface::gainCallbak, this);
+    gainSubscriber = dc.nh.subscribe("/tocabi/gain_command", 100, &RealRobotInterface::gainCallbak, this);
 
-    pack_path = ros::package::getPath("tocabi_controller");
-    zp_path = pack_path + "/zp.txt";
+    //pack_path = ros::package::getPath("tocabi_controller");
+    zp_path = dc.homedir + "/zeropoint";
+    zplog_path = dc.homedir + "/elmostart_log";
 
     torque_desired.setZero();
 
@@ -49,11 +52,9 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     {
         dc.currentGain(i) = NM2CNT[i];
     }
-    for (int i = 0; i < FILE_CNT; i++)
-    {
-        file[i].open(FILE_NAMES[i].c_str(), ios_base::out);
-    }
-    file[0] << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
+
+    file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
+    file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
     fz_group1.resize(16);
     int i = 0;
@@ -132,10 +133,14 @@ void RealRobotInterface::updateState()
 
 Eigen::VectorQd RealRobotInterface::getCommand()
 {
-    Eigen::VectorQd ttemp;
+    Eigen::VectorQd t1_, t2_;
+
+    mtx_elmo_command.lock();
+    t1_ = torqueDesiredController;
+    mtx_elmo_command.unlock();
+
     if (dc.positionControl)
     {
-        mtx_elmo_command.lock();
         for (int i = 0; i < MODEL_DOF; i++)
         {
             for (int j = 0; j < MODEL_DOF; j++)
@@ -146,24 +151,21 @@ Eigen::VectorQd RealRobotInterface::getCommand()
                 }
             }
         }
-        mtx_elmo_command.unlock();
     }
     else
     {
-        mtx_elmo_command.lock();
         for (int i = 0; i < MODEL_DOF; i++)
         {
             for (int j = 0; j < MODEL_DOF; j++)
             {
                 if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
                 {
-                    ttemp(i) = torqueDesiredController(j);
+                    t2_(i) = t1_(j);
                 }
             }
         }
-        mtx_elmo_command.unlock();
     }
-    return ttemp;
+    return t2_;
 }
 int RealRobotInterface::checkTrajContinuity(int slv_number)
 {
@@ -176,9 +178,9 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
     {
         if (checkPosSafety[slv_number])
         {
-            if (abs(positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) > max_dis * 5.0)
+            if (abs(positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) > max_dis * 10.0)
             {
-                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " trajectory discontinuity " << creset << std::endl;
+                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " trajectory discontinuity : " << (positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) << creset << std::endl;
                 ElmoSafteyMode[slv_number] = 1;
                 positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
             }
@@ -187,7 +189,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
         {
             if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 5.0)
             {
-                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command discontinuity" << creset << std::endl;
+                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command discontinuity : " << (positionDesiredElmo(slv_number) - positionElmo(slv_number)) << creset << std::endl;
                 ElmoSafteyMode[slv_number] = 1;
                 positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
             }
@@ -500,6 +502,7 @@ void RealRobotInterface::ethercatThread()
 
         /* find and auto-config slaves */
         /* network discovery */
+        //ec_config_init()
         if (ec_config_init(FALSE) > 0) // TRUE when using configtable to init slaves, FALSE otherwise
         {
             printf("ELMO : %d slaves found and configured.\n", ec_slavecount); // ec_slavecount -> slave num
@@ -580,7 +583,6 @@ void RealRobotInterface::ethercatThread()
                     {
                         //dc.connected = true;
                         //printf("Operational state reached for all slaves.\n");
-                        inOP = TRUE;
                         printf("ELMO : Operational state reached for all slaves! Starting in ... 3... ");
                         fflush(stdout);
                         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -591,6 +593,8 @@ void RealRobotInterface::ethercatThread()
                         fflush(stdout);
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                         printf("0... Start! \n");
+
+                        inOP = TRUE;
 
                         if (ConnectionUnstableBeforeStart)
                         {
@@ -636,6 +640,7 @@ void RealRobotInterface::ethercatThread()
 
                         dc.connected = true;
                         st_start_time = std::chrono::steady_clock::now();
+                        dc.start_time_point = st_start_time;
                         while (!dc.shutdown)
                         {
                             //Ethercat Loop begins :: RT Thread
@@ -682,14 +687,6 @@ void RealRobotInterface::ethercatThread()
                                     {
                                         reachedInitial[slave - 1] = true;
                                     }
-                                }
-                                if (dc.positionControl)
-                                {
-                                    //positionDesiredElmo = getCommand();
-                                }
-                                else
-                                {
-                                    //torqueDesiredElmo = getCommand();
                                 }
 
                                 for (int slave = 1; slave <= ec_slavecount; slave++)
@@ -801,7 +798,7 @@ void RealRobotInterface::ethercatThread()
                                         double zp[MODEL_DOF];
                                         bool loadfailed = false;
 
-                                        elmo_zp_log.open(pack_path + "/zp_log.txt", ios_base::in);
+                                        elmo_zp_log.open(zplog_path, ios_base::in);
 
                                         if (elmo_zp_log.is_open())
                                         {
@@ -864,7 +861,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                     if (waitop)
                                     {
-                                        elmo_zp_log.open(pack_path + "/zp_log.txt", ios_base::out);
+                                        elmo_zp_log.open(zplog_path, ios_base::out);
                                         if (elmo_zp_log.is_open())
                                         {
                                             elmo_zp_log << setprecision(12) << ros::Time::now().toSec() << "\n";
@@ -932,19 +929,17 @@ void RealRobotInterface::ethercatThread()
                                 dc.elmo_Ready = true;
                             }
 
+                            //torqueDesiredController = getCommand();
+                            if (dc.elmo_Ready)
+                                torqueDesiredElmo = getCommand();
+
                             for (int i = 0; i < MODEL_DOF; i++)
                             {
                                 if (!dc.elmo_Ready)
                                 {
                                     if (!elmo_init)
                                     {
-
-                                        if (dc.torquezeroByTerminal)
-                                        {
-                                            ElmoMode[i] = EM_TORQUE;
-                                            torqueDesiredElmo[i] = 0;
-                                        }
-                                        else if (fz_group == 0)
+                                        if (fz_group == 0)
                                         {
                                             for (int j = 0; j < fz_group1.size(); j++)
                                             {
@@ -972,6 +967,10 @@ void RealRobotInterface::ethercatThread()
 
                                         hommingElmo_before[i] = hommingElmo[i];
                                     }
+                                    else
+                                    {
+                                        torqueDesiredElmo[i] = 0.0;
+                                    }
                                 }
                                 else
                                 {
@@ -979,22 +978,15 @@ void RealRobotInterface::ethercatThread()
                                     {
                                         //If torqueOn command received, torque will increases slowly, for rising_time, which is currently 3 seconds.
                                         to_ratio = DyrosMath::minmax_cut((control_time_ - dc.torqueOnTime) / rising_time, 0.0, 1.0);
+                                        ElmoMode[i] = EM_TORQUE;
                                         dc.t_gain = to_ratio;
                                         if (dc.positionControl)
                                         {
-                                            torqueDesiredElmo(i) = (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
-                                            txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) * Dr[i]);
+                                            torqueDesiredElmo(i) = to_ratio * (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
                                         }
                                         else
                                         {
-                                            if (dc.customGain)
-                                            {
-                                                txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) / CustomGain[i] * Dr[i]);
-                                            }
-                                            else
-                                            {
-                                                txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) * NM2CNT[i] * Dr[i]);
-                                            }
+                                            torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
                                         }
                                     }
                                     else if (dc.torqueOff)
@@ -1015,12 +1007,11 @@ void RealRobotInterface::ethercatThread()
 
                                         if (dc.positionControl)
                                         {
-                                            torqueDesiredElmo(i) = (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
-                                            txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) * Dr[i]);
+                                            torqueDesiredElmo(i) = to_ratio * (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
                                         }
                                         else
                                         {
-                                            txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) * NM2CNT[i] * Dr[i]);
+                                            torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
                                         }
                                     }
                                     else
@@ -1028,6 +1019,12 @@ void RealRobotInterface::ethercatThread()
                                         ElmoMode[i] = EM_TORQUE;
                                         torqueDesiredElmo[i] = 0.0;
                                     }
+                                }
+                                
+                                if (dc.torquezeroByTerminal)
+                                {
+                                    ElmoMode[i] = EM_TORQUE;
+                                    torqueDesiredElmo[i] = 0;
                                 }
 
                                 if (ElmoMode[i] == EM_POSITION)
@@ -1038,13 +1035,22 @@ void RealRobotInterface::ethercatThread()
                                 else if (ElmoMode[i] == EM_TORQUE)
                                 {
                                     txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
-                                    txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * NM2CNT[i] * Dr[i]);
+
+                                    if (dc.customGain)
+                                    {
+                                        txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) / CustomGain[i] * Dr[i]);
+                                    }
+                                    else
+                                    {
+                                        txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * NM2CNT[i] * Dr[i]);
+                                    }
                                 }
                                 else
                                 {
                                     txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
                                     txPDO[i]->targetTorque = (int)0;
                                 }
+                                
                             }
 
                             //Hold position if safety limit breached
@@ -1067,7 +1073,7 @@ void RealRobotInterface::ethercatThread()
                                 }
                             }
 
-                            std::this_thread::sleep_until(st_start_time + cycle_count * cycletime + std::chrono::microseconds(250));
+                            //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
                             ec_send_processdata();
 
                             positionDesiredElmo_Before = positionDesiredElmo;
@@ -1139,8 +1145,8 @@ void RealRobotInterface::ethercatThread()
 
                             if (dc.print_elmo_info_tofile)
                             {
-                                file[0] << hommingElmo[2] << "\t" << hommingElmo[3] << "\t" << hommingElmo[4] << "\t" << hommingElmo[5] << "\t" << hommingElmo[6] << "\t" << hommingElmo[7] << "\t" << hommingElmo[8] << "\t" << hommingElmo[9] << "\t" << hommingElmo[10] << "\t" << hommingElmo[11] << "\t" << hommingElmo[12] << "\t" << hommingElmo[13] << "\t" << hommingElmo[14] << "\t" << hommingElmo[15] << "\t" << hommingElmo[16] << "\t" << hommingElmo[17] << "\t" << hommingElmo[18] << "\t" << hommingElmo[19] << endl;
-                                file[0] << hommingElmo[18] << "\t" << positionElmo[18] << "\t" << hommingElmo[19] << "\t" << positionElmo[19] << "\t" << hommingElmo[26] << "\t" << positionElmo[26] << "\t" << endl;
+                                file_homming << hommingElmo[2] << "\t" << hommingElmo[3] << "\t" << hommingElmo[4] << "\t" << hommingElmo[5] << "\t" << hommingElmo[6] << "\t" << hommingElmo[7] << "\t" << hommingElmo[8] << "\t" << hommingElmo[9] << "\t" << hommingElmo[10] << "\t" << hommingElmo[11] << "\t" << hommingElmo[12] << "\t" << hommingElmo[13] << "\t" << hommingElmo[14] << "\t" << hommingElmo[15] << "\t" << hommingElmo[16] << "\t" << hommingElmo[17] << "\t" << hommingElmo[18] << "\t" << hommingElmo[19] << endl;
+                                file_homming << hommingElmo[18] << "\t" << positionElmo[18] << "\t" << hommingElmo[19] << "\t" << positionElmo[19] << "\t" << hommingElmo[26] << "\t" << positionElmo[26] << "\t" << endl;
                             }
 
                             cycle_count++;
