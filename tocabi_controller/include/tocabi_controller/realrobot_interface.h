@@ -343,7 +343,6 @@ public:
     boolean inOP;
     uint8 currentgroup = 0;
 
-    int Walking_State;
     int ElmoMode[MODEL_DOF];
     bool checkPosSafety[MODEL_DOF];
     //int ElmoState[MODEL_DOF];

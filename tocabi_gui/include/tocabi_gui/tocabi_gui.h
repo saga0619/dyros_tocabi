@@ -1,9 +1,8 @@
 #ifndef tocabi_gui__TocabiGUI_H
 #define tocabi_gui__TocabiGUI_H
 
-
 #include <rqt_gui_cpp/plugin.h>
-#include <ui_tocabi_gui.h>
+#include <tocabi_gui/ui_tocabi_gui.h>
 
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/JointState.h>
@@ -14,9 +13,13 @@
 #include <QSize>
 #include <QWidget>
 #include <QObject>
+#include <ros/ros.h>
+#include <std_msgs/Float32.h>
+#include <std_msgs/String.h>
 
 namespace tocabi_gui
 {
+
 class TocabiGui : public rqt_gui_cpp::Plugin
 {
     Q_OBJECT
@@ -31,14 +34,23 @@ public:
 protected slots:
     //virtual void updateTopicList();
     virtual void torqueoncb();
+    virtual void torqueoffcb();
+    virtual void emergencyoffcb();
 
-protected:
+private:
     //ROS_DEPRECATED virtual QList<QString>
 
     Ui::TocabiGuiWidget ui_;
+    QWidget *widget_;
 
-    QWidget* widget_;
+    ros::NodeHandle nh_;
 
+public:
+    ros::Subscriber timesub;
+    void timerCallback(const std_msgs::Float32ConstPtr &msg);
+
+    ros::Publisher com_pub;
+    std_msgs::String com_msg;
 };
 
 } // namespace tocabi_gui

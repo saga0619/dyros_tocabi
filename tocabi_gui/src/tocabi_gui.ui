@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dyros Red UI</string>
+   <string>TOCABI GUI</string>
   </property>
   <widget class="QFrame" name="frame">
    <property name="geometry">

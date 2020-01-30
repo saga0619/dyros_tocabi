@@ -472,12 +472,12 @@ void RealRobotInterface::ethercatCheck()
     }
     std::cout << cyellow << "checking thread end !" << creset << std::endl;
 }
+
 void RealRobotInterface::ethercatThread()
 {
     cpu_set_t cpuset;
     pthread_t thread;
     thread = pthread_self();
-
     CPU_ZERO(&cpuset);
     CPU_SET(7, &cpuset);
     //sched_setaffinity(getpid(),sizeof(cpuset),&cpuset);
@@ -633,6 +633,9 @@ void RealRobotInterface::ethercatThread()
                         double d1_max = 0;
                         double d1_mean = 0;
 
+                        int oc_cnt = 0;
+                        int oct_cnt = 0;
+
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
                             ElmoSafteyMode[i] = 0;
@@ -672,6 +675,11 @@ void RealRobotInterface::ethercatThread()
 
                             td[2] = tp[2] - tp[1];
                             td[3] = tp[3] - tp[2];
+
+                            if (td[3] > std::chrono::microseconds(190))
+                            {
+                                oc_cnt++;
+                            }
 
                             if (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                             {
@@ -738,9 +746,9 @@ void RealRobotInterface::ethercatThread()
                             }
 
                             mtx_q.lock();
-                            for (int i = 0; i < MODEL_DOF; i++)
+                            for (int i = 0; i < ec_slavecount; i++)
                             {
-                                for (int j = 0; j < MODEL_DOF; j++)
+                                for (int j = 0; j < ec_slavecount; j++)
                                 {
                                     if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
                                     {
@@ -850,6 +858,17 @@ void RealRobotInterface::ethercatThread()
                                     {
                                         std::cout << cyellow << "ELMO : COMMUTATION INITIALIZING ! " << creset << std::endl;
                                         bootseq = 6;
+
+                                        elmo_zp_log.open(zplog_path, ios_base::out);
+                                        if (elmo_zp_log.is_open())
+                                        {
+                                            elmo_zp_log << setprecision(12) << ros::Time::now().toSec() << "\n";
+                                            elmo_zp_log.close();
+                                        }
+                                        else
+                                        {
+                                            std::cout << cred << "ELMO : COMMUTATION LOGGING ERROR " << creset << std::endl;
+                                        }
                                     }
                                 }
                                 if ((bootseq == 6))
@@ -861,17 +880,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                     if (waitop)
                                     {
-                                        elmo_zp_log.open(zplog_path, ios_base::out);
-                                        if (elmo_zp_log.is_open())
-                                        {
-                                            elmo_zp_log << setprecision(12) << ros::Time::now().toSec() << "\n";
-                                            elmo_zp_log.close();
-                                            std::cout << cgreen << "ELMO : COMMUTATION INITIALIZE COMPLETE ! Press i to check zeropoint ! " << cred << std::endl;
-                                        }
-                                        else
-                                        {
-                                            std::cout << cgreen << "ELMO : COMMUTATION INITIALIZE COMPLETE ! but error with logging" << cred << std::endl;
-                                        }
+                                        std::cout << cgreen << "ELMO : COMMUTATION INITIALIZE COMPLETE ! Press i to check zeropoint ! " << creset << std::endl;
 
                                         bootseq++;
                                     }
@@ -1020,7 +1029,7 @@ void RealRobotInterface::ethercatThread()
                                         torqueDesiredElmo[i] = 0.0;
                                     }
                                 }
-                                
+
                                 if (dc.torquezeroByTerminal)
                                 {
                                     ElmoMode[i] = EM_TORQUE;
@@ -1050,7 +1059,6 @@ void RealRobotInterface::ethercatThread()
                                     txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
                                     txPDO[i]->targetTorque = (int)0;
                                 }
-                                
                             }
 
                             //Hold position if safety limit breached
@@ -1109,10 +1117,11 @@ void RealRobotInterface::ethercatThread()
 
                             if (control_time_ > pwait_time)
                             {
+                                oct_cnt += oc_cnt;
                                 if (dc.print_delay_info)
                                 {
-                                    printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us \n", control_time_, c_count, d_min * 1.0E+6,
-                                           d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count);
+                                    printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us, oc : %d, oct : %d \n", control_time_, c_count, d_min * 1.0E+6,
+                                           d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count, oc_cnt, oct_cnt);
 
                                     //int al = 63;
                                     std::bitset<16> stx(stateElmo[0]);
@@ -1135,6 +1144,7 @@ void RealRobotInterface::ethercatThread()
                                 d_max = 0;
                                 d_mean = 0;
                                 c_count = 0;
+                                oc_cnt = 0;
 
                                 d1_min = 1000;
                                 d1_max = 0;

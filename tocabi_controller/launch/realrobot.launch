@@ -16,4 +16,8 @@
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
     </node>
   </group>
+
+  <group if="$(arg gui)">
+    <node name="tocabi_gui" pkg="tocabi_gui" type="tocabi_gui"/>
+  </group>
 </launch>
