@@ -173,6 +173,7 @@ int RealRobotInterface::checkTrajContinuity(int slv_number)
 
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
 {
+    bool damping_mode = false;
 
     if (ElmoSafteyMode[slv_number] == 0)
     {
@@ -226,12 +227,12 @@ void RealRobotInterface::findZeroPoint(int slv_number)
 {
     double fztime = 3.0;
     double fztime_manual = 60.0;
-    if (elmofz[slv_number].findZeroSequence == 0)
+    if (elmofz[slv_number].findZeroSequence == FZ_CHECKHOMMINGSTATUS)
     {
         if (hommingElmo[slv_number])
         {
             //std::cout << "motor " << slv_number << " init state : homming on" << std::endl;
-            elmofz[slv_number].findZeroSequence = 1;
+            elmofz[slv_number].findZeroSequence = FZ_FINDHOMMINGSTART;
             elmofz[slv_number].initTime = control_time_;
             elmofz[slv_number].initPos = positionElmo[slv_number];
             elmofz[slv_number].firstPos = positionElmo[slv_number];
@@ -239,13 +240,13 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         else
         {
             //std::cout << "motor " << slv_number << " init state : homming off" << std::endl;
-            elmofz[slv_number].findZeroSequence = 3;
+            elmofz[slv_number].findZeroSequence = FZ_FINDHOMMING;
             elmofz[slv_number].initTime = control_time_;
             elmofz[slv_number].initPos = positionElmo[slv_number];
             elmofz[slv_number].firstPos = positionElmo[slv_number];
         }
     }
-    else if (elmofz[slv_number].findZeroSequence == 1)
+    else if (elmofz[slv_number].findZeroSequence == FZ_FINDHOMMINGSTART)
     {
         //go to + 0.3rad until homming sensor turn off
         ElmoMode[slv_number] = EM_POSITION;
@@ -255,12 +256,12 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         {
             //std::cout << "motor " << slv_number << " seq 1 complete, wait 1 sec" << std::endl;
             hommingElmo_before[slv_number] = hommingElmo[slv_number];
-            elmofz[slv_number].findZeroSequence = 2;
+            elmofz[slv_number].findZeroSequence = FZ_FINDHOMMINGEND;
             elmofz[slv_number].initTime = control_time_;
             elmofz[slv_number].posStart = positionElmo[slv_number];
         }
     }
-    else if (elmofz[slv_number].findZeroSequence == 2)
+    else if (elmofz[slv_number].findZeroSequence == FZ_FINDHOMMINGEND)
     {
         ElmoMode[slv_number] = EM_POSITION;
         positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posStart, -0.3, elmofz[slv_number].initTime, fztime);
@@ -300,7 +301,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
     }
-    else if (elmofz[slv_number].findZeroSequence == 3)
+    else if (elmofz[slv_number].findZeroSequence == FZ_FINDHOMMING)
     { //start from unknown
 
         ElmoMode[slv_number] = EM_POSITION;
@@ -326,12 +327,12 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
     }
-    else if (elmofz[slv_number].findZeroSequence == 4)
+    else if (elmofz[slv_number].findZeroSequence == FZ_GOTOZEROPOINT)
     {
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posEnd, positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, fztime);
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posEnd, positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, fztime * (abs(positionZeroElmo(slv_number) - elmofz[slv_number].posEnd) / 0.3));
         //go to zero position
-        if (control_time_ > (elmofz[slv_number].initTime + fztime))
+        if (control_time_ > (elmofz[slv_number].initTime + fztime / 2))
         {
             //std::cout << "go to zero complete !" << std::endl;
             printf("Motor %d %s : Zero Point Found : %8.6f, homming length : %8.6f ! \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str(), positionZeroElmo[slv_number], abs(elmofz[slv_number].posStart - elmofz[slv_number].posEnd));
