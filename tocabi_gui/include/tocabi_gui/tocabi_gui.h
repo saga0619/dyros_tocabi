@@ -16,6 +16,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/String.h>
+#include <QMetaType>
 
 namespace tocabi_gui
 {
@@ -36,6 +37,13 @@ protected slots:
     virtual void torqueoncb();
     virtual void torqueoffcb();
     virtual void emergencyoffcb();
+    //virtual void logbtn();
+    virtual void plainTextEditcb(const std_msgs::StringConstPtr &msg);
+    virtual void ecatpbtn();
+    virtual void statpbtn();
+    virtual void commandpbtn();
+    virtual void initializebtncb();
+    virtual void mtunebtn();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
@@ -43,16 +51,28 @@ private:
     Ui::TocabiGuiWidget ui_;
     QWidget *widget_;
 
+    std::vector<QLabel *> ecatlabels;
+    std::vector<QLineEdit *> ecattexts;
+
     ros::NodeHandle nh_;
 
 public:
     ros::Subscriber timesub;
     void timerCallback(const std_msgs::Float32ConstPtr &msg);
 
+    ros::Subscriber guilogsub;
     ros::Publisher com_pub;
     std_msgs::String com_msg;
+
+    //void guiLogCallback(const std_msgs::StringConstPtr &msg);
+    std::string logtext;
+
+signals:
+
+    void guiLogCallback(const std_msgs::StringConstPtr &msg);
+    virtual void guiLogSignal();
 };
 
 } // namespace tocabi_gui
-
+Q_DECLARE_METATYPE(std_msgs::StringConstPtr);
 #endif

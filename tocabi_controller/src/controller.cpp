@@ -1,20 +1,24 @@
 #include <ros/ros.h>
 #include "tocabi_controller/tocabi_controller.h"
 #include "tocabi_controller/terminal.h"
+#include <std_msgs/String.h>
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
 
+volatile bool shutdown_tocabi_bool = false;
+
 void terminate_signal(int sig)
 {
     std::cout << "shutdown signal received " << std::endl;
     shutdown_tocabi = 1;
+    shutdown_tocabi_bool = true;
 }
 
 int main(int argc, char **argv)
 {
-    signal(SIGINT, terminate_signal);
+    signal(SIGINT, &terminate_signal);
 
     ros::init(argc, argv, "tocabi_controller");
     DataContainer dc;
@@ -22,7 +26,11 @@ int main(int argc, char **argv)
     dc.nh.param<std::string>("/tocabi_controller/run_mode", dc.mode, "default");
     dc.nh.param<std::string>("/tocabi_controller/ifname", dc.ifname, "enp0s31f6");
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
-    dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, false);
+    dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
+
+    dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 100);
+    std::string strr("hello guilog");
+    dc.statusPubMsg.data = strr;
 
     bool simulation = true;
     dc.dym_hz = 500; //frequency should be divisor of a million (timestep must be integer)
@@ -45,10 +53,11 @@ int main(int argc, char **argv)
     if (dc.mode == "simulation")
     {
         std::cout << "Simulation Mode " << std::endl;
+        //pub_to_gui(dc,"Simulation Mode \n");
+
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController rc(dc, stm, dym);
-
         std::thread thread[4];
         thread[0] = std::thread(&TocabiController::stateThread, &rc);
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
@@ -80,6 +89,9 @@ int main(int argc, char **argv)
         RealRobotInterface rtm(dc);
         DynamicsManager dym(dc);
         TocabiController tc(dc, rtm, dym);
+
+        //dc.statusPubMsg.data=std::string("RealrobotMode");
+        //dc.statusPub.publish(dc.statusPubMsg);
 
         //Total Number of Thread
         int thread_num = 7;

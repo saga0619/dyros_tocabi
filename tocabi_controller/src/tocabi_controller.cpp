@@ -5,6 +5,7 @@
 #include <tf/transform_datatypes.h>
 #include "stdlib.h"
 #include <fstream>
+#include <sstream>
 
 #include <iostream>
 #include <string>
@@ -171,14 +172,14 @@ void TocabiController::stateThread()
     }
     else
     {
-        s_.stateThread();
+        s_.stateThread2();
     }
 }
 
 void TocabiController::dynamicsThreadHigh()
 {
-    std::cout << "DynamicsThreadHigh : READY ?" << std::endl;
-    while ((!dc.connected) && (!dc.firstcalcdone) && (!dc.shutdown))
+    std::cout << "Dynamics High Thread : READY ?" << std::endl;
+    while ((!dc.connected) && (!dc.firstcalcdone) && (!shutdown_tocabi_bool))
     {
         //wait for realrobot thread start
         std::this_thread::sleep_for(std::chrono::microseconds(50));
@@ -186,11 +187,15 @@ void TocabiController::dynamicsThreadHigh()
     std::chrono::microseconds cycletime(dc.ctime);
     int cycle_count = 0;
 
-    if (!dc.shutdown)
+    if (!shutdown_tocabi_bool)
     {
-        std::cout << "DynamicsThreadHigh : START" << std::endl;
+        std::cout << "Dynamics High Thread : START" << std::endl;
+        if (dc.mode != "realrobot")
+        {
+            dc.start_time_point = std::chrono::steady_clock::now();
+        }
 
-        while (!dc.shutdown)
+        while (!shutdown_tocabi_bool)
         {
             //std::cout<<"t : "<<control_time_<<std::flush;
 
@@ -224,7 +229,7 @@ void TocabiController::dynamicsThreadHigh()
             mtx.unlock();
         }
     }
-    std::cout << cyellow << "DynamicsThreadHigh : End !" << creset << std::endl;
+    std::cout << cyellow << "Dynamics High Thread : End !" << creset << std::endl;
 }
 
 void TocabiController::dynamicsThreadLow()
@@ -235,11 +240,11 @@ void TocabiController::dynamicsThreadLow()
     int ThreadCount = 0;
     int i = 1;
 
-    while ((!dc.connected) && (!dc.shutdown) && ros::ok())
+    while ((!dc.connected) && (!shutdown_tocabi_bool))
     {
         r.sleep();
     }
-    while ((!dc.firstcalcdone) && (!dc.shutdown) && ros::ok())
+    while ((!dc.firstcalcdone) && (!shutdown_tocabi_bool))
     {
         r.sleep();
     }
@@ -321,8 +326,10 @@ void TocabiController::dynamicsThreadLow()
     std::string file_name = path + "sim_data" + current_time + ".txt";
     out = std::ofstream(file_name.c_str());
 
+    std::stringstream ss;
+
     //Control Loop Start
-    while (!dc.shutdown && ros::ok())
+    while ((!shutdown_tocabi_bool))
     {
         static double est;
         std::chrono::high_resolution_clock::time_point dyn_loop_start = std::chrono::high_resolution_clock::now();
@@ -336,7 +343,13 @@ void TocabiController::dynamicsThreadLow()
         {
             start_time2 = std::chrono::high_resolution_clock::now();
             if (dc.checkfreqency)
-                std::cout << "dynamics thread : " << dynthread_cnt << " hz, time : " << est << std::endl;
+            {
+                ss.str("");
+                ss << "dynamics thread : " << dynthread_cnt << " hz, time : " << est; //<< std::endl;
+                //dc.statusPubMsg.data = ss.str();
+                pub_to_gui(dc,ss.str().c_str());
+                //dc.statusPub.publish(dc.statusPubMsg);
+            }
             dynthread_cnt = 0;
             est = 0;
         }
@@ -1982,7 +1995,7 @@ void TocabiController::dynamicsThreadLow()
         //VectorXd tau_coriolis;
         //RigidBodyDynamics::NonlinearEffects(model_,tocabi_.q_virtual_,tocabi_.q_dot_virtual_,tau_coriolis)
 
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
             break;
         first = false;
 
@@ -1992,7 +2005,7 @@ void TocabiController::dynamicsThreadLow()
 
         //std::this_thread::sleep_until(dyn_loop_start + dc.dym_timestep);
     }
-    std::cout << cyellow << "Dynamics slow Thread End !" << creset << std::endl;
+    std::cout << cyellow << "Dynamics Slow Thread End !" << creset << std::endl;
 }
 
 void TocabiController::tuiThread()
@@ -2002,23 +2015,18 @@ void TocabiController::tuiThread()
     bool pub_ = false;
     std::string str_text;
 
-    while (!dc.shutdown && ros::ok())
+    while (!shutdown_tocabi_bool)
     {
-        while ((!dc.connected) && (!dc.shutdown))
+        while ((!dc.connected) && (!shutdown_tocabi_bool))
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-            if (dc.shutdown)
+            if (shutdown_tocabi_bool)
                 break;
         }
 
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
             break;
-        if (shutdown_tocabi)
-        {
-            dc.shutdown = true;
-            break;
-        }
 
         for (int i = 0; i < 50; i++)
         { /*
@@ -2051,7 +2059,7 @@ void TocabiController::tuiThread()
             if ((ch % 256 == 'q'))
             {
                 std::cout << "shutdown request" << std::endl;
-                dc.shutdown = true;
+                shutdown_tocabi_bool = true;
             }
             else if ((ch % 256 == 'p'))
             {
@@ -2091,7 +2099,7 @@ void TocabiController::getState()
     int count = 0;
     if (dc.testmode == false)
     {
-        while ((time == dc.time) && ros::ok())
+        while ((time == dc.time) && (!shutdown_tocabi_bool))
         {
             std::this_thread::sleep_for(std::chrono::microseconds(1));
             count++;

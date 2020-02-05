@@ -12,7 +12,7 @@
     <param name="model_file" type="string" value="$(find tocabi_description)/mujoco_model/dyros_tocabi.xml"/>
     <param name="pub_mode" value="$(arg pub_mode)"/>
   </node>
-  
+
   <group if="$(arg controller)">
     <node name="tocabi_controller" pkg="tocabi_controller" type="tocabi_controller" output="screen">
       <param name="run_mode" value="$(arg run_mode)"/>
@@ -22,4 +22,8 @@
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
     </node>
   </group>
+
+  <node name="tocabi_gui" pkg ="tocabi_gui" type="tocabi_gui" output="screen">
+    <param name="run_mode" value="$(arg run_mode)"/>
+  </node>
 </launch>

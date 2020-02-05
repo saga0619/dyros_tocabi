@@ -31,6 +31,7 @@ public:
 
 };
 
+void pub_to_gui(DataContainer &dc, const char *str, ...);
 void wait_for_keypress();
 void wait_for_ms(int ms);
 

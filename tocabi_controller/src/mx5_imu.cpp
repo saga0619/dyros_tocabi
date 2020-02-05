@@ -187,10 +187,12 @@ sensor_msgs::Imu MX5IMU::getIMU()
         else if (ef_state == 2)
         {
             std::cout << cgreen << "IMU : running, solution valid" << creset << std::endl;
+            pub_to_gui(dc, "imuvalid");
         }
         else if (ef_state == 3)
         {
             std::cout << cyellow << "IMU : running, solution error" << std::hex << ef_state_flag << std::dec << creset << std::endl;
+            pub_to_gui(dc, "imunotvalid");
         }
         else
         {
@@ -211,7 +213,7 @@ void MX5IMU::startIMU()
 
 void MX5IMU::endIMU()
 {
-    cout<<"IMU : Setting IMU to Idle "<<std::endl;
+    cout << "IMU : Setting IMU to Idle " << std::endl;
     node.setToIdle();
 }
 

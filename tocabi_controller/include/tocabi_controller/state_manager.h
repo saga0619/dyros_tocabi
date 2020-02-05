@@ -15,6 +15,9 @@
 extern std::mutex mtx;
 extern std::mutex mtx_rbdl;
 extern std::mutex mtx_dc;
+extern volatile bool shutdown_tocabi_bool;
+
+
 
 class StateManager
 {
@@ -112,6 +115,11 @@ public:
 
   void CommandCallback(const std_msgs::StringConstPtr &msg);
   //void TaskCommandCallback(const dyros_red_msgs::TaskCommandConstPtr &msg);
+
+
+
+  //Terminate Signal Handler
+  //static void sigintHandler(int sig);
 };
 
 #endif

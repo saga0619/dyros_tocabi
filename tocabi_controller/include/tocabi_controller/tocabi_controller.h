@@ -17,6 +17,7 @@
 #define Kv_Pitch3s 30 //Ankle
 #define Kv_Roll2s 60  //Ankle
 
+extern volatile bool shutdown_tocabi_bool;
 const double Kps[MODEL_DOF] =
     {
         Kp_Yaw1s,

@@ -30,6 +30,27 @@ void rprint(DataContainer &dc, const char *str, ...)
     va_end(lst);
 }
 */
+
+void pub_to_gui(DataContainer &dc, const char *str, ...)
+{
+    va_list lst;
+    va_start(lst, str);
+
+    char text_[256];
+
+    vsnprintf(text_, 255, str, lst);
+
+    std::string str_(text_);
+
+    dc.statusPubMsg.data = str_;
+
+    dc.statusPub.publish(dc.statusPubMsg);
+    //std::cout<<str_;
+
+    va_end(lst);
+
+}
+
 int kbhit(void)
 {
 

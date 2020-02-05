@@ -29,7 +29,7 @@ void DynamicsManager::dynamicsThread(void)
         mtx.unlock();
         double d1 = (ros::Time::now() - start).toNSec() / 1.0E+6;
         printf("single thread dyn calc : %8.4f ms              \n", d1);
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
         {
             //std::cout<<"
             printf("thread calc end \n");
@@ -74,7 +74,7 @@ void DynamicsManager::testThread()
 
         printf("single thread : %8.4f ms   multi thread : %8.4f ms              \n", d2, d1);
 
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
         {
             printf("thread calc end \n");
             break;

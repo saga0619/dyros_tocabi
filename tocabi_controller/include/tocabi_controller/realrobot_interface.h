@@ -58,6 +58,8 @@
 
 #define EC_TIMEOUTMON 500
 
+extern volatile bool shutdown_tocabi_bool;
+
 const double CNT2RAD[MODEL_DOF] =
     {
         CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,

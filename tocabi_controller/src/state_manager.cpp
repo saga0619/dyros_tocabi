@@ -7,6 +7,8 @@
 
 StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 {
+    //signal(SIGINT, StateManager::sigintHandler);
+
     gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
 
     joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 1);
@@ -273,44 +275,48 @@ void StateManager::stateThread2(void)
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    while (!dc.connected)
+    while (!dc.connected && (!shutdown_tocabi_bool))
     {
         //wait for realrobot thread start
         std::this_thread::sleep_for(std::chrono::microseconds(50));
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
             break;
     }
 
     std::chrono::microseconds cycletime(dc.ctime);
     int cycle_count = 0;
-    if (!dc.shutdown)
+    if (!shutdown_tocabi_bool)
     {
         std::cout << "State thread start! " << std::endl;
 
-        while (!dc.shutdown)
+        while (!shutdown_tocabi_bool)
         {
-            //std::cout<<"t : "<<control_time_<<std::flush;
+            //std::cout << "t : " << control_time_ << std::flush;
 
             std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
-            //std::cout<<" wait done,  "<<std::flush;
+            //std::cout << " wait done,  " << std::flush;
 
             //Code here
             //
             updateState();
-            //std::cout<<" us done,  "<<std::flush;
-
+            //std::cout << " us done,  " << std::flush;
+            if (shutdown_tocabi_bool)
+            {
+                std::cout << "shutdown signal received" << std::endl;
+                break;
+            }
             updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-            //std::cout<<" uk done, "<<std::flush;
+            //std::cout << " uk done, " << std::flush;
 
             storeState();
-            //std::cout<<" ss done, "<<std::flush;
+            //std::cout << " ss done, " << std::flush;
 
             if ((cycle_count % 10) == 0)
             {
                 //ROS_INFO("publish start? \n");
                 adv2ROS();
             }
-            //std::cout<<" pb done, "<<std::endl;
+            //std::cout << " pb done, " << std::endl;
 
             dc.firstcalcdone = true;
             cycle_count++;
@@ -336,7 +342,7 @@ void StateManager::stateThread(void)
     int dcount = 0;
     int ThreadCount2 = 0;
 
-    while (ros::ok())
+    while (!shutdown_tocabi_bool)
     {
         updateState();
         updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
@@ -347,7 +353,7 @@ void StateManager::stateThread(void)
 
         dc.firstcalcdone = true;
 
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
         {
             break;
         }
@@ -411,7 +417,7 @@ void StateManager::testThread()
 
     std::chrono::duration<double> dur[3];
 
-    while (!dc.shutdown)
+    while (!shutdown_tocabi_bool)
     {
         t[0] = std::chrono::high_resolution_clock::now();
         updateState();
@@ -436,7 +442,7 @@ void StateManager::testThread()
             wait_t++;
         }
 
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
         {
             printf("state end\n");
             break;
@@ -477,6 +483,7 @@ void StateManager::initialize()
 
 void StateManager::storeState()
 {
+
     mtx_dc.lock();
 
     for (int i = 0; i < LINK_NUMBER + 1; i++)
@@ -895,5 +902,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
             std::cout << "qp2nd mode on" << std::endl;
         }
         dc.qp2nd = !dc.qp2nd;
+    }
+    else if (msg->data == "ecatinit")
+    {
+        dc.start_initialize_sequence = true;
     }
 }

@@ -229,6 +229,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     double fztime_manual = 60.0;
     if (elmofz[slv_number].findZeroSequence == FZ_CHECKHOMMINGSTATUS)
     {
+        pub_to_gui(dc, "jointzp %d %d", slv_number, 0);
         if (hommingElmo[slv_number])
         {
             //std::cout << "motor " << slv_number << " init state : homming on" << std::endl;
@@ -336,6 +337,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         {
             //std::cout << "go to zero complete !" << std::endl;
             printf("Motor %d %s : Zero Point Found : %8.6f, homming length : %8.6f ! \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str(), positionZeroElmo[slv_number], abs(elmofz[slv_number].posStart - elmofz[slv_number].posEnd));
+            pub_to_gui(dc, "jointzp %d %d", slv_number, 1);
             elmofz[slv_number].result = ElmoHommingStatus::SUCCESS;
             //std::cout << slv_number << "Start : " << elmofz[slv_number].posStart << "End:" << elmofz[slv_number].posEnd << std::endl;
             positionDesiredElmo[slv_number] = positionZeroElmo(slv_number);
@@ -357,6 +359,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         {
             elmofz[slv_number].findZeroSequence = 7;
             printf("Motor %d %s : Zero point detection Failed. Manual Detection Required. \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
+            pub_to_gui(dc, "jointzp %d %d", slv_number, 2);
             elmofz[slv_number].result = ElmoHommingStatus::FAILURE;
             elmofz[slv_number].initTime = control_time_;
         }
@@ -374,6 +377,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         if (control_time_ > (elmofz[slv_number].initTime + fztime_manual))
         {
             printf("Motor %d %s :  Manual Detection Failed. \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
+            pub_to_gui(dc, "jointzp %d %d", slv_number, 3);
             elmofz[slv_number].findZeroSequence = 8;
         }
     }
@@ -398,7 +402,7 @@ void RealRobotInterface::ethercatCheck()
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "ethercatCheck Thread Start" << std::endl;
-    while (ros::ok() && (!dc.shutdown))
+    while (ros::ok() && (!shutdown_tocabi_bool))
     {
         if (inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
         {
@@ -516,7 +520,7 @@ void RealRobotInterface::ethercatThread()
                 {
                     printf("ELMO : slave[%d] CA? : false , shutdown request \n ", slave);
                     exit_middle = true;
-                    dc.shutdown = true;
+                    shutdown_tocabi_bool = true;
                 }
                 ec_slave[slave].CoEdetails ^= ECT_COEDET_SDOCA;
             }
@@ -584,6 +588,7 @@ void RealRobotInterface::ethercatThread()
                     {
                         //dc.connected = true;
                         //printf("Operational state reached for all slaves.\n");
+
                         printf("ELMO : Operational state reached for all slaves! Starting in ... 3... ");
                         fflush(stdout);
                         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -599,7 +604,7 @@ void RealRobotInterface::ethercatThread()
 
                         if (ConnectionUnstableBeforeStart)
                         {
-                            dc.shutdown = true;
+                            shutdown_tocabi_bool = true;
                         }
 
                         /* cyclic loop */
@@ -645,7 +650,7 @@ void RealRobotInterface::ethercatThread()
                         dc.connected = true;
                         st_start_time = std::chrono::steady_clock::now();
                         dc.start_time_point = st_start_time;
-                        while (!dc.shutdown)
+                        while (!shutdown_tocabi_bool)
                         {
                             //Ethercat Loop begins :: RT Thread
                             tp[0] = std::chrono::steady_clock::now();
@@ -767,7 +772,7 @@ void RealRobotInterface::ethercatThread()
                             dc.torqueElmo = torqueElmo;
                             checkfirst = (stateElmo[0] & al);
 
-                            if (dc.shutdown || !ros::ok() || shutdown_tocabi)
+                            if (shutdown_tocabi_bool || !ros::ok() || shutdown_tocabi_bool)
                             {
                                 ElmoTerminate = true;
                                 //std::terminate();
@@ -800,6 +805,17 @@ void RealRobotInterface::ethercatThread()
                                     if ((bootseq == 4) && (checkfirst == 39))
                                     {
                                         std::cout << cgreen << "ELMO : READY, WARMSTART ! LOADING ZERO POINT ... " << creset << std::endl;
+
+                                        bool waitop = true;
+                                        for (int i = 0; i < MODEL_DOF; i++)
+                                        {
+                                            waitop = waitop && ((stateElmo[i] & al) == 39);
+                                        }
+                                        if (waitop)
+                                        {
+                                            pub_to_gui(dc, "ecatgood");
+                                            bootseq++;
+                                        }
 
                                         string tmp;
                                         double last_boot_time = 1;
@@ -844,6 +860,7 @@ void RealRobotInterface::ethercatThread()
                                                 if (!loadfailed)
                                                 {
                                                     std::cout << cgreen << "ELMO : ZERO POINT LOADED ! " << creset << std::endl;
+                                                    pub_to_gui(dc, "zpgood");
                                                     elmo_init = false;
                                                     for (int i = 0; i < MODEL_DOF; i++)
                                                     {
@@ -858,6 +875,7 @@ void RealRobotInterface::ethercatThread()
                                     if ((bootseq == 5) && (checkfirst == 64))
                                     {
                                         std::cout << cyellow << "ELMO : COMMUTATION INITIALIZING ! " << creset << std::endl;
+                                        pub_to_gui(dc, "ecatcommutation");
                                         bootseq = 6;
 
                                         elmo_zp_log.open(zplog_path, ios_base::out);
@@ -882,6 +900,7 @@ void RealRobotInterface::ethercatThread()
                                     if (waitop)
                                     {
                                         std::cout << cgreen << "ELMO : COMMUTATION INITIALIZE COMPLETE ! Press i to check zeropoint ! " << creset << std::endl;
+                                        pub_to_gui(dc, "ecatgood");
 
                                         bootseq++;
                                     }
@@ -936,6 +955,7 @@ void RealRobotInterface::ethercatThread()
                                 elmo_zp.close();
 
                                 std::cout << cgreen << "ELMO : Waist zero point check complete and zero point saved. " << creset << std::endl;
+                                pub_to_gui(dc, "zpgood");
                                 dc.elmo_Ready = true;
                             }
 
@@ -1209,7 +1229,7 @@ void RealRobotInterface::ethercatThread()
 
     std::cout << cyellow << "Ethercat Thread End !" << creset << std::endl;
     ElmoTerminate = true;
-    dc.shutdown = true;
+    shutdown_tocabi_bool = true;
 }
 double RealRobotInterface::elmoJointMove(double init, double angle, double start_time, double traj_time)
 {
@@ -1266,7 +1286,7 @@ void RealRobotInterface::imuThread()
         int cycle_count = 0;
 
         std::cout << "IMU Thread Start ! " << std::endl;
-        while (!dc.shutdown)
+        while (!shutdown_tocabi_bool)
         {
             //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
             cycle_count++;
@@ -1306,7 +1326,7 @@ void RealRobotInterface::ftsensorThread()
     ft.analogSingleSamplePrepare(slotAttrs, 16);
     ft.initCalibration();
 
-    while (!dc.shutdown)
+    while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;

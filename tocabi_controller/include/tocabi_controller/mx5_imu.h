@@ -1,5 +1,6 @@
 
 #include "tocabi_controller/data_container.h"
+#include "tocabi_controller/terminal.h"
 #include <iostream>
 #include <stdlib.h>
 #include <ros/ros.h>

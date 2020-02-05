@@ -15,6 +15,7 @@
 #include <sensor_msgs/Imu.h>
 #include "tocabi_controller/link.h"
 #include <fstream>
+#include <atomic>
 
 #include <stdlib.h>
 #include <signal.h>
@@ -135,7 +136,6 @@ public:
   ros::NodeHandle nh;
   //Basic var
   bool simulation = true;
-  bool shutdown = false;
   bool connected = false;
   bool firstcalcdone = false;
   bool statemanager_ready = false;
@@ -234,7 +234,7 @@ public:
   //Simulation switch
 
   bool pubmode = false;      // Publish mode of mujoco, integrated mode(basic), detached mode.
-  bool checkfreqency = false; // check running frequency of state thread and dynamics thread.
+  bool checkfreqency = true; // check running frequency of state thread and dynamics thread.
 
   bool testmode = false; // switch for controller test mode.
 
@@ -251,10 +251,19 @@ public:
   bool semode = false;  // state estimation running or not.
 
   bool initialize_request = false;
+
+
+
+  ros::Publisher statusPub;
+  std_msgs::String statusPubMsg;
 };
 
 static volatile sig_atomic_t shutdown_tocabi = 0;
 
+//static volatile bool shutdown_tocabi_bool = false;
+
+
+//static atomic
 const std::string cred("\033[0;31m");
 const std::string creset("\033[0m");
 const std::string cblue("\033[0;34m");

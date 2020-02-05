@@ -3,6 +3,7 @@
 extern std::mutex mtx;
 extern std::mutex mtx_dc;
 
+extern volatile bool shutdown_tocabi_bool;
 class DynamicsManager
 {
 private:
