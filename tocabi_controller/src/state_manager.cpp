@@ -57,10 +57,10 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     initialize();
     bool verbose = false; //set verbose true for State Manager initialization info
     bool urdfmode;
-    ros::param::get("/tocabi/urdfAnkleRollDamping", urdfmode);
+    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
     std::string urdf_path, desc_package_path;
 
-    ros::param::get("/tocabi/urdf_path", desc_package_path);
+    ros::param::get("/tocabi_controller/urdf_path", desc_package_path);
 
     if (urdfmode)
     {
