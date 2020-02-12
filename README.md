@@ -31,7 +31,7 @@ make all
 sudo make install
 ```
 
-* If red controller can't find librbdl.so.2.6.0, Add following line to .bashrc 
+* If controller can't find librbdl.so.2.6.0, Add following line to .bashrc 
 ```sh
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib'>>~/.bashrc
 sudo ldconfig
@@ -41,9 +41,7 @@ sudo ldconfig
 ## qpOASES setup
 Download qpOASES [Link](http://www.qpoases.org/go/release) 
 ```sh
-wget http://www.qpoases.org/go/release qpoases.zip
-unzip qpoases.zip
-cd qpOASES-3.2.1
+git clone https://github.com/saga0619/qpoases
 mkdir build
 cd build
 cmake ..
@@ -51,21 +49,6 @@ make all
 sudo make install
 ```
 
-### qpOASES error handling
-if error occures, add following line to qpOASES-3.2.1/CMakeLists.txt, below PROJECT(qpOASES CXX), which is line 34
-
-```
-add_compile_options(-fPIC)
-```
-
-## Dyros Red Controller Setup
-Download 1.0 version from release list. [1.0 release](https://github.com/saga0619/dyros_red/releases)
-Unzip at ros worksapce (ex:catkin_ws)
-
-## ncurse Setup
-```sh 
-sudo apt-get install libncurses5-dev
-```
 
 ## Passwordless sudo for ROS launch
 add folowinig line to /etc/sudoers, below the line (includedir /etc/sudoers.d)
