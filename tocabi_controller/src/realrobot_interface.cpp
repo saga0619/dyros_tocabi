@@ -184,15 +184,17 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
             if (abs(positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) > max_dis * 10.0)
             {
                 std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " trajectory discontinuity : " << (positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) << creset << std::endl;
+                pub_to_gui(dc, "%d %s locked, traj err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
                 ElmoSafteyMode[slv_number] = 1;
                 positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
             }
         }
         if (ElmoMode[slv_number] == EM_POSITION)
         {
-            if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 5.0)
+            if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 10.0)
             {
                 std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command discontinuity : " << (positionDesiredElmo(slv_number) - positionElmo(slv_number)) << creset << std::endl;
+                pub_to_gui(dc, "%d %s locked, command err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
                 ElmoSafteyMode[slv_number] = 1;
                 positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
             }
@@ -228,7 +230,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
 void RealRobotInterface::findZeroPoint(int slv_number)
 {
     double fztime = 3.0;
-    double fztime_manual = 60.0;
+    double fztime_manual = 300.0;
     if (elmofz[slv_number].findZeroSequence == FZ_CHECKHOMMINGSTATUS)
     {
         pub_to_gui(dc, "jointzp %d %d", slv_number, 0);
@@ -872,6 +874,7 @@ void RealRobotInterface::ethercatThread()
                                                     std::cout << cgreen << "ELMO : ZERO POINT LOADED ! " << creset << std::endl;
                                                     pub_to_gui(dc, "ZP LOADING SUCCESS");
                                                     pub_to_gui(dc, "zpgood");
+                                                    pub_to_gui(dc, "ecatgood");
                                                     elmo_init = false;
                                                     for (int i = 0; i < MODEL_DOF; i++)
                                                     {
@@ -1344,6 +1347,8 @@ void RealRobotInterface::ftsensorThread()
 
     sensoray826_dev ft = sensoray826_dev(1);
     ft.open();
+
+    pub_to_gui(dc, "ftgood");
     ft.analogSingleSamplePrepare(slotAttrs, 16);
     //ft.initCalibration();
 
@@ -1354,8 +1359,8 @@ void RealRobotInterface::ftsensorThread()
 
         ft.analogOversample();
         ft.computeFTData();
-     
-    /*    if(cycle_count % 400 == 0)
+
+        /*    if(cycle_count % 400 == 0)
         {
             printf("FTsensorL x : %f \t y : %f \t z : %f\n", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
             printf("FTsensorR x : %f \t y : %f \t z : %f\n", ft.rightFootAxisData[0], ft.rightFootAxisData[1], ft.rightFootAxisData[2]);

@@ -173,17 +173,22 @@ void StateManager::adv2ROS(void)
     tgainPublisher.publish(tgain_p);
 
     pointpub_msg.header.stamp = ros::Time::now();
+    Eigen::Vector3d temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[COM_id].xpos;
 
-    pointpub_msg.polygon.points[0].x = link_[COM_id].xpos(0); //com_pos(0);
-    pointpub_msg.polygon.points[0].y = link_[COM_id].xpos(1);
+    pointpub_msg.polygon.points[0].x = temp(0); //com_pos(0);
+    pointpub_msg.polygon.points[0].y = temp(1);
     pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2);
 
-    pointpub_msg.polygon.points[1].x = link_[Right_Foot].xpos(0);
-    pointpub_msg.polygon.points[1].y = link_[Right_Foot].xpos(1);
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Right_Foot].xpos;
+
+    pointpub_msg.polygon.points[1].x = temp(0);
+    pointpub_msg.polygon.points[1].y = temp(1);
     pointpub_msg.polygon.points[1].z = link_[Right_Foot].xpos(2);
 
-    pointpub_msg.polygon.points[2].x = link_[Left_Foot].xpos(0);
-    pointpub_msg.polygon.points[2].y = link_[Left_Foot].xpos(1);
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
+
+    pointpub_msg.polygon.points[2].x = temp(0);
+    pointpub_msg.polygon.points[2].y = temp(1);
     pointpub_msg.polygon.points[2].z = link_[Left_Foot].xpos(2);
 
     pointpub_msg.polygon.points[3].x = link_[Pelvis].xpos(0);
@@ -908,7 +913,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         dc.start_initialize_sequence = true;
     }
-    else if(msg->data=="safetyreset")
+    else if (msg->data == "safetyreset")
     {
         dc.disableSafetyLock = true;
     }

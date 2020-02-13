@@ -21,7 +21,7 @@ TocabiGui::TocabiGui()
     pointsub = nh_.subscribe("/tocabi/point", 1, &TocabiGui::pointCallback, this);
     timesub = nh_.subscribe("/tocabi/time", 1, &TocabiGui::timerCallback, this);
     com_pub = nh_.advertise<std_msgs::String>("/tocabi/command", 1);
-    guilogsub = nh_.subscribe("/tocabi/guilog", 1, &TocabiGui::guiLogCallback, this);
+    guilogsub = nh_.subscribe("/tocabi/guilog", 1000, &TocabiGui::guiLogCallback, this);
     gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/gain_command", 100);
 
     gain_msg.data.resize(33);
@@ -316,6 +316,16 @@ void TocabiGui::plainTextEditcb(const std_msgs::StringConstPtr &msg)
     {
         ui_.label_zpstatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
         ui_.label_zpstatus->setText(QString::fromUtf8("OK"));
+    }
+    else if (msg->data == "ftgood")
+    {
+        ui_.label_ftstatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
+        ui_.label_ftstatus->setText(QString::fromUtf8("OK"));
+    }
+    else if (msg->data == "ecatgood")
+    {
+        ui_.label_ecatstatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
+        ui_.label_ecatstatus->setText(QString::fromUtf8("OK"));
     }
     else if (msg->data == "zpnotgood")
     {

@@ -2,7 +2,7 @@
 #include <ros/ros.h>
 #include <thread>
 
-#define PRINT_ERR(FUNC)   if ((errcode = FUNC) != S826_ERR_OK) { ROS_INFO("\nERROR: %d\n", errcode); }
+#define PRINT_ERR(FUNC)   /*if ((errcode = FUNC) != S826_ERR_OK) { ROS_INFO("\nERROR: %d\n", errcode); }*/
 
 const double SAMPLE_RATE = 1000; // Hz
 

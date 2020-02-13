@@ -13,6 +13,7 @@
       <param name="rviz_pub" value="$(arg rviz)"/>
       <param name="ctime" value="1000"/>
       <param name="ifname" value="enp0s31f6"/>
+      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
     </node>
   </group>
