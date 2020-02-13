@@ -1,11 +1,8 @@
 
 
 #include "tocabi_gui/tocabi_gui.h"
-#include <ros/master.h>
 #include <pluginlib/class_list_macros.h>
-#include <QStringList>
 #include <iostream>
-#include <QString>
 #include <vector>
 
 int elng[33] = {0, 1, 16, 17, 9, 8, 4, 5, 13, 12, 14, 15, 7, 6, 2, 3, 11, 10, 18, 19, 27, 28, 29, 30, 31, 32, 20, 21, 22, 23, 24, 25, 26};
@@ -17,13 +14,17 @@ TocabiGui::TocabiGui()
     : rqt_gui_cpp::Plugin(), widget_(0)
 {
     qRegisterMetaType<std_msgs::StringConstPtr>();
+    qRegisterMetaType<geometry_msgs::PolygonStampedConstPtr>();
     setObjectName("TocabiGui");
 
     //initPlugin()
+    pointsub = nh_.subscribe("/tocabi/point", 1, &TocabiGui::pointCallback, this);
     timesub = nh_.subscribe("/tocabi/time", 1, &TocabiGui::timerCallback, this);
     com_pub = nh_.advertise<std_msgs::String>("/tocabi/command", 1);
     guilogsub = nh_.subscribe("/tocabi/guilog", 1, &TocabiGui::guiLogCallback, this);
+    gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/gain_command", 100);
 
+    gain_msg.data.resize(33);
     //ecatlabels = {ui_.}
 }
 
@@ -45,15 +46,46 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.torqueoff_button, SIGNAL(pressed()), this, SLOT(torqueoffcb()));
     connect(ui_.emergencyoff_button, SIGNAL(pressed()), this, SLOT(emergencyoffcb()));
 
+    ui_.torqueon_button->setShortcut(QKeySequence(Qt::Key_E));
+    ui_.torqueoff_button->setShortcut(QKeySequence(Qt::Key_C));
+    ui_.emergencyoff_button->setShortcut(QKeySequence(Qt::Key_Escape));
+
     connect(ui_.ecat_btn, SIGNAL(pressed()), this, SLOT(ecatpbtn()));
     connect(ui_.stat_btn, SIGNAL(pressed()), this, SLOT(statpbtn()));
     connect(ui_.command_btn, SIGNAL(pressed()), this, SLOT(commandpbtn()));
     connect(ui_.mtunebtn, SIGNAL(pressed()), this, SLOT(mtunebtn()));
 
+    connect(ui_.sendtunebtn, SIGNAL(pressed()), this, SLOT(sendtunebtn()));
+
+    ui_.stackedWidget->setCurrentIndex(0);
+
+    ui_.ecat_btn->setShortcut(QKeySequence(Qt::Key_1));
+    ui_.stat_btn->setShortcut(QKeySequence(Qt::Key_2));
+    ui_.command_btn->setShortcut(QKeySequence(Qt::Key_3));
+    ui_.mtunebtn->setShortcut(QKeySequence(Qt::Key_4));
+
+    scene = new QGraphicsScene(this);
+    ui_.graphicsView->setScene(scene);
+    QBrush redbrush(Qt::red);
+    QPen blackpen(Qt::black);
+
+    lfoot_d = new QGraphicsRectItem(QRectF(-21, -37, 42, 74));
+    scene->addItem(lfoot_d);
+
+    rfoot_d = new QGraphicsRectItem(QRectF(-21, -37, 42, 74));
+    scene->addItem(rfoot_d);
+
+    com_d = scene->addEllipse(-10, -10, 20, 20, blackpen, redbrush);
+
+    scene->addLine(-20, 0, 20, 0, blackpen);
+    scene->addLine(0, -20, 0, 20, blackpen);
+
     connect(this, &TocabiGui::guiLogCallback, this, &TocabiGui::plainTextEditcb);
+    connect(this, &TocabiGui::pointCallback, this, &TocabiGui::pointcb);
 
     //connect(ui_)
     connect(ui_.initializebtn, SIGNAL(pressed()), this, SLOT(initializebtncb()));
+    connect(ui_.safetyresetbtn, SIGNAL(pressed()), this, SLOT(safetyresetbtncb()));
 
     if (mode == "simulation")
     {
@@ -152,9 +184,11 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ui_.rightleg_layout_2->addWidget(ecattexts[i]);
     }
 
-    for(int i=0;i<33;i++)
+    for (int i = 0; i < 33; i++)
     {
         ecatlabels[i]->setAlignment(Qt::AlignCenter);
+        ecattexts[i]->setText(QString::fromUtf8("0.0"));
+        ecattexts[i]->setValidator(new QDoubleValidator(0, 1000, 3, this));
     }
 
     //for(int i=0;i<)
@@ -267,7 +301,7 @@ void TocabiGui::plainTextEditcb(const std_msgs::StringConstPtr &msg)
             ecatlabels[num]->setStyleSheet("QLabel { background-color : red ; color : white; }");
         }
     }
-    else if(msg->data == "imuvalid")
+    else if (msg->data == "imuvalid")
     {
         ui_.label_imustatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
         ui_.label_imustatus->setText(QString::fromUtf8("OK"));
@@ -303,10 +337,38 @@ void TocabiGui::plainTextEditcb(const std_msgs::StringConstPtr &msg)
     }
 }
 
+void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
+{
+    //msg->polygon.points[0].x;
+    //msg->polygon.points[0].y;
+
+    //std::cout<<msg->polygon.points[0].x*25<<std::endl;
+
+    com_d->setPos(QPointF(msg->polygon.points[0].y * 250, msg->polygon.points[0].x * 250));
+    lfoot_d->setPos(QPointF(msg->polygon.points[1].y * 250, msg->polygon.points[1].x * 250));
+    rfoot_d->setPos(QPointF(msg->polygon.points[2].y * 250, msg->polygon.points[2].x * 250));
+}
+
 void TocabiGui::initializebtncb()
 {
     com_msg.data = std::string("ecatinit");
     com_pub.publish(com_msg);
+}
+
+void TocabiGui::safetyresetbtncb()
+{
+    com_msg.data = std::string("safetyreset");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::sendtunebtn()
+{
+    for (int i = 0; i < 33; i++)
+    {
+        gain_msg.data[i] = ecattexts[elng[i]]->text().toFloat();
+    }
+
+    gain_pub.publish(gain_msg);
 }
 
 } // namespace tocabi_gui

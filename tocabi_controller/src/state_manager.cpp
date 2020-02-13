@@ -1,5 +1,5 @@
 #include "tocabi_controller/state_manager.h"
-#include <ros/package.h>
+//#include <ros/package.h>
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/urdfreader/urdfreader.h>
 //#include <tf/transform_datatypes.h>
@@ -907,5 +907,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "ecatinit")
     {
         dc.start_initialize_sequence = true;
+    }
+    else if(msg->data=="safetyreset")
+    {
+        dc.disableSafetyLock = true;
     }
 }

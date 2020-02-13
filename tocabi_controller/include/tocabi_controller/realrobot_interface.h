@@ -17,6 +17,7 @@
 #include "ethercatconfig.h"
 #include "ethercatprint.h"
 
+#include <std_msgs/Float32MultiArray.h>
 #include "tocabi_controller/mx5_imu.h"
 //#include "ethercat.h"
 
@@ -141,14 +142,14 @@ const double NM2CNT[MODEL_DOF] =
         3.8,
         3.46,
         3.52,
-        3.3,
+        12.33,
         3.3, //upperbody
         5.8, //leftLeg
         4.3,
         3.8,
         3.46,
         3.52,
-        3.3};
+        12.33};
 
 const int positionExternalModElmo[MODEL_DOF] =
     {
@@ -425,7 +426,7 @@ private:
     ros::Subscriber imuSubscriber;
     ros::Subscriber gainSubscriber;
     Eigen::VectorQd CustomGain;
-    void gainCallbak(const tocabi_controller::GainCommandConstPtr &msg);
+    void gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg);
 
     double elmoJointMove(double init, double angle, double start_time, double traj_time);
 

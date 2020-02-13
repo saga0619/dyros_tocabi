@@ -15,8 +15,12 @@
 #include <QObject>
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float32MultiArray.h>
+#include <geometry_msgs/PolygonStamped.h>
 #include <std_msgs/String.h>
 #include <QMetaType>
+
+#include <QGraphicsRectItem>
 
 namespace tocabi_gui
 {
@@ -43,7 +47,11 @@ protected slots:
     virtual void statpbtn();
     virtual void commandpbtn();
     virtual void initializebtncb();
+    virtual void safetyresetbtncb();
     virtual void mtunebtn();
+    virtual void sendtunebtn();
+    virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
+
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
@@ -54,13 +62,26 @@ private:
     std::vector<QLabel *> ecatlabels;
     std::vector<QLineEdit *> ecattexts;
 
+    QGraphicsScene *scene;
+
+    QGraphicsEllipseItem *com_d;
+    QGraphicsRectItem *rfoot_d;
+    QGraphicsRectItem *lfoot_d;
+
+    
+    
+
     ros::NodeHandle nh_;
 
 public:
     ros::Subscriber timesub;
     void timerCallback(const std_msgs::Float32ConstPtr &msg);
 
+    ros::Subscriber pointsub;
+
     ros::Subscriber guilogsub;
+    ros::Publisher gain_pub;
+    std_msgs::Float32MultiArray gain_msg;
     ros::Publisher com_pub;
     std_msgs::String com_msg;
 
@@ -68,11 +89,12 @@ public:
     std::string logtext;
 
 signals:
-
     void guiLogCallback(const std_msgs::StringConstPtr &msg);
+    void pointCallback(const geometry_msgs::PolygonStampedConstPtr &msg);
     virtual void guiLogSignal();
 };
 
 } // namespace tocabi_gui
 Q_DECLARE_METATYPE(std_msgs::StringConstPtr);
+Q_DECLARE_METATYPE(geometry_msgs::PolygonStampedConstPtr);
 #endif
