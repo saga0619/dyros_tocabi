@@ -56,6 +56,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.mtunebtn, SIGNAL(pressed()), this, SLOT(mtunebtn()));
 
     connect(ui_.sendtunebtn, SIGNAL(pressed()), this, SLOT(sendtunebtn()));
+    connect(ui_.resettunebtn, SIGNAL(pressed()), this, SLOT(resettunebtn()));
 
     ui_.stackedWidget->setCurrentIndex(0);
 
@@ -367,8 +368,15 @@ void TocabiGui::sendtunebtn()
     {
         gain_msg.data[i] = ecattexts[elng[i]]->text().toFloat();
     }
-
     gain_pub.publish(gain_msg);
+}
+
+void TocabiGui::resettunebtn()
+{
+    for (int i = 0; i < 33; i++)
+    {
+        ecattexts[elng[i]]->setText(QString::number(NM2CNT[i], 'f', 3));
+    }
 }
 
 } // namespace tocabi_gui

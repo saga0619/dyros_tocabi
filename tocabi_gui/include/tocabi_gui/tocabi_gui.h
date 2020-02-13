@@ -22,6 +22,42 @@
 
 #include <QGraphicsRectItem>
 
+const double NM2CNT[33] =
+    {       //Elmo 순서
+        95, //head
+        95,
+        95, //wrist
+        95,
+        95,
+        95,
+        15.5, //shoulder3
+        15.5, //arm
+        15.5, //arm
+        15.5, //shoulder3
+        42,   //Elbow
+        42,   //Forearm
+        42,   //Forearm
+        42,   //Elbow
+        15.5, //shoulder1
+        15.5, //shoulder2
+        15.5, //shoulder2
+        15.5, //shoulder1
+        3.3,  //Waist
+        3.3,
+        5.8, //rightLeg
+        4.3,
+        3.8,
+        3.46,
+        3.52,
+        12.33,
+        3.3, //upperbody
+        5.8, //leftLeg
+        4.3,
+        3.8,
+        3.46,
+        3.52,
+        12.33};
+
 namespace tocabi_gui
 {
 
@@ -50,6 +86,7 @@ protected slots:
     virtual void safetyresetbtncb();
     virtual void mtunebtn();
     virtual void sendtunebtn();
+    virtual void resettunebtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
 
 

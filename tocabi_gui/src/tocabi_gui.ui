@@ -2054,17 +2054,17 @@ OFF</string>
       <layout class="QVBoxLayout" name="waist_layout_2"/>
      </widget>
     </widget>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="resettunebtn">
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>140</y>
+       <y>260</y>
        <width>201</width>
        <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>Receive Currnet Constant</string>
+      <string>Reset Tune Constant</string>
      </property>
     </widget>
     <widget class="QPushButton" name="sendtunebtn">
