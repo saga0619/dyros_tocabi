@@ -112,7 +112,7 @@ public:
 
         switch (errcode)
         {
-        case S826_ERR_OK:           break;
+     /*   case S826_ERR_OK:           break;
         case S826_ERR_BOARD:        ROS_ERROR("Illegal board number"); break;
         case S826_ERR_VALUE:        ROS_ERROR("Illegal argument"); break;
         case S826_ERR_NOTREADY:     ROS_ERROR("Device not ready or timeout"); break;
@@ -123,7 +123,7 @@ public:
         case S826_ERR_BOARDCLOSED:  ROS_ERROR("Board not open"); break;
         case S826_ERR_CREATEMUTEX:  ROS_ERROR("Can't create mutex"); break;
         case S826_ERR_MEMORYMAP:    ROS_ERROR("Can't map board"); break;
-        default:                    ROS_ERROR("Unknown error"); break;
+        default:                    ROS_ERROR("Unknown error"); break;*/
         }
     }
 
