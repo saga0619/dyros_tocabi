@@ -652,6 +652,7 @@ void RealRobotInterface::ethercatThread()
                         dc.start_time_point = st_start_time;
                         while (!shutdown_tocabi_bool)
                         {
+                            //std::cout<<"firstrealrobot"<<std::endl;
                             //Ethercat Loop begins :: RT Thread
                             tp[0] = std::chrono::steady_clock::now();
 
@@ -1068,7 +1069,7 @@ void RealRobotInterface::ethercatThread()
 
                                     if (dc.customGain)
                                     {
-                                        txPDO[i]->targetTorque = (int)(to_ratio * torqueDesiredElmo(i) / CustomGain[i] * Dr[i]);
+                                        txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * CustomGain[i] * Dr[i]);
                                     }
                                     else
                                     {
@@ -1143,6 +1144,8 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us, oc : %d, oct : %d \n", control_time_, c_count, d_min * 1.0E+6,
                                            d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count, oc_cnt, oct_cnt);
+
+                                    pub_to_gui(dc, "%f : tout : %d, total : %d", control_time_, oc_cnt, oct_cnt);
 
                                     //int al = 63;
                                     std::bitset<16> stx(stateElmo[0]);
@@ -1322,9 +1325,10 @@ void RealRobotInterface::ftsensorThread()
 
     int cycle_count = 0;
 
-    sensoray826_dev ft = sensoray826_dev(0);
+    sensoray826_dev ft = sensoray826_dev(1);
+    ft.open();
     ft.analogSingleSamplePrepare(slotAttrs, 16);
-    ft.initCalibration();
+    //ft.initCalibration();
 
     while (!shutdown_tocabi_bool)
     {
@@ -1333,8 +1337,12 @@ void RealRobotInterface::ftsensorThread()
 
         ft.analogOversample();
         ft.computeFTData();
-
-        printf("FTsensor x : %f \t y : %f \t z : %f\n", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
+     
+    /*    if(cycle_count % 400 == 0)
+        {
+            printf("FTsensorL x : %f \t y : %f \t z : %f\n", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
+            printf("FTsensorR x : %f \t y : %f \t z : %f\n", ft.rightFootAxisData[0], ft.rightFootAxisData[1], ft.rightFootAxisData[2]);
+        }*/
     }
 
     std::cout << "FTsensor Thread End!" << std::endl;
