@@ -1360,15 +1360,13 @@ void RealRobotInterface::ftsensorThread()
         ft.analogOversample();
         ft.computeFTData();
 
-
         //RF_FT(0) = ...
         //LF_FT(0) = ...
-        
-        if(dc.ftcalib) //enabled by gui
+
+        if (dc.ftcalib) //enabled by gui
         {
-            std::cout<<"ft sensor : calibration ...");
-            pub_to_gui(dc,"ft sensor : calibration ... ");
-            
+            std::cout << "ft sensor : calibration ..."<<std::endl;
+            pub_to_gui(dc, "ft sensor : calibration ... ");
 
             dc.ftcalib = false;
         }
