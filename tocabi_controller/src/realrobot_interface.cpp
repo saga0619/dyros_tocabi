@@ -1344,31 +1344,67 @@ void RealRobotInterface::ftsensorThread()
     std::chrono::microseconds cycletime(1000);
 
     int cycle_count = 0;
+    int ft_cycle_count;
+    bool is_ft_board_ok;
+    bool ft_calib_init = false;
+    bool ft_calib_finish = false;
+    bool ft_calib_ui = false;
+
+    int SAMPLE_RATE = 1000;
 
     sensoray826_dev ft = sensoray826_dev(1);
-    ft.open();
-
-    pub_to_gui(dc, "ftgood");
+    is_ft_board_ok = ft.open();
+    if(is_ft_board_ok == 1)
+    {
+        pub_to_gui(dc, "ftgood");
+    }
+    else
+    {
+        /* code */
+    }
+    
     ft.analogSingleSamplePrepare(slotAttrs, 16);
-    //ft.initCalibration();
+    ft.initCalibration();
 
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
 
-        ft.analogOversample();
+        if(dc.ftcalib) //enabled by gui
+        {
+            if(ft_calib_init == false)
+            {
+               ft_cycle_count = cycle_count;
+               ft_calib_init = true; 
+               pub_to_gui(dc,"ft sensor : calibration ... ");
+            }
+            if(cycle_count < 5*SAMPLE_RATE+ft_cycle_count)
+            {
+                if(cycle_count == 5*SAMPLE_RATE+ft_cycle_count-1)
+                {
+                    ft_calib_finish =true;
+                    dc.ftcalib = false;
+                }
+                ft.analogOversample();
+                ft.calibrationFTData(ft_calib_finish);
+            }
+        }
+        if(ft_calib_finish == true)
+        {
+            if(ft_calib_ui == false)
+            {
+                pub_to_gui(dc,"ft sensor : calibration finish ");
+                ft_calib_ui = true;
+            }
+            ft.analogOversample();
+        }
         ft.computeFTData();
 
-        //RF_FT(0) = ...
-        //LF_FT(0) = ...
-
-        if (dc.ftcalib) //enabled by gui
+        for(int i=0; i<6; i++)
         {
-            std::cout << "ft sensor : calibration ..."<<std::endl;
-            pub_to_gui(dc, "ft sensor : calibration ... ");
-
-            dc.ftcalib = false;
+            RF_FT(i) = ft.rightFootAxisData[i];
+            LF_FT(i) = ft.leftFootAxisData[i];
         }
 
         /*    if(cycle_count % 400 == 0)
