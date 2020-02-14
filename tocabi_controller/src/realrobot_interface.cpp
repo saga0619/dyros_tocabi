@@ -1370,7 +1370,7 @@ void RealRobotInterface::ftsensorThread()
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
-        
+
         if(dc.ftcalib) //enabled by gui
         {
             if(ft_calib_init == false)

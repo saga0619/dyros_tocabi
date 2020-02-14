@@ -1981,6 +1981,7 @@ void TocabiController::dynamicsThreadLow()
 
         tocabi_.ContactForce = wc_.get_contact_force(tocabi_, torque_desired);
         tocabi_.ZMP = wc_.GetZMPpos(tocabi_);
+
         tocabi_.ZMP_ft = wc_.GetZMPpos_fromFT(tocabi_);
 
         //tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(0) * 9.8 - tocabi_.com_.pos(2) * tocabi_.link_[COM_id].a_traj(0)) / 9.8;
