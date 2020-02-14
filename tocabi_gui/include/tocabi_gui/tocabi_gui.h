@@ -21,6 +21,8 @@
 #include <QMetaType>
 
 #include <QGraphicsRectItem>
+#include <QGraphicsSceneWheelEvent>
+
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -61,6 +63,19 @@ const double NM2CNT[33] =
 namespace tocabi_gui
 {
 
+class MyQGraphicsScene : public QGraphicsScene
+{
+    Q_OBJECT
+public:
+    explicit MyQGraphicsScene(QWidget *parent = 0);
+    virtual void wheelEvent(QGraphicsSceneWheelEvent *event);
+    //virtual void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
+
+public slots:
+
+private:
+};
+
 class TocabiGui : public rqt_gui_cpp::Plugin
 {
     Q_OBJECT
@@ -90,7 +105,6 @@ protected slots:
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
     virtual void ftcalibbtn();
 
-
 private:
     //ROS_DEPRECATED virtual QList<QString>
 
@@ -99,8 +113,7 @@ private:
 
     std::vector<QLabel *> ecatlabels;
     std::vector<QLineEdit *> ecattexts;
-
-    QGraphicsScene *scene;
+    MyQGraphicsScene *scene;
 
     QGraphicsEllipseItem *com_d;
     QGraphicsRectItem *rfoot_d;
@@ -112,9 +125,6 @@ private:
 
     QGraphicsEllipseItem *rfoot_c;
     QGraphicsEllipseItem *lfoot_c;
-
-    
-    
 
     ros::NodeHandle nh_;
 

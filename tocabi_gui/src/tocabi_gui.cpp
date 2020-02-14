@@ -9,6 +9,19 @@ int elng[33] = {0, 1, 16, 17, 9, 8, 4, 5, 13, 12, 14, 15, 7, 6, 2, 3, 11, 10, 18
 
 namespace tocabi_gui
 {
+MyQGraphicsScene::MyQGraphicsScene(QWidget *parent) : QGraphicsScene(parent)
+{
+}
+/*
+void MyQGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    std::cout << "press" << std::endl;
+}
+*/
+void MyQGraphicsScene::wheelEvent(QGraphicsSceneWheelEvent *event)
+{
+    //std::cout << "wheel" << event->delta() << std::endl;
+}
 
 TocabiGui::TocabiGui()
     : rqt_gui_cpp::Plugin(), widget_(0)
@@ -66,7 +79,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     ui_.command_btn->setShortcut(QKeySequence(Qt::Key_3));
     ui_.mtunebtn->setShortcut(QKeySequence(Qt::Key_4));
 
-    scene = new QGraphicsScene(this);
+    scene = new MyQGraphicsScene(widget_);
     ui_.graphicsView->setScene(scene);
     QBrush redbrush(Qt::red);
     QPen blackpen(Qt::black);
@@ -85,7 +98,9 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     scene->addLine(0, -20, 0, 40, blackpen);
 
     QGraphicsTextItem *front = scene->addText("front");
-    front->setPos(0, 100);
+    front->setPos(0, 50);
+
+    //ui_.graphicsView->setSceneRect(-210, -260, 421, 521);
 
     connect(this, &TocabiGui::guiLogCallback, this, &TocabiGui::plainTextEditcb);
     connect(this, &TocabiGui::pointCallback, this, &TocabiGui::pointcb);
@@ -382,9 +397,10 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
 
     //zmp by ft
 
-
     ui_.label_22->setText(QString::number(msg->polygon.points[12].x, 'f', 5));
     ui_.label_23->setText(QString::number(msg->polygon.points[12].y, 'f', 5));
+
+    ui_.graphicsView->setSceneRect(0, 0, 0, 0);
 }
 
 void TocabiGui::initializebtncb()
@@ -421,6 +437,11 @@ void TocabiGui::ftcalibbtn()
     com_msg.data = std::string("ftcalib");
     com_pub.publish(com_msg);
 }
+/*
+void TocabiGui::wheelEvent(QWheelEvent *event)
+{
+    std::cout << "wheel event" << std::endl;
+}*/
 
 } // namespace tocabi_gui
 

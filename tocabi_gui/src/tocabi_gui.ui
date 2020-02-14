@@ -2421,6 +2421,27 @@ OFF</string>
      <height>251</height>
     </rect>
    </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="sizeAdjustPolicy">
+    <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+   </property>
+   <property name="interactive">
+    <bool>true</bool>
+   </property>
+   <property name="dragMode">
+    <enum>QGraphicsView::ScrollHandDrag</enum>
+   </property>
+   <property name="transformationAnchor">
+    <enum>QGraphicsView::NoAnchor</enum>
+   </property>
+   <property name="resizeAnchor">
+    <enum>QGraphicsView::NoAnchor</enum>
+   </property>
   </widget>
  </widget>
  <resources/>
