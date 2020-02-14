@@ -384,7 +384,7 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
 
 
     ui_.label_22->setText(QString::number(msg->polygon.points[12].x, 'f', 5));
-    ui_.label_23->setText(QString::number(msg->polygon.points[12].x, 'f', 5));
+    ui_.label_23->setText(QString::number(msg->polygon.points[12].y, 'f', 5));
 }
 
 void TocabiGui::initializebtncb()
