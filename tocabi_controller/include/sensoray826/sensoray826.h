@@ -227,6 +227,8 @@ public:
                 leftFootBias[i] = _calibLFTData[i];
                 rightFootBias[i] = _calibRFTData[i];
             }
+            leftFootBias[2] = leftFootBias[2]+22.81806;
+            rightFootBias[2] = rightFootBias[2]+22.81806; 
         }
     }
 
