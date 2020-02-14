@@ -347,7 +347,7 @@ void TocabiController::dynamicsThreadLow()
                 ss.str("");
                 ss << "dynamics thread : " << dynthread_cnt << " hz, time : " << est; //<< std::endl;
                 //dc.statusPubMsg.data = ss.str();
-                pub_to_gui(dc,ss.str().c_str());
+                pub_to_gui(dc, ss.str().c_str());
                 //dc.statusPub.publish(dc.statusPubMsg);
             }
             dynthread_cnt = 0;
@@ -1981,6 +1981,7 @@ void TocabiController::dynamicsThreadLow()
 
         tocabi_.ContactForce = wc_.get_contact_force(tocabi_, torque_desired);
         tocabi_.ZMP = wc_.GetZMPpos(tocabi_);
+        tocabi_.ZMP_ft = wc_.GetZMPpos_fromFT(tocabi_);
 
         //tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(0) * 9.8 - tocabi_.com_.pos(2) * tocabi_.link_[COM_id].a_traj(0)) / 9.8;
         tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81;

@@ -183,13 +183,30 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[1].x = temp(0);
     pointpub_msg.polygon.points[1].y = temp(1);
-    pointpub_msg.polygon.points[1].z = link_[Right_Foot].xpos(2);
+
+    Eigen::Matrix3d tm;
+    tm = link_[Right_Foot].Rotm;
+
+    tf2::Matrix3x3 m(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
+    double tr, tp, ty;
+    m.getRPY(tr, tp, ty);
+    pointpub_msg.polygon.points[1].z = ty - dc.tocabi_.yaw;
 
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
 
     pointpub_msg.polygon.points[2].x = temp(0);
     pointpub_msg.polygon.points[2].y = temp(1);
-    pointpub_msg.polygon.points[2].z = link_[Left_Foot].xpos(2);
+
+
+
+
+    tm = link_[Left_Foot].Rotm;
+    tf2::Matrix3x3 m2(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
+    m2.getRPY(tr, tp, ty);
+
+    pointpub_msg.polygon.points[2].z = ty - dc.tocabi_.yaw;
+
+
 
     pointpub_msg.polygon.points[3].x = link_[Pelvis].xpos(0);
     pointpub_msg.polygon.points[3].y = link_[Pelvis].xpos(1);
@@ -916,5 +933,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "safetyreset")
     {
         dc.disableSafetyLock = true;
+    }
+    else if(msg->data =="ftcalib")
+    {
+        dc.ftcalib = true;
     }
 }

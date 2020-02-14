@@ -88,6 +88,7 @@ protected slots:
     virtual void sendtunebtn();
     virtual void resettunebtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
+    virtual void ftcalibbtn();
 
 
 private:
@@ -103,7 +104,14 @@ private:
 
     QGraphicsEllipseItem *com_d;
     QGraphicsRectItem *rfoot_d;
+    QGraphicsLineItem *rfoot_l1;
+    QGraphicsLineItem *rfoot_l2;
     QGraphicsRectItem *lfoot_d;
+    QGraphicsLineItem *lfoot_l1;
+    QGraphicsLineItem *lfoot_l2;
+
+    QGraphicsEllipseItem *rfoot_c;
+    QGraphicsEllipseItem *lfoot_c;
 
     
     

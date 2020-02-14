@@ -57,6 +57,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     connect(ui_.sendtunebtn, SIGNAL(pressed()), this, SLOT(sendtunebtn()));
     connect(ui_.resettunebtn, SIGNAL(pressed()), this, SLOT(resettunebtn()));
+    connect(ui_.ftcalibbtn, SIGNAL(pressed()), this, SLOT(ftcalibbtn()));
 
     ui_.stackedWidget->setCurrentIndex(0);
 
@@ -70,16 +71,21 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     QBrush redbrush(Qt::red);
     QPen blackpen(Qt::black);
 
-    lfoot_d = new QGraphicsRectItem(QRectF(-21, -37, 42, 74));
+    lfoot_d = new QGraphicsRectItem(QRectF(-85 / 4, -120 / 4, 170 / 4, 300 / 4));
     scene->addItem(lfoot_d);
 
-    rfoot_d = new QGraphicsRectItem(QRectF(-21, -37, 42, 74));
+    rfoot_d = new QGraphicsRectItem(QRectF(-85 / 4, -120 / 4, 170 / 4, 300 / 4));
     scene->addItem(rfoot_d);
 
     com_d = scene->addEllipse(-10, -10, 20, 20, blackpen, redbrush);
+    rfoot_c = scene->addEllipse(-5, -5, 10, 10, blackpen, redbrush);
+    lfoot_c = scene->addEllipse(-5, -5, 10, 10, blackpen, redbrush);
 
-    scene->addLine(-20, 0, 20, 0, blackpen);
-    scene->addLine(0, -20, 0, 20, blackpen);
+    scene->addLine(-20, 0, 40, 0, blackpen);
+    scene->addLine(0, -20, 0, 40, blackpen);
+
+    QGraphicsTextItem *front = scene->addText("front");
+    front->setPos(0, 100);
 
     connect(this, &TocabiGui::guiLogCallback, this, &TocabiGui::plainTextEditcb);
     connect(this, &TocabiGui::pointCallback, this, &TocabiGui::pointcb);
@@ -356,8 +362,25 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     //std::cout<<msg->polygon.points[0].x*25<<std::endl;
 
     com_d->setPos(QPointF(msg->polygon.points[0].y * 250, msg->polygon.points[0].x * 250));
-    lfoot_d->setPos(QPointF(msg->polygon.points[1].y * 250, msg->polygon.points[1].x * 250));
-    rfoot_d->setPos(QPointF(msg->polygon.points[2].y * 250, msg->polygon.points[2].x * 250));
+
+    ui_.label->setText(QString::number(msg->polygon.points[0].x, 'f', 5));
+    ui_.label_2->setText(QString::number(msg->polygon.points[0].y, 'f', 5));
+
+    rfoot_d->setPos(QPointF(msg->polygon.points[1].y * 250, msg->polygon.points[1].x * 250));
+    rfoot_d->setRotation(msg->polygon.points[1].z * -180.0 / 3.141592);
+    rfoot_c->setPos(QPointF(msg->polygon.points[1].y * 250, msg->polygon.points[1].x * 250));
+
+    ui_.label_73->setText(QString::number(msg->polygon.points[1].x, 'f', 5));
+    ui_.label_74->setText(QString::number(msg->polygon.points[1].y, 'f', 5));
+
+    lfoot_d->setPos(QPointF(msg->polygon.points[2].y * 250, msg->polygon.points[2].x * 250));
+    lfoot_d->setRotation(msg->polygon.points[2].z * -180.0 / 3.141592);
+    lfoot_c->setPos(QPointF(msg->polygon.points[2].y * 250, msg->polygon.points[2].x * 250));
+
+    ui_.label_64->setText(QString::number(msg->polygon.points[2].x, 'f', 5));
+    ui_.label_65->setText(QString::number(msg->polygon.points[2].y, 'f', 5));
+
+    //zmp by ft
 }
 
 void TocabiGui::initializebtncb()
@@ -387,6 +410,12 @@ void TocabiGui::resettunebtn()
     {
         ecattexts[elng[i]]->setText(QString::number(NM2CNT[i], 'f', 3));
     }
+}
+
+void TocabiGui::ftcalibbtn()
+{
+    com_msg.data = std::string("ftcalib");
+    com_pub.publish(com_msg);
 }
 
 } // namespace tocabi_gui

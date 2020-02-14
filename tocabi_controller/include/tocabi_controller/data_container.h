@@ -145,6 +145,7 @@ public:
 
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;
+  bool ftcalib = false;
 
   std::string mode;
 

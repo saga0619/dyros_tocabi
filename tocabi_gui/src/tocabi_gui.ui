@@ -105,7 +105,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -116,6 +116,12 @@ OFF</string>
        <width>67</width>
        <height>17</height>
       </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="text">
       <string>EtherCAT</string>
@@ -259,6 +265,19 @@ OFF</string>
      </property>
      <property name="text">
       <string>SAFETY RESET</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="ftcalibbtn">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>180</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>FT CALIBRATION</string>
      </property>
     </widget>
    </widget>
