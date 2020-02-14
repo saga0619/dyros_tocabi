@@ -6,7 +6,7 @@
     name="Pelvis_Link">
     <inertial>
       <origin
-        xyz="-0.01191 0 0.01985"
+        xyz="-0.03191 0 0.01985"
         rpy="0 0 0" />
       <mass
         value="12.19525" />
@@ -1153,7 +1153,7 @@
     name="Upperbody_Link">
     <inertial>
       <origin
-        xyz="-0.02294 0 0.14798"
+        xyz="-0.04294 0 0.14798"
         rpy="0 0 0" />
       <mass
         value="16.43384" />
@@ -1718,7 +1718,7 @@
     name="L_Forearm_Link">
     <inertial>
       <origin
-        xyz="0.01426 0.0907 0.00033"
+        xyz="0.01426 0.0767 0.00033"
         rpy="0 0 0" />
       <mass
         value="0.30234" />
@@ -1785,7 +1785,7 @@
     name="L_Wrist1_Link">
     <inertial>
       <origin
-        xyz="-0.00158 0.03153 0.00003"
+        xyz="-0.00158 0.02153 0.00003"
         rpy="0 0 0" />
       <mass
         value="0.70923" />
@@ -1844,7 +1844,7 @@
     name="L_Wrist2_Link">
     <inertial>
       <origin
-        xyz="0.00063 0.0636 0.00178"
+        xyz="0.00063 0.0536 0.00178"
         rpy="0 0 0" />
       <mass
         value="0.001" />
@@ -2209,7 +2209,7 @@
     name="R_Forearm_Link">
     <inertial>
       <origin
-        xyz="0.01426 -0.0907 0.00033"
+        xyz="0.01426 -0.0767 0.00033"
         rpy="0 0 0" />
       <mass
         value="0.30234" />
@@ -2276,7 +2276,7 @@
     name="R_Wrist1_Link">
     <inertial>
       <origin
-        xyz="-0.00158 -0.03153 0.00003"
+        xyz="-0.00158 -0.02153 0.00003"
         rpy="0 0 0" />
       <mass
         value="0.70923" />
@@ -2335,7 +2335,7 @@
     name="R_Wrist2_Link">
     <inertial>
       <origin
-        xyz="0.00063 -0.0636 0.00178"
+        xyz="0.00063 -0.0536 0.00178"
         rpy="0 0 0" />
       <mass
         value="0.001" />
