@@ -113,7 +113,7 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                     q_rot.setRPY(M_PI, 0, M_PI / 2);
 
-                    q_rot2.setRPY(M_PI, M_PI, 0);
+                    q_rot2.setRPY(M_PI, M_PI, M_PI / 2);
                     q = q_rot * q * q_rot2;
 
                     imu_pub_msg.orientation = tf2::toMsg(q);
