@@ -49,6 +49,12 @@ make all
 sudo make install
 ```
 
+## Gui chart setup
+```sh
+sudo apt-get install libqt5charts5-dev
+```
+
+
 
 ## Passwordless sudo for ROS launch
 add folowinig line to /etc/sudoers, below the line (includedir /etc/sudoers.d)

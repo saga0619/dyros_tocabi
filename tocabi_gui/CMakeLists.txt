@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10.0)
 project(tocabi_gui)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -18,13 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   mujoco_ros_msgs
 )
 
-if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
-  find_package(Qt5Widgets REQUIRED)
-else()
-  find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
-  include(${QT_USE_FILE})
-endif()
-
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Charts)
 
 catkin_python_setup()
 
@@ -57,13 +52,8 @@ set(tocabi_gui_UIS
 
 
 
-if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
-  qt5_wrap_cpp(tocabi_gui_MOCS ${tocabi_gui_HDRS})
-  qt5_wrap_ui(tocabi_gui_UIS_H ${tocabi_gui_UIS})
-else()
-  qt4_wrap_cpp(tocabi_gui_MOCS ${tocabi_gui_HDRS})
-  qt4_wrap_ui(tocabi_gui_UIS_H ${tocabi_gui_UIS})
-endif()
+qt5_wrap_cpp(tocabi_gui_MOCS ${tocabi_gui_HDRS})
+qt5_wrap_ui(tocabi_gui_UIS_H ${tocabi_gui_UIS})
 
 
 ###########
@@ -89,8 +79,4 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
-if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
-  target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
-else()
-  target_link_libraries(${PROJECT_NAME} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
-endif()
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::Charts)

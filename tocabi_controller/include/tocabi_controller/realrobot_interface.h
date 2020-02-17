@@ -156,9 +156,9 @@ const int positionExternalModElmo[MODEL_DOF] =
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0,
-        0, 3942, 5148, 3234, 7499, 4288,
+        5378, 3942, 5148, 3234, 7499, 4288,
         0,
-        0, 2522, 735, 8132, 2127, 7155};
+        3801, 2522, 735, 8132, 2127, 7155};
 
 const double MOTORCONTSTANT[MODEL_DOF] =
     {
@@ -421,9 +421,7 @@ private:
     DataContainer &dc;
 
     Eigen::VectorQd getCommand();
-    void ImuCallback(const sensor_msgs::ImuConstPtr &msg);
 
-    ros::Subscriber imuSubscriber;
     ros::Subscriber gainSubscriber;
     Eigen::VectorQd CustomGain;
     void gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg);

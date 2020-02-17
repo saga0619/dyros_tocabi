@@ -14,7 +14,6 @@ bool elmo_init = true;
 
 RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global), StateManager(dc_global)
 {
-    imuSubscriber = dc.nh.subscribe("/imu/data", 1, &RealRobotInterface::ImuCallback, this);
     gainSubscriber = dc.nh.subscribe("/tocabi/gain_command", 100, &RealRobotInterface::gainCallbak, this);
 
     //pack_path = ros::package::getPath("tocabi_controller");
@@ -107,12 +106,12 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
 void RealRobotInterface::findZeroLeg()
 {
     //std::cout << "lower leg check " << std::endl;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 6; i++)
     {
-        positionZeroElmo[i + TOCABI::R_HipRoll_Joint] = positionElmo[i + TOCABI::R_HipRoll_Joint] - positionExternalElmo[i + TOCABI::R_HipRoll_Joint];
-        pub_to_gui(dc, "jointzp %d %d", i + TOCABI::R_HipRoll_Joint, 1);
-        positionZeroElmo[i + TOCABI::L_HipRoll_Joint] = positionElmo[i + TOCABI::L_HipRoll_Joint] - positionExternalElmo[i + TOCABI::L_HipRoll_Joint];
-        pub_to_gui(dc, "jointzp %d %d", i + TOCABI::L_HipRoll_Joint, 1);
+        positionZeroElmo[i + TOCABI::R_HipYaw_Joint] = positionElmo[i + TOCABI::R_HipYaw_Joint] - positionExternalElmo[i + TOCABI::R_HipYaw_Joint];
+        pub_to_gui(dc, "jointzp %d %d", i + TOCABI::R_HipYaw_Joint, 1);
+        positionZeroElmo[i + TOCABI::L_HipYaw_Joint] = positionElmo[i + TOCABI::L_HipYaw_Joint] - positionExternalElmo[i + TOCABI::L_HipYaw_Joint];
+        pub_to_gui(dc, "jointzp %d %d", i + TOCABI::L_HipYaw_Joint, 1);
         //std::cout << TOCABI::ELMO_NAME[i + TOCABI::R_HipRoll_Joint] << " pz IE P : " << positionElmo[i + TOCABI::R_HipRoll_Joint] << " pz EE P : " << positionExternalElmo[i + TOCABI::R_HipRoll_Joint] << std::endl;
         //std::cout << TOCABI::ELMO_NAME[i + TOCABI::L_HipRoll_Joint] << " pz ELMO : " << positionElmo[i + TOCABI::L_HipRoll_Joint] << " pz ELMO : " << positionExternalElmo[i + TOCABI::L_HipRoll_Joint] << std::endl;
     }
@@ -1354,7 +1353,7 @@ void RealRobotInterface::ftsensorThread()
 
     sensoray826_dev ft = sensoray826_dev(1);
     is_ft_board_ok = ft.open();
-    if(is_ft_board_ok == 1)
+    if (is_ft_board_ok == 1)
     {
         pub_to_gui(dc, "ftgood");
     }
@@ -1362,7 +1361,7 @@ void RealRobotInterface::ftsensorThread()
     {
         /* code */
     }
-    
+
     ft.analogSingleSamplePrepare(slotAttrs, 16);
     ft.initCalibration();
 
@@ -1371,37 +1370,37 @@ void RealRobotInterface::ftsensorThread()
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
 
-        if(dc.ftcalib) //enabled by gui
+        if (dc.ftcalib) //enabled by gui
         {
-            if(ft_calib_init == false)
+            if (ft_calib_init == false)
             {
-               ft_cycle_count = cycle_count;
-               ft_calib_init = true; 
-               pub_to_gui(dc,"ft sensor : calibration ... ");
+                ft_cycle_count = cycle_count;
+                ft_calib_init = true;
+                pub_to_gui(dc, "ft sensor : calibration ... ");
             }
-            if(cycle_count < 5*SAMPLE_RATE+ft_cycle_count)
+            if (cycle_count < 5 * SAMPLE_RATE + ft_cycle_count)
             {
-                if(cycle_count == 5*SAMPLE_RATE+ft_cycle_count-1)
+                if (cycle_count == 5 * SAMPLE_RATE + ft_cycle_count - 1)
                 {
-                    ft_calib_finish =true;
+                    ft_calib_finish = true;
                     dc.ftcalib = false;
                 }
                 ft.analogOversample();
                 ft.calibrationFTData(ft_calib_finish);
             }
         }
-        if(ft_calib_finish == true)
+        if (ft_calib_finish == true)
         {
-            if(ft_calib_ui == false)
+            if (ft_calib_ui == false)
             {
-                pub_to_gui(dc,"ft sensor : calibration finish ");
+                pub_to_gui(dc, "ft sensor : calibration finish ");
                 ft_calib_ui = true;
             }
             ft.analogOversample();
         }
         ft.computeFTData();
 
-        for(int i=0; i<6; i++)
+        for (int i = 0; i < 6; i++)
         {
             RF_FT(i) = ft.rightFootAxisData[i];
             LF_FT(i) = ft.leftFootAxisData[i];
@@ -1415,21 +1414,6 @@ void RealRobotInterface::ftsensorThread()
     }
 
     std::cout << "FTsensor Thread End!" << std::endl;
-}
-
-void RealRobotInterface::ImuCallback(const sensor_msgs::ImuConstPtr &msg)
-{
-    q_virtual_(3) = msg->orientation.x;
-    q_virtual_(4) = msg->orientation.y;
-    q_virtual_(5) = msg->orientation.z;
-
-    q_virtual_(MODEL_DOF_VIRTUAL) = msg->orientation.w;
-
-    q_dot_virtual_(3) = msg->angular_velocity.x;
-    q_dot_virtual_(4) = msg->angular_velocity.y;
-    q_dot_virtual_(5) = msg->angular_velocity.z;
-
-    //62.8hz lowpass velocity
 }
 
 bool RealRobotInterface::controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord)

@@ -12,7 +12,7 @@ MX5IMU::MX5IMU(DataContainer &dc_global, mscl::InertialNode &node_gl) : dc(dc_gl
 
 void MX5IMU::initIMU()
 {
-    imu_pub = dc.nh.advertise<sensor_msgs::Imu>("gx5test", 1);
+    imu_pub = dc.nh.advertise<sensor_msgs::Imu>("/tocabi/imu", 1);
 
     cout << "IMU : connection success " << std::endl;
     /*
@@ -123,11 +123,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estLinearAccelX")
                 {
-                    imu_pub_msg.linear_acceleration.x = dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelY")
                 {
-                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.x = -dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelZ")
                 {
@@ -136,11 +136,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estAngularRateX")
                 {
-                    imu_pub_msg.angular_velocity.x = dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateY")
                 {
-                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.x = -dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateZ")
                 {
@@ -203,7 +203,7 @@ sensor_msgs::Imu MX5IMU::getIMU()
     ef_state_flag_before = ef_state_flag;
     ef_state_before = ef_state;
 
-    //imu_pub.publish(imu_pub_msg);
+    imu_pub.publish(imu_pub_msg);
     return imu_pub_msg;
 }
 

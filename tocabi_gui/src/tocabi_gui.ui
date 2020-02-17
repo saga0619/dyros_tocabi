@@ -285,8 +285,8 @@ OFF</string>
     <widget class="QFrame" name="frame_10">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>340</y>
+       <x>620</x>
+       <y>290</y>
        <width>151</width>
        <height>141</height>
       </rect>
@@ -392,8 +392,8 @@ OFF</string>
     <widget class="QFrame" name="frame_3">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>180</y>
+       <x>620</x>
+       <y>130</y>
        <width>151</width>
        <height>141</height>
       </rect>
@@ -499,8 +499,8 @@ OFF</string>
     <widget class="QFrame" name="frame_5">
      <property name="geometry">
       <rect>
-       <x>450</x>
-       <y>180</y>
+       <x>460</x>
+       <y>130</y>
        <width>151</width>
        <height>141</height>
       </rect>
@@ -606,8 +606,8 @@ OFF</string>
     <widget class="QFrame" name="frame_6">
      <property name="geometry">
       <rect>
-       <x>450</x>
-       <y>60</y>
+       <x>460</x>
+       <y>10</y>
        <width>151</width>
        <height>111</height>
       </rect>
@@ -696,8 +696,8 @@ OFF</string>
     <widget class="QFrame" name="frame_9">
      <property name="geometry">
       <rect>
-       <x>450</x>
-       <y>340</y>
+       <x>460</x>
+       <y>290</y>
        <width>151</width>
        <height>141</height>
       </rect>
@@ -1471,8 +1471,8 @@ OFF</string>
     <widget class="QFrame" name="frame_7">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>60</y>
+       <x>620</x>
+       <y>10</y>
        <width>151</width>
        <height>111</height>
       </rect>
@@ -1551,6 +1551,54 @@ OFF</string>
        <string>CP position</string>
       </property>
      </widget>
+    </widget>
+    <widget class="QtCharts::QChartView" name="imu_pitch">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>540</y>
+       <width>361</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="rubberBandSelectionMode">
+      <enum>Qt::ContainsItemShape</enum>
+     </property>
+    </widget>
+    <widget class="QtCharts::QChartView" name="imu_roll">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>440</y>
+       <width>361</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="rubberBandSelectionMode">
+      <enum>Qt::ContainsItemShape</enum>
+     </property>
+    </widget>
+    <widget class="QtCharts::QChartView" name="imu_yaw">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>640</y>
+       <width>361</width>
+       <height>91</height>
+      </rect>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="rubberBandSelectionMode">
+      <enum>Qt::ContainsItemShape</enum>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="COMMAND">
@@ -2418,7 +2466,7 @@ OFF</string>
      <x>850</x>
      <y>70</y>
      <width>421</width>
-     <height>251</height>
+     <height>231</height>
     </rect>
    </property>
    <property name="verticalScrollBarPolicy">
@@ -2443,7 +2491,31 @@ OFF</string>
     <enum>QGraphicsView::NoAnchor</enum>
    </property>
   </widget>
+  <widget class="QtCharts::QChartView" name="ecat_status">
+   <property name="geometry">
+    <rect>
+     <x>850</x>
+     <y>310</y>
+     <width>421</width>
+     <height>73</height>
+    </rect>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Sunken</enum>
+   </property>
+   <property name="rubberBandSelectionMode">
+    <enum>Qt::ContainsItemShape</enum>
+   </property>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QtCharts::QChartView</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">QtCharts/QChartView&gt;
+#include &lt;QtCharts/chartsnamespace.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

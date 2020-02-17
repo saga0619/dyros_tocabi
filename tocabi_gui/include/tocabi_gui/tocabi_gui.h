@@ -23,6 +23,8 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneWheelEvent>
 
+#include <QtCharts/QtCharts>
+
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -103,6 +105,8 @@ protected slots:
     virtual void sendtunebtn();
     virtual void resettunebtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
+    virtual void testsubcb(const std_msgs::Float32ConstPtr &msg); 
+    virtual void imucb(const sensor_msgs::ImuConstPtr &msg);
     virtual void ftcalibbtn();
 
 private:
@@ -126,6 +130,20 @@ private:
     QGraphicsEllipseItem *rfoot_c;
     QGraphicsEllipseItem *lfoot_c;
 
+    QLineSeries *line;
+    QChart *chart;
+
+    QLineSeries *line_roll;
+    QChart *chart_roll;
+
+    QLineSeries *line_pitch;
+    QChart *chart_pitch;
+
+    QLineSeries *line_yaw;
+    QChart *chart_yaw;
+
+    double robot_time;
+
     ros::NodeHandle nh_;
 
 public:
@@ -140,16 +158,25 @@ public:
     ros::Publisher com_pub;
     std_msgs::String com_msg;
 
+    ros::Subscriber testsub;
+    ros::Subscriber imusub;
+
+
     //void guiLogCallback(const std_msgs::StringConstPtr &msg);
     std::string logtext;
 
 signals:
     void guiLogCallback(const std_msgs::StringConstPtr &msg);
     void pointCallback(const geometry_msgs::PolygonStampedConstPtr &msg);
+    void testsubCallback(const std_msgs::Float32ConstPtr &msg);
+    void imuCallback(const sensor_msgs::ImuConstPtr &msg);
     virtual void guiLogSignal();
 };
 
 } // namespace tocabi_gui
 Q_DECLARE_METATYPE(std_msgs::StringConstPtr);
 Q_DECLARE_METATYPE(geometry_msgs::PolygonStampedConstPtr);
+Q_DECLARE_METATYPE(std_msgs::Float32ConstPtr);
+Q_DECLARE_METATYPE(sensor_msgs::ImuConstPtr);
+
 #endif

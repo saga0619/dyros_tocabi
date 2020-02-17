@@ -28,6 +28,8 @@ TocabiGui::TocabiGui()
 {
     qRegisterMetaType<std_msgs::StringConstPtr>();
     qRegisterMetaType<geometry_msgs::PolygonStampedConstPtr>();
+    qRegisterMetaType<std_msgs::Float32ConstPtr>();
+    qRegisterMetaType<sensor_msgs::ImuConstPtr>();
     setObjectName("TocabiGui");
 
     //initPlugin()
@@ -36,6 +38,8 @@ TocabiGui::TocabiGui()
     com_pub = nh_.advertise<std_msgs::String>("/tocabi/command", 1);
     guilogsub = nh_.subscribe("/tocabi/guilog", 1000, &TocabiGui::guiLogCallback, this);
     gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/gain_command", 100);
+    testsub = nh_.subscribe("/testpub", 1, &TocabiGui::testsubCallback, this);
+    imusub = nh_.subscribe("/tocabi/imu", 1, &TocabiGui::imuCallback, this);
 
     gain_msg.data.resize(33);
     //ecatlabels = {ui_.}
@@ -104,6 +108,8 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     connect(this, &TocabiGui::guiLogCallback, this, &TocabiGui::plainTextEditcb);
     connect(this, &TocabiGui::pointCallback, this, &TocabiGui::pointcb);
+    connect(this, &TocabiGui::testsubCallback, this, &TocabiGui::testsubcb);
+    connect(this, &TocabiGui::imuCallback, this, &TocabiGui::imucb);
 
     //connect(ui_)
     connect(ui_.initializebtn, SIGNAL(pressed()), this, SLOT(initializebtncb()));
@@ -222,6 +228,61 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     //widget_->s
     //connect(ui_.log_btn,SIGNAL(pressed()),this,SLOR(ui_.))
+
+    line = new QLineSeries();
+    chart = new QChart();
+    QFont labelsFont;
+    labelsFont.setPixelSize(8);
+
+    chart->legend()->hide();
+    chart->addSeries(line);
+    chart->createDefaultAxes();
+    chart->setContentsMargins(-20, -20, -20, -20);
+    chart->layout()->setContentsMargins(0, 0, 0, 0);
+    chart->setBackgroundRoundness(0);
+    chart->axisX()->setLabelsFont(labelsFont);
+    chart->axisY()->setLabelsVisible(false);
+    chart->axisY()->setLabelsFont(labelsFont);
+
+    line_roll = new QLineSeries();
+    chart_roll = new QChart();
+    line_pitch = new QLineSeries();
+    chart_pitch = new QChart();
+    line_yaw = new QLineSeries();
+    chart_yaw = new QChart();
+
+    chart_roll->legend()->hide();
+    chart_roll->addSeries(line_roll);
+    chart_roll->createDefaultAxes();
+    chart_roll->setContentsMargins(-20, -20, -20, -20);
+    chart_roll->layout()->setContentsMargins(0, 0, 0, 0);
+    chart_roll->setBackgroundRoundness(0);
+    chart_roll->axisX()->setLabelsFont(labelsFont);
+    chart_roll->axisY()->setLabelsFont(labelsFont);
+
+    chart_pitch->legend()->hide();
+    chart_pitch->addSeries(line_pitch);
+    chart_pitch->createDefaultAxes();
+    chart_pitch->setContentsMargins(-20, -20, -20, -20);
+    chart_pitch->layout()->setContentsMargins(0, 0, 0, 0);
+    chart_pitch->setBackgroundRoundness(0);
+    chart_pitch->axisX()->setLabelsFont(labelsFont);
+    chart_pitch->axisY()->setLabelsFont(labelsFont);
+
+    chart_yaw->legend()->hide();
+    chart_yaw->addSeries(line_yaw);
+    chart_yaw->createDefaultAxes();
+    chart_yaw->setContentsMargins(-20, -20, -20, -20);
+    chart_yaw->layout()->setContentsMargins(0, 0, 0, 0);
+    chart_yaw->setBackgroundRoundness(0);
+    chart_yaw->axisX()->setLabelsFont(labelsFont);
+    chart_yaw->axisY()->setLabelsFont(labelsFont);
+
+    ui_.imu_roll->setChart(chart);
+    ui_.imu_roll->setRenderHint(QPainter::Antialiasing);
+
+    //QChartView *chartView = new QChartView(chart, ui_.widget);
+    //chartView->setRenderHint(QPainter::Antialiasing);
 }
 void TocabiGui::shutdownPlugin()
 {
@@ -254,6 +315,7 @@ void TocabiGui::emergencyoffcb()
 
 void TocabiGui::timerCallback(const std_msgs::Float32ConstPtr &msg)
 {
+    robot_time = msg->data;
     ui_.currenttime->setText(QString::number(msg->data, 'f', 3));
 }
 
@@ -436,6 +498,51 @@ void TocabiGui::ftcalibbtn()
 {
     com_msg.data = std::string("ftcalib");
     com_pub.publish(com_msg);
+}
+
+void TocabiGui::testsubcb(const std_msgs::Float32ConstPtr &msg)
+{
+    static int num = 0;
+
+    line->append(num++, msg->data);
+
+    chart->axisY()->setRange(-1.1, 1.1);
+    //chart->setax
+    //std::cout << msg->data << std::endl;
+
+    if (num > 120)
+    {
+        line->remove(0);
+        chart->axisX()->setRange(num - 120, num);
+    }
+}
+
+void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
+{
+    line_roll->append(robot_time, msg->linear_acceleration.x);
+
+    line_pitch->append(robot_time, msg->linear_acceleration.x);
+
+    line_yaw->append(robot_time, msg->linear_acceleration.x);
+
+    chart_roll->axisY()->setRange(-5, 5);
+    chart_roll->axisX()->setRange(robot_time - 10, robot_time);
+
+    chart_pitch->axisY()->setRange(-5, 5);
+    chart_pitch->axisX()->setRange(robot_time - 10, robot_time);
+
+    chart_yaw->axisY()->setRange(-5, 5);
+    chart_yaw->axisX()->setRange(robot_time - 10, robot_time);
+
+    if (line_roll->at(0).x() < (robot_time - 10))
+        line_roll->remove(0);
+
+    if (line_pitch->at(0).x() < (robot_time - 10))
+        line_pitch->remove(0);
+
+    if (line_yaw->at(0).x() < (robot_time - 10))
+        line_yaw->remove(0);
+
 }
 /*
 void TocabiGui::wheelEvent(QWheelEvent *event)
