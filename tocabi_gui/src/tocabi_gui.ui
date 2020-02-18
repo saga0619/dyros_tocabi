@@ -1552,54 +1552,6 @@ OFF</string>
       </property>
      </widget>
     </widget>
-    <widget class="QtCharts::QChartView" name="imu_pitch">
-     <property name="geometry">
-      <rect>
-       <x>450</x>
-       <y>540</y>
-       <width>361</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-     <property name="rubberBandSelectionMode">
-      <enum>Qt::ContainsItemShape</enum>
-     </property>
-    </widget>
-    <widget class="QtCharts::QChartView" name="imu_roll">
-     <property name="geometry">
-      <rect>
-       <x>450</x>
-       <y>440</y>
-       <width>361</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-     <property name="rubberBandSelectionMode">
-      <enum>Qt::ContainsItemShape</enum>
-     </property>
-    </widget>
-    <widget class="QtCharts::QChartView" name="imu_yaw">
-     <property name="geometry">
-      <rect>
-       <x>450</x>
-       <y>640</y>
-       <width>361</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Sunken</enum>
-     </property>
-     <property name="rubberBandSelectionMode">
-      <enum>Qt::ContainsItemShape</enum>
-     </property>
-    </widget>
    </widget>
    <widget class="QWidget" name="COMMAND">
     <widget class="QPushButton" name="sebutton">
@@ -2491,31 +2443,7 @@ OFF</string>
     <enum>QGraphicsView::NoAnchor</enum>
    </property>
   </widget>
-  <widget class="QtCharts::QChartView" name="ecat_status">
-   <property name="geometry">
-    <rect>
-     <x>850</x>
-     <y>310</y>
-     <width>421</width>
-     <height>73</height>
-    </rect>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Sunken</enum>
-   </property>
-   <property name="rubberBandSelectionMode">
-    <enum>Qt::ContainsItemShape</enum>
-   </property>
-  </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QtCharts::QChartView</class>
-   <extends>QGraphicsView</extends>
-   <header location="global">QtCharts/QChartView&gt;
-#include &lt;QtCharts/chartsnamespace.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

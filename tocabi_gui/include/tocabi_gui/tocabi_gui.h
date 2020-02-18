@@ -23,8 +23,6 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneWheelEvent>
 
-#include <QtCharts/QtCharts>
-
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -129,19 +127,7 @@ private:
 
     QGraphicsEllipseItem *rfoot_c;
     QGraphicsEllipseItem *lfoot_c;
-
-    QLineSeries *line;
-    QChart *chart;
-
-    QLineSeries *line_roll;
-    QChart *chart_roll;
-
-    QLineSeries *line_pitch;
-    QChart *chart_pitch;
-
-    QLineSeries *line_yaw;
-    QChart *chart_yaw;
-
+    
     double robot_time;
 
     ros::NodeHandle nh_;
