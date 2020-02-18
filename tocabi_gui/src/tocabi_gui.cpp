@@ -64,6 +64,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     ui_.torqueon_button->setShortcut(QKeySequence(Qt::Key_E));
     ui_.torqueoff_button->setShortcut(QKeySequence(Qt::Key_C));
+    ui_.safetyresetbtn->setShortcut(QKeySequence(Qt::Key_R));
     ui_.emergencyoff_button->setShortcut(QKeySequence(Qt::Key_Escape));
 
     connect(ui_.ecat_btn, SIGNAL(pressed()), this, SLOT(ecatpbtn()));

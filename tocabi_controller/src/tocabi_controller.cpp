@@ -2072,6 +2072,34 @@ void TocabiController::tuiThread()
                 std::cout << "disable safety lock" << std::endl;
                 dc.disableSafetyLock = true;
             }
+            else if ((ch % 256 == 'e'))
+            {
+                if (dc.torqueOn)
+                {
+                    std::cout << "torque is already enabled, command duplicated, ignoring command!" << std::endl;
+                }
+                else
+                {
+                    std::cout << "torque ON !" << std::endl;
+                    dc.torqueOnTime = control_time_;
+                    dc.torqueOn = true;
+                    dc.torqueOff = false;
+                }
+            }
+            else if ((ch % 256 == 'c'))
+            {
+                if (dc.torqueOn)
+                {
+                    std::cout << "Torque OFF ! " << std::endl;
+                    dc.torqueOffTime = control_time_;
+                    dc.torqueOn = false;
+                    dc.torqueOff = true;
+                }
+                else if (dc.torqueOff)
+                {
+                    std::cout << "Torque is already disabled, command duplicated, ignoring command! " << std::endl;
+                }
+            }
             else if ((ch % 256 == 't'))
             {
                 std::cout << "torque mode " << std::endl;
