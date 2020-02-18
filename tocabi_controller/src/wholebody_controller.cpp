@@ -682,7 +682,7 @@ VectorQd Wholebody_controller::task_control_torque_QP2(RobotData &Robot, Eigen::
 
     if (t100count > 500)
     {
-        std::cout << "QP calc time : " << t100mean / 500 * 1000 << " ms " << std::endl;
+        //std::cout << "QP calc time : " << t100mean / 500 * 1000 << " ms " << std::endl;
 
         t100mean = 0.0;
         t100count = 0;
@@ -802,11 +802,11 @@ VectorQd Wholebody_controller::task_control_torque_QP2(RobotData &Robot, Eigen::
 
     if (abs(ft_zmp_l) > 0.04)
     {
-        std::cout << "lf zmp over limit : " << ft_zmp_l << std::endl;
+        //std::cout << "lf zmp over limit : " << ft_zmp_l << std::endl;
     }
     if (abs(ft_zmp_r) > 0.04)
     {
-        std::cout << "rf zmp over limit : " << ft_zmp_r << std::endl;
+        //std::cout << "rf zmp over limit : " << ft_zmp_r << std::endl;
     }
 
     Robot.ContactForce = fc;

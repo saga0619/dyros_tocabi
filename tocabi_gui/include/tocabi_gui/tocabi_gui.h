@@ -23,6 +23,7 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneWheelEvent>
 
+#include "tocabi_controller/TaskCommand.h"
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -106,6 +107,7 @@ protected slots:
     virtual void imucb(const sensor_msgs::ImuConstPtr &msg);
     virtual void timercb(const std_msgs::Float32ConstPtr &msg);
     virtual void ftcalibbtn();
+    virtual void comsendcb();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
@@ -127,7 +129,7 @@ private:
 
     QGraphicsEllipseItem *rfoot_c;
     QGraphicsEllipseItem *lfoot_c;
-    
+
     double robot_time;
 
     ros::NodeHandle nh_;
@@ -142,6 +144,9 @@ public:
     std_msgs::Float32MultiArray gain_msg;
     ros::Publisher com_pub;
     std_msgs::String com_msg;
+
+    ros::Publisher task_pub;
+    tocabi_controller::TaskCommand task_msg;
 
     ros::Subscriber imusub;
 

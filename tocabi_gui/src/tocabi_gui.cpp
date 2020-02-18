@@ -39,6 +39,7 @@ TocabiGui::TocabiGui()
     guilogsub = nh_.subscribe("/tocabi/guilog", 1000, &TocabiGui::guiLogCallback, this);
     gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/gain_command", 100);
     imusub = nh_.subscribe("/tocabi/imu", 1, &TocabiGui::imuCallback, this);
+    task_pub = nh_.advertise<tocabi_controller::TaskCommand>("/tocabi/taskcommand", 100);
 
     gain_msg.data.resize(33);
     //ecatlabels = {ui_.}
@@ -114,6 +115,8 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     //connect(ui_)
     connect(ui_.initializebtn, SIGNAL(pressed()), this, SLOT(initializebtncb()));
     connect(ui_.safetyresetbtn, SIGNAL(pressed()), this, SLOT(safetyresetbtncb()));
+
+    connect(ui_.com_send_button, SIGNAL(pressed()), this, SLOT(comsendcb()));
 
     if (mode == "simulation")
     {
@@ -504,6 +507,17 @@ void TocabiGui::ftcalibbtn()
 {
     com_msg.data = std::string("ftcalib");
     com_pub.publish(com_msg);
+}
+
+void TocabiGui::comsendcb()
+{
+    task_msg.angle = ui_.text_angle->text().toFloat();
+    task_msg.ratio = ui_.text_pos->text().toFloat();
+    task_msg.height = ui_.text_height->text().toFloat();
+    task_msg.time = ui_.text_time->text().toFloat();
+    task_msg.mode = ui_.comboBox->currentIndex();
+
+    task_pub.publish(task_msg);
 }
 
 void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
