@@ -105,8 +105,8 @@ protected slots:
     virtual void sendtunebtn();
     virtual void resettunebtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
-    virtual void testsubcb(const std_msgs::Float32ConstPtr &msg); 
     virtual void imucb(const sensor_msgs::ImuConstPtr &msg);
+    virtual void timercb(const std_msgs::Float32ConstPtr &msg);
     virtual void ftcalibbtn();
 
 private:
@@ -148,7 +148,6 @@ private:
 
 public:
     ros::Subscriber timesub;
-    void timerCallback(const std_msgs::Float32ConstPtr &msg);
 
     ros::Subscriber pointsub;
 
@@ -158,7 +157,6 @@ public:
     ros::Publisher com_pub;
     std_msgs::String com_msg;
 
-    ros::Subscriber testsub;
     ros::Subscriber imusub;
 
 
@@ -168,7 +166,7 @@ public:
 signals:
     void guiLogCallback(const std_msgs::StringConstPtr &msg);
     void pointCallback(const geometry_msgs::PolygonStampedConstPtr &msg);
-    void testsubCallback(const std_msgs::Float32ConstPtr &msg);
+    void timerCallback(const std_msgs::Float32ConstPtr &msg);
     void imuCallback(const sensor_msgs::ImuConstPtr &msg);
     virtual void guiLogSignal();
 };

@@ -202,8 +202,10 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
     ef_state_flag_before = ef_state_flag;
     ef_state_before = ef_state;
-
-    imu_pub.publish(imu_pub_msg);
+    static int num=0;
+    if(num%20==0)
+        imu_pub.publish(imu_pub_msg);
+    num++;
     return imu_pub_msg;
 }
 

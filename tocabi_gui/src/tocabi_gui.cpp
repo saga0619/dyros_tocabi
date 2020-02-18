@@ -38,7 +38,6 @@ TocabiGui::TocabiGui()
     com_pub = nh_.advertise<std_msgs::String>("/tocabi/command", 1);
     guilogsub = nh_.subscribe("/tocabi/guilog", 1000, &TocabiGui::guiLogCallback, this);
     gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/gain_command", 100);
-    testsub = nh_.subscribe("/testpub", 1, &TocabiGui::testsubCallback, this);
     imusub = nh_.subscribe("/tocabi/imu", 1, &TocabiGui::imuCallback, this);
 
     gain_msg.data.resize(33);
@@ -106,9 +105,9 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     //ui_.graphicsView->setSceneRect(-210, -260, 421, 521);
 
+    connect(this, &TocabiGui::timerCallback, this, &TocabiGui::timercb);
     connect(this, &TocabiGui::guiLogCallback, this, &TocabiGui::plainTextEditcb);
     connect(this, &TocabiGui::pointCallback, this, &TocabiGui::pointcb);
-    connect(this, &TocabiGui::testsubCallback, this, &TocabiGui::testsubcb);
     connect(this, &TocabiGui::imuCallback, this, &TocabiGui::imucb);
 
     //connect(ui_)
@@ -228,7 +227,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     //widget_->s
     //connect(ui_.log_btn,SIGNAL(pressed()),this,SLOR(ui_.))
-
+    /*
     line = new QLineSeries();
     chart = new QChart();
     QFont labelsFont;
@@ -278,8 +277,14 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     chart_yaw->axisX()->setLabelsFont(labelsFont);
     chart_yaw->axisY()->setLabelsFont(labelsFont);
 
-    ui_.imu_roll->setChart(chart);
+    ui_.imu_roll->setChart(chart_roll);
     ui_.imu_roll->setRenderHint(QPainter::Antialiasing);
+
+    ui_.imu_pitch->setChart(chart_pitch);
+    ui_.imu_pitch->setRenderHint(QPainter::Antialiasing);
+
+    ui_.imu_yaw->setChart(chart_yaw);
+    ui_.imu_yaw->setRenderHint(QPainter::Antialiasing);*/
 
     //QChartView *chartView = new QChartView(chart, ui_.widget);
     //chartView->setRenderHint(QPainter::Antialiasing);
@@ -313,7 +318,7 @@ void TocabiGui::emergencyoffcb()
     com_pub.publish(com_msg);
 }
 
-void TocabiGui::timerCallback(const std_msgs::Float32ConstPtr &msg)
+void TocabiGui::timercb(const std_msgs::Float32ConstPtr &msg)
 {
     robot_time = msg->data;
     ui_.currenttime->setText(QString::number(msg->data, 'f', 3));
@@ -500,49 +505,26 @@ void TocabiGui::ftcalibbtn()
     com_pub.publish(com_msg);
 }
 
-void TocabiGui::testsubcb(const std_msgs::Float32ConstPtr &msg)
-{
-    static int num = 0;
-
-    line->append(num++, msg->data);
-
-    chart->axisY()->setRange(-1.1, 1.1);
-    //chart->setax
-    //std::cout << msg->data << std::endl;
-
-    if (num > 120)
-    {
-        line->remove(0);
-        chart->axisX()->setRange(num - 120, num);
-    }
-}
-
 void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
-{
+{ /*
+    //std::cout<<robot_time<<"msg->linacc"<<msg->linear_acceleration.x<<std::endl;
     line_roll->append(robot_time, msg->linear_acceleration.x);
-
-    line_pitch->append(robot_time, msg->linear_acceleration.x);
-
-    line_yaw->append(robot_time, msg->linear_acceleration.x);
-
     chart_roll->axisY()->setRange(-5, 5);
-    chart_roll->axisX()->setRange(robot_time - 10, robot_time);
-
-    chart_pitch->axisY()->setRange(-5, 5);
-    chart_pitch->axisX()->setRange(robot_time - 10, robot_time);
-
-    chart_yaw->axisY()->setRange(-5, 5);
-    chart_yaw->axisX()->setRange(robot_time - 10, robot_time);
-
-    if (line_roll->at(0).x() < (robot_time - 10))
+    chart_roll->axisX()->setRange(robot_time - 5, robot_time);
+    if (line_roll->at(0).x() < (robot_time - 5))
         line_roll->remove(0);
 
-    if (line_pitch->at(0).x() < (robot_time - 10))
+    line_pitch->append(robot_time, msg->linear_acceleration.y);
+    chart_pitch->axisY()->setRange(-5, 5);
+    chart_pitch->axisX()->setRange(robot_time - 5, robot_time);
+    if (line_pitch->at(0).x() < (robot_time - 5))
         line_pitch->remove(0);
 
-    if (line_yaw->at(0).x() < (robot_time - 10))
-        line_yaw->remove(0);
-
+    line_yaw->append(robot_time, msg->linear_acceleration.z);
+    chart_yaw->axisY()->setRange(-5, 5);
+    chart_yaw->axisX()->setRange(robot_time - 5, robot_time);
+    if (line_yaw->at(0).x() < (robot_time - 5))
+        line_yaw->remove(0);*/
 }
 /*
 void TocabiGui::wheelEvent(QWheelEvent *event)
