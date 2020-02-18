@@ -19,7 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Charts)
 set(CMAKE_AUTOMOC ON)
 catkin_python_setup()
 
@@ -79,4 +78,4 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5Charts)
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
