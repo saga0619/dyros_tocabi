@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     dc.statusPubMsg.data = strr;
 
     bool simulation = true;
-    dc.dym_hz = 500; //frequency should be divisor of a million (timestep must be integer)
+    dc.dym_hz = 500; 
     dc.stm_hz = 4000;
     dc.dym_timestep = std::chrono::microseconds((int)(1000000 / dc.dym_hz));
     dc.stm_timestep = std::chrono::microseconds((int)(1000000 / dc.stm_hz));
@@ -46,6 +46,8 @@ int main(int argc, char **argv)
         homedir = getpwuid(getuid())->pw_dir;
     }
 
+    //set Home directory.
+    //    /home/{user_name}/tocabi_data
     dc.homedir = std::string(homedir) + "/tocabi_data";
 
     std::cout << "Tocabi Controller : ";
@@ -53,7 +55,6 @@ int main(int argc, char **argv)
     if (dc.mode == "simulation")
     {
         std::cout << "Simulation Mode " << std::endl;
-        //pub_to_gui(dc,"Simulation Mode \n");
 
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
@@ -63,19 +64,6 @@ int main(int argc, char **argv)
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
         thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
         thread[3] = std::thread(&TocabiController::tuiThread, &rc);
-
-        /*
-        sched_param sch;
-        int policy;
-        for (int i = 0; i < 4; i++)
-        {
-            pthread_getschedparam(thread[i].native_handle(), &policy, &sch);
-            sch.sched_priority = 49;
-            if (pthread_setschedparam(thread[i].native_handle(), SCHED_FIFO, &sch))
-            {
-                std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
-            }
-        }*/
 
         for (int i = 0; i < 4; i++)
         {

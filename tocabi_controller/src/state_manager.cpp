@@ -524,7 +524,6 @@ void StateManager::storeState()
     dc.q_ddot_virtual_ = q_ddot_virtual_;
     dc.tau_nonlinear_ = tau_nonlinear_;
 
-    dc.yaw_radian = yaw;
     dc.yaw = yaw;
     dc.roll = roll;
     dc.pitch = pitch;
