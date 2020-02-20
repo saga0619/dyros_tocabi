@@ -1,7 +1,13 @@
 # tocabi_controller
 
+## mscl install 
+ * download [MSCL](https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb) 
+```sh
+wget https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb
+sudo dpkg -i c++-mscl_52.2.1_amd64.deb
+```
+
 ## SOEM Setup
- * install [SOEM](https://github.com/saga0619/SOEM)
  ```sh
  git clone https://github.com/saga0619/SOEM
  cd SOEM
@@ -12,18 +18,10 @@
  sudo make install
  ```
 
-## mscl install 
- * download [MSCL](https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb) 
-
-```sh
-wget https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb
-sudo dpkg -i c++-mscl_52.2.1_amd64.deb
-```
-
 ## RBDL Setup
-### Installing
 ```sh
 git clone https://github.com/saga0619/rbdl-orb
+cd rbdl-orb
 mkdir build
 cd build
 cmake ..
@@ -39,9 +37,9 @@ sudo ldconfig
 
 
 ## qpOASES setup
-Download qpOASES [Link](http://www.qpoases.org/go/release) 
 ```sh
 git clone https://github.com/saga0619/qpoases
+cd qpoases
 mkdir build
 cd build
 cmake ..
@@ -49,8 +47,24 @@ make all
 sudo make install
 ```
 
-## Passwordless sudo for ROS launch
-add folowinig line to /etc/sudoers, below the line (includedir /etc/sudoers.d)
+
+
+## Custom Controller & Mujoco & Tocabi setup
+Git clone https://github.com/saga0619/dyros_cc , https://github.com/saga0619/mujoco_ros_sim
+
+```sh
+cd ~/catkin_ws/src/
+git clone https://github.com/saga0619/dyros_cc
+git clone https://github.com/saga0619/mujoco_ros_sim
+git clone https://github.com/saga0619/dyros_tocabi
 ```
-$(username) ALL=(ALL) NOPASSWD: ALL
+
+## Simulation Mode 
+```sh
+roslaunch tocabi_controller simulation.launch
+```
+
+## Realrobot Mode
+```sh
+roslaunch tocabi_controller real
 ```
