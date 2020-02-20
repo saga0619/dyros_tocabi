@@ -66,5 +66,5 @@ roslaunch tocabi_controller simulation.launch
 
 ## Realrobot Mode
 ```sh
-roslaunch tocabi_controller real
+roslaunch tocabi_controller realrobot.launch
 ```
