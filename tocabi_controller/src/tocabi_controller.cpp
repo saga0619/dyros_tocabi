@@ -402,8 +402,7 @@ void TocabiController::dynamicsThreadLow()
             {
                 wc_.set_contact(tocabi_, 1, 1);
 
-                //torque_grav = wc_.gravity_compensation_torque(tocabi_, dc.fixedgravity);
-                //torque_grav = wc_.gravity_compensation_torque(dc.fixedgravity);
+                //torque_grav = wc_.gravity_compensation_torque(tocabi_);
                 task_number = 6;
                 J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 f_star.setZero(task_number);
@@ -1851,7 +1850,7 @@ void TocabiController::dynamicsThreadLow()
                 double lz_y, rz_y;
                 if (control_time_ == tc.command_time)
                 {
-                    data_out << "t \t ce \t lz \t rz \t lee \t re \t lfz \t rfz \t ly \r ry" << std::endl;
+                    data_out << "t \t ce \t lz \t rz \t lee \t re \t lfz \t rfz \t ly \t ry" << std::endl;
                 }
                 if (control_time_ < tc.command_time + tc.traj_time)
                 {
@@ -1925,9 +1924,10 @@ void TocabiController::dynamicsThreadLow()
                 torque_grav.setZero();
                 torque_task.setZero();
 
-                mycontroller.compute();
-                torque_task = mycontroller.getControl();
+                mycontroller.compute_slow();
+
                 
+                torque_task = mycontroller.getControl();
             }
         }
         else
