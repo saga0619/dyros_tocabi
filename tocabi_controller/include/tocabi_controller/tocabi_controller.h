@@ -62,6 +62,25 @@ struct TaskCommand
   int mode;
 };
 
+struct ArmTaskCommand
+{
+  double command_time;
+  double traj_time;
+  double l_x;
+  double l_y;
+  double l_z;
+  double l_roll;
+  double l_pitch;
+  double l_yaw;
+  double r_x;
+  double r_y;
+  double r_z;
+  double r_roll;
+  double r_pitch;
+  double r_yaw;
+  int mode;
+};
+
 class TocabiController
 {
 public:
@@ -71,17 +90,20 @@ public:
 
   CustomController &mycontroller;
   TaskCommand tc;
+  ArmTaskCommand atc;
 
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
   void tuiThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
+  void ArmTaskCommandCallback(const tocabi_controller::ArmTaskCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void pubfromcontroller();
   
   ros::Subscriber task_command;
+  ros::Subscriber arm_task_command;
   std::ofstream data_out;
 
   ros::Publisher point_pub;
@@ -102,6 +124,7 @@ private:
   double time;
   double sim_time;
   double control_time_;
+  double control_time_pre_;
 
   bool safetymode;
 
@@ -115,6 +138,7 @@ private:
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;*/
   Eigen::VectorQd q_desired_;
+  Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd torque_;
   //Command Var
   Eigen::VectorQd torque_desired;

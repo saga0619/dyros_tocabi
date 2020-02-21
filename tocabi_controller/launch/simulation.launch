@@ -8,7 +8,7 @@
   <arg name="urdfDampingmodel" default="false"/>
 
   <node name="mujoco_ros" pkg="mujoco_ros" type="mujoco_ros" required="true" respawn="false" output="screen">
-    <param name="license" type="string" value="$(env HOME)/mjkey.txt" />
+    <param name="license" type="string" value="$(env HOME)/.mujoco/mjkey.txt" />
     <param name="model_file" type="string" value="$(find tocabi_description)/mujoco_model/dyros_tocabi.xml"/>
     <param name="pub_mode" value="$(arg pub_mode)"/>
   </node>
