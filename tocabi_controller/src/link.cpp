@@ -206,20 +206,27 @@ void Link::Set_Trajectory_rotation(double current_time, double start_time, doubl
         axis = aa.axis();
         angle = aa.angle();
     }
-    double c_a = DyrosMath::cubic(current_time, start_time, end_time, 0.0, angle, 0.0, 0.0);
+    // double c_a = DyrosMath::cubic(current_time, start_time, end_time, 0.0, angle, 0.0, 0.0);
+    // Eigen::Matrix3d rmat;
+    // rmat = Eigen::AngleAxisd(c_a, axis);
+
+    // r_traj = rot_init * rmat;
+
+    // double dtime = 0.001;
+    // double c_a_dtime = DyrosMath::cubic(current_time + dtime, start_time, end_time, 0.0, angle, 0.0, 0.0);
+
+    // Eigen::Vector3d ea = r_traj.eulerAngles(0, 1, 2);
+
+    // Eigen::Vector3d ea_dtime = (rot_init * Eigen::AngleAxisd(c_a_dtime, axis)).eulerAngles(0, 1, 2);
+
+    // w_traj = (ea_dtime - ea) / dtime;
+    Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, 0.0, 0.0, 0.0, angle, 0.0, 0.0);
+    double c_a = quintic(0);
     Eigen::Matrix3d rmat;
+
     rmat = Eigen::AngleAxisd(c_a, axis);
-
     r_traj = rot_init * rmat;
-
-    double dtime = 0.001;
-    double c_a_dtime = DyrosMath::cubic(current_time + dtime, start_time, end_time, 0.0, angle, 0.0, 0.0);
-
-    Eigen::Vector3d ea = r_traj.eulerAngles(0, 1, 2);
-
-    Eigen::Vector3d ea_dtime = (rot_init * Eigen::AngleAxisd(c_a_dtime, axis)).eulerAngles(0, 1, 2);
-
-    w_traj = (ea_dtime - ea) / dtime;
+    w_traj =  quintic(1) * axis;
 }
 
 void Link::Set_Trajectory_rotation(double current_time, double start_time, double end_time, Eigen::Matrix3d rot_desired_, bool local_)
