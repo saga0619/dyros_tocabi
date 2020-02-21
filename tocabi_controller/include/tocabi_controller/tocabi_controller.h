@@ -55,17 +55,13 @@ struct TaskCommand
 {
   double command_time;
   double traj_time;
+  bool task_init;
+  int mode;
+  // COM Related
   double ratio;
   double height;
   double angle;
-  bool task_init;
-  int mode;
-};
-
-struct ArmTaskCommand
-{
-  double command_time;
-  double traj_time;
+  // Arm Related
   double l_x;
   double l_y;
   double l_z;
@@ -78,8 +74,6 @@ struct ArmTaskCommand
   double r_roll;
   double r_pitch;
   double r_yaw;
-  bool arm_task_init;
-  int mode;
 };
 
 class TocabiController
@@ -91,20 +85,17 @@ public:
 
   CustomController &mycontroller;
   TaskCommand tc;
-  ArmTaskCommand atc;
 
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
   void tuiThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
-  void ArmTaskCommandCallback(const tocabi_controller::ArmTaskCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void pubfromcontroller();
   
   ros::Subscriber task_command;
-  ros::Subscriber arm_task_command;
   std::ofstream data_out;
 
   ros::Publisher point_pub;

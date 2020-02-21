@@ -40,7 +40,6 @@ TocabiGui::TocabiGui()
     gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/gain_command", 100);
     imusub = nh_.subscribe("/tocabi/imu", 1, &TocabiGui::imuCallback, this);
     task_pub = nh_.advertise<tocabi_controller::TaskCommand>("/tocabi/taskcommand", 100);
-    arm_task_pub = nh_.advertise<tocabi_controller::ArmTaskCommand>("/tocabi/armtaskcommand", 100);
 
     gain_msg.data.resize(33);
     //ecatlabels = {ui_.}
@@ -117,8 +116,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.initializebtn, SIGNAL(pressed()), this, SLOT(initializebtncb()));
     connect(ui_.safetyresetbtn, SIGNAL(pressed()), this, SLOT(safetyresetbtncb()));
 
-    connect(ui_.com_send_button, SIGNAL(pressed()), this, SLOT(comsendcb()));   
-    connect(ui_.arm_send_button, SIGNAL(pressed()), this, SLOT(armsendcb()));
+    connect(ui_.task_send_button, SIGNAL(pressed()), this, SLOT(tasksendcb()));
 
     if (mode == "simulation")
     {
@@ -551,37 +549,31 @@ void TocabiGui::ftcalibbtn()
     com_pub.publish(com_msg);
 }
 
-void TocabiGui::comsendcb()
+void TocabiGui::tasksendcb()
 {
-    task_msg.angle = ui_.text_angle->text().toFloat();
-    task_msg.ratio = ui_.text_pos->text().toFloat();
-    task_msg.height = ui_.text_height->text().toFloat();
-    task_msg.time = ui_.text_time->text().toFloat();
-    task_msg.mode = ui_.comboBox->currentIndex();
+    task_msg.angle = ui_.com_angle->text().toFloat();
+    task_msg.ratio = ui_.com_pos->text().toFloat();
+    task_msg.height = ui_.com_height->text().toFloat();
+
+
+    task_msg.l_x = ui_.text_l_x->text().toFloat();
+    task_msg.l_y = ui_.text_l_y->text().toFloat();
+    task_msg.l_z = ui_.text_l_z->text().toFloat();
+    task_msg.l_roll = ui_.text_l_roll->text().toFloat();
+    task_msg.l_pitch = ui_.text_l_pitch->text().toFloat();
+    task_msg.l_yaw = ui_.text_l_yaw->text().toFloat();
+
+    task_msg.r_x = ui_.text_r_x->text().toFloat();
+    task_msg.r_y = ui_.text_r_y->text().toFloat();
+    task_msg.r_z = ui_.text_r_z->text().toFloat();
+    task_msg.r_roll = ui_.text_r_roll->text().toFloat();
+    task_msg.r_pitch = ui_.text_r_pitch->text().toFloat();
+    task_msg.r_yaw = ui_.text_r_yaw->text().toFloat();
+
+    task_msg.time = ui_.text_traj_time->text().toFloat();
+    task_msg.mode = ui_.task_mode->currentIndex();
 
     task_pub.publish(task_msg);
-}
-
-void TocabiGui::armsendcb()
-{
-    arm_task_msg.l_x = ui_.text_l_x->text().toFloat();
-    arm_task_msg.l_y = ui_.text_l_y->text().toFloat();
-    arm_task_msg.l_z = ui_.text_l_z->text().toFloat();
-    arm_task_msg.l_roll = ui_.text_l_roll->text().toFloat();
-    arm_task_msg.l_pitch = ui_.text_l_pitch->text().toFloat();
-    arm_task_msg.l_yaw = ui_.text_l_yaw->text().toFloat();
-
-    arm_task_msg.r_x = ui_.text_r_x->text().toFloat();
-    arm_task_msg.r_y = ui_.text_r_y->text().toFloat();
-    arm_task_msg.r_z = ui_.text_r_z->text().toFloat();
-    arm_task_msg.r_roll = ui_.text_r_roll->text().toFloat();
-    arm_task_msg.r_pitch = ui_.text_r_pitch->text().toFloat();
-    arm_task_msg.r_yaw = ui_.text_r_yaw->text().toFloat();
-
-    arm_task_msg.time = ui_.text_traj_time->text().toFloat();
-    arm_task_msg.mode = ui_.comboBox_arm_mode->currentIndex();
-
-    arm_task_pub.publish(arm_task_msg);
 
     ui_.text_l_x->setText(QString::number(0.0, 'f', 1));
     ui_.text_l_y->setText(QString::number(0.0, 'f', 1));
@@ -597,6 +589,7 @@ void TocabiGui::armsendcb()
     ui_.text_r_pitch->setText(QString::number(0.0, 'f', 1));
     ui_.text_r_yaw->setText(QString::number(0.0, 'f', 1));
 }
+
 
 void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
 { /*
