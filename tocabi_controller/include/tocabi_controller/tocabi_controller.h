@@ -78,6 +78,7 @@ struct ArmTaskCommand
   double r_roll;
   double r_pitch;
   double r_yaw;
+  bool arm_task_init;
   int mode;
 };
 

@@ -2372,6 +2372,11 @@ OFF</string>
         <string>1. Arm with Fixed Base(without Gravity Compensation)</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>2. Arm with Dynamics</string>
+       </property>
+      </item>
      </widget>
      <widget class="QPushButton" name="arm_send_button">
       <property name="geometry">
