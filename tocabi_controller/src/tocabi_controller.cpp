@@ -422,7 +422,6 @@ void TocabiController::dynamicsThreadLow()
                 wc_.set_contact(tocabi_, 1, 1);
 
                 //torque_grav = wc_.gravity_compensation_torque(tocabi_, dc.fixedgravity);
-                //torque_grav = wc_.gravity_compensation_torque(dc.fixedgravity);
                 task_number = 6;
                 J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 f_star.setZero(task_number);
