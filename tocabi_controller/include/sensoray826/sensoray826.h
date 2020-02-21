@@ -179,7 +179,7 @@ public:
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
         }
-        // ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
+        //ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
     }
 
     double lowPassFilter(double input, double prev, double ts, double tau)
