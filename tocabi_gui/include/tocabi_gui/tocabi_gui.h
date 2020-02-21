@@ -24,6 +24,7 @@
 #include <QGraphicsSceneWheelEvent>
 
 #include "tocabi_controller/TaskCommand.h"
+#include "tocabi_controller/ArmTaskCommand.h"
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -108,6 +109,7 @@ protected slots:
     virtual void timercb(const std_msgs::Float32ConstPtr &msg);
     virtual void ftcalibbtn();
     virtual void comsendcb();
+    virtual void armsendcb();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
@@ -147,6 +149,8 @@ public:
 
     ros::Publisher task_pub;
     tocabi_controller::TaskCommand task_msg;
+    ros::Publisher arm_task_pub;
+    tocabi_controller::ArmTaskCommand arm_task_msg;
 
     ros::Subscriber imusub;
 
