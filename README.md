@@ -69,7 +69,7 @@ roslaunch tocabi_controller simulation.launch
 roslaunch tocabi_controller realrobot.launch
 ```
 
-## Launch UI alone
+## Launch GUI alone
 ```sh
 rosrun tocabi_gui tocabi_gui
 ```
