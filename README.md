@@ -68,3 +68,20 @@ roslaunch tocabi_controller simulation.launch
 ```sh
 roslaunch tocabi_controller realrobot.launch
 ```
+
+## Launch UI alone
+```sh
+rosrun tocabi_gui tocabi_gui
+```
+
+## Monitor Tocabi Status from controller with RViz
+```sh
+roslaunch tocabi_description display.launch
+```
+
+## Monitor Tocabi Status from joint publisher with RViz
+```sh
+roslaunch tocabi_description display_with_joint_pub.launch
+```
+
+
