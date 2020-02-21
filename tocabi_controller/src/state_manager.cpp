@@ -197,23 +197,18 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[2].x = temp(0);
     pointpub_msg.polygon.points[2].y = temp(1);
 
-
-
-
     tm = link_[Left_Foot].Rotm;
     tf2::Matrix3x3 m2(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
     m2.getRPY(tr, tp, ty);
 
     pointpub_msg.polygon.points[2].z = ty - dc.tocabi_.yaw;
 
-
-
     pointpub_msg.polygon.points[3].x = link_[Pelvis].xpos(0);
     pointpub_msg.polygon.points[3].y = link_[Pelvis].xpos(1);
     pointpub_msg.polygon.points[3].z = link_[Pelvis].xpos(2);
 
-    pointpub_msg.polygon.points[4].x = dc.tocabi_.link_[COM_id].x_traj(0);
-    pointpub_msg.polygon.points[4].y = dc.tocabi_.link_[COM_id].x_traj(1);
+    pointpub_msg.polygon.points[4].x = dc.tocabi_.roll;
+    pointpub_msg.polygon.points[4].y = dc.tocabi_.pitch;
     pointpub_msg.polygon.points[4].z = dc.tocabi_.link_[COM_id].x_traj(2);
 
     pointpub_msg.polygon.points[5].x = dc.tocabi_.link_[Pelvis].x_traj(0);
@@ -244,8 +239,11 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[11].y = dc.tocabi_.ZMP_desired(1);
     pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired(2);
 
-    pointpub_msg.polygon.points[12].x = dc.tocabi_.ZMP_ft(0); //calc from ft sensor
-    pointpub_msg.polygon.points[12].y = dc.tocabi_.ZMP_ft(1);
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * dc.tocabi_.ZMP_ft;
+
+    pointpub_msg.polygon.points[12].x = temp(0); //calc from ft sensor
+    pointpub_msg.polygon.points[12].y = temp(1);
+
     pointpub_msg.polygon.points[12].z = dc.tocabi_.ZMP_ft(2);
 
     pointpub_msg.polygon.points[13].x = dc.tocabi_.com_.ZMP(0);
@@ -330,6 +328,10 @@ void StateManager::stateThread2(void)
             }
             updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
             //std::cout << " uk done, " << std::flush;
+
+            stateEstimate();
+
+            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
             storeState();
             //std::cout << " ss done, " << std::flush;
@@ -933,7 +935,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         dc.disableSafetyLock = true;
     }
-    else if(msg->data =="ftcalib")
+    else if (msg->data == "ftcalib")
     {
         dc.ftcalib = true;
     }

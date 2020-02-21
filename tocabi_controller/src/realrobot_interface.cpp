@@ -94,6 +94,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.07;
 
     elmofz[TOCABI::Waist2_Joint].req_length = 0.07;
+    elmofz[TOCABI::Waist2_Joint].init_direction = -1.0;
     elmofz[TOCABI::Waist1_Joint].req_length = 0.07;
 
     fz_group2.resize(3);
@@ -1071,12 +1072,6 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
 
-                                if (dc.torquezeroByTerminal)
-                                {
-                                    ElmoMode[i] = EM_TORQUE;
-                                    torqueDesiredElmo[i] = 0;
-                                }
-
                                 if (ElmoMode[i] == EM_POSITION)
                                 {
                                     txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousPositionmode;
@@ -1094,6 +1089,9 @@ void RealRobotInterface::ethercatThread()
                                     {
                                         txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * NM2CNT[i] * Dr[i]);
                                     }
+                                }
+                                else if(ElmoMode[i] == EM_COMMUTATION)
+                                {
                                 }
                                 else
                                 {
@@ -1406,11 +1404,11 @@ void RealRobotInterface::ftsensorThread()
             LF_FT(i) = ft.leftFootAxisData[i];
         }
 
-        /*    if(cycle_count % 400 == 0)
+        if(cycle_count % 400 == 0)
         {
             printf("FTsensorL x : %f \t y : %f \t z : %f\n", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
             printf("FTsensorR x : %f \t y : %f \t z : %f\n", ft.rightFootAxisData[0], ft.rightFootAxisData[1], ft.rightFootAxisData[2]);
-        }*/
+        }
     }
 
     std::cout << "FTsensor Thread End!" << std::endl;

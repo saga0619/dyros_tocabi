@@ -1,7 +1,6 @@
 #include "tocabi_controller/tocabi_controller.h"
 #include "tocabi_controller/terminal.h"
 #include "tocabi_controller/wholebody_controller.h"
-#include "tocabi_controller/custom_controller.h"
 #include "tocabi_controller/TaskCommand.h"
 #include <tf/transform_datatypes.h>
 #include "stdlib.h"
@@ -17,7 +16,7 @@ std::mutex mtx_dc;
 std::mutex mtx_terminal;
 std::mutex mtx_ncurse;
 
-TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm) : dc(dc_global), s_(sm), d_(dm), tocabi_(dc_global.tocabi_)
+TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm) : dc(dc_global), s_(sm), d_(dm), tocabi_(dc_global.tocabi_), mycontroller(*(new CustomController(dc_global, dc_global.tocabi_)))
 {
     initialize();
 
@@ -195,12 +194,7 @@ void TocabiController::dynamicsThreadHigh()
 
             std::this_thread::sleep_until(dc.start_time_point + (cycle_count * cycletime));
             cycle_count++;
-            if (dc.mode == "simulation")
-            {
-            }
-            else if (dc.mode == "realrobot")
-            {
-            }
+
             if (dc.positionControl)
             { /*
                 if (set_q_init)
@@ -214,10 +208,12 @@ void TocabiController::dynamicsThreadHigh()
                 }
             }
 
-            if (dc.emergencyoff)
+            if (tc.mode == 14)
             {
-                torque_desired.setZero();
+                mycontroller.compute_fast();
+                torque_desired = mycontroller.getControl();
             }
+
             mtx.lock();
             s_.sendCommand(torque_desired, sim_time);
             mtx.unlock();
@@ -323,8 +319,6 @@ void TocabiController::dynamicsThreadLow()
     std::stringstream ss;
 
     ///////////////////////
-
-    CustomController mycontroller(tocabi_);
 
     //Control Loop Start
     while ((!shutdown_tocabi_bool))
@@ -1925,9 +1919,6 @@ void TocabiController::dynamicsThreadLow()
                 torque_task.setZero();
 
                 mycontroller.compute_slow();
-
-                
-                torque_task = mycontroller.getControl();
             }
         }
         else
@@ -2120,6 +2111,14 @@ void TocabiController::tuiThread()
                 std::cout << "starting init seqence " << std::endl;
 
                 dc.start_initialize_sequence = true;
+            }
+            else if (ch % 256 == 's')
+            {
+                dc.semode = !dc.semode;
+            }
+            else if (ch % 256 == 'f')
+            {
+                std::cout << dc.tocabi_.ContactForce_FT << std::endl;
             }
         }
         before_time = control_time_;

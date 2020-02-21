@@ -46,8 +46,11 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
+set(CC_PATH ${CMAKE_SOURCE_DIR}/dyros_cc/src)
+
 include_directories(
   include
+  ${CC_PATH}
   /usr/local/include/soem
   /usr/share/c++-mscl/source
   /usr/share/c++-mscl/Boost/include
@@ -69,7 +72,7 @@ add_library(tocabi_controller_lib
   src/mujoco_interface.cpp
   src/tocabi_controller.cpp
   src/wholebody_controller.cpp
-  src/custom_controller.cpp
+  ${CC_PATH}/custom_controller.cpp
   src/mx5_imu.cpp
 )
 

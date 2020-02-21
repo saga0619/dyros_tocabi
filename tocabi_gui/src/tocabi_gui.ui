@@ -105,7 +105,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -476,7 +476,7 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>z :</string>
+          <string>ov :</string>
          </property>
         </widget>
        </item>
@@ -561,7 +561,7 @@ OFF</string>
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>31</width>
+        <width>44</width>
         <height>91</height>
        </rect>
       </property>
@@ -569,14 +569,14 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_17">
          <property name="text">
-          <string>x :</string>
+          <string>roll :</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_18">
          <property name="text">
-          <string>y :</string>
+          <string>pitch :</string>
          </property>
         </widget>
        </item>
@@ -624,7 +624,7 @@ OFF</string>
         <x>50</x>
         <y>30</y>
         <width>91</width>
-        <height>71</height>
+        <height>73</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -643,6 +643,16 @@ OFF</string>
        </item>
        <item>
         <widget class="QLabel" name="label_23">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_42">
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
          </property>
@@ -674,6 +684,13 @@ OFF</string>
         <widget class="QLabel" name="label_26">
          <property name="text">
           <string>y :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_43">
+         <property name="text">
+          <string>ov:</string>
          </property>
         </widget>
        </item>

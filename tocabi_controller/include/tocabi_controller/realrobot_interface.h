@@ -156,9 +156,9 @@ const int positionExternalModElmo[MODEL_DOF] =
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0,
-        5378, 3942, 5148, 3234, 7499, 4288,
+        5370, 3942, 5148, 3234, 7499, 4288,
         0,
-        3801, 2522, 735, 8132, 2127, 7155};
+        3799, 2522, 735, 8132, 2127, 7155};
 
 const double MOTORCONTSTANT[MODEL_DOF] =
     {
@@ -366,6 +366,7 @@ public:
         EM_POSITION = 11,
         EM_TORQUE = 22,
         EM_DEFAULT = 33,
+        EM_COMMUTATION = 44,
     };
 
     Eigen::VectorQd positionElmo;
@@ -427,8 +428,6 @@ private:
     void gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg);
 
     double elmoJointMove(double init, double angle, double start_time, double traj_time);
-
-    mujoco_ros_msgs::JointSet mujoco_joint_set_msg_;
 
     Eigen::Vector6d RealConstant;
 

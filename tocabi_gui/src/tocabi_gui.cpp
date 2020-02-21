@@ -466,10 +466,50 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     ui_.label_64->setText(QString::number(msg->polygon.points[2].x, 'f', 5));
     ui_.label_65->setText(QString::number(msg->polygon.points[2].y, 'f', 5));
 
+    ui_.label_14->setText(QString::number(msg->polygon.points[4].x,'f',5));
+    ui_.label_15->setText(QString::number(msg->polygon.points[4].y,'f',5));
+
+
+
     //zmp by ft
 
     ui_.label_22->setText(QString::number(msg->polygon.points[12].x, 'f', 5));
     ui_.label_23->setText(QString::number(msg->polygon.points[12].y, 'f', 5));
+
+    double com_x = msg->polygon.points[0].x;
+    double com_y = msg->polygon.points[0].y;
+
+    double left_x = msg->polygon.points[2].x;
+    double left_y = msg->polygon.points[2].y;
+
+    double right_x = msg->polygon.points[1].x;
+    double right_y = msg->polygon.points[1].y;
+
+    double a, b, c;
+
+    a = (right_y - left_y) / (right_x - left_x);
+    b = -1;
+    c = -(a * left_x + b * left_y);
+
+    double dis = ((a * com_x + b * com_y + c)) / sqrt(a * a + b * b);
+
+    //com distance from both foot
+    ui_.label_3->setText(QString::number(dis, 'f', 5));
+
+
+    com_x = msg->polygon.points[12].x;
+    com_y = msg->polygon.points[12].y;
+
+    a = (right_y - left_y) / (right_x - left_x);
+    b = -1;
+    c = -(a * left_x + b * left_y);
+
+    dis = ((a * com_x + b * com_y + c)) / sqrt(a * a + b * b);
+
+
+
+
+    ui_.label_42->setText(QString::number(dis, 'f', 5));
 
     ui_.graphicsView->setSceneRect(0, 0, 0, 0);
 }

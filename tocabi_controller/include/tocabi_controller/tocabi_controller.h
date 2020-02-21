@@ -3,6 +3,9 @@
 #include "tocabi_controller/realrobot_interface.h"
 #include "tocabi_controller/wholebody_controller.h"
 
+#include "custom_controller.h"
+
+
 #define Kp_Yaw1s 1500   //Hip
 #define Kp_Roll1s 5000  //Hip
 #define Kp_Pitch1s 5000 //Hip
@@ -65,6 +68,8 @@ public:
   TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm);
 
   DataContainer &dc;
+
+  CustomController &mycontroller;
   TaskCommand tc;
 
   void stateThread();
