@@ -52,14 +52,14 @@ const double NM2CNT[33] =
         4.3,
         3.8,
         3.46,
-        3.52,
+        4.52,
         12.33,
         3.3, //upperbody
         5.8, //leftLeg
         4.3,
         3.8,
         3.46,
-        3.52,
+        4.52,
         12.33};
 
 namespace tocabi_gui

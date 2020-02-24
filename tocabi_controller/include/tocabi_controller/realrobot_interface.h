@@ -141,14 +141,14 @@ const double NM2CNT[MODEL_DOF] =
         4.3,
         3.8,
         3.46,
-        3.52,
+        4.5,
         12.33,
         3.3, //upperbody
         5.8, //leftLeg
         4.3,
         3.8,
         3.46,
-        3.52,
+        4.5,
         12.33};
 
 const int positionExternalModElmo[MODEL_DOF] =
