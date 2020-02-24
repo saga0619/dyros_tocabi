@@ -1,13 +1,15 @@
-# tocabi_controller
+# DYROS TOCABI CONTROLLER 
 
-## mscl install 
+# Building
+## Prerequisites
+### 1. mscl installation
  * download [MSCL](https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb) 
 ```sh
 wget https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb
 sudo dpkg -i c++-mscl_52.2.1_amd64.deb
 ```
 
-## SOEM Setup
+### 2. SOEM installation
  ```sh
  git clone https://github.com/saga0619/SOEM
  cd SOEM
@@ -18,7 +20,7 @@ sudo dpkg -i c++-mscl_52.2.1_amd64.deb
  sudo make install
  ```
 
-## RBDL Setup
+### 3. RBDL installation
 ```sh
 git clone https://github.com/saga0619/rbdl-orb
 cd rbdl-orb
@@ -36,7 +38,7 @@ sudo ldconfig
 ```
 
 
-## qpOASES setup
+### 4. qpOASES installation
 ```sh
 git clone https://github.com/saga0619/qpoases
 cd qpoases
@@ -49,7 +51,7 @@ sudo make install
 
 
 
-## Custom Controller & Mujoco & Tocabi setup
+## Tocabi Controller installation
 Git clone https://github.com/saga0619/dyros_cc , https://github.com/saga0619/mujoco_ros_sim
 
 ```sh
@@ -59,12 +61,26 @@ git clone https://github.com/saga0619/mujoco_ros_sim
 git clone https://github.com/saga0619/dyros_tocabi
 ```
 
-## Simulation Mode 
+## How to launch
+### Simulation Mode 
 ```sh
 roslaunch tocabi_controller simulation.launch
 ```
-
-## Realrobot Mode
+### Realrobot Mode
 ```sh
 roslaunch tocabi_controller realrobot.launch
 ```
+### Launch GUI alone
+```sh
+rosrun tocabi_gui tocabi_gui
+```
+### Monitor Tocabi Status from controller with RViz
+```sh
+roslaunch tocabi_description display.launch
+```
+### Monitor Tocabi Status from joint publisher with RViz
+```sh
+roslaunch tocabi_description display_with_joint_pub.launch
+```
+
+
