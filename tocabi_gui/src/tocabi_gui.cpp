@@ -1,5 +1,4 @@
 
-
 #include "tocabi_gui/tocabi_gui.h"
 #include <pluginlib/class_list_macros.h>
 #include <iostream>
@@ -41,6 +40,7 @@ TocabiGui::TocabiGui()
     imusub = nh_.subscribe("/tocabi/imu", 1, &TocabiGui::imuCallback, this);
     task_pub = nh_.advertise<tocabi_controller::TaskCommand>("/tocabi/taskcommand", 100);
     arm_task_pub = nh_.advertise<tocabi_controller::ArmTaskCommand>("/tocabi/armtaskcommand", 100);
+    walking_pub = nh_.advertise<tocabi_controller::WalkingCommand>("/tocabi/walkingcommand",1);
 
     gain_msg.data.resize(33);
     //ecatlabels = {ui_.}
@@ -73,6 +73,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.stat_btn, SIGNAL(pressed()), this, SLOT(statpbtn()));
     connect(ui_.command_btn, SIGNAL(pressed()), this, SLOT(commandpbtn()));
     connect(ui_.mtunebtn, SIGNAL(pressed()), this, SLOT(mtunebtn()));
+    connect(ui_.walkingbtn, SIGNAL(pressed()), this, SLOT(walkingbtn()));
 
     connect(ui_.sendtunebtn, SIGNAL(pressed()), this, SLOT(sendtunebtn()));
     connect(ui_.resettunebtn, SIGNAL(pressed()), this, SLOT(resettunebtn()));
@@ -84,6 +85,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     ui_.stat_btn->setShortcut(QKeySequence(Qt::Key_2));
     ui_.command_btn->setShortcut(QKeySequence(Qt::Key_3));
     ui_.mtunebtn->setShortcut(QKeySequence(Qt::Key_4));
+    ui_.walkingbtn->setShortcut(QKeySequence(Qt::Key_5));
 
     scene = new MyQGraphicsScene(widget_);
     ui_.graphicsView->setScene(scene);
@@ -119,6 +121,9 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     connect(ui_.com_send_button, SIGNAL(pressed()), this, SLOT(comsendcb()));   
     connect(ui_.arm_send_button, SIGNAL(pressed()), this, SLOT(armsendcb()));
+
+    connect(ui_.walkinginit_btn, SIGNAL(pressed()), this, SLOT(walkinginitbtncb()));
+    connect(ui_.walkingstart_btn, SIGNAL(pressed()), this, SLOT(walkingstartbtncb()));
 
     if (mode == "simulation")
     {
@@ -345,6 +350,10 @@ void TocabiGui::commandpbtn()
 void TocabiGui::mtunebtn()
 {
     ui_.stackedWidget->setCurrentIndex(3);
+}
+void TocabiGui::walkingbtn()
+{
+    ui_.stackedWidget->setCurrentIndex(4);
 }
 
 /*
@@ -619,6 +628,87 @@ void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
     if (line_yaw->at(0).x() < (robot_time - 5))
         line_yaw->remove(0);*/
 }
+
+void TocabiGui::walkinginitbtncb()
+{   
+    walking_msg.walking_enable = 1.0;
+    walking_msg.ik_mode = ui_.ik_mode->currentIndex();
+    
+    if(ui_.walking_pattern->currentIndex() == 0)
+    {
+        walking_msg.pattern = 0;
+    }
+    else if(ui_.walking_pattern->currentIndex() == 1)
+    {
+        walking_msg.pattern = 1;
+    }
+    else
+    {  
+        walking_msg.pattern = 2;
+    }
+
+    if(ui_.checkBox_dob->isChecked() == true)
+    {
+        walking_msg.dob = true;
+    }
+    else
+    {
+        walking_msg.dob = false;
+    }
+    
+    walking_msg.first_foot_step = ui_.step_mode->currentIndex();
+    
+    walking_msg.x = ui_.text_walking_x->text().toFloat();
+    walking_msg.y = ui_.text_walking_y->text().toFloat();
+    walking_msg.z = ui_.text_walking_z->text().toFloat();
+    walking_msg.height=ui_.text_walking_height->text().toFloat();
+    walking_msg.theta=ui_.text_walking_theta->text().toFloat();
+    walking_msg.step_length_x=ui_.text_walking_steplengthx->text().toFloat();
+    walking_msg.step_length_y=ui_.text_walking_steplengthy->text().toFloat();
+
+    walking_pub.publish(walking_msg);
+}
+
+void TocabiGui::walkingstartbtncb()
+{   
+    walking_msg.walking_enable = 2.0;
+    walking_msg.ik_mode = ui_.ik_mode->currentIndex();
+    
+    if(ui_.walking_pattern->currentIndex() == 0)
+    {
+        walking_msg.pattern = 0;
+    }
+    else if(ui_.walking_pattern->currentIndex() == 1)
+    {
+        walking_msg.pattern = 1;
+    }
+    else
+    {  
+        walking_msg.pattern = 2;
+    }
+
+    if(ui_.checkBox_dob->isChecked() == true)
+    {
+        walking_msg.dob = true;
+    }
+    else
+    {
+        walking_msg.dob = false;
+    }    
+
+    walking_msg.first_foot_step = ui_.step_mode->currentIndex();
+    
+    walking_msg.x = ui_.text_walking_x->text().toFloat();
+    walking_msg.y = ui_.text_walking_y->text().toFloat();
+    walking_msg.z = ui_.text_walking_z->text().toFloat();
+    walking_msg.height=ui_.text_walking_height->text().toFloat();
+    walking_msg.theta=ui_.text_walking_theta->text().toFloat();
+    walking_msg.step_length_x=ui_.text_walking_steplengthx->text().toFloat();
+    walking_msg.step_length_y=ui_.text_walking_steplengthy->text().toFloat();
+
+    walking_pub.publish(walking_msg);
+}
+
 /*
 void TocabiGui::wheelEvent(QWheelEvent *event)
 {

@@ -16,6 +16,7 @@ public:
 
     
     void inverseKinematics();
+    void walkingCompute();
 
 private:
 };

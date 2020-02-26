@@ -25,6 +25,7 @@
 
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/ArmTaskCommand.h"
+#include "tocabi_controller/WalkingCommand.h"
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -102,6 +103,9 @@ protected slots:
     virtual void initializebtncb();
     virtual void safetyresetbtncb();
     virtual void mtunebtn();
+    virtual void walkinginitbtncb();
+    virtual void walkingstartbtncb();
+    virtual void walkingbtn();
     virtual void sendtunebtn();
     virtual void resettunebtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
@@ -151,6 +155,9 @@ public:
     tocabi_controller::TaskCommand task_msg;
     ros::Publisher arm_task_pub;
     tocabi_controller::ArmTaskCommand arm_task_msg;
+
+    ros::Publisher walking_pub;
+    tocabi_controller::WalkingCommand walking_msg;
 
     ros::Subscriber imusub;
 

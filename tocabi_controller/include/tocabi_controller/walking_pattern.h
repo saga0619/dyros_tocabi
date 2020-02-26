@@ -4,6 +4,7 @@
 class WalkingPattern
 {
 public:
+ void footStepPlanning();
 
 private:
 };
