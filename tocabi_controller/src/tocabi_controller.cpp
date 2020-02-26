@@ -22,6 +22,7 @@ TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, D
 
     task_command = dc.nh.subscribe("/tocabi/taskcommand", 100, &TocabiController::TaskCommandCallback, this);
     arm_task_command = dc.nh.subscribe("/tocabi/armtaskcommand", 100, &TocabiController::ArmTaskCommandCallback, this);
+    walking_command = dc.nh.subscribe("/tocabi/walkingcommand", 100, &TocabiController::WalkingCommandCallback, this);
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/cdata_pub", 1);
     pointpub_msg.polygon.points.resize(13);
     point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point_pub2", 1);
@@ -210,6 +211,23 @@ void TocabiController::ArmTaskCommandCallback(const tocabi_controller::ArmTaskCo
     std::cout << "Target Pos Left: " << tocabi_.link_[Left_Hand].x_desired << endl;
     std::cout << "Target Pos Right: " << tocabi_.link_[Right_Hand].x_desired << endl;
 }
+
+void TocabiController::WalkingCommandCallback(const tocabi_controller::WalkingCommandConstPtr &msg)
+{
+    wtc.walking_enable = msg->walking_enable;
+    wtc.ik_mode = msg->ik_mode;
+    wtc.walking_pattern = msg->pattern;
+    wtc.foot_step_dir = msg->first_foot_step;
+    wtc.target_x = msg->x;
+    wtc.target_y = msg->y;
+    wtc.target_z = msg->z;
+    wtc.height = msg->height;
+    wtc.theta = msg->theta;
+    wtc.step_length_y = msg->step_length_y;
+    wtc.step_length_x = msg->step_length_x;
+    wtc.dob = msg->dob;
+}
+
 void TocabiController::stateThread()
 {
     s_.connect();

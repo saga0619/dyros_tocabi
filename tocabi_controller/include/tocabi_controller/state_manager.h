@@ -8,6 +8,7 @@
 #include "visualization_msgs/MarkerArray.h"
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/ArmTaskCommand.h"
+#include "tocabi_controller/WalkingCommand.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
@@ -17,8 +18,6 @@ extern std::mutex mtx;
 extern std::mutex mtx_rbdl;
 extern std::mutex mtx_dc;
 extern volatile bool shutdown_tocabi_bool;
-
-
 
 class StateManager
 {
