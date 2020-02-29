@@ -1,0 +1,18 @@
+std_msgs/Header header
+
+uint32 walking_enable
+
+uint32 pattern
+
+bool dob
+
+uint32 first_foot_step
+
+float32 x
+float32 y
+float32 z
+float32 height
+float32 theta
+float32 step_length_x
+float32 step_length_y
+

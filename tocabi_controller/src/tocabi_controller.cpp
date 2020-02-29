@@ -226,6 +226,7 @@ void TocabiController::WalkingCommandCallback(const tocabi_controller::WalkingCo
     wtc.step_length_y = msg->step_length_y;
     wtc.step_length_x = msg->step_length_x;
     wtc.dob = msg->dob;
+    walkingCallbackOn = true;
 }
 
 void TocabiController::stateThread()
@@ -290,7 +291,8 @@ void TocabiController::dynamicsThreadHigh()
 void TocabiController::dynamicsThreadLow()
 {
     std::cout << "DynamicsThreadLow : READY ?" << std::endl;
-    ros::Rate r(2000);
+    int controller_Hz = 2000;
+    ros::Rate r(controller_Hz);
     int calc_count = 0;
     int ThreadCount = 0;
     int i = 1;
@@ -305,6 +307,7 @@ void TocabiController::dynamicsThreadLow()
     }
 
     Wholebody_controller wc_(dc, tocabi_);
+    Walking_controller walkc_(dc,tocabi_);
 
     std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
     std::chrono::seconds sec1(1);
@@ -455,6 +458,17 @@ void TocabiController::dynamicsThreadLow()
             dc.gravityMode = false;
         }
 
+        if(wtc.walking_enable == 1)
+        {   //임시 
+            if(walkingCallbackOn == true)
+            {
+                walkc_.getUiWalkingParameter(wtc, controller_Hz);
+                
+                walkingCallbackOn = false;
+            }
+            walkc_.walkingCompute();
+        }
+       
         if (task_switch)
         {
             if (tc.mode == 0) //Pelvis position control

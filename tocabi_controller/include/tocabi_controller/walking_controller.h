@@ -5,19 +5,53 @@
 #include "tocabi_controller/data_container.h"
 #include "math_type_define.h"
 
-class WalkingController
+struct WalkingCommand
+{
+  int walking_enable;
+  int ik_mode;
+  int walking_pattern;
+  int foot_step_dir;
+  double target_x;
+  double target_y;
+  double target_z;
+  double theta;
+  double height;
+  double step_length_x;
+  double step_length_y;
+  bool dob;
+};
+
+class Walking_controller : public WalkingPattern
 {
 public:
-    WalkingController(DataContainer &dc_global, RobotData &kind);
-    ~WalkingController();
+    Walking_controller(DataContainer &dc_global, RobotData &kind);
+    //~Walking_controller();
     
     DataContainer &dc;
     RobotData &rk_;
 
-    
     void inverseKinematics();
+    void walkingCompute();
+    void setInitialPose();
+    void getRobotState();
+    void getRobotInitState();
+    void setRobotStateInitialize();
+    void updateNextStepTime();
+    void getUiWalkingParameter(WalkingCommand wtc, int controller_Hz);
+    void setWalkingParameter();
 
 private:
+
+    //Ui WalkingParameter
+    int ik_mode;
+    int walking_pattern;
+    int foot_step_dir;
+    int Hz_;
+    double height;
+    double step_length_x;
+    double step_length_y;
+    bool dob;
+    Eigen::Vector4d target;
 };
 
 
