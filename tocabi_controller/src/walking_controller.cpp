@@ -43,15 +43,38 @@ void Walking_controller::getRobotState()
     COM_float_current.translation() = dc.link_[COM_id].xpos;
     COM_float_current.linear() = dc.link_[COM_id].Rotm;
 
+    COMV_support_currentV = dc.com_.vel;
+    COMV_support_currentV = dc.com_.accel;
+
     if(foot_step(current_step_num,6) == 0)
     {
         SUF_float_current = RF_float_current;
         SWF_float_current = LF_float_current;
+        for(int i=0; i<3; i++)
+        {
+            SUF_float_currentV(i) = SUF_float_current.translation()(i);
+            SWF_float_currentV(i) = SWF_float_current.translation()(i);
+        }
+        for(int i=0; i<3; i++)
+        {
+            SUF_float_currentV(i+3) = DyrosMath::rot2Euler(SUF_float_current.linear())(i);
+            SWF_float_currentV(i+3) = DyrosMath::rot2Euler(SWF_float_current.linear())(i);
+        }
     }
     else
     {
         SUF_float_current = LF_float_current;
         SWF_float_current = RF_float_current;
+        for(int i=0; i<3; i++)
+        {
+            SUF_float_currentV(i) = SUF_float_current.translation()(i);
+            SWF_float_currentV(i) = SWF_float_current.translation()(i);
+        }
+        for(int i=0; i<3; i++)
+        {
+            SUF_float_currentV(i+3) = DyrosMath::rot2Euler(SUF_float_current.linear())(i);
+            SWF_float_currentV(i+3) = DyrosMath::rot2Euler(SWF_float_current.linear())(i);
+        }
     }
 
     //////Real Robot Support Foot Frame//////
@@ -70,7 +93,7 @@ void Walking_controller::getRobotInitState()
         LF_float_init.translation() = dc.link_[Left_Foot].xpos;
         LF_float_init.linear() = dc.link_[Left_Foot].Rotm;
 
-        COM_float_init.translation() = dc.link_[COM_id].xpos;
+        COM_float_init.translation() = dc.com_.pos;
         COM_float_init.linear() = dc.link_[COM_id].Rotm;
 
         PELV_float_init.translation() = dc.link_[Pelvis].xpos;
@@ -80,11 +103,31 @@ void Walking_controller::getRobotInitState()
         {
             SUF_float_init = RF_float_init;
             SWF_float_init = LF_float_init;
+            for(int i=0; i<3; i++)
+            {
+                SUF_float_initV(i) = SUF_float_init.translation()(i);
+                SWF_float_initV(i) = SWF_float_init.translation()(i);
+            }
+            for(int i=0; i<3; i++)
+            {
+                SUF_float_initV(i+3) = DyrosMath::rot2Euler(SUF_float_init.linear())(i);
+                SWF_float_initV(i+3) = DyrosMath::rot2Euler(SWF_float_init.linear())(i);
+            }
         }
         else
         {
             SUF_float_init = LF_float_init;
             SWF_float_init = RF_float_init;
+            for(int i=0; i<3; i++)
+            {
+                SUF_float_initV(i) = SUF_float_init.translation()(i);
+                SWF_float_initV(i) = SWF_float_init.translation()(i);
+            }
+            for(int i=0; i<3; i++)
+            {
+                SUF_float_initV(i+3) = DyrosMath::rot2Euler(SUF_float_init.linear())(i);
+                SWF_float_initV(i+3) = DyrosMath::rot2Euler(SWF_float_init.linear())(i);
+            }
         }
 
         //////Real Robot Support Foot Frame//////
@@ -103,7 +146,7 @@ void Walking_controller::getRobotInitState()
         LF_float_init.translation() = dc.link_[Left_Foot].xpos;
         LF_float_init.linear() = dc.link_[Left_Foot].Rotm;
 
-        COM_float_init.translation() = dc.link_[COM_id].xpos;
+        COM_float_init.translation() = dc.com_.pos;
         COM_float_init.linear() = dc.link_[COM_id].Rotm;
 
         PELV_float_init.translation() = dc.link_[Pelvis].xpos;
@@ -113,11 +156,31 @@ void Walking_controller::getRobotInitState()
         {
             SUF_float_init = RF_float_init;
             SWF_float_init = LF_float_init;
+            for(int i=0; i<3; i++)
+            {
+                SUF_float_initV(i) = SUF_float_init.translation()(i);
+                SWF_float_initV(i) = SWF_float_init.translation()(i);
+            }
+            for(int i=0; i<3; i++)
+            {
+                SUF_float_initV(i+3) = DyrosMath::rot2Euler(SUF_float_init.linear())(i);
+                SWF_float_initV(i+3) = DyrosMath::rot2Euler(SWF_float_init.linear())(i);
+            }
         }
         else
         {
             SUF_float_init = LF_float_init;
             SWF_float_init = RF_float_init;
+            for(int i=0; i<2; i++)
+            {
+                SUF_float_initV(i) = SUF_float_init.translation()(i);
+                SWF_float_initV(i) = SWF_float_init.translation()(i);
+            }
+            for(int i=0; i<3; i++)
+            {
+                SUF_float_initV(i+3) = DyrosMath::rot2Euler(SUF_float_init.linear())(i);
+                SWF_float_initV(i+3) = DyrosMath::rot2Euler(SWF_float_init.linear())(i);
+            }
         }
 
         //////Real Robot Support Foot Frame//////
@@ -126,6 +189,10 @@ void Walking_controller::getRobotInitState()
         PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init);
         COM_support_init =  DyrosMath::multiplyIsometry3d(PELV_support_init, COM_float_init);
     
+        RF_support_euler_init = DyrosMath::rot2Euler(RF_support_init.linear());
+        LF_support_euler_init = DyrosMath::rot2Euler(LF_support_init.linear());
+        PELV_support_euler_init = DyrosMath::rot2Euler(PELV_support_init.linear());
+
         zc = COM_support_init.translation()(2);
         lipm_w = sqrt(GRAVITY/zc);
     }
@@ -151,6 +218,7 @@ void Walking_controller::setRobotStateInitialize()
     SWF_float_init.linear().setIdentity();
     PELV_support_current.linear().setIdentity();
     PELV_support_init.linear().setIdentity();
+    PELV_trajectory_support.linear().setIdentity();
     COM_support_current.linear().setIdentity();
     COM_support_init.linear().setIdentity();
 
@@ -172,8 +240,12 @@ void Walking_controller::setRobotStateInitialize()
     SWF_float_init.translation().setZero();
     PELV_support_current.translation().setZero();
     PELV_support_init.translation().setZero();
+    PELV_trajectory_support.translation().setZero();
     COM_support_current.translation().setZero();
     COM_support_init.translation().setZero();
+    PELV_trajectory_euler.setZero();
+    com_desired.setZero();
+    zmp_desired.setZero();
 
     RF_float_current(3,3) = 1.0;
     LF_float_current(3,3) = 1.0;
@@ -193,8 +265,10 @@ void Walking_controller::setRobotStateInitialize()
     SWF_float_init(3,3) = 1.0;
     PELV_support_current(3,3) = 1.0;
     PELV_support_init(3,3) = 1.0;
+    PELV_trajectory_support(3,3) = 1.0;
     COM_support_current(3,3) = 1.0;
     COM_support_init(3,3) = 1.0;
+    pelvis_offsetx = 0.0;
     target.setZero();
 }
 
@@ -235,6 +309,21 @@ void Walking_controller::getUiWalkingParameter(WalkingCommand wtc, int controlle
     step_length_x = wtc.step_length_x;
     dob = wtc.dob;
     Hz_ = controller_Hz;
+    dt = 1/Hz_;
+    foot_height = 0.05;
+    com_control_mode = true;
+    gyro_frame_flag = false;
+    if(com_control_mode == true)
+    {
+        pelvis_pgain = 0.15;
+        com_gain = 100.0;
+    }
+    else
+    {
+        pelvis_pgain = 3.0;
+        pelvis_dgain = 0.5;
+        com_gain = 100.0;
+    }
 }
 
 void Walking_controller::setWalkingParameter()
@@ -245,8 +334,8 @@ void Walking_controller::setWalkingParameter()
     t_double1 = 0.10*Hz_;
     t_double2 = 0.10*Hz_;
     t_total = 1.2*Hz_;
-
     t_temp = 3.0*Hz_;
+    t_imp = 0.0*Hz_;
     t_last = t_total + t_temp;
     t_start = t_temp + 1;
 

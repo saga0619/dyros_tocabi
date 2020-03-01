@@ -42,16 +42,6 @@ public:
 
 private:
 
-    //Ui WalkingParameter
-    int ik_mode;
-    int walking_pattern;
-    int foot_step_dir;
-    int Hz_;
-    double height;
-    double step_length_x;
-    double step_length_y;
-    bool dob;
-    Eigen::Vector4d target;
 };
 
 
