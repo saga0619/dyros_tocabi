@@ -17,8 +17,6 @@ extern std::mutex mtx_rbdl;
 extern std::mutex mtx_dc;
 extern volatile bool shutdown_tocabi_bool;
 
-
-
 class StateManager
 {
 public:

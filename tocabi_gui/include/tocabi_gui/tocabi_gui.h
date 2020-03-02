@@ -101,6 +101,8 @@ protected slots:
     virtual void initializebtncb();
     virtual void safetyresetbtncb();
     virtual void mtunebtn();
+    virtual void walkinginitbtncb();
+    virtual void walkingbtn();
     virtual void sendtunebtn();
     virtual void resettunebtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);

@@ -204,6 +204,28 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
+    else if (dc.mode == "ftsensor")
+    {
+        std::cout << "FT Test Mode " << std::endl;
+
+        RealRobotInterface rtm(dc);
+        DynamicsManager dym(dc);
+        TocabiController tc(dc, rtm, dym);
+
+        std::thread thread[1];
+        //thread[0] = std::thread(&StateManager::testThread, &stm);
+
+        //thread[1] = std::thread(&DynamicsManager::testThread, &dym);
+
+        //thread[1] = std::thread(&TocabiController::tuiThread, &tc);
+
+        thread[0] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
+
+        for (int i = 0; i < 1; i++)
+        {
+            thread[i].join();
+        }
+    }
     std::cout << cgreen << "All threads are completely terminated !" << creset << std::endl;
     return 0;
 }

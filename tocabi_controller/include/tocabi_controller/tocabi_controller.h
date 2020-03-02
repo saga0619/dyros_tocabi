@@ -1,6 +1,7 @@
 #include "tocabi_controller/dynamics_manager.h"
 #include "tocabi_controller/mujoco_interface.h"
 #include "tocabi_controller/realrobot_interface.h"
+#include "tocabi_controller/walking_controller.h"
 #include "tocabi_controller/wholebody_controller.h"
 
 #include "custom_controller.h"
@@ -74,6 +75,20 @@ struct TaskCommand
   double r_roll;
   double r_pitch;
   double r_yaw;
+  
+  //Walking Related
+  int walking_enable;
+  int ik_mode;
+  int walking_pattern;
+  int foot_step_dir;
+  double target_x;
+  double target_y;
+  double target_z;
+  double theta;
+  double walking_height;
+  double step_length_x;
+  double step_length_y;
+  bool dob;
 };
 
 class TocabiController
@@ -151,4 +166,8 @@ private:
   Eigen::MatrixVVd A_inv_;
   Com com_;
   int cr_mode;
+
+  //Walking Information
+  bool walkingCallbackOn;
+
 };

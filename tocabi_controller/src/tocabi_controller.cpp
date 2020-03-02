@@ -187,6 +187,23 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
 
     std::cout << "init set - COM x : " << tocabi_.link_[COM_id].x_init(0) << "\t y : " << tocabi_.link_[COM_id].x_init(1) << std::endl;
 
+    //walking
+    tc.walking_enable = msg->walking_enable;
+    tc.ik_mode = msg->ik_mode;
+    tc.walking_pattern = msg->pattern;
+    tc.foot_step_dir = msg->first_foot_step;
+    tc.target_x = msg->x;
+    tc.target_y = msg->y;
+    tc.target_z = msg->z;
+    tc.walking_height = msg->height;
+    tc.theta = msg->theta;
+    tc.step_length_y = msg->step_length_y;
+    tc.step_length_x = msg->step_length_x;
+    tc.dob = msg->dob;
+    if(msg->walking_enable == 1)
+    {
+        walkingCallbackOn = true;
+    }
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
 }
 
@@ -252,7 +269,8 @@ void TocabiController::dynamicsThreadHigh()
 void TocabiController::dynamicsThreadLow()
 {
     std::cout << "DynamicsThreadLow : READY ?" << std::endl;
-    ros::Rate r(2000);
+    int controller_Hz = 2000;
+    ros::Rate r(controller_Hz);
     int calc_count = 0;
     int ThreadCount = 0;
     int i = 1;
@@ -267,6 +285,7 @@ void TocabiController::dynamicsThreadLow()
     }
 
     Wholebody_controller wc_(dc, tocabi_);
+    Walking_controller walkc_(dc,tocabi_);
 
     std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
     std::chrono::seconds sec1(1);
@@ -416,11 +435,10 @@ void TocabiController::dynamicsThreadLow()
             task_switch = false;
             dc.gravityMode = false;
         }
-
         if (task_switch)
         {
-            if (tc.mode == 0) //Pelvis position control
-            {
+            if (tc.mode == 0 && tc.walking_enable == 0) //Pelvis position control
+            {   
                 wc_.set_contact(tocabi_, 1, 1);
 
                 //torque_grav = wc_.gravity_compensation_torque(tocabi_);
@@ -1375,6 +1393,16 @@ void TocabiController::dynamicsThreadLow()
                     torque_task(i+25) = kp(i)*(q_desired_(i+25) - tocabi_.q_(i+25)) + kv(i)*(q_dot_desired_(i+25) - tocabi_.q_dot_(i+25));
                 }           
                 control_time_pre_ = control_time_;
+            }
+            else if(tc.mode == 0 && tc.walking_enable == 1)
+            {
+                if(walkingCallbackOn == true)
+                {
+                    walkc_.getUiWalkingParameter(wtc, controller_Hz);
+                    
+                    walkingCallbackOn = false;
+                }
+                walkc_.walkingCompute();
             }
         }
         else
