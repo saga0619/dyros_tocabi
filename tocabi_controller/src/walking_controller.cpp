@@ -29,11 +29,6 @@ void Walking_controller::inverseKinematics()
 
 }
 
-void Walking_controller::setInitialPose()
-{
-
-}
-
 void Walking_controller::getRobotState()
 {
     if(walking_tick == 0)
@@ -352,10 +347,4 @@ void Walking_controller::setWalkingParameter()
     t_start = t_temp + 1;
 
     t_start_real = t_start + t_rest_init;
-
-}
-
-void WalkingController::walkingCompute()
-{
-
 }

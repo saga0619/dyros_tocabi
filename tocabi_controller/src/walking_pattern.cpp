@@ -1029,3 +1029,4 @@ void WalkingPattern::referenceFrameChange()
             GlobaltoLocal_current = DyrosMath::inverseIsometry3d(reference);
          }
     }  
+}

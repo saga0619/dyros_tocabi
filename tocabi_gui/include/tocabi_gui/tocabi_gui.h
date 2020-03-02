@@ -24,8 +24,6 @@
 #include <QGraphicsSceneWheelEvent>
 
 #include "tocabi_controller/TaskCommand.h"
-#include "tocabi_controller/ArmTaskCommand.h"
-#include "tocabi_controller/WalkingCommand.h"
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -104,7 +102,6 @@ protected slots:
     virtual void safetyresetbtncb();
     virtual void mtunebtn();
     virtual void walkinginitbtncb();
-    virtual void walkingstartbtncb();
     virtual void walkingbtn();
     virtual void sendtunebtn();
     virtual void resettunebtn();
@@ -112,8 +109,7 @@ protected slots:
     virtual void imucb(const sensor_msgs::ImuConstPtr &msg);
     virtual void timercb(const std_msgs::Float32ConstPtr &msg);
     virtual void ftcalibbtn();
-    virtual void comsendcb();
-    virtual void armsendcb();
+    virtual void tasksendcb();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
@@ -153,11 +149,6 @@ public:
 
     ros::Publisher task_pub;
     tocabi_controller::TaskCommand task_msg;
-    ros::Publisher arm_task_pub;
-    tocabi_controller::ArmTaskCommand arm_task_msg;
-
-    ros::Publisher walking_pub;
-    tocabi_controller::WalkingCommand walking_msg;
 
     ros::Subscriber imusub;
 

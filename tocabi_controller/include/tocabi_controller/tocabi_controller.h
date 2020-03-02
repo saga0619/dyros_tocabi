@@ -56,17 +56,13 @@ struct TaskCommand
 {
   double command_time;
   double traj_time;
+  bool task_init;
+  int mode;
+  // COM Related
   double ratio;
   double height;
   double angle;
-  bool task_init;
-  int mode;
-};
-
-struct ArmTaskCommand
-{
-  double command_time;
-  double traj_time;
+  // Arm Related
   double l_x;
   double l_y;
   double l_z;
@@ -79,11 +75,7 @@ struct ArmTaskCommand
   double r_roll;
   double r_pitch;
   double r_yaw;
-  int mode;
-};
-
-struct WalkingCommand
-{
+  //Walking Related
   int walking_enable;
   int ik_mode;
   int walking_pattern;
@@ -92,7 +84,7 @@ struct WalkingCommand
   double target_y;
   double target_z;
   double theta;
-  double height;
+  double walking_height;
   double step_length_x;
   double step_length_y;
   bool dob;
@@ -107,23 +99,17 @@ public:
 
   CustomController &mycontroller;
   TaskCommand tc;
-  ArmTaskCommand atc;
-  WalkingCommand wtc;
 
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
   void tuiThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
-  void ArmTaskCommandCallback(const tocabi_controller::ArmTaskCommandConstPtr &msg);
-  void WalkingCommandCallback(const tocabi_controller::WalkingCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void pubfromcontroller();
   
   ros::Subscriber task_command;
-  ros::Subscriber arm_task_command;
-  ros::Subscriber walking_command;
   std::ofstream data_out;
 
   ros::Publisher point_pub;
