@@ -35,7 +35,3 @@ float32 walking_height
 float32 theta
 float32 step_length_x
 float32 step_length_y
-
-# Control Duration And Mode
-float64 time
-int32 mode

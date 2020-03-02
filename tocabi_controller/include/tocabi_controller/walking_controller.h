@@ -3,7 +3,6 @@
 
 #include "tocabi_controller/walking_pattern.h"
 
-
 struct WalkingCommand
 {
   int walking_enable;
@@ -28,6 +27,7 @@ public:
     
     DataContainer &dc;
     RobotData &rk_;
+    WalkingCommand wtc;
 
     void inverseKinematics();
     void walkingCompute();
@@ -36,8 +36,9 @@ public:
     void getRobotInitState();
     void setRobotStateInitialize();
     void updateNextStepTime();
-    void getUiWalkingParameter(WalkingCommand wtc, int controller_Hz);
+    void getUiWalkingParameter(int controller_Hz);
     void setWalkingParameter();
+    void walkingInitialize();
 
 private:
 

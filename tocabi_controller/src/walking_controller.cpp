@@ -29,6 +29,11 @@ void Walking_controller::inverseKinematics()
 
 }
 
+void Walking_controller::walkingInitialize()
+{
+
+}
+
 void Walking_controller::getRobotState()
 {
     if(walking_tick == 0)
@@ -292,7 +297,7 @@ void Walking_controller::updateNextStepTime()
   walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(WalkingCommand wtc, int controller_Hz)
+void Walking_controller::getUiWalkingParameter(int controller_Hz)
 {
     ik_mode = wtc.ik_mode;
     walking_pattern = wtc.walking_pattern;
