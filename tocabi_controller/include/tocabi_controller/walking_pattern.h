@@ -8,8 +8,7 @@
 class WalkingPattern
 {
 public:
- void footStepPlanning();
-
+    void footStepPlanning();
     void footStepGenerator();
     void footStepTotal();
     void chagneFootSteptoLocal();
@@ -24,7 +23,7 @@ public:
     void referenceFrameChange();
 
 public:
-    int Hz_;
+    double Hz_;
     double dt;
     
     //////Foot Step//////

@@ -394,52 +394,51 @@ void WalkingPattern::chagneFootSteptoLocal()
 
 void WalkingPattern::cpReferencePatternGeneration()
 {
-  capturePoint_refx.resize((t_total*(total_step_num+1)+t_temp+1));
-  capturePoint_refy.resize((t_total*(total_step_num+1)+t_temp+1));
-  com_refx.resize((t_total*(total_step_num+1)+t_temp+1));
-  com_refy.resize((t_total*(total_step_num+1)+t_temp+1));
-  zmp_refx.resize((t_total*(total_step_num+1)+t_temp+1));
-  zmp_refy.resize((t_total*(total_step_num+1)+t_temp+1));
+  capturePoint_refx.resize((t_total*(total_step_num+1)+t_temp-1));
+  capturePoint_refy.resize((t_total*(total_step_num+1)+t_temp-1));
+  com_refx.resize((t_total*(total_step_num+1)+t_temp-1));
+  com_refy.resize((t_total*(total_step_num+1)+t_temp-1));
+  zmp_refx.resize((t_total*(total_step_num+1)+t_temp-1));
+  zmp_refy.resize((t_total*(total_step_num+1)+t_temp-1));
 
 
-  for(int i=0; i<(t_total*(total_step_num+1)+t_temp+1); i++)
+  for(int i=0; i<(t_total*(total_step_num+1)+t_temp-1); i++)
   {
     int current_step, capturePointChange;
     double tick;
     if(i<t_temp-1)
     {
         current_step=i/(t_temp+t_total);
-    if(t_temp-t_total <= i)
-    {  
-        tick = (i-(t_temp-t_total-1))/Hz_; 
-    }
-    else
-    {
-        tick = i/(Hz_);
-    }
-
+        if(t_temp-t_total <= i)
+        {  
+            tick = (i-(t_temp-t_total-1))/Hz_; 
+        }
+        else
+        {
+            tick = i/(Hz_);
+        }
         capturePointChange = i/(t_temp-1);
     }
    else
     {
-      current_step = (i-t_temp-t_total)/(t_total)+1;
-      capturePointChange = (i-t_temp+1)/(t_total)+1;
-      tick = i/(Hz_)-t_total*(capturePointChange-1)/Hz_-(t_temp-1)/Hz_;
+        current_step = (i-t_temp-t_total)/(t_total)+1;
+        capturePointChange = (i-t_temp+1)/(t_total)+1;
+        tick = i/(Hz_)-t_total*(capturePointChange-1)/Hz_-(t_temp-1)/Hz_;
     }
     //ZMP trajectory from CP
 
     if(!(capturePointChange==total_step_num+1 && tick>(t_total)/Hz_)) //revise
     {
-      if(capturePointChange == total_step_num+2)
-      {
-        capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange-1);
-        capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange-1);
-      }
-      else
-      {
-        capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange);
-        capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange);
-      }
+        if(capturePointChange == total_step_num+2)
+        {
+            capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange-1);
+            capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange-1);
+        }
+        else
+        {
+            capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange);
+            capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange);
+        }
     }
     else
     {
@@ -456,7 +455,6 @@ void WalkingPattern::cpReferencePatternGeneration()
       capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange);
       capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange);
     }
-        
     if(i == 0)
     {
       zmp_refx(0) = COM_support_init.translation()(0);
@@ -467,11 +465,6 @@ void WalkingPattern::cpReferencePatternGeneration()
       zmp_refx(i) = (capturePoint_refx(i-1))-(capturePoint_refx(i)-capturePoint_refx(i-1))*Hz_/(lipm_w);
       zmp_refy(i) = (capturePoint_refy(i-1))-(capturePoint_refy(i)-capturePoint_refy(i-1))*Hz_/(lipm_w); 
     }
-/*
-    if(walking_tick == 0)
-    {
-      file[0] << capturePoint_refx(i) << "\t" << capturePoint_refy(i) <<std::endl;
-    }*/
   }
 }
 
@@ -500,20 +493,20 @@ void WalkingPattern::setCpPosition()
     /////////////////////TEMP 200228 JH
 
     capturePoint_ox(0) = COM_support_init.translation()(0) + capturePoint_offsetx(0);
-    capturePoint_oy(0) = COM_float_init.translation()(0) + capturePoint_offsety(0);
+    capturePoint_oy(0) = COM_float_init.translation()(1) + capturePoint_offsety(0);
     capturePoint_ox(total_step_num + 1) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 1);
     capturePoint_oy(total_step_num + 1) = 0.0 + capturePoint_offsety(total_step_num + 1);
     capturePoint_ox(total_step_num + 2) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 2);
     capturePoint_oy(total_step_num + 2) = 0.0 + capturePoint_offsety(total_step_num + 2);
 
-    for(int i = 0; i<total_step_num+1; i++)
+    for(int i = 0; i<total_step_num; i++)
     {
         if(foot_step(0,6)==0) //right support
         {
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
+                capturePoint_oy(1) = 0.0 + capturePoint_offsety(1);
             }
             else
             {
@@ -534,7 +527,7 @@ void WalkingPattern::setCpPosition()
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
+                capturePoint_oy(1) = 0.0 + capturePoint_offsety(1);
             }
             else
             {
@@ -561,7 +554,7 @@ void WalkingPattern::setCpPosition()
 
 void WalkingPattern::cptoComTrajectory()
 {
-    for(int i=0; i<(t_total*(total_step_num+1)+t_temp+1); i++)
+    for(int i=0; i<(t_total*(total_step_num+1)+t_temp-1); i++)
     {
         if(i>=t_temp-t_total)
         {

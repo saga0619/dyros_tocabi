@@ -20,6 +20,7 @@ void Walking_controller::walkingCompute()
     chagneFootSteptoLocal();
     setCpPosition();
     cpReferencePatternGeneration();
+    cptoComTrajectory();
 
     updateNextStepTime();
 }
