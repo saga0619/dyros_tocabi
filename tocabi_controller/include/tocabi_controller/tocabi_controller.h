@@ -75,6 +75,7 @@ struct TaskCommand
   double r_roll;
   double r_pitch;
   double r_yaw;
+  
   //Walking Related
   int walking_enable;
   int ik_mode;

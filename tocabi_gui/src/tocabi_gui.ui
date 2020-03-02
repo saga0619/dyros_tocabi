@@ -1654,7 +1654,7 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>690</x>
-       <y>290</y>
+       <y>250</y>
        <width>121</width>
        <height>27</height>
       </rect>
@@ -1666,8 +1666,8 @@ OFF</string>
     <widget class="QPushButton" name="qp2nd">
      <property name="geometry">
       <rect>
-       <x>60</x>
-       <y>160</y>
+       <x>690</x>
+       <y>290</y>
        <width>121</width>
        <height>27</height>
       </rect>
@@ -1679,9 +1679,9 @@ OFF</string>
     <widget class="QFrame" name="frame_13">
      <property name="geometry">
       <rect>
-       <x>430</x>
-       <y>30</y>
-       <width>391</width>
+       <x>10</x>
+       <y>20</y>
+       <width>631</width>
        <height>501</height>
       </rect>
      </property>
@@ -2083,6 +2083,162 @@ OFF</string>
       <property name="text">
        <string>SEND</string>
       </property>
+     </widget>
+     <widget class="QLabel" name="label_81">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>10</y>
+        <width>91</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>COM Mover</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>50</y>
+        <width>160</width>
+        <height>161</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_26">
+         <item>
+          <widget class="QLabel" name="label_83">
+           <property name="text">
+            <string>COM Pos</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_86">
+           <property name="text">
+            <string>Height</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_87">
+           <property name="text">
+            <string>Angle</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_16">
+         <item>
+          <widget class="QLineEdit" name="com_pos">
+           <property name="text">
+            <string>0.5</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="com_height">
+           <property name="text">
+            <string>0.75</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="com_angle">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QComboBox" name="task_mode">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>410</y>
+        <width>187</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>187</width>
+        <height>27</height>
+       </size>
+      </property>
+      <item>
+       <property name="text">
+        <string>0. Pelvis Position Control</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>1. COM position Control</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>2. COM to lf</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>3. COM to lf, pelvis to horizonta</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>4. lf control with single support</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>5. zmp feedback test</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>6. capture point walking</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>7. Arm with COM(Torque PD)</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>8. Arm with wholebody dynamics</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>9. Arm with fixed base(No Gravity Compensation, Torque PD)</string>
+       </property>
+      </item>
      </widget>
      <widget class="QLabel" name="label_81">
       <property name="geometry">

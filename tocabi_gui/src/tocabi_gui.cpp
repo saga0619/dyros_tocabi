@@ -597,6 +597,7 @@ void TocabiGui::tasksendcb()
     ui_.text_r_yaw->setText(QString::number(0.0, 'f', 1));
 }
 
+
 void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
 { /*
     //std::cout<<robot_time<<"msg->linacc"<<msg->linear_acceleration.x<<std::endl;
