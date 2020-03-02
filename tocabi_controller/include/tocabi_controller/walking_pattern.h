@@ -1,14 +1,16 @@
 #ifndef WALKINGPATTERN_H
 #define WALKINGPATTERN_H
 
+#include "tocabi_controller/data_container.h"
+#include <fstream>
 #include "math_type_define.h"
 
 class WalkingPattern
 {
 public:
 
-    void footStepGenerator(Eigen::Vector4d target, Eigen::Vector3d foot_distance, int desired_foot_step_num, int first_foot_step_dir);
-    void footStepTotal(Eigen::Vector4d target, Eigen::Vector3d foot_distance, int first_foot_step_dir);
+    void footStepGenerator();
+    void footStepTotal();
     void chagneFootSteptoLocal();
     void cpReferencePatternGeneration();
     void setCpPosition();
@@ -29,7 +31,6 @@ public:
     Eigen::MatrixXd foot_step_support;
     Eigen::MatrixXd foot_step_supportOffset;
     int total_step_num;
-
 
     //////Walking //////
     Eigen::Vector3d zmp_desired;
@@ -148,7 +149,15 @@ public:
     double pelvis_pgain;
     double pelvis_dgain;
     double pelvis_offsetx;
+
+
+    std::fstream file[1];
 };
 
 
+const std::string FILE_NAMES[1] =
+{
+  ///change this directory when you use this code on the other computer///
+  "/home/jhk/data/walking/0_tocabi_.txt",
+};
 #endif

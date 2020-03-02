@@ -1,28 +1,32 @@
 #include "tocabi_controller/walking_pattern.h"
 
-void WalkingPattern::footStepGenerator(Eigen::Vector4d target, Eigen::Vector3d foot_distance, int desired_foot_stepnum, int first_foot_step_dir)
+void WalkingPattern::footStepGenerator()
 {
-
     if(target(0) == 0 && target(1) == 0 && target(3) == 0)
     {
-        foot_step.resize(desired_foot_stepnum,7);
+        foot_step.resize(desired_foot_step_num,7);
         foot_step.setZero();
-
-        for(int i=0; i<desired_foot_stepnum; i++)
+        for(int i=0; i<desired_foot_step_num/2; i++)
         {
-            foot_step(2*i,1) = first_foot_step_dir * foot_distance(1) *(-1); 
-            foot_step(2*i,6) = 1;
-            first_foot_step_dir *= -1;
+            foot_step(2*i,0) = 0.0;
+            foot_step(2*i,1) = (-1)*foot_step_dir * foot_distance(1)/2.0; 
+            foot_step(2*i,2) = 0.0;    
+            foot_step(2*i,6) = 0.5+0.5*foot_step_dir;
+
+            foot_step(2*i+1,0) = 0.0;
+            foot_step(2*i+1,1) = foot_step_dir * foot_distance(1)/2.0; 
+            foot_step(2*i+1,2) = 0.0;    
+            foot_step(2*i+1,6) = 0.5+0.5*(-1)*foot_step_dir;
         }
     }
-    else`
+    else
     {
-        footStepTotal(target, foot_distance, first_foot_step_dir);
+        footStepTotal();
     }
-    
+    total_step_num = foot_step.col(1).size();
 }
 
-void WalkingPattern::footStepTotal(Eigen::Vector4d target, Eigen::Vector3d foot_distance, int first_foot_step_dir)
+void WalkingPattern::footStepTotal()
 {
     double initial_rot, initial_drot, final_rot, final_drot;
     
@@ -35,7 +39,7 @@ void WalkingPattern::footStepTotal(Eigen::Vector4d target, Eigen::Vector3d foot_
     unsigned int init_totalstep_num = initial_rot/initial_drot;
     double init_residual_angle = initial_rot - init_totalstep_num * initial_drot;
     
-    final_rot = target(4)-initial_rot;
+    final_rot = target(3)-initial_rot;
     if(final_rot>0.0) 
         final_drot = 10.0*DEG2RAD;
     else
@@ -44,54 +48,54 @@ void WalkingPattern::footStepTotal(Eigen::Vector4d target, Eigen::Vector3d foot_
     unsigned int final_total_step_num = final_rot/final_drot;
     double final_residual_angle = final_rot - final_total_step_num * final_drot;
     double l = sqrt(target(0)*target(0)+target(1)*target(1));
-    double dlength;//거리 추가 필요 
+    double dlength = step_length_x;//거리 추가 필요 
     int middle_total_step_num = l/dlength;
     double middle_residual_length = l-middle_total_step_num*dlength;
-    
-    total_step_num = init_totalstep_num+middle_total_step_num+final_total_step_num;
+    int numberOfFootstep;
+    int del_size = 1;
+    numberOfFootstep = init_totalstep_num * del_size + middle_total_step_num * del_size + final_total_step_num * del_size;
 
     if(init_totalstep_num != 0 || abs(init_residual_angle)>=0.0001)
     {
         if(init_totalstep_num % 2 == 0)
-            total_step_num = total_step_num + 2;
+            numberOfFootstep = numberOfFootstep + 2;
         else
         {
             if(abs(init_residual_angle)>=0.0001)
-                total_step_num = total_step_num + 3;
+                numberOfFootstep = numberOfFootstep + 3;
             else
-                total_step_num = total_step_num + 1;
+                numberOfFootstep = numberOfFootstep + 1;
         }   
     }
 
     if(middle_total_step_num != 0 || abs(middle_residual_length)>=0.0001)
     {
         if(middle_total_step_num%2 == 0)
-            total_step_num = total_step_num + 2;
+            numberOfFootstep = numberOfFootstep + 2;
         else
         {
             if(abs(middle_residual_length)>=0.0001)
-                total_step_num = total_step_num + 3;
+                numberOfFootstep = numberOfFootstep + 3;
             else
-                total_step_num = total_step_num + 1;
+                numberOfFootstep = numberOfFootstep + 1;
         }   
     }
 
     if(final_total_step_num != 0 || abs(final_residual_angle)>=0.0001)
     {
         if(abs(final_residual_angle)>=0.0001)
-            total_step_num = total_step_num + 2;
+            numberOfFootstep = numberOfFootstep + 2;
         else
-            total_step_num = total_step_num + 1;   
+            numberOfFootstep = numberOfFootstep + 1;   
     }
-
-    foot_step.resize(total_step_num, 7);
+    foot_step.resize(numberOfFootstep, 7);
     foot_step.setZero();
-
+ 
     int index = 0;
 
     int temp, temp2, temp3, is_right;
 
-    if(first_foot_step_dir == 1)
+    if(foot_step_dir == 1)
         is_right = 1;
     else
         is_right = -1;
@@ -100,189 +104,195 @@ void WalkingPattern::footStepTotal(Eigen::Vector4d target, Eigen::Vector3d foot_
     temp = -is_right; //right foot will be first swingfoot
     temp2 = -is_right;
     temp3 = -is_right;
-
-    if(init_totalstep_num != 0 || abs(init_residual_angle)>=0.0001)
+    if(init_totalstep_num!=0 || abs(init_residual_angle)>=0.0001)
     {
-        for(int i=0; i<init_totalstep_num; i++)
+        for (int i =0 ; i<init_totalstep_num; i++)
         {
             temp *= -1;
-            foot_step(index, 0) = temp*foot_distance(1)*sin((i+1)*initial_drot);
-            foot_step(index, 1) = -temp*foot_distance(1)*cos((i+1)*initial_drot);
-            foot_step(index, 5) = (i+1)*initial_drot;
-            foot_step(index, 6) = 0.5+0.5*temp;
+            foot_step(index,0) = temp*foot_distance(1)/2.0*sin((i+1)*initial_drot);
+            foot_step(index,1) = -temp*foot_distance(1)/2.0*cos((i+1)*initial_drot);
+            foot_step(index,5) = (i+1)*initial_drot;
+            foot_step(index,6) = 0.5+0.5*temp;
             index++;
         }
 
-        if(temp == 1)
+        if(temp==is_right)
         {
-            if(abs(init_residual_angle) >= 0.0001)  
+            if(abs(init_residual_angle) >= 0.0001)
             {
-                foot_step(index,0) = temp*foot_distance(1)*sin((init_totalstep_num)*initial_drot+init_residual_angle);
-                foot_step(index,1) = -temp*foot_distance(1)*cos((init_totalstep_num)*initial_drot+init_residual_angle);
+                temp *= -1;
+
+                foot_step(index,0) = temp*foot_distance(1)/2.0*sin((init_totalstep_num)*initial_drot+init_residual_angle);
+                foot_step(index,1) = -temp*foot_distance(1)/2.0*cos((init_totalstep_num)*initial_drot+init_residual_angle);
                 foot_step(index,5) = (init_totalstep_num)*initial_drot+init_residual_angle;
                 foot_step(index,6) = 0.5+0.5*temp;
                 index++;
 
                 temp *= -1;
 
-                foot_step(index,0) = temp*foot_distance(1)*sin((init_totalstep_num)*initial_drot+init_residual_angle);
-                foot_step(index,1) = -temp*foot_distance(1)*cos((init_totalstep_num)*initial_drot+init_residual_angle);
+                foot_step(index,0) = temp*foot_distance(1)/2.0*sin((init_totalstep_num)*initial_drot+init_residual_angle);
+                foot_step(index,1) = -temp*foot_distance(1)/2.0*cos((init_totalstep_num)*initial_drot+init_residual_angle);
                 foot_step(index,5) = (init_totalstep_num)*initial_drot+init_residual_angle;
                 foot_step(index,6) = 0.5+0.5*temp;
                 index++;
 
                 temp *= -1;
 
-                foot_step(index,0) = temp*foot_distance(1)*sin((init_totalstep_num)*initial_drot+init_residual_angle);
-                foot_step(index,1) = -temp*foot_distance(1)*cos((init_totalstep_num)*initial_drot+init_residual_angle);
+                foot_step(index,0) = temp*foot_distance(1)/2.0*sin((init_totalstep_num)*initial_drot+init_residual_angle);
+                foot_step(index,1) = -temp*foot_distance(1)/2.0*cos((init_totalstep_num)*initial_drot+init_residual_angle);
                 foot_step(index,5) = (init_totalstep_num)*initial_drot+init_residual_angle;
                 foot_step(index,6) = 0.5+0.5*temp;
                 index++;
+
             }
             else
             {
                 temp *= -1;
-                foot_step(index,0) = temp*foot_distance(1)*sin((init_totalstep_num)*initial_drot+init_residual_angle);
-                foot_step(index,1) = -temp*foot_distance(1)*cos((init_totalstep_num)*initial_drot+init_residual_angle);
+
+                foot_step(index,0) = temp*foot_distance(1)/2.0*sin((init_totalstep_num)*initial_drot+init_residual_angle);
+                foot_step(index,1) = -temp*foot_distance(1)/2.0*cos((init_totalstep_num)*initial_drot+init_residual_angle);
                 foot_step(index,5) = (init_totalstep_num)*initial_drot+init_residual_angle;
                 foot_step(index,6) = 0.5+0.5*temp;
                 index++;
-            }  
+            }
         }
-        else
+        else if(temp==-is_right)
         {
             temp *= -1;
-            foot_step(index,0) = temp*foot_distance(1)*sin((init_totalstep_num)*initial_drot+init_residual_angle);
-            foot_step(index,1) = -temp*foot_distance(1)*cos((init_totalstep_num)*initial_drot+init_residual_angle);
+
+            foot_step(index,0) = temp*foot_distance(1)/2.0*sin((init_totalstep_num)*initial_drot+init_residual_angle);
+            foot_step(index,1) = -temp*foot_distance(1)/2.0*cos((init_totalstep_num)*initial_drot+init_residual_angle);
             foot_step(index,5) = (init_totalstep_num)*initial_drot+init_residual_angle;
             foot_step(index,6) = 0.5+0.5*temp;
             index++;
 
             temp *= -1;
 
-            foot_step(index,0) = temp*foot_distance(1)*sin((init_totalstep_num)*initial_drot+init_residual_angle);
-            foot_step(index,1) = -temp*foot_distance(1)*cos((init_totalstep_num)*initial_drot+init_residual_angle);
+            foot_step(index,0) = temp*foot_distance(1)/2.0*sin((init_totalstep_num)*initial_drot+init_residual_angle);
+            foot_step(index,1) = -temp*foot_distance(1)/2.0*cos((init_totalstep_num)*initial_drot+init_residual_angle);
             foot_step(index,5) = (init_totalstep_num)*initial_drot+init_residual_angle;
             foot_step(index,6) = 0.5+0.5*temp;
             index++;
         }
-    }
+  }
 
-    if(temp2 == is_right)
-    {
-        for (int i =0 ; i<middle_total_step_num; i++)
-        {
-            temp2 *= -1;
-            foot_step(index,0) = cos(initial_rot)*(dlength*(i+1))+temp2*sin(initial_rot)*(foot_distance(1));
-            foot_step(index,1) = sin(initial_rot)*(dlength*(i+1))-temp2*cos(initial_rot)*(foot_distance(1));
-            foot_step(index,5) = initial_rot;
-            foot_step(index,6) = 0.5+0.5*temp2;
-            index++;
-        }
+  if(middle_total_step_num!=0 || abs(middle_residual_length)>=0.0001)
+  {
+      for (int i =0 ; i<middle_total_step_num; i++)
+      {
+          temp2 *= -1;
 
-        if(temp2==is_right)
-        {
-            if(abs(middle_residual_length) >= 0.0001)
-            {
-                temp2 *= -1;
+          foot_step(index,0) = cos(initial_rot)*(dlength*(i+1))+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
+          foot_step(index,1) = sin(initial_rot)*(dlength*(i+1))-temp2*cos(initial_rot)*(foot_distance(1)/2.0);
+          foot_step(index,5) = initial_rot;
+          foot_step(index,6) = 0.5+0.5*temp2;
+          index++;
+      }
 
-                foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1));
-                foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1));
-                foot_step(index,5) = initial_rot;
-                foot_step(index,6) = 0.5+0.5*temp2;
-                index++;
+      if(temp2==is_right)
+      {
+          if(abs(middle_residual_length) >= 0.0001)
+          {
+              temp2 *= -1;
 
-                temp2 *= -1;
+              foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,5) = initial_rot;
+              foot_step(index,6) = 0.5+0.5*temp2;
+              index++;
 
-                foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1));
-                foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1));
-                foot_step(index,5) = initial_rot;
-                foot_step(index,6) = 0.5+0.5*temp2;
-                index++;
+              temp2 *= -1;
 
-                temp2 *= -1;
+              foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,5) = initial_rot;
+              foot_step(index,6) = 0.5+0.5*temp2;
+              index++;
 
-                foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1));
-                foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1));
-                foot_step(index,5) = initial_rot;
-                foot_step(index,6) = 0.5+0.5*temp2;
-                index++;
-            }
-            else
-            {
-                temp2 *= -1;
+              temp2 *= -1;
 
-                foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(0.127794);
-                foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(0.127794);
-                foot_step(index,5) = initial_rot;
-                foot_step(index,6) = 0.5+0.5*temp2;
-                index++;
-            }
-        }
-        else if(temp2==-is_right)
-        {
-            temp2 *= -1;
+              foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,5) = initial_rot;
+              foot_step(index,6) = 0.5+0.5*temp2;
+              index++;
+          }
+          else
+          {
+              temp2 *= -1;
 
-            foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1));
-            foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1));
-            foot_step(index,5) = initial_rot;
-            foot_step(index,6) = 0.5+0.5*temp2;
-            index++;
+              foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1)/2.0);
+              foot_step(index,5) = initial_rot;
+              foot_step(index,6) = 0.5+0.5*temp2;
+              index++;
+          }
+      }
+      else if(temp2==-is_right)
+      {
+          temp2 *= -1;
 
-            temp2 *= -1;
-            foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1));
-            foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1));
-            foot_step(index,5) = initial_rot;
-            foot_step(index,6) = 0.5+0.5*temp2;
-            index++;
-        }
-    }     
-    
-    double final_position_x = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length);
-    double final_position_y = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length);
+          foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
+          foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1)/2.0);
+          foot_step(index,5) = initial_rot;
+          foot_step(index,6) = 0.5+0.5*temp2;
+          index++;
 
-    if(final_total_step_num!=0 || abs(final_residual_angle)>= 0.0001)
-    {
-        for (int i =0 ; i<final_total_step_num; i++)
-        {
-            temp3 *= -1;
+          temp2 *= -1;
 
-            foot_step(index,0) = final_position_x+temp3*foot_distance(1)*sin((i+1)*final_drot+initial_rot);
-            foot_step(index,1) = final_position_y-temp3*foot_distance(1)*cos((i+1)*final_drot+initial_rot);
-            foot_step(index,5) = (i+1)*final_drot+initial_rot;
-            foot_step(index,6) = 0.5+0.5*temp3;
-            index++;
-        }
+          foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
+          foot_step(index,1) = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)-temp2*cos(initial_rot)*(foot_distance(1)/2.0);
+          foot_step(index,5) = initial_rot;
+          foot_step(index,6) = 0.5+0.5*temp2;
+          index++;
+      }
+  }
 
-        if(abs(final_residual_angle) >= 0.0001)
-        {
-            temp3 *= -1;
+  double final_position_x = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length);
+  double final_position_y = sin(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length);
 
-            foot_step(index,0) = final_position_x+temp3*foot_distance(1)*sin(target(3));
-            foot_step(index,1) = final_position_y-temp3*foot_distance(1)*cos(target(3));
-            foot_step(index,5) = target(3);
-            foot_step(index,6) = 0.5+0.5*temp3;
-            index++;
+  if(final_total_step_num!=0 || abs(final_residual_angle)>= 0.0001)
+  {
+      for (int i =0 ; i<final_total_step_num; i++)
+      {
+          temp3 *= -1;
 
-            temp3 *= -1;
+          foot_step(index,0) = final_position_x+temp3*foot_distance(1)/2.0*sin((i+1)*final_drot+initial_rot);
+          foot_step(index,1) = final_position_y-temp3*foot_distance(1)/2.0*cos((i+1)*final_drot+initial_rot);
+          foot_step(index,5) = (i+1)*final_drot+initial_rot;
+          foot_step(index,6) = 0.5+0.5*temp3;
+          index++;
+      }
 
-            foot_step(index,0) = final_position_x+temp3*foot_distance(1)*sin(target(3));
-            foot_step(index,1) = final_position_y-temp3*foot_distance(1)*cos(target(3));
-            foot_step(index,5) = target(3);
-            foot_step(index,6) = 0.5+0.5*temp3;
-            index++;
-        }
-        else
-        {
-            temp3 *= -1;
+      if(abs(final_residual_angle) >= 0.0001)
+      {
+          temp3 *= -1;
 
-            foot_step(index,0) = final_position_x+temp3*foot_distance(1)*sin(target(3));
-            foot_step(index,1) = final_position_y-temp3*foot_distance(1)*cos(target(3));
-            foot_step(index,5) = target(3);
-            foot_step(index,6) = 0.5+0.5*temp3;
-            index++;
-        }
-    }
+          foot_step(index,0) = final_position_x+temp3*foot_distance(1)/2.0*sin(target(3));
+          foot_step(index,1) = final_position_y-temp3*foot_distance(1)/2.0*cos(target(3));
+          foot_step(index,5) = target(3);
+          foot_step(index,6) = 0.5+0.5*temp3;
+          index++;
+
+          temp3 *= -1;
+
+          foot_step(index,0) = final_position_x+temp3*foot_distance(1)/2.0*sin(target(3));
+          foot_step(index,1) = final_position_y-temp3*foot_distance(1)/2.0*cos(target(3));
+          foot_step(index,5) = target(3);
+          foot_step(index,6) = 0.5+0.5*temp3;
+          index++;
+      }
+      else
+      {
+          temp3 *= -1;
+
+          foot_step(index,0) = final_position_x+temp3*foot_distance(1)/2.0*sin(target(3));
+          foot_step(index,1) = final_position_y-temp3*foot_distance(1)/2.0*cos(target(3));
+          foot_step(index,5) = target(3);
+          foot_step(index,6) = 0.5+0.5*temp3;
+          index++;
+      }
+  }
 }
 
 void WalkingPattern::chagneFootSteptoLocal()

@@ -2,8 +2,7 @@
 #define WALKINGCONTROLLER_H
 
 #include "tocabi_controller/walking_pattern.h"
-#include "tocabi_controller/data_container.h"
-#include "math_type_define.h"
+
 
 struct WalkingCommand
 {
@@ -39,6 +38,7 @@ public:
     void updateNextStepTime();
     void getUiWalkingParameter(WalkingCommand wtc, int controller_Hz);
     void setWalkingParameter();
+
 
 private:
 

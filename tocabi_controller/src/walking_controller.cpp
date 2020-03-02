@@ -4,13 +4,20 @@ Walking_controller::Walking_controller(DataContainer &dc_global, RobotData &kind
 {
     walking_tick = 0;
     setRobotStateInitialize();
+
+    for(int i=0; i<1;i++)
+    {
+      file[i].open(FILE_NAMES[i].c_str(),std::ios_base::out);
+    }
 }
 
 void Walking_controller::walkingCompute()
 {
+    footStepGenerator();
+    getRobotInitState();
     getRobotState();
 
-    footStepGenerator(target, foot_distance, desired_foot_step_num, foot_step_dir);
+    updateNextStepTime();
 }
 
 void Walking_controller::inverseKinematics()
@@ -98,7 +105,7 @@ void Walking_controller::getRobotInitState()
 
         PELV_float_init.translation() = dc.link_[Pelvis].xpos;
         PELV_float_init.linear() = dc.link_[Pelvis].Rotm;
-
+        
         if(foot_step(0,6) == 0)
         {
             SUF_float_init = RF_float_init;
@@ -324,11 +331,12 @@ void Walking_controller::getUiWalkingParameter(WalkingCommand wtc, int controlle
         pelvis_dgain = 0.5;
         com_gain = 100.0;
     }
+    setWalkingParameter();
 }
 
 void Walking_controller::setWalkingParameter()
 {
-    desired_foot_step_num = 5;
+    desired_foot_step_num = 10;
     t_rest_init = 0.05*Hz_;
     t_rest_last = 0.05*Hz_;
     t_double1 = 0.10*Hz_;
