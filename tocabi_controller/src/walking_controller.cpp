@@ -16,6 +16,9 @@ void Walking_controller::walkingCompute()
     footStepGenerator();
     getRobotInitState();
     getRobotState();
+    chagneFootSteptoLocal();
+    setCpPosition();
+    cpReferencePatternGeneration();
 
     updateNextStepTime();
 }
@@ -44,8 +47,6 @@ void Walking_controller::getRobotState()
     LF_float_current.linear() = dc.link_[Left_Foot].Rotm;
     PELV_float_current.translation() = dc.link_[Pelvis].xpos;
     PELV_float_current.linear() = dc.link_[Pelvis].Rotm;
-
-    foot_distance = LF_float_current.translation().segment<3>(0) - RF_float_current.translation().segment<3>(0); 
 
     COM_float_current.translation() = dc.link_[COM_id].xpos;
     COM_float_current.linear() = dc.link_[COM_id].Rotm;
@@ -337,6 +338,8 @@ void Walking_controller::getUiWalkingParameter(WalkingCommand wtc, int controlle
 void Walking_controller::setWalkingParameter()
 {
     desired_foot_step_num = 10;
+    foot_distance = dc.link_[Left_Foot].xpos -  dc.link_[Right_Foot].xpos; 
+
     t_rest_init = 0.05*Hz_;
     t_rest_last = 0.05*Hz_;
     t_double1 = 0.10*Hz_;

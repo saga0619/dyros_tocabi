@@ -298,6 +298,7 @@ void WalkingPattern::footStepTotal()
 void WalkingPattern::chagneFootSteptoLocal()
 {
     Eigen::Isometry3d reference;
+    foot_step_support.resize(total_step_num,7);
 
     if(current_step_num == 0)
     {
@@ -320,7 +321,6 @@ void WalkingPattern::chagneFootSteptoLocal()
         for(int i=0 ;i<3; i++)
             reference.translation()(i) = foot_step(current_step_num-1,i);
     }
-
     Eigen::Vector3d temp_local_position;
     Eigen::Vector3d temp_global_position;
 
@@ -338,7 +338,7 @@ void WalkingPattern::chagneFootSteptoLocal()
 
             foot_step_support(i,3) = foot_step(i,3);
             foot_step_support(i,4) = foot_step(i,4);
-            foot_step_support(i,5) = foot_step(i,5) -  SUF_support_initV(5);
+            foot_step_support(i,5) = foot_step(i,5) -  SUF_float_initV(5);
         }
     }
     else
@@ -467,6 +467,11 @@ void WalkingPattern::cpReferencePatternGeneration()
       zmp_refx(i) = (capturePoint_refx(i-1))-(capturePoint_refx(i)-capturePoint_refx(i-1))*Hz_/(lipm_w);
       zmp_refy(i) = (capturePoint_refy(i-1))-(capturePoint_refy(i)-capturePoint_refy(i-1))*Hz_/(lipm_w); 
     }
+/*
+    if(walking_tick == 0)
+    {
+      file[0] << capturePoint_refx(i) << "\t" << capturePoint_refy(i) <<std::endl;
+    }*/
   }
 }
 
