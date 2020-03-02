@@ -1,4 +1,5 @@
 #include "tocabi_controller/walking_controller.h"
+#include "tocabi_controller/walking_pattern.h"
 
 Walking_controller::Walking_controller(DataContainer &dc_global, RobotData &kind) : dc(dc_global), rk_(kind)
 {
@@ -351,5 +352,10 @@ void Walking_controller::setWalkingParameter()
     t_start = t_temp + 1;
 
     t_start_real = t_start + t_rest_init;
+
+}
+
+void WalkingController::walkingCompute()
+{
 
 }

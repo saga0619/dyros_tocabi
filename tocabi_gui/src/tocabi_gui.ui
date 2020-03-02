@@ -2801,7 +2801,7 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>250</x>
-        <y>10</y>
+        <y>100</y>
         <width>121</width>
         <height>28</height>
        </rect>

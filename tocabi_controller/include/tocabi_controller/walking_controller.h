@@ -31,6 +31,7 @@ public:
 
     void inverseKinematics();
     void walkingCompute();
+<<<<<<< HEAD
     void setInitialPose();
     void getRobotState();
     void getRobotInitState();
@@ -39,6 +40,8 @@ public:
     void getUiWalkingParameter(WalkingCommand wtc, int controller_Hz);
     void setWalkingParameter();
 
+=======
+>>>>>>> master
 
 private:
 

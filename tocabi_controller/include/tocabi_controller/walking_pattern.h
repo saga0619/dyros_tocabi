@@ -8,6 +8,7 @@
 class WalkingPattern
 {
 public:
+ void footStepPlanning();
 
     void footStepGenerator();
     void footStepTotal();

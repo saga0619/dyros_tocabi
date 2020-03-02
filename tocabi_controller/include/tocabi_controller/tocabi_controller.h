@@ -82,6 +82,22 @@ struct ArmTaskCommand
   int mode;
 };
 
+struct WalkingCommand
+{
+  int walking_enable;
+  int ik_mode;
+  int walking_pattern;
+  int foot_step_dir;
+  double target_x;
+  double target_y;
+  double target_z;
+  double theta;
+  double height;
+  double step_length_x;
+  double step_length_y;
+  bool dob;
+};
+
 class TocabiController
 {
 public:

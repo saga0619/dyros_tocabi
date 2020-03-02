@@ -32,6 +32,7 @@ add_message_files(
   MotorInfo.msg
   TaskCommand.msg
   ArmTaskCommand.msg
+  WalkingCommand.msg
 )
 
 
