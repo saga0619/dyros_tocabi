@@ -1398,7 +1398,19 @@ void TocabiController::dynamicsThreadLow()
             {
                 if(walkingCallbackOn == true)
                 {
-                    walkc_.getUiWalkingParameter(wtc, controller_Hz);
+                    walkc_.wtc.ik_mode = tc.ik_mode;
+                    walkc_.wtc.walking_pattern = tc.walking_pattern;
+                    walkc_.wtc.foot_step_dir = tc.foot_step_dir;
+                    walkc_.wtc.target_x = tc.target_x;
+                    walkc_.wtc.target_y = tc.target_y;
+                    walkc_.wtc.target_z = tc.target_z;
+                    walkc_.wtc.theta = tc.theta;
+                    walkc_.wtc.height = tc.walking_height;
+                    walkc_.wtc.step_length_y = tc.step_length_y;
+                    walkc_.wtc.step_length_x = tc.step_length_x;
+                    walkc_.wtc.dob = tc.dob;
+
+                    walkc_.getUiWalkingParameter(controller_Hz);
                     
                     walkingCallbackOn = false;
                 }

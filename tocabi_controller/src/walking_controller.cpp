@@ -292,7 +292,7 @@ void Walking_controller::updateNextStepTime()
   walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(WalkingCommand wtc, int controller_Hz)
+void Walking_controller::getUiWalkingParameter(int controller_Hz)
 {
     ik_mode = wtc.ik_mode;
     walking_pattern = wtc.walking_pattern;
@@ -347,4 +347,8 @@ void Walking_controller::setWalkingParameter()
     t_start = t_temp + 1;
 
     t_start_real = t_start + t_rest_init;
+}
+void Walking_controller::walkingInitialize()
+{
+
 }
