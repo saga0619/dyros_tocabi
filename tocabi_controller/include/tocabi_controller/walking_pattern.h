@@ -11,7 +11,7 @@ public:
     void footStepPlanning();
     void footStepGenerator();
     void footStepTotal();
-    void chagneFootSteptoLocal();
+    void changeFootSteptoLocal();
     void cpReferencePatternGeneration();
     void setCpPosition();
     void cptoComTrajectory();
@@ -138,6 +138,7 @@ public:
     int ik_mode;
     int walking_pattern;
     int foot_step_dir;
+    bool walking_enable;
     double height;
     double step_length_x;
     double step_length_y;

@@ -14,15 +14,22 @@ Walking_controller::Walking_controller(DataContainer &dc_global, RobotData &kind
 
 void Walking_controller::walkingCompute()
 {
-    footStepGenerator();
-    getRobotInitState();
-    getRobotState();
-    chagneFootSteptoLocal();
-    setCpPosition();
-    cpReferencePatternGeneration();
-    cptoComTrajectory();
-
-    updateNextStepTime();
+    if(walking_enable == true)
+    {
+        footStepGenerator();
+        getRobotInitState();
+        getRobotState();
+        changeFootSteptoLocal();
+        referenceFrameChange();
+        setCpPosition();
+        cpReferencePatternGeneration();
+        cptoComTrajectory();
+        setComTrajectory();
+        setPelvisTrajectory();
+        setFootTrajectory();
+    /*    supportToFloatPattern();*/
+        updateNextStepTime();
+    }
 }
 
 void Walking_controller::inverseKinematics()
@@ -88,9 +95,9 @@ void Walking_controller::getRobotState()
     }
 
     //////Real Robot Support Foot Frame//////
-    RF_support_current = DyrosMath::inverseIsometry3d(RF_float_current);
-    LF_support_current = DyrosMath::inverseIsometry3d(LF_float_current);
     PELV_support_current = DyrosMath::inverseIsometry3d(SUF_float_current);
+    RF_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, RF_float_current);
+    LF_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, LF_float_current);
     COM_support_current =  DyrosMath::multiplyIsometry3d(PELV_support_current, COM_float_current);
 }
 
@@ -141,16 +148,20 @@ void Walking_controller::getRobotInitState()
         }
 
         //////Real Robot Support Foot Frame//////
-        RF_support_init = DyrosMath::inverseIsometry3d(RF_float_init);
-        LF_support_init = DyrosMath::inverseIsometry3d(LF_float_init);
+        RF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), RF_float_init);
+        LF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), LF_float_init);
         PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init);
         COM_support_init =  DyrosMath::multiplyIsometry3d(PELV_support_init, COM_float_init);
     
+        RF_support_euler_init = DyrosMath::rot2Euler(RF_support_init.linear());
+        LF_support_euler_init = DyrosMath::rot2Euler(LF_support_init.linear());
+        PELV_support_euler_init = DyrosMath::rot2Euler(PELV_support_init.linear());
+
         zc = COM_support_init.translation()(2);
         lipm_w = sqrt(GRAVITY/zc);
     }
     else if(current_step_num!=0 && walking_tick == t_start)
-    {
+    {   
         RF_float_init.translation() = dc.link_[Right_Foot].xpos;
         RF_float_init.linear() = dc.link_[Right_Foot].Rotm;
         LF_float_init.translation() = dc.link_[Left_Foot].xpos;
@@ -162,7 +173,7 @@ void Walking_controller::getRobotInitState()
         PELV_float_init.translation() = dc.link_[Pelvis].xpos;
         PELV_float_init.linear() = dc.link_[Pelvis].Rotm;
 
-        if(foot_step(0,6) == 0)
+        if(foot_step(current_step_num,6) == 0)
         {
             SUF_float_init = RF_float_init;
             SWF_float_init = LF_float_init;
@@ -194,8 +205,8 @@ void Walking_controller::getRobotInitState()
         }
 
         //////Real Robot Support Foot Frame//////
-        RF_support_init = DyrosMath::inverseIsometry3d(RF_float_init);
-        LF_support_init = DyrosMath::inverseIsometry3d(LF_float_init);
+        RF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), RF_float_init);
+        LF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), LF_float_init);
         PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init);
         COM_support_init =  DyrosMath::multiplyIsometry3d(PELV_support_init, COM_float_init);
     
@@ -286,14 +297,18 @@ void Walking_controller::updateNextStepTime()
 {
   if(walking_tick == t_last)
   {
-    if(current_step_num != total_step_num-1)
-    {
-      t_start = t_last +1;
-      t_start_real = t_start + t_rest_init;
-      t_last = t_start + t_total -1;
+      if(current_step_num != total_step_num-1)
+      {
+         t_start = t_last +1;
+         t_start_real = t_start + t_rest_init;
+         t_last = t_start + t_total -1;
 
-      current_step_num ++;
-    }
+         current_step_num ++;
+      }
+  }
+  if(current_step_num == total_step_num -1 && walking_tick >= t_total+t_last-3)
+  {
+      walking_enable = false;
   }
   walking_tick ++;
 }
@@ -318,8 +333,10 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz)
     step_length_y = wtc.step_length_y;
     step_length_x = wtc.step_length_x;
     dob = wtc.dob;
-    Hz_ = controller_Hz;
+    //Hz_ = controller_Hz;
+    Hz_ = 300;
     dt = 1/Hz_;
+    walking_enable = true;
     foot_height = 0.05;
     com_control_mode = true;
     gyro_frame_flag = false;
@@ -334,6 +351,11 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz)
         pelvis_dgain = 0.5;
         com_gain = 100.0;
     }
+
+    //TEMP
+    target(0) = 0.5;
+    step_length_x = 0.1;
+    walking_pattern = 1;
     setWalkingParameter();
 }
 
