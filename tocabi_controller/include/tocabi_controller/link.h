@@ -4,6 +4,7 @@
 #include "Eigen/Dense"
 #include "math_type_define.h"
 #include <rbdl/rbdl.h>
+#include "tocabi_controller/tocabi.h"
 #include <rbdl/addons/urdfreader/urdfreader.h>
 #include <mutex>
 
@@ -217,6 +218,7 @@ public:
 
   bool zmp_feedback_control = false;
   bool check = false;
+  bool qp2nd = false;
 
   Eigen::Vector3d fstar;
 

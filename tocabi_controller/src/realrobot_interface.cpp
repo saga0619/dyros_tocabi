@@ -1403,12 +1403,12 @@ void RealRobotInterface::ftsensorThread()
             RF_FT(i) = ft.rightFootAxisData[i];
             LF_FT(i) = ft.leftFootAxisData[i];
         }
-        
+        /*
         if(cycle_count % 400 == 0)
         {
             printf("FTsensorL x : %f \t y : %f \t z : %f\n", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
             printf("FTsensorR x : %f \t y : %f \t z : %f\n", ft.rightFootAxisData[0], ft.rightFootAxisData[1], ft.rightFootAxisData[2]);
-        }
+        }*/
     }
 
     std::cout << "FTsensor Thread End!" << std::endl;

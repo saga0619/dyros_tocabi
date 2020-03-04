@@ -917,7 +917,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "qp2nd")
     {
-        if (dc.qp2nd)
+        if (dc.tocabi_.qp2nd)
         {
             std::cout << "qp2nd mode off" << std::endl;
         }
@@ -925,7 +925,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         {
             std::cout << "qp2nd mode on" << std::endl;
         }
-        dc.qp2nd = !dc.qp2nd;
+        dc.tocabi_.qp2nd = !dc.tocabi_.qp2nd;
     }
     else if (msg->data == "ecatinit")
     {
