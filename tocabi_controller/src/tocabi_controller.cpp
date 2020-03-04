@@ -153,16 +153,16 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.l_x = msg->l_x;
     tc.l_y = msg->l_y;
     tc.l_z = msg->l_z;
-    tc.l_roll = msg->l_roll*DEG2RAD;
-    tc.l_pitch = msg->l_pitch*DEG2RAD;
-    tc.l_yaw = msg->l_yaw*DEG2RAD;
+    tc.l_roll = msg->l_roll * DEG2RAD;
+    tc.l_pitch = msg->l_pitch * DEG2RAD;
+    tc.l_yaw = msg->l_yaw * DEG2RAD;
 
     tc.r_x = msg->r_x;
     tc.r_y = msg->r_y;
     tc.r_z = msg->r_z;
-    tc.r_roll = msg->r_roll*DEG2RAD;
-    tc.r_pitch = msg->r_pitch*DEG2RAD;
-    tc.r_yaw = msg->r_yaw*DEG2RAD;
+    tc.r_roll = msg->r_roll * DEG2RAD;
+    tc.r_pitch = msg->r_pitch * DEG2RAD;
+    tc.r_yaw = msg->r_yaw * DEG2RAD;
 
     tocabi_.link_[Right_Foot].Set_initpos();
     tocabi_.link_[Left_Foot].Set_initpos();
@@ -199,7 +199,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.step_length_y = msg->step_length_y;
     tc.step_length_x = msg->step_length_x;
     tc.dob = msg->dob;
-    if(msg->walking_enable == 1)
+    if (msg->walking_enable == 1)
     {
         walkingCallbackOn = true;
     }
@@ -283,7 +283,7 @@ void TocabiController::dynamicsThreadLow()
         r.sleep();
     }
 
-    Walking_controller walkc_(dc,tocabi_);
+    Walking_controller walkc_(dc, tocabi_);
 
     std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
     std::chrono::seconds sec1(1);
@@ -436,10 +436,15 @@ void TocabiController::dynamicsThreadLow()
         if (task_switch)
         {
             if (tc.mode == 0) //Pelvis position control
-            {   
+            {
+                /* 
+                For Task Control, NEVER USE tocabi_controller.cpp.
+                Use dyros_cc, CustomController for task control. 
+                */
             }
             else if (tc.mode == 10)
             {
+                cr_mode = 2;
                 mycontroller.taskCommandToCC(tc);
                 mycontroller.computeSlow();
             }
