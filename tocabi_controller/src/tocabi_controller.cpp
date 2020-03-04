@@ -15,7 +15,7 @@ std::mutex mtx_dc;
 std::mutex mtx_terminal;
 std::mutex mtx_ncurse;
 
-TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm) : dc(dc_global), s_(sm), d_(dm), tocabi_(dc_global.tocabi_), wc_(dc_global.wc_), mycontroller(*(new CustomController(dc_global, dc_global.tocabi_)))
+TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm) : dc(dc_global), s_(sm), d_(dm), tocabi_(dc_global.tocabi_), wbc_(dc_global.wbc_), mycontroller(*(new CustomController(dc_global, dc_global.tocabi_)))
 {
     initialize();
 
@@ -415,8 +415,8 @@ void TocabiController::dynamicsThreadLow()
         tocabi_.link_[COM_id].pos_p_gain = kp_;
         tocabi_.link_[COM_id].pos_d_gain = kd_;
 
-        wc_.init(tocabi_);
-        wc_.update(tocabi_);
+        wbc_.init(tocabi_);
+        wbc_.update(tocabi_);
 
         sec = std::chrono::high_resolution_clock::now() - start_time;
 
@@ -446,9 +446,9 @@ void TocabiController::dynamicsThreadLow()
         }
         else
         {
-            wc_.set_contact(tocabi_, 1, 1);
-            torque_grav = wc_.gravity_compensation_torque(tocabi_);
-            //torque_grav = wc_.task_control_torque_QP_gravity(red_);
+            wbc_.set_contact(tocabi_, 1, 1);
+            torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+            //torque_grav = wbc_.task_control_torque_QP_gravity(red_);
         }
 
         TorqueDesiredLocal = torque_grav + torque_task;
@@ -470,11 +470,11 @@ void TocabiController::dynamicsThreadLow()
 
         if (cr_mode == 0)
         {
-            TorqueContact = wc_.contact_force_redistribution_torque(tocabi_, TorqueDesiredLocal, fc_redis, fc_ratio);
+            TorqueContact = wbc_.contact_force_redistribution_torque(tocabi_, TorqueDesiredLocal, fc_redis, fc_ratio);
         }
         else if (cr_mode == 1)
         {
-            TorqueContact = wc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
+            TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -485,13 +485,13 @@ void TocabiController::dynamicsThreadLow()
         torque_desired = TorqueDesiredLocal + TorqueContact;
         mtx.unlock();
 
-        //wc_.task_control_torque(J_task,Eigen)
-        //wc_.get_contact_force(TorqueDesiredLocal);
-        //tocabi_.ZMP_local = wc_.GetZMPpos();
+        //wbc_.task_control_torque(J_task,Eigen)
+        //wbc_.get_contact_force(TorqueDesiredLocal);
+        //tocabi_.ZMP_local = wbc_.GetZMPpos();
 
-        tocabi_.ContactForce = wc_.get_contact_force(tocabi_, torque_desired);
-        tocabi_.ZMP = wc_.GetZMPpos(tocabi_);
-        tocabi_.ZMP_ft = wc_.GetZMPpos_fromFT(tocabi_);
+        tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
+        tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
+        tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);
 
         //tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(0) * 9.8 - tocabi_.com_.pos(2) * tocabi_.link_[COM_id].a_traj(0)) / 9.8;
         tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81;

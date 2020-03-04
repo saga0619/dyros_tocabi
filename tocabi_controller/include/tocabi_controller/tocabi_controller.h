@@ -4,7 +4,6 @@
 #include "tocabi_controller/walking_controller.h"
 #include "custom_controller.h"
 
-
 #define Kp_Yaw1s 1500   //Hip
 #define Kp_Roll1s 5000  //Hip
 #define Kp_Pitch1s 5000 //Hip
@@ -50,7 +49,6 @@ const double Kvs[MODEL_DOF] =
         Kv_Pitch3s,
         Kv_Roll2s};
 
-
 class TocabiController
 {
 public:
@@ -60,7 +58,7 @@ public:
   CustomController &mycontroller;
   TaskCommand tc;
 
-  WholebodyController wc_;
+  WholebodyController wbc_;
 
   void stateThread();
   void dynamicsThreadLow();
@@ -70,7 +68,7 @@ public:
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void pubfromcontroller();
-  
+
   ros::Subscriber task_command;
   std::ofstream data_out;
 
@@ -99,7 +97,7 @@ private:
   bool task_switch = false;
 
   int dym_hz, stm_hz;
-/*
+  /*
   Eigen::VectorQd q_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
@@ -130,5 +128,4 @@ private:
 
   //Walking Information
   bool walkingCallbackOn;
-
 };

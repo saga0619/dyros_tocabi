@@ -142,7 +142,7 @@ public:
   //Kinematics Information :
   //MODEL Tocabi;
   RobotData tocabi_;
-  WholebodyController wc_;
+  WholebodyController wbc_;
 
   //Model var
 
