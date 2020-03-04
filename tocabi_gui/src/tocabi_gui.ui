@@ -2498,7 +2498,6 @@ OFF</string>
      <widget class="QLineEdit" name="text_walking_z">
       <property name="geometry">
        <rect>
-<<<<<<< HEAD
         <x>100</x>
         <y>80</y>
         <width>88</width>
@@ -2507,16 +2506,6 @@ OFF</string>
       </property>
       <property name="text">
        <string>0.0</string>
-=======
-        <x>50</x>
-        <y>270</y>
-        <width>201</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>InitWalking</string>
->>>>>>> origin
       </property>
      </widget>
      <widget class="QLabel" name="walking_height">
@@ -2625,7 +2614,6 @@ OFF</string>
      <widget class="QLineEdit" name="text_walking_steplengthy">
       <property name="geometry">
        <rect>
-<<<<<<< HEAD
         <x>320</x>
         <y>60</y>
         <width>88</width>
@@ -2684,32 +2672,6 @@ OFF</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_41">
-=======
-        <x>50</x>
-        <y>340</y>
-        <width>201</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>WalkingStart</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_dob">
-      <property name="geometry">
-       <rect>
-        <x>280</x>
-        <y>13</y>
-        <width>201</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>DOB</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="walking_pattern">
->>>>>>> origin
       <property name="geometry">
        <rect>
         <x>310</x>
@@ -2718,7 +2680,6 @@ OFF</string>
         <height>17</height>
        </rect>
       </property>
-<<<<<<< HEAD
       <property name="text">
        <string>right</string>
       </property>
@@ -2727,25 +2688,6 @@ OFF</string>
       </property>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget_20">
-=======
-      <item>
-       <property name="text">
-        <string>Previewcontrol</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>DCM</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>MPC</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QComboBox" name="step_mode">
->>>>>>> origin
       <property name="geometry">
        <rect>
         <x>50</x>
@@ -2754,24 +2696,9 @@ OFF</string>
         <height>221</height>
        </rect>
       </property>
-<<<<<<< HEAD
       <layout class="QVBoxLayout" name="leftarm_layout_2"/>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget_21">
-=======
-      <item>
-       <property name="text">
-        <string>Right</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Left</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QComboBox" name="ik_mode">
->>>>>>> origin
       <property name="geometry">
        <rect>
         <x>310</x>
@@ -2780,7 +2707,6 @@ OFF</string>
         <height>221</height>
        </rect>
       </property>
-<<<<<<< HEAD
       <layout class="QVBoxLayout" name="rightarm_layout_2"/>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget_22">
@@ -2856,26 +2782,6 @@ OFF</string>
     </widget>
    </widget>
    <widget class="QWidget" name="WALKING"/>
-=======
-      <item>
-       <property name="text">
-        <string>Torque</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>IK</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Jacobian</string>
-       </property>
-      </item>
-     </widget>
-    </widget>
-   </widget>
->>>>>>> origin
   </widget>
   <widget class="QPushButton" name="ecat_btn">
    <property name="geometry">
