@@ -201,6 +201,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.dob = msg->dob;
     if (msg->walking_enable == 1)
     {
+        tc.mode = 14;
         walkingCallbackOn = true;
     }
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
@@ -268,8 +269,7 @@ void TocabiController::dynamicsThreadHigh()
 void TocabiController::dynamicsThreadLow()
 {
     std::cout << "DynamicsThreadLow : READY ?" << std::endl;
-    int controller_Hz = 2000;
-    ros::Rate r(controller_Hz);
+    ros::Rate r(2000);
     int calc_count = 0;
     int ThreadCount = 0;
     int i = 1;
@@ -282,8 +282,6 @@ void TocabiController::dynamicsThreadLow()
     {
         r.sleep();
     }
-
-    Walking_controller walkc_(dc, tocabi_);
 
     std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
     std::chrono::seconds sec1(1);
