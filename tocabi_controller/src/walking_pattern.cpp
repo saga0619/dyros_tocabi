@@ -745,7 +745,7 @@ void WalkingPattern::setPelvisTrajectory()
 }
 
 void WalkingPattern::setFootTrajectory()
-{   double a = 0;
+{   
     for(int i=0; i<6; i++)
         SWF_target(i) = foot_step_support(current_step_num,i);
 
@@ -840,7 +840,7 @@ void WalkingPattern::setFootTrajectory()
             RF_trajectory_dot_support(0+3) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0,Hz_);
 
             for(int i=0; i<2; i++)
-            {  a = 0.1;
+            {  
                 RF_trajectory_support.translation()(i) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,RF_support_init.translation()(i),SWF_target(i),0.0,0.0);
                 RF_trajectory_dot_support(i) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,RF_support_init.translation()(i),SWF_target(i),0.0,0.0,Hz_);
             }
@@ -849,7 +849,7 @@ void WalkingPattern::setFootTrajectory()
             RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
         }
         else if(foot_step(current_step_num,6) == 0) // Right foot support : Right foot is fixed at initial values, and Left foot is set to go target position
-        {   a = -0.2;
+        {   
             RF_trajectory_support.translation() = RF_support_init.translation();
             RF_trajectory_support.translation()(2) = 0.0;
             RF_trajectory_euler_support = RF_support_euler_init;
@@ -881,7 +881,7 @@ void WalkingPattern::setFootTrajectory()
             LF_trajectory_dot_support(0+3) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0,Hz_);
 
             for(int i=0; i<2; i++)
-            {a = -0.1;
+            {
                 LF_trajectory_support.translation()(i) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,LF_support_init.translation()(i),SWF_target(i),0.0,0.0);
                 LF_trajectory_dot_support(i) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,LF_support_init.translation()(i),SWF_target(i),0.0,0.0,Hz_);
             }
@@ -892,7 +892,7 @@ void WalkingPattern::setFootTrajectory()
             LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
         }
         else
-        {a = 0.2;
+        {
             LF_trajectory_support.translation() = LF_support_init.translation();
             LF_trajectory_support.linear() = LF_support_init.linear();
             LF_trajectory_euler_support = LF_support_euler_init;
@@ -907,7 +907,7 @@ void WalkingPattern::setFootTrajectory()
     else
     {
         if(foot_step(current_step_num,6) == 1)
-        {a = 0.5;
+        {
             LF_trajectory_support.translation() = LF_support_init.translation();
             LF_trajectory_support.translation()(2) = 0.0;
             LF_trajectory_euler_support = LF_support_euler_init;
@@ -917,7 +917,7 @@ void WalkingPattern::setFootTrajectory()
             LF_trajectory_dot_support.setZero();
 
             for(int i=0; i<3; i++)
-            {   a = 0.3;
+            {  
                 RF_trajectory_support.translation()(i) = SWF_target(i);
                 RF_trajectory_euler_support(i) = SWF_target(i+3);
             }
@@ -936,7 +936,7 @@ void WalkingPattern::setFootTrajectory()
             RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
 
             for(int i=0; i<3; i++)
-            {a = 0.4;
+            {
                 LF_trajectory_support.translation()(i) = SWF_target(i);
                 LF_trajectory_euler_support(i) = SWF_target(i+3);
             }

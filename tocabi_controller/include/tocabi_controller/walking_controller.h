@@ -28,17 +28,16 @@ public:
     DataContainer &dc;
     RobotData &rk_;
     WalkingCommand wtc;
-
-    void inverseKinematics();
+    Eigen::Vector12d desired_leg_q;
     void walkingCompute();
-    void setInitialPose();
+    void inverseKinematics();
+    void setInitPose();
     void getRobotState();
     void getRobotInitState();
     void setRobotStateInitialize();
     void updateNextStepTime();
     void getUiWalkingParameter(int controller_Hz);
     void setWalkingParameter();
-    void walkingInitialize();
 
 private:
 

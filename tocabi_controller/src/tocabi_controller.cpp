@@ -202,6 +202,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.dob = msg->dob;
     if(msg->walking_enable == 1)
     {
+        tc.mode = 14;
         walkingCallbackOn = true;
     }
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
@@ -269,8 +270,7 @@ void TocabiController::dynamicsThreadHigh()
 void TocabiController::dynamicsThreadLow()
 {
     std::cout << "DynamicsThreadLow : READY ?" << std::endl;
-    int controller_Hz = 2000;
-    ros::Rate r(controller_Hz);
+    ros::Rate r(2000);
     int calc_count = 0;
     int ThreadCount = 0;
     int i = 1;
@@ -285,7 +285,6 @@ void TocabiController::dynamicsThreadLow()
     }
 
     Wholebody_controller wc_(dc, tocabi_);
-    Walking_controller walkc_(dc,tocabi_);
 
     std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
     std::chrono::seconds sec1(1);
@@ -1393,28 +1392,6 @@ void TocabiController::dynamicsThreadLow()
                     torque_task(i+25) = kp(i)*(q_desired_(i+25) - tocabi_.q_(i+25)) + kv(i)*(q_dot_desired_(i+25) - tocabi_.q_dot_(i+25));
                 }           
                 control_time_pre_ = control_time_;
-            }
-            else if(tc.mode == 0 && tc.walking_enable == 1)
-            {
-                if(walkingCallbackOn == true)
-                {
-                    walkc_.wtc.ik_mode = tc.ik_mode;
-                    walkc_.wtc.walking_pattern = tc.walking_pattern;
-                    walkc_.wtc.foot_step_dir = tc.foot_step_dir;
-                    walkc_.wtc.target_x = tc.target_x;
-                    walkc_.wtc.target_y = tc.target_y;
-                    walkc_.wtc.target_z = tc.target_z;
-                    walkc_.wtc.theta = tc.theta;
-                    walkc_.wtc.height = tc.walking_height;
-                    walkc_.wtc.step_length_y = tc.step_length_y;
-                    walkc_.wtc.step_length_x = tc.step_length_x;
-                    walkc_.wtc.dob = tc.dob;
-
-                    walkc_.getUiWalkingParameter(controller_Hz);
-                    
-                    walkingCallbackOn = false;
-                }
-                walkc_.walkingCompute();
             }
         }
         else
