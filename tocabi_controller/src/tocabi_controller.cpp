@@ -252,7 +252,7 @@ void TocabiController::dynamicsThreadHigh()
                 }
             }
 
-            if (tc.mode == 10)
+            if (tc.mode >= 10)
             {
                 mycontroller.computeFast();
                 torque_desired = mycontroller.getControl();
@@ -440,7 +440,7 @@ void TocabiController::dynamicsThreadLow()
                 Use dyros_cc, CustomController for task control. 
                 */
             }
-            else if (tc.mode == 10)
+            else if (tc.mode >= 10)
             {
                 cr_mode = 2;
                 mycontroller.taskCommandToCC(tc);

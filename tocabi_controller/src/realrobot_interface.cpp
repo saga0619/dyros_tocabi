@@ -1391,7 +1391,6 @@ void RealRobotInterface::ftsensorThread()
         {
             pub_to_gui(dc, "initreq");
         }
-        
         if (ft_calib_finish == true)
         {
             if (ft_calib_ui == false)
