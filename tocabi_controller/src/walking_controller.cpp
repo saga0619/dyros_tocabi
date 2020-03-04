@@ -171,6 +171,11 @@ void Walking_controller::setInitPose()
     
 }
 
+void Walking_controller::walkingInitialize()
+{
+
+}
+
 void Walking_controller::getRobotState()
 {
     if(walking_tick == 0)

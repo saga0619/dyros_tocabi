@@ -416,6 +416,11 @@ void TocabiGui::plainTextEditcb(const std_msgs::StringConstPtr &msg)
         ui_.label_zpstatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
         ui_.label_zpstatus->setText(QString::fromUtf8("OK"));
     }
+    else if (msg->data == "initreq")
+    {
+        ui_.label_ftstatus->setStyleSheet("QLabel { background-color : yellow ; color : black; }");
+        ui_.label_ftstatus->setText(QString::fromUtf8("INIT REQ"));
+    }
     else if (msg->data == "ftgood")
     {
         ui_.label_ftstatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
@@ -579,6 +584,7 @@ void TocabiGui::tasksendcb()
 
     task_msg.time = ui_.text_traj_time->text().toFloat();
     task_msg.mode = ui_.task_mode->currentIndex();
+
 
     task_pub.publish(task_msg);
 

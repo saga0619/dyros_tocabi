@@ -2,10 +2,7 @@
 #include "tocabi_controller/mujoco_interface.h"
 #include "tocabi_controller/realrobot_interface.h"
 #include "tocabi_controller/walking_controller.h"
-#include "tocabi_controller/wholebody_controller.h"
-
 #include "custom_controller.h"
-
 
 #define Kp_Yaw1s 1500   //Hip
 #define Kp_Roll1s 5000  //Hip
@@ -52,54 +49,16 @@ const double Kvs[MODEL_DOF] =
         Kv_Pitch3s,
         Kv_Roll2s};
 
-struct TaskCommand
-{
-  double command_time;
-  double traj_time;
-  bool task_init;
-  int mode;
-  // COM Related
-  double ratio;
-  double height;
-  double angle;
-  // Arm Related
-  double l_x;
-  double l_y;
-  double l_z;
-  double l_roll;
-  double l_pitch;
-  double l_yaw;
-  double r_x;
-  double r_y;
-  double r_z;
-  double r_roll;
-  double r_pitch;
-  double r_yaw;
-  
-  //Walking Related
-  int walking_enable;
-  int ik_mode;
-  int walking_pattern;
-  int foot_step_dir;
-  double target_x;
-  double target_y;
-  double target_z;
-  double theta;
-  double walking_height;
-  double step_length_x;
-  double step_length_y;
-  bool dob;
-};
-
 class TocabiController
 {
 public:
   TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm);
 
   DataContainer &dc;
-
   CustomController &mycontroller;
   TaskCommand tc;
+
+  WholebodyController wbc_;
 
   void stateThread();
   void dynamicsThreadLow();
@@ -109,7 +68,7 @@ public:
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void pubfromcontroller();
-  
+
   ros::Subscriber task_command;
   std::ofstream data_out;
 
@@ -138,7 +97,7 @@ private:
   bool task_switch = false;
 
   int dym_hz, stm_hz;
-/*
+  /*
   Eigen::VectorQd q_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
@@ -169,5 +128,4 @@ private:
 
   //Walking Information
   bool walkingCallbackOn;
-
 };
