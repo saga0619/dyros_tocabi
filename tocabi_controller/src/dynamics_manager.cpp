@@ -28,11 +28,11 @@ void DynamicsManager::dynamicsThread(void)
         }
         mtx.unlock();
         double d1 = (ros::Time::now() - start).toNSec() / 1.0E+6;
-        rprint(dc, 17, 10, "single thread dyn calc : %8.4f ms              ", d1);
-        if (dc.shutdown)
+        printf("single thread dyn calc : %8.4f ms              \n", d1);
+        if (shutdown_tocabi_bool)
         {
             //std::cout<<"
-            rprint(dc, true, 17, 10, "thread calc end ");
+            printf("thread calc end \n");
             break;
         }
     }
@@ -43,7 +43,7 @@ void DynamicsManager::testThread()
     int testval = 500;
     std::future<MatrixXd> ret[testval];
 
-    rprint(dc, 16, 10, "Calc SVD %d times ", testval);
+    printf("Calc SVD %d times \n", testval);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     while (ros::ok())
@@ -72,12 +72,11 @@ void DynamicsManager::testThread()
         }
         d2 = (ros::Time::now() - start).toNSec() / 1.0E+6;
 
-        rprint(dc, 17, 10, "single thread : %8.4f ms   multi thread : %8.4f ms              ", d2, d1);
+        printf("single thread : %8.4f ms   multi thread : %8.4f ms              \n", d2, d1);
 
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
         {
-            rprint(dc, true, 17, 10, "thread calc end ");
-            rprint(dc, true, 16, 10, " ");
+            printf("thread calc end \n");
             break;
         }
     }

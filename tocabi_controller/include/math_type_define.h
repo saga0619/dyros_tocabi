@@ -38,7 +38,7 @@ EIGEN_MAKE_TYPEDEFS(rScalar, d, 8, 8)
 //EIGEN_MAKE_TYPEDEFS(rScalar, d, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL)
 //EIGEN_MAKE_TYPEDEFS(rScalar, d, MODEL_DOF_QVIRTUAL, MODEL_DOF_QVIRTUAL)
 
-// typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;  // typedef Transform< double, 3, Isometry > 	Eigen::Isometry3d
+// typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;  // typedef Transform< double, 3,  > 	Eigen::3d
 
 typedef Matrix<rScalar, 1, 3> Matrix1x3d;
 typedef Matrix<rScalar, 1, 4> Matrix1x4d;
@@ -141,11 +141,11 @@ static double cubicDot(double time,    ///< Current time
 
   if (time < time_0)
   {
-    x_t = x_0;
+    x_t = x_dot_0;
   }
   else if (time > time_f)
   {
-    x_t = x_f;
+    x_t = x_dot_f;
   }
   else
   {
@@ -204,7 +204,7 @@ static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
 
 static Eigen::Isometry3d multiplyIsometry3d(Eigen::Isometry3d A,
                                             Eigen::Isometry3d B)
-{
+{ 
   Eigen::Isometry3d AB;
 
   AB.linear() = A.linear() * B.linear();

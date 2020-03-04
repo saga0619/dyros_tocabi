@@ -7,10 +7,15 @@
 #include "geometry_msgs/PolygonStamped.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "tocabi_controller/TaskCommand.h"
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 extern std::mutex mtx;
 extern std::mutex mtx_rbdl;
 extern std::mutex mtx_dc;
+extern volatile bool shutdown_tocabi_bool;
 
 class StateManager
 {
@@ -20,6 +25,7 @@ public:
   DataContainer &dc;
   virtual void connect();
   virtual void stateThread(); //main thread managing state
+  virtual void stateThread2(); //main thread managing state
   virtual void updateState();
   //virtual void sendCommand(Eigen::VectorQd command);
   virtual void sendCommand(Eigen::VectorQd command, double sim_time);
@@ -31,6 +37,11 @@ public:
 
   void stateEstimate();
   //private functions
+
+
+  //advertise informations to ROS
+  void adv2ROS();
+
 
   //update kinematic information with RBDL
   void updateKinematics(const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
@@ -74,6 +85,9 @@ public:
 
   Eigen::Vector6d RF_FT, LF_FT, LH_FT, RH_FT;
 
+  std::chrono::steady_clock::time_point st_start_time;
+
+
   //Communication Subscriber!
 
   ros::Subscriber gui_command;
@@ -99,6 +113,11 @@ public:
 
   void CommandCallback(const std_msgs::StringConstPtr &msg);
   //void TaskCommandCallback(const dyros_red_msgs::TaskCommandConstPtr &msg);
+
+
+
+  //Terminate Signal Handler
+  //static void sigintHandler(int sig);
 };
 
 #endif

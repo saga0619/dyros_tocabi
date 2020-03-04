@@ -26,8 +26,8 @@ public:
 private:
   DataContainer &dc;
 
-  void jointStateCallback(const sensor_msgs::JointStateConstPtr &msg);
-  void sensorStateCallback(const mujoco_ros_msgs::SensorStateConstPtr &msg);
+  //void jointStateCallback(const sensor_msgs::JointStateConstPtr &msg);
+  //void sensorStateCallback(const mujoco_ros_msgs::SensorStateConstPtr &msg);
   void simCommandCallback(const std_msgs::StringConstPtr &msg);
   void simTimeCallback(const std_msgs::Float32ConstPtr &msg);
   void simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr &msg);

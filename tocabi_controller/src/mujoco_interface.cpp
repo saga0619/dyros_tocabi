@@ -9,9 +9,9 @@ MujocoInterface::MujocoInterface(DataContainer &dc_global) : dc(dc_global), Stat
     }
     else
     {
-        mujoco_joint_state_sub_ = nh.subscribe("/mujoco_ros_interface/joint_states", 1, &MujocoInterface::jointStateCallback, this, ros::TransportHints().tcpNoDelay(true));
+        //mujoco_joint_state_sub_ = nh.subscribe("/mujoco_ros_interface/joint_states", 1, &MujocoInterface::jointStateCallback, this, ros::TransportHints().tcpNoDelay(true));
         mujoco_sim_time_sub_ = nh.subscribe("/mujoco_ros_interface/sim_time", 1, &MujocoInterface::simTimeCallback, this, ros::TransportHints().tcpNoDelay(true));
-        mujoco_sensor_state_sub_ = nh.subscribe("/mujoco_ros_interface/sensor_states", 1, &MujocoInterface::sensorStateCallback, this, ros::TransportHints().tcpNoDelay(true));
+        //mujoco_sensor_state_sub_ = nh.subscribe("/mujoco_ros_interface/sensor_states", 1, &MujocoInterface::sensorStateCallback, this, ros::TransportHints().tcpNoDelay(true));
     }
 
     mujoco_joint_set_pub_ = nh.advertise<mujoco_ros_msgs::JointSet>("/mujoco_ros_interface/joint_set", 1);
@@ -23,7 +23,7 @@ MujocoInterface::MujocoInterface(DataContainer &dc_global) : dc(dc_global), Stat
 
 void MujocoInterface::updateState()
 {
-    while (ros::ok())
+    while (ros::ok() && (!shutdown_tocabi_bool))
     {
         ros::spinOnce();
         if (new_state_trigger)
@@ -35,7 +35,7 @@ void MujocoInterface::updateState()
         {
             break;
         }
-        std::this_thread::sleep_for(std::chrono::microseconds(1));
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
 }
 
@@ -48,7 +48,7 @@ void MujocoInterface::sendCommand(Eigen::VectorQd command, double simt)
     {
         for (int j = 0; j < MODEL_DOF; j++)
         {
-            if (RED::ACTUATOR_NAME[i] == joint_name_mj[j])
+            if (TOCABI::ACTUATOR_NAME[i] == joint_name_mj[j])
             {
                 mujoco_joint_set_msg_.torque[j] = command[i];
             }
@@ -68,59 +68,26 @@ void MujocoInterface::connect()
     //std::cout << "________________________________________________________________________________\n\n";
     std::cout << "\tConnecting to Mujoco ..." << std::flush;
 
-    int w_y;
-
-    w_y = 12;
-    rprint(dc, 14, 10, "Press any key to stop ");
-    rprint(dc, 13, 10, "Connecting to Mujoco .... ");
+    printf("Press any key to stop \n");
+    printf("Connecting to Mujoco .... \n");
     ros::Rate r(100);
     ros::Time start_time = ros::Time::now();
     int cnt = 0;
-    int kbhit = -1;
     int loading = 0;
-    while (!mujoco_ready & ros::ok())
+    while (!mujoco_ready && ros::ok())
     {
-        kbhit = getch();
-        cnt++;
         r.sleep();
         ros::spinOnce();
-        if ((cnt % 10) == 0)
-        {
-            if (loading == 0)
-                rprint(dc, 13, 31, ":    ");
-            else if (loading == 1)
-                rprint(dc, 13, 31, " :   ");
-            else if (loading == 2)
-                rprint(dc, 13, 31, "  :  ");
-            else if (loading == 3)
-                rprint(dc, 13, 31, "   : ");
-            else if (loading == 4)
-                rprint(dc, 13, 31, "    :");
-            else if (loading == 5)
-                rprint(dc, 13, 31, "   : ");
-            else if (loading == 6)
-                rprint(dc, 13, 31, "  :  ");
-            else if (loading == 7)
-                rprint(dc, 13, 31, " :  ");
 
-            loading++;
-            if (loading > 7)
-                loading = 0;
-        }
-        if (!(kbhit == -1))
-        {
-            rprint(dc, 13, 31, "::::");
-            rprint(dc, 13, 36, "Stopping");
-            break;
-        }
         if ((ros::Time::now().toSec() - start_time.toSec()) > 5.0)
         {
-            rprint(dc, 13, 31, "::::");
-            rprint(dc, 13, 36, "Stopping");
+            printf("No response from Mujoco for 5 seconds ... Stop Connecting Mujoco\n");
             break;
         }
     }
+
     start_time = ros::Time::now();
+
     if (mujoco_ready)
     {
         while (!mujoco_init_receive & ros::ok())
@@ -136,17 +103,13 @@ void MujocoInterface::connect()
     {
         mujoco_init_receive = false;
         mujoco_ready = false;
-        //std::cout << "\tConnection failed. \n"                  << std::flush;
     }
     else if (mujoco_init_receive && mujoco_ready)
     {
         mujoco_init_receive = false;
         mujoco_ready = false;
-        rprint(dc, 13, 31, "::::");
-        rprint(dc, 13, 36, "Connected");
+        printf("Connected!\n");
         dc.connected = true;
-        //return 1;
-        //std::cout << "\tConnected! \n"                  << std::flush;
     }
 }
 
@@ -174,7 +137,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     {
         for (int j = 0; j < msg->name.size(); j++)
         {
-            if (RED::ACTUATOR_NAME[i] == msg->name[j].data())
+            if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
             {
                 q_(i) = msg->position[j];
                 q_virtual_(i + 6) = msg->position[j];
@@ -310,145 +273,12 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     new_state_trigger = true;
 }
 
-void MujocoInterface::jointStateCallback(const sensor_msgs::JointStateConstPtr &msg)
-{
-    for (int i = 0; i < MODEL_DOF; i++)
-    {
-        for (int j = 0; j < msg->name.size(); j++)
-        {
-            if (RED::ACTUATOR_NAME[i] == msg->name[j].data())
-            {
-                q_(i) = msg->position[j];
-                q_virtual_(i + 6) = msg->position[j];
-                q_dot_(i) = msg->velocity[j];
-                q_dot_virtual_(i + 6) = msg->velocity[j];
-                q_ddot_virtual_(i + 6) = msg->effort[j];
-                torque_(i) = msg->effort[j];
-            }
-        }
-
-        joint_name_mj[i] = msg->name[i + 6].data();
-    }
-
-    //virtual joint
-    if (dc.semode == false)
-    {
-        for (int i = 0; i < 6; i++)
-        {
-            q_virtual_(i) = msg->position[i];
-            q_dot_virtual_(i) = msg->velocity[i];
-            q_ddot_virtual_(i) = msg->effort[i];
-        }
-        q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
-    }
-
-    data_received_counter_++;
-    //tf::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(total_dof_ + 6));
-    //q.normalize();
-}
-
-void MujocoInterface::sensorStateCallback(const mujoco_ros_msgs::SensorStateConstPtr &msg)
-{
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "Gyro_Pelvis_IMU")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                //q_dot_virtual_(j+3)=msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "RF_Force_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                RF_FT(j) = msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "RF_Torque_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                RF_FT(j + 3) = msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "LF_Force_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                LF_FT(j) = msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "LF_Torque_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                LF_FT(j + 3) = msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "LH_Force_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                //left_hand_ft_(j) = msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "LH_Torque_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                //left_hand_ft_(j + 3) = msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "RH_Force_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                //right_hand_ft_(j) = msg->sensor[i].data[j];
-            }
-        }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "RH_Torque_sensor")
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                //right_hand_ft_(j + 3) = msg->sensor[i].data[j];
-            }
-        }
-    }
-}
-
 void MujocoInterface::simCommandCallback(const std_msgs::StringConstPtr &msg)
 {
-    
 
     std::string buf;
     buf = msg->data;
 
-    //ROS_INFO("CB from simulator : %s", buf.c_str());
     if (buf == "RESET")
     {
         //parameterInitialize();
@@ -470,5 +300,10 @@ void MujocoInterface::simCommandCallback(const std_msgs::StringConstPtr &msg)
         mujoco_sim_time = 0.0;
         control_time_ = 0.0;
         mujoco_reset = true;
+    }
+
+    if (buf == "terminate")
+    {
+        shutdown_tocabi_bool = true;
     }
 }

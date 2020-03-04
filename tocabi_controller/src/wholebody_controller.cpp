@@ -682,7 +682,7 @@ VectorQd Wholebody_controller::task_control_torque_QP2(RobotData &Robot, Eigen::
 
     if (t100count > 500)
     {
-        std::cout << "QP calc time : " << t100mean / 500 * 1000 << " ms " << std::endl;
+        //std::cout << "QP calc time : " << t100mean / 500 * 1000 << " ms " << std::endl;
 
         t100mean = 0.0;
         t100count = 0;
@@ -802,11 +802,11 @@ VectorQd Wholebody_controller::task_control_torque_QP2(RobotData &Robot, Eigen::
 
     if (abs(ft_zmp_l) > 0.04)
     {
-        std::cout << "lf zmp over limit : " << ft_zmp_l << std::endl;
+        //std::cout << "lf zmp over limit : " << ft_zmp_l << std::endl;
     }
     if (abs(ft_zmp_r) > 0.04)
     {
-        std::cout << "rf zmp over limit : " << ft_zmp_r << std::endl;
+        //std::cout << "rf zmp over limit : " << ft_zmp_r << std::endl;
     }
 
     Robot.ContactForce = fc;
@@ -1888,7 +1888,7 @@ Vector3d Wholebody_controller::getfstar(RobotData &Robot, Vector3d kp, Vector3d 
     ROS_DEBUG_ONCE("fstar calc");
     Vector3d fstar_;
 
-    Matrix3d Rotyaw = DyrosMath::rotateWithZ(Robot.yaw_radian);
+    Matrix3d Rotyaw = DyrosMath::rotateWithZ(Robot.yaw);
     Vector3d angle_d_global = Rotyaw * DyrosMath::getPhi(r_now, r_desired);
 
     for (int i = 0; i < 3; i++)
@@ -1936,11 +1936,11 @@ Vector3d Wholebody_controller::getfstar_rot(RobotData &Robot, int link_id, Vecto
     ROS_DEBUG_ONCE("fstar calc");
     Vector3d fstar_;
 
-    Matrix3d Rotyaw = DyrosMath::rotateWithZ(Robot.yaw_radian);
+    Matrix3d Rotyaw = DyrosMath::rotateWithZ(Robot.yaw);
 
     Vector3d angle_d_global = -Rotyaw * DyrosMath::getPhi(Robot.link_[link_id].Rotm, Robot.link_[link_id].r_traj);
 
-    //Matrix3d Rotyaw = DyrosMath::rotateWithZ(yaw_radian);
+    //Matrix3d Rotyaw = DyrosMath::rotateWithZ(yaw);
 
     //Vector3d angle_d_global = Rotyaw * DyrosMath::getPhi(link_[link_id].Rotm, link_[link_id].r_traj);
 
@@ -1972,11 +1972,11 @@ Vector3d Wholebody_controller::getfstar_rot(RobotData &Robot, int link_id)
     ROS_DEBUG_ONCE("fstar calc");
     Vector3d fstar_;
 
-    Matrix3d Rotyaw = DyrosMath::rotateWithZ(Robot.yaw_radian);
+    Matrix3d Rotyaw = DyrosMath::rotateWithZ(Robot.yaw);
 
     Vector3d angle_d_global = -Rotyaw * DyrosMath::getPhi(Robot.link_[link_id].Rotm, Robot.link_[link_id].r_traj);
 
-    //Matrix3d Rotyaw = DyrosMath::rotateWithZ(yaw_radian);
+    //Matrix3d Rotyaw = DyrosMath::rotateWithZ(yaw);
 
     //Vector3d angle_d_global = Rotyaw * DyrosMath::getPhi(link_[link_id].Rotm, link_[link_id].r_traj);
 
@@ -2082,7 +2082,7 @@ VectorQd Wholebody_controller::contact_force_redistribution_torque(RobotData &Ro
         P1_ = Robot.link_[Left_Foot].xpos_contact - Robot.link_[COM_id].xpos;
         P2_ = Robot.link_[Right_Foot].xpos_contact - Robot.link_[COM_id].xpos;
 
-        Matrix3d Rotyaw = DyrosMath::rotateWithZ(-Robot.yaw_radian);
+        Matrix3d Rotyaw = DyrosMath::rotateWithZ(-Robot.yaw);
 
         Vector3d P1_local, P2_local;
         P1_local = Rotyaw * P1_;

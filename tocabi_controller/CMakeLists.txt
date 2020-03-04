@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(tocabi_controller)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++11 -O3)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation
   roscpp
-  roslib
   sensor_msgs
   std_msgs
   tf
@@ -47,10 +46,20 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
+set(CC_PATH ${CMAKE_SOURCE_DIR}/dyros_cc/src)
+
 include_directories(
   include
+  ${CC_PATH}
   /usr/local/include/soem
+  /usr/share/c++-mscl/source
+  /usr/share/c++-mscl/Boost/include
   ${catkin_INCLUDE_DIRS}
+)
+
+
+link_directories(
+  /usr/share/c++-mscl
 )
 
 add_library(tocabi_controller_lib
@@ -62,18 +71,22 @@ add_library(tocabi_controller_lib
   src/state_manager.cpp
   src/mujoco_interface.cpp
   src/tocabi_controller.cpp
+  src/walking_controller.cpp
+  src/walking_pattern.cpp
   src/wholebody_controller.cpp
+  ${CC_PATH}/custom_controller.cpp
+  src/mx5_imu.cpp
 )
 
-add_executable(tocabi_controller src/controller.cpp)
+add_executable(tocabi_controller src/base.cpp)
 
 target_link_libraries(tocabi_controller_lib
   ${catkin_LIBRARIES}
+  -lmscl
   -lrbdl
   -lrbdl_urdfreader
   -lrt
   -lqpOASES
-  -lncurses
   -lsoem
   ${CMAKE_CURRENT_SOURCE_DIR}/include/sensoray826/lib/lib826_64.so
 )

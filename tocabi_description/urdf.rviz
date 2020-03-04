@@ -10,36 +10,17 @@ Panels:
         - /RobotModel1/Links1
         - /RobotModel1/Links1/L_AnkleCenter_Link1
         - /RobotModel1/Links1/L_AnkleRoll_Link1
-        - /RobotModel1/Links1/L_Armlink1
-        - /RobotModel1/Links1/L_Elbow1
-        - /RobotModel1/Links1/L_Forearm1
         - /RobotModel1/Links1/L_HipCenter_Link1
         - /RobotModel1/Links1/L_HipRoll_Link1
         - /RobotModel1/Links1/L_Knee_Link1
-        - /RobotModel1/Links1/L_Shoulder11
-        - /RobotModel1/Links1/L_Shoulder21
-        - /RobotModel1/Links1/L_Shoulder31
         - /RobotModel1/Links1/L_Thigh_Link1
-        - /RobotModel1/Links1/L_Wrist11
-        - /RobotModel1/Links1/L_Wrist21
         - /RobotModel1/Links1/Pelvis_Link1
         - /RobotModel1/Links1/R_AnkleCenter_Link1
         - /RobotModel1/Links1/R_AnkleRoll_Link1
-        - /RobotModel1/Links1/R_Armlink1
-        - /RobotModel1/Links1/R_Elbow1
-        - /RobotModel1/Links1/R_Forearm1
         - /RobotModel1/Links1/R_HipCenter_Link1
         - /RobotModel1/Links1/R_HipRoll_Link1
         - /RobotModel1/Links1/R_Knee_Link1
-        - /RobotModel1/Links1/R_Shoulder11
-        - /RobotModel1/Links1/R_Shoulder21
-        - /RobotModel1/Links1/R_Shoulder31
         - /RobotModel1/Links1/R_Thigh_Link1
-        - /RobotModel1/Links1/R_Wrist11
-        - /RobotModel1/Links1/R_Wrist21
-        - /RobotModel1/Links1/Upperbody1
-        - /RobotModel1/Links1/Waist11
-        - /RobotModel1/Links1/Waist21
       Splitter Ratio: 0.5
     Tree Height: 565
   - Class: rviz/Selection
@@ -61,6 +42,8 @@ Panels:
     Name: Time
     SyncMode: 0
     SyncSource: ""
+Toolbars:
+  toolButtonStyle: 2
 Visualization Manager:
   Class: ""
   Displays:
@@ -91,6 +74,11 @@ Visualization Manager:
         Expand Joint Details: false
         Expand Link Details: true
         Expand Tree: false
+        Head_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         L_AnkleCenter_Link:
           Alpha: 1
           Show Axes: false
@@ -101,17 +89,17 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Armlink:
+        L_Armlink_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Elbow:
+        L_Elbow_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Forearm:
+        L_Forearm_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -131,17 +119,17 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Shoulder1:
+        L_Shoulder1_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Shoulder2:
+        L_Shoulder2_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Shoulder3:
+        L_Shoulder3_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -151,17 +139,22 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Wrist1:
+        L_Wrist1_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        L_Wrist2:
+        L_Wrist2_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
         Link Tree Style: Links in Alphabetic Order
+        Neck_Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         Pelvis_Link:
           Alpha: 1
           Show Axes: true
@@ -177,17 +170,17 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Armlink:
+        R_Armlink_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Elbow:
+        R_Elbow_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Forearm:
+        R_Forearm_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -207,17 +200,17 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Shoulder1:
+        R_Shoulder1_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Shoulder2:
+        R_Shoulder2_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Shoulder3:
+        R_Shoulder3_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -227,27 +220,27 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Wrist1:
+        R_Wrist1_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        R_Wrist2:
+        R_Wrist2_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        Upperbody:
+        Upperbody_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        Waist1:
+        Waist1_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        Waist2:
+        Waist2_Link:
           Alpha: 1
           Show Axes: false
           Show Trail: false

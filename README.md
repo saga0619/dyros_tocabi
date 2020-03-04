@@ -1,52 +1,29 @@
-# tocabi_controller
+# DYROS TOCABI CONTROLLER 
 
-## SOEM Setup
- * install [SOEM](https://github.com/saga0619/SOEM)
-
-
-## mscl install 
+# Building
+## Prerequisites
+### 1. mscl installation
  * download [MSCL](https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb) 
-
 ```sh
-dpkg -i c++-mscl_52.2.1_amd64.deb
+wget https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb
+sudo dpkg -i c++-mscl_52.2.1_amd64.deb
 ```
 
-## RBDL Setup
-### Installing
+### 2. SOEM installation
+ ```sh
+ git clone https://github.com/saga0619/SOEM
+ cd SOEM
+ mkdir build
+ cd build
+ cmake ..
+ make all
+ sudo make install
+ ```
+
+### 3. RBDL installation
 ```sh
-wget https://bitbucket.org/rbdl/rbdl/get/default.zip
-unzip default.zip
-cd rbdl-rbdl-0879ee8c548a
-mkdir build
-cd build
-cmake -D RBDL_BUILD_ADDON_URDFREADER=ON ..
-make all
-sudo make install
-```
-
-### RBDL Error handling
-* If any error related to ROS occurs, open rbdl-rbdl-[commit]/addons/urdfreader/urdfreader.cc and remove following line
-```cpp
-#include <ros.h>
-```
-* If error " 'boost' does not name a type" occurs, open rbdl-rbdl-[commit]/addons/urdfreader/urdfreader.cc and edit boost::shared_ptr to std::shared_ptr. (line 15~18)
-```cpp
-typedef std::shared_ptr<urdf::Link> LinkPtr;
-typedef const std::shared_ptr<const urdf::Link> ConstLinkPtr;
-typedef std::shared_ptr<urdf::Joint> JointPtr;
-typedef std::shared_ptr<urdf::ModelInterface> ModelPtr;
-```
-
-* If red controller can't find librbdl.so.2.6.0, Add following line to .bashrc 
-```sh
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-```
-
-
-## qpOASES setup
-Download qpOASES [Link](http://www.qpoases.org/go/release) 
-```sh
-cd qpOASES-3.2.1
+git clone https://github.com/saga0619/rbdl-orb
+cd rbdl-orb
 mkdir build
 cd build
 cmake ..
@@ -54,28 +31,54 @@ make all
 sudo make install
 ```
 
-### qpOASES error handling
-if error occures, add following line to qpOASES-3.2.1/CMakeLists.txt, below PROJECT(qpOASES CXX), which is line 34
-
-```
-add_compile_options(-fPIC)
-```
-
-## Dyros Red Controller Setup
-Download 1.0 version from release list. [1.0 release](https://github.com/saga0619/dyros_red/releases)
-Unzip at ros worksapce (ex:catkin_ws)
-
-## ncurse Setup
-```sh 
-sudo apt-get install libncurses5-dev
+* If controller can't find librbdl.so.2.6.0, Add following line to .bashrc 
+```sh
+echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib'>>~/.bashrc
+sudo ldconfig
 ```
 
-## Passwordless sudo for ROS launch
-add folowinig line to /etc/sudoers, below the line (includedir /etc/sudoers.d)
-```
-username ALL=(ALL) NOPASSWD: ALL
-```
-<<<<<<< HEAD
 
-=======
->>>>>>> upstream/master
+### 4. qpOASES installation
+```sh
+git clone https://github.com/saga0619/qpoases
+cd qpoases
+mkdir build
+cd build
+cmake ..
+make all
+sudo make install
+```
+
+
+
+## Tocabi Controller installation
+Git clone https://github.com/saga0619/dyros_cc , https://github.com/saga0619/mujoco_ros_sim
+
+```sh
+cd ~/catkin_ws/src/
+git clone https://github.com/saga0619/dyros_cc
+git clone https://github.com/saga0619/mujoco_ros_sim
+git clone https://github.com/saga0619/dyros_tocabi
+```
+
+## How to launch
+### Simulation Mode 
+```sh
+roslaunch tocabi_controller simulation.launch
+```
+### Realrobot Mode
+```sh
+roslaunch tocabi_controller realrobot.launch
+```
+### Launch GUI alone
+```sh
+rosrun tocabi_gui tocabi_gui
+```
+### Monitor Tocabi Status from controller with RViz
+```sh
+roslaunch tocabi_description display.launch
+```
+### Monitor Tocabi Status from joint publisher with RViz
+```sh
+roslaunch tocabi_description display_with_joint_pub.launch
+```

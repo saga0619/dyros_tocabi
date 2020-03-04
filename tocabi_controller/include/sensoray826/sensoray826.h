@@ -2,7 +2,7 @@
 #include <ros/ros.h>
 #include <thread>
 
-#define PRINT_ERR(FUNC)   if ((errcode = FUNC) != S826_ERR_OK) { ROS_INFO("\nERROR: %d\n", errcode); }
+#define PRINT_ERR(FUNC)   if ((errcode = FUNC) != S826_ERR_OK) { /*ROS_INFO("\nERROR: %d\n", errcode); */}
 
 const double SAMPLE_RATE = 1000; // Hz
 
@@ -86,11 +86,15 @@ public:
     sensoray826_dev(int boardno) : board(boardno), errcode(S826_ERR_OK), isOpen(false), isADCThreadOn(false), isCalibration(false), dCalibrationTime(5.0) {}
     virtual ~sensoray826_dev() { analogSampleStop(); S826_SystemClose(); }
 
-    void open()
+    int open()
     {
         boardflags = S826_SystemOpen();
         if (boardflags < 0)
-            errcode = boardflags; // problem during open
+            {
+                ROS_ERROR("BOARD ERROR"); 
+                errcode = boardflags; // problem during open
+                return errcode;
+            }
         else if ((boardflags & (1 << board)) == 0) {
             int i;
             ROS_ERROR("TARGET BOARD of index %d NOT FOUND\n",board);         // driver didn't find board you want to use
@@ -99,6 +103,7 @@ public:
                     ROS_WARN("board %d detected. try [ %d ] board \n", i, i);
                 }
             }
+            return 0;
         }
         else
         {
@@ -108,6 +113,7 @@ public:
                 }
             }
             isOpen = true;
+            return 1;
         }
 
         switch (errcode)
@@ -173,7 +179,7 @@ public:
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
         }
-        // ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
+    //    ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
     }
 
     double lowPassFilter(double input, double prev, double ts, double tau)
@@ -188,50 +194,18 @@ public:
             _calibLFTData[i] = 0.0;
             _calibRFTData[i] = 0.0;
         }
-        _calibTimeIndex = 0;
+        for(int i=0; i<6; i++)
+        {
+            leftFootBias[i] = _calibLFTData[i];
+            rightFootBias[i] = _calibRFTData[i];
+        }
         _calibMaxIndex = dCalibrationTime * SAMPLE_RATE;
         ROS_INFO("FT sensor calibration start... time = %.1lf sec, total %d samples ", dCalibrationTime, _calibMaxIndex);
     }
 
-    void computeFTData()
+    void calibrationFTData(bool ft_calib_finish)
     {
-        if(isCalibration)
-        {
-            if(_calibTimeIndex < _calibMaxIndex)
-            {
-                for(int i=0; i<6; i++)
-                {
-                    double _lf = 0.0;
-                    double _rf = 0.0;
-                    for(int j=0; j<6; j++)
-                    {
-                        _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
-                        _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
-                    }
-                    _calibLFTData[i] += _lf / _calibMaxIndex;
-                    _calibRFTData[i] += _rf / _calibMaxIndex;
-                }
-
-                _calibTimeIndex++;
-            }
-            else
-            {
-                isCalibration = false;
-                for(int i=0; i<6; i++)
-                {
-                    leftFootBias[i] = _calibLFTData[i];
-                    rightFootBias[i] = _calibRFTData[i];
-                }
-
-                ROS_INFO("LFT bias data = %.2lf, %.2lf, %.2lf, %.2lf, %.2lf, %.2lf",
-                         leftFootBias[0], leftFootBias[1], leftFootBias[2], leftFootBias[3], leftFootBias[4], leftFootBias[5]);
-                ROS_INFO("RFT bias data = %.2lf, %.2lf, %.2lf, %.2lf, %.2lf, %.2lf",
-                         rightFootBias[0], rightFootBias[1], rightFootBias[2], rightFootBias[3], rightFootBias[4], rightFootBias[5]);
-
-            }
-//ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
-        }
-        else
+        if(ft_calib_finish == false)
         {
             for(int i=0; i<6; i++)
             {
@@ -242,16 +216,41 @@ public:
                     _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
                     _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
                 }
-
-                _lf -= leftFootBias[i];
-                _rf -= rightFootBias[i];
-
-                leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
-                rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
-                leftFootAxisData_prev[i] = leftFootAxisData[i];
-                rightFootAxisData_prev[i] = rightFootAxisData[i];
+                _calibLFTData[i] += _lf / _calibMaxIndex;
+                _calibRFTData[i] += _rf / _calibMaxIndex;
             }
-        //ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf %.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5],adcVoltages[8], adcVoltages[9], adcVoltages[10], adcVoltages[11], adcVoltages[12], adcVoltages[13]);
+        }
+        else
+        {
+            for(int i=0; i<6; i++)
+            {
+                leftFootBias[i] = _calibLFTData[i];
+                rightFootBias[i] = _calibRFTData[i];
+            }
+            leftFootBias[2] = leftFootBias[2]+22.81806;
+            rightFootBias[2] = rightFootBias[2]+22.81806; 
+        }
+    }
+
+    void computeFTData()
+    {
+        for(int i=0; i<6; i++)
+        {
+            double _lf = 0.0;
+            double _rf = 0.0;
+            for(int j=0; j<6; j++)
+            {
+                _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
+                _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+            }
+
+            _lf -= leftFootBias[i];
+            _rf -= rightFootBias[i];
+
+            leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
+            rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
+            leftFootAxisData_prev[i] = leftFootAxisData[i];
+            rightFootAxisData_prev[i] = rightFootAxisData[i];
         }
     }
 };

@@ -193,9 +193,9 @@ public:
   Com com_;
   Link link_[LINK_NUMBER + 1];
   double orientation;
-  double yaw_radian;
   double roll, pitch, yaw;
 
+  Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;

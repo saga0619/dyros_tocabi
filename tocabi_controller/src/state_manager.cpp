@@ -1,21 +1,23 @@
 #include "tocabi_controller/state_manager.h"
-#include <ros/package.h>
+//#include <ros/package.h>
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/urdfreader/urdfreader.h>
-#include <tf/transform_datatypes.h>
+//#include <tf/transform_datatypes.h>
 #include <sstream>
 
 StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 {
-    gui_command = dc.nh.subscribe("/tocabi_controller/command", 100, &StateManager::CommandCallback, this);
+    //signal(SIGINT, StateManager::sigintHandler);
 
-    joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi_controller/jointstates", 1);
-    time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi_controller/time", 1);
-    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi_controller/accdifinfo", 1);
-    tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi_controller/torquegain", 100);
-    point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi_controller/point", 100);
-    point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi_controller/point2", 100);
-    ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi_controller/ft_viz", 0);
+    gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
+
+    joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 1);
+    time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 1);
+    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 1);
+    tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi/torquegain", 100);
+    point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
+    point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point2", 100);
+    ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
     ft_viz_msg.markers.resize(4);
 
     for (int i = 0; i < 4; i++)
@@ -38,7 +40,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
     if (dc.mode == "realrobot")
     {
-        motor_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi_controller/motorinfo", 1);
+        motor_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/motorinfo", 1);
         motor_info_msg.motorinfo1.resize(MODEL_DOF);
         motor_info_msg.motorinfo2.resize(MODEL_DOF);
     }
@@ -53,88 +55,304 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gravity_(2) = GRAVITY;
 
     initialize();
-    bool verbose = true; //set verbose true for State Manager initialization info
+    bool verbose = false; //set verbose true for State Manager initialization info
+    bool urdfmode;
+    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
+    std::string urdf_path, desc_package_path;
 
-    if (dc.mode != "ethercattest")
+    ros::param::get("/tocabi_controller/urdf_path", desc_package_path);
+
+    if (urdfmode)
     {
-        std::string desc_package_path = ros::package::getPath("tocabi_description");
-        std::string urdf_path = desc_package_path + "/robots/dyros_tocabi.urdf";
+        urdf_path = desc_package_path + "/dyros_tocabi_ankleRollDamping.urdf";
+    }
+    else
+    {
+        urdf_path = desc_package_path + "/dyros_tocabi.urdf";
+    }
 
-        ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
+    ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
 
-        RigidBodyDynamics::Addons::URDFReadFromFile(urdf_path.c_str(), &model_, true, verbose);
+    RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_, true, verbose);
 
-        ROS_INFO_COND(verbose, "Successfully loaded.");
-        ROS_INFO_COND(verbose, "MODEL DOF COUNT = %d and MODEL Q SIZE = %d ", model_.dof_count, model_.q_size);
+    ROS_INFO_COND(verbose, "Successfully loaded.");
+    ROS_INFO_COND(verbose, "MODEL DOF COUNT = %d and MODEL Q SIZE = %d ", model_.dof_count, model_.q_size);
 
-        // model_.mJoints[0].)
-        if (model_.dof_count != MODEL_DOF + 6)
+    // model_.mJoints[0].)
+    if (model_.dof_count != MODEL_DOF + 6)
+    {
+        ROS_WARN("The DoF in the model file and the code do not match.");
+        ROS_WARN("Model file = %d, Code = %d", model_.dof_count, (int)MODEL_DOF + 6);
+    }
+    else
+    {
+        // ROS_INFO("id:0 name is : %s",model_.GetBodyName(0));
+        for (int i = 0; i < LINK_NUMBER; i++)
         {
-            ROS_WARN("The DoF in the model file and the code do not match.");
-            ROS_WARN("Model file = %d, Code = %d", model_.dof_count, (int)MODEL_DOF + 6);
+            link_id_[i] = model_.GetBodyId(TOCABI::LINK_NAME[i]);
+
+            //std::cout << TOCABI::LINK_NAME[i] << " mass : " << model_.mBodies[link_id_[i]].mMass << "center of mass? : " << model_.mBodies[link_id_[i]].mCenterOfMass[0] << " " << model_.mBodies[link_id_[i]].mCenterOfMass[1] << " " << model_.mBodies[link_id_[i]].mCenterOfMass[2] << std::endl;
+
+            if (!model_.IsBodyId(link_id_[i]))
+            {
+                ROS_INFO_COND(verbose, "Failed to get body id at link %d : %s", i, TOCABI::LINK_NAME[i]);
+            }
+            // ROS_INFO("%s: \t\t id = %d \t parent link = %d",LINK_NAME[i],
+            // link_id_[i],model_.GetParentBodyId(link_id_[i]));
+            // ROS_INFO("%dth parent
+            // %d",link_id_[i],model_.GetParentBodyId(link_id_[i]));
+            // std::cout << model_.mBodies[link_id_[i]].mCenterOfMass << std::endl;
+            // //joint_name_map_[JOINT_NAME[i]] = i;
         }
-        else
+
+        for (int i = 0; i < LINK_NUMBER; i++)
         {
-            // ROS_INFO("id:0 name is : %s",model_.GetBodyName(0));
-            for (int i = 0; i < MODEL_DOF + 1; i++)
-            {
-                link_id_[i] = model_.GetBodyId(RED::LINK_NAME[i]);
-                if (i == 0)
-                {
-                    int li = link_id_[Pelvis];
-                    std::cout << "Pelvis center of mass? : " << model_.mBodies[li].mCenterOfMass[0] << "  " << model_.mBodies[li].mCenterOfMass[1] << "  " << model_.mBodies[li].mCenterOfMass[2] << std::endl;
-                    std::cout << "mass : " << model_.mBodies[li].mMass << std::endl;
-
-                    //model_.mBodies[li].mCenterOfMass[0] = 0.005; //modify inertial properties of body
-                }
-
-                if (!model_.IsBodyId(link_id_[i]))
-                {
-                    ROS_INFO_COND(verbose, "Failed to get body id at link %d : %s", i, RED::LINK_NAME[i]);
-                }
-                // ROS_INFO("%s: \t\t id = %d \t parent link = %d",LINK_NAME[i],
-                // link_id_[i],model_.GetParentBodyId(link_id_[i]));
-                // ROS_INFO("%dth parent
-                // %d",link_id_[i],model_.GetParentBodyId(link_id_[i]));
-                // std::cout << model_.mBodies[link_id_[i]].mCenterOfMass << std::endl;
-                // //joint_name_map_[JOINT_NAME[i]] = i;
-            }
-
-            for (int i = 0; i < MODEL_DOF + 1; i++)
-            {
-                link_[i].initialize(model_, link_id_[i], RED::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
-            }
-
-            Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
-            lf_c << 0.0317, 0, -0.1368;
-            rf_c << 0.0317, 0, -0.1368;
-
-            link_[Right_Foot].contact_point = rf_c;
-            link_[Right_Foot].sensor_point << 0.0, 0.0, -0.1098;
-            link_[Left_Foot].contact_point = lf_c;
-            link_[Left_Foot].sensor_point << 0.0, 0.0, -0.1098;
-
-            link_[Right_Hand].contact_point << 0, 0.092, 0.0;
-            link_[Right_Hand].sensor_point << 0.0, 0.0, 0.0;
-            link_[Left_Hand].contact_point << 0, 0.092, 0.0;
-            link_[Left_Hand].sensor_point << 0.0, 0.0, 0.0;
-
-            joint_state_msg.name.resize(MODEL_DOF);
-            for (int i = 0; i < MODEL_DOF; i++)
-            {
-                joint_state_msg.name[i] = RED::JOINT_NAME[i];
-            }
-            // RigidBodyDynamics::Joint J_temp;
-            // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
-            // model_.mJoints[2] = J_temp;
+            link_[i].initialize(model_, link_id_[i], TOCABI::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
         }
+
+        Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
+        lf_c << 0.0317, 0, -0.1368;
+        rf_c << 0.0317, 0, -0.1368;
+
+        link_[Right_Foot].contact_point = rf_c;
+        link_[Right_Foot].sensor_point << 0.0, 0.0, -0.1098;
+        link_[Left_Foot].contact_point = lf_c;
+        link_[Left_Foot].sensor_point << 0.0, 0.0, -0.1098;
+
+        link_[Right_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Right_Hand].sensor_point << 0.0, 0.0, 0.0;
+        link_[Left_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Left_Hand].sensor_point << 0.0, 0.0, 0.0;
+
+        joint_state_msg.name.resize(MODEL_DOF);
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            joint_state_msg.name[i] = TOCABI::JOINT_NAME[i];
+        }
+        // RigidBodyDynamics::Joint J_temp;
+        // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
+        // model_.mJoints[2] = J_temp;
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
 }
+void StateManager::adv2ROS(void)
+{
+
+    static tf2_ros::TransformBroadcaster br;
+    geometry_msgs::TransformStamped transformStamped;
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.frame_id = "world";
+    transformStamped.child_frame_id = "Pelvis_Link";
+    transformStamped.transform.rotation.x = q_virtual_(3);
+    transformStamped.transform.rotation.y = q_virtual_(4);
+    transformStamped.transform.rotation.z = q_virtual_(5);
+    transformStamped.transform.rotation.w = q_virtual_(MODEL_DOF_VIRTUAL);
+    br.sendTransform(transformStamped);
+
+    joint_state_msg.header.stamp = ros::Time::now();
+    for (int i = 0; i < MODEL_DOF; i++)
+    {
+        joint_state_msg.position[i] = q_[i];
+        joint_state_msg.velocity[i] = q_dot_[i];
+        joint_state_msg.effort[i] = torque_desired[i];
+    }
+    joint_states_pub.publish(joint_state_msg);
+    time_msg.data = control_time_;
+    time_pub.publish(time_msg);
+    if (dc.mode == "realrobot")
+    {
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            motor_info_msg.motorinfo1[i] = dc.torqueElmo[i];
+            motor_info_msg.motorinfo2[i] = dc.torqueDemandElmo[i];
+        }
+        motor_info_pub.publish(motor_info_msg);
+    }
+    tgain_p.data = dc.t_gain;
+    tgainPublisher.publish(tgain_p);
+
+    pointpub_msg.header.stamp = ros::Time::now();
+    Eigen::Vector3d temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[COM_id].xpos;
+
+    pointpub_msg.polygon.points[0].x = temp(0); //com_pos(0);
+    pointpub_msg.polygon.points[0].y = temp(1);
+    pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2);
+
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Right_Foot].xpos;
+
+    pointpub_msg.polygon.points[1].x = temp(0);
+    pointpub_msg.polygon.points[1].y = temp(1);
+
+    Eigen::Matrix3d tm;
+    tm = link_[Right_Foot].Rotm;
+
+    tf2::Matrix3x3 m(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
+    double tr, tp, ty;
+    m.getRPY(tr, tp, ty);
+    pointpub_msg.polygon.points[1].z = ty - dc.tocabi_.yaw;
+
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
+
+    pointpub_msg.polygon.points[2].x = temp(0);
+    pointpub_msg.polygon.points[2].y = temp(1);
+
+    tm = link_[Left_Foot].Rotm;
+    tf2::Matrix3x3 m2(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
+    m2.getRPY(tr, tp, ty);
+
+    pointpub_msg.polygon.points[2].z = ty - dc.tocabi_.yaw;
+
+    pointpub_msg.polygon.points[3].x = link_[Pelvis].xpos(0);
+    pointpub_msg.polygon.points[3].y = link_[Pelvis].xpos(1);
+    pointpub_msg.polygon.points[3].z = link_[Pelvis].xpos(2);
+
+    pointpub_msg.polygon.points[4].x = dc.tocabi_.roll;
+    pointpub_msg.polygon.points[4].y = dc.tocabi_.pitch;
+    pointpub_msg.polygon.points[4].z = dc.tocabi_.link_[COM_id].x_traj(2);
+
+    pointpub_msg.polygon.points[5].x = dc.tocabi_.link_[Pelvis].x_traj(0);
+    pointpub_msg.polygon.points[5].y = dc.tocabi_.link_[Pelvis].x_traj(1);
+    pointpub_msg.polygon.points[5].z = dc.tocabi_.link_[Pelvis].x_traj(2);
+
+    pointpub_msg.polygon.points[6].x = dc.tocabi_.link_[COM_id].v_traj(0);
+    pointpub_msg.polygon.points[6].y = dc.tocabi_.link_[COM_id].v_traj(1);
+    pointpub_msg.polygon.points[6].z = dc.tocabi_.link_[COM_id].v_traj(2);
+
+    pointpub_msg.polygon.points[7].x = dc.tocabi_.link_[COM_id].v(0);
+    pointpub_msg.polygon.points[7].y = dc.tocabi_.link_[COM_id].v(1);
+    pointpub_msg.polygon.points[7].z = dc.tocabi_.link_[COM_id].v(2);
+
+    pointpub_msg.polygon.points[8].x = dc.tocabi_.fstar(0);
+    pointpub_msg.polygon.points[8].y = dc.tocabi_.fstar(1);
+    pointpub_msg.polygon.points[8].z = dc.tocabi_.fstar(2);
+
+    pointpub_msg.polygon.points[9].x = dc.tocabi_.ZMP(0); //from task torque -> contact force -> zmp
+    pointpub_msg.polygon.points[9].y = dc.tocabi_.ZMP(1);
+    pointpub_msg.polygon.points[9].z = dc.tocabi_.ZMP(2);
+
+    pointpub_msg.polygon.points[10].x = dc.tocabi_.ZMP_local(0); //from acceleration trajecoty -> tasktorque -> contactforce -> zmp
+    pointpub_msg.polygon.points[10].y = dc.tocabi_.ZMP_local(1);
+    pointpub_msg.polygon.points[10].z = dc.tocabi_.ZMP_local(2);
+
+    pointpub_msg.polygon.points[11].x = dc.tocabi_.ZMP_desired(0); //from acceleration trajectory
+    pointpub_msg.polygon.points[11].y = dc.tocabi_.ZMP_desired(1);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired(2);
+
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * dc.tocabi_.ZMP_ft;
+
+    pointpub_msg.polygon.points[12].x = temp(0); //calc from ft sensor
+    pointpub_msg.polygon.points[12].y = temp(1);
+
+    pointpub_msg.polygon.points[12].z = dc.tocabi_.ZMP_ft(2);
+
+    pointpub_msg.polygon.points[13].x = dc.tocabi_.com_.ZMP(0);
+    pointpub_msg.polygon.points[13].y = dc.tocabi_.com_.ZMP(1);
+    pointpub_msg.polygon.points[13].z = 0.0;
+
+    pointpub_msg.polygon.points[14].x = dc.tocabi_.link_[COM_id].a_traj(0);
+    pointpub_msg.polygon.points[14].y = dc.tocabi_.link_[COM_id].a_traj(1);
+    pointpub_msg.polygon.points[14].z = dc.tocabi_.link_[COM_id].a_traj(2);
+
+    //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
+    //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
+    //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
+
+    pointpub_msg.polygon.points[15].x = dc.tocabi_.com_.accel(0);
+    pointpub_msg.polygon.points[15].y = dc.tocabi_.com_.accel(1);
+    pointpub_msg.polygon.points[15].z = dc.tocabi_.com_.accel(2);
+
+    pointpub_msg.polygon.points[16].x = dc.tocabi_.ZMP_command(0);
+    pointpub_msg.polygon.points[16].y = dc.tocabi_.ZMP_command(1);
+    pointpub_msg.polygon.points[16].z = dc.tocabi_.ZMP_command(2);
+
+    point_pub.publish(pointpub_msg);
+
+    for (int i = 0; i < 2; i++)
+    {
+        ft_viz_msg.markers[i].header.stamp = ros::Time::now();
+    }
+
+    ft_viz_msg.markers[0].points[0].x = link_[Right_Foot].xpos(0);
+    ft_viz_msg.markers[0].points[0].y = link_[Right_Foot].xpos(1);
+    ft_viz_msg.markers[0].points[0].z = link_[Right_Foot].xpos(2);
+
+    ft_viz_msg.markers[0].points[1].x = RF_FT(0);
+    ft_viz_msg.markers[0].points[1].y = RF_FT(1);
+    ft_viz_msg.markers[0].points[1].z = RF_FT(2) / 100.0;
+
+    ft_viz_msg.markers[1].points[0].x = link_[Left_Foot].xpos(0);
+    ft_viz_msg.markers[1].points[0].y = link_[Left_Foot].xpos(1);
+    ft_viz_msg.markers[1].points[0].z = link_[Left_Foot].xpos(2);
+
+    ft_viz_msg.markers[1].points[1].x = LF_FT(0);
+    ft_viz_msg.markers[1].points[1].y = LF_FT(1);
+    ft_viz_msg.markers[1].points[1].z = LF_FT(2) / 100.0;
+
+    ft_viz_pub.publish(ft_viz_msg);
+}
+
+void StateManager::stateThread2(void)
+{
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    while (!dc.connected && (!shutdown_tocabi_bool))
+    {
+        //wait for realrobot thread start
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
+        if (shutdown_tocabi_bool)
+            break;
+    }
+
+    std::chrono::microseconds cycletime(dc.ctime);
+    int cycle_count = 0;
+    if (!shutdown_tocabi_bool)
+    {
+        std::cout << "State thread start! " << std::endl;
+
+        while (!shutdown_tocabi_bool)
+        {
+            //std::cout << "t : " << control_time_ << std::flush;
+
+            std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
+            //std::cout << " wait done,  " << std::flush;
+
+            //Code here
+            //
+            updateState();
+            //std::cout << " us done,  " << std::flush;
+            if (shutdown_tocabi_bool)
+            {
+                std::cout << "shutdown signal received" << std::endl;
+                break;
+            }
+            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+            //std::cout << " uk done, " << std::flush;
+
+            stateEstimate();
+
+            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+
+            storeState();
+            //std::cout << " ss done, " << std::flush;
+
+            if ((cycle_count % 10) == 0)
+            {
+                //ROS_INFO("publish start? \n");
+                adv2ROS();
+            }
+            //std::cout << " pb done, " << std::endl;
+
+            dc.firstcalcdone = true;
+            cycle_count++;
+        }
+    }
+    std::cout << cyellow << "State Thread End !" << creset << std::endl;
+}
 
 void StateManager::stateThread(void)
 {
+
     std::chrono::high_resolution_clock::time_point StartTime = std::chrono::high_resolution_clock::now();
     //std::chrono::high_resolution_clock::time_point StartTime2 = std::chrono::high_resolution_clock::now();
     std::chrono::seconds sec10(1);
@@ -149,27 +367,18 @@ void StateManager::stateThread(void)
     int dcount = 0;
     int ThreadCount2 = 0;
 
-    while (ros::ok())
+    while (!shutdown_tocabi_bool)
     {
-
-        //std::cout << ThreadCount<<" : update state, ";
         updateState();
-
-        //std::cout << "update rbdl, ";
         updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-
         //std::cout <<" state estimation ";
         //stateEstimate();
-
         //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-
-        //std::cout << "store states, ";
         storeState();
 
-        //std::cout << "store states complete !" <<std::endl;
         dc.firstcalcdone = true;
 
-        if (dc.shutdown)
+        if (shutdown_tocabi_bool)
         {
             break;
         }
@@ -178,7 +387,7 @@ void StateManager::stateThread(void)
         if (e_s > sec10)
         {
             StartTime = std::chrono::high_resolution_clock::now();
-            //rprint(dc, 0, 0, "s count : %d", ThreadCount - (i - 1) * 4000);
+            //rprint(dc, "s count : %d", ThreadCount - (i - 1) * 4000);
 
             if (dc.checkfreqency)
                 std::cout << control_time_ << " ::: state thread : " << ThreadCount - ThreadCount2 << " hz ";
@@ -191,126 +400,7 @@ void StateManager::stateThread(void)
         //Data to GUI
         if ((ThreadCount % (int)(dc.stm_hz / pub_hz)) == 0)
         {
-            joint_state_msg.header.stamp = ros::Time::now();
-            for (int i = 0; i < MODEL_DOF; i++)
-            {
-                joint_state_msg.position[i] = q_[i];
-                joint_state_msg.velocity[i] = q_dot_[i];
-                joint_state_msg.effort[i] = torque_desired[i];
-            }
-            joint_states_pub.publish(joint_state_msg);
-            time_msg.data = control_time_;
-            time_pub.publish(time_msg);
-            if (dc.mode == "realrobot")
-            {
-                for (int i = 0; i < MODEL_DOF; i++)
-                {
-                    motor_info_msg.motorinfo1[i] = dc.torqueElmo[i];
-                    motor_info_msg.motorinfo2[i] = dc.torqueDemandElmo[i];
-                }
-                motor_info_pub.publish(motor_info_msg);
-            }
-            tgain_p.data = dc.t_gain;
-            tgainPublisher.publish(tgain_p);
-
-            pointpub_msg.header.stamp = ros::Time::now();
-
-            pointpub_msg.polygon.points[0].x = link_[COM_id].xpos(0); //com_pos(0);
-            pointpub_msg.polygon.points[0].y = link_[COM_id].xpos(1);
-            pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2);
-
-            pointpub_msg.polygon.points[1].x = link_[Right_Foot].xpos(0);
-            pointpub_msg.polygon.points[1].y = link_[Right_Foot].xpos(1);
-            pointpub_msg.polygon.points[1].z = link_[Right_Foot].xpos(2);
-
-            pointpub_msg.polygon.points[2].x = link_[Left_Foot].xpos(0);
-            pointpub_msg.polygon.points[2].y = link_[Left_Foot].xpos(1);
-            pointpub_msg.polygon.points[2].z = link_[Left_Foot].xpos(2);
-
-            pointpub_msg.polygon.points[3].x = link_[Pelvis].xpos(0);
-            pointpub_msg.polygon.points[3].y = link_[Pelvis].xpos(1);
-            pointpub_msg.polygon.points[3].z = link_[Pelvis].xpos(2);
-
-            pointpub_msg.polygon.points[4].x = dc.tocabi_.link_[COM_id].x_traj(0);
-            pointpub_msg.polygon.points[4].y = dc.tocabi_.link_[COM_id].x_traj(1);
-            pointpub_msg.polygon.points[4].z = dc.tocabi_.link_[COM_id].x_traj(2);
-
-            pointpub_msg.polygon.points[5].x = dc.tocabi_.link_[Pelvis].x_traj(0);
-            pointpub_msg.polygon.points[5].y = dc.tocabi_.link_[Pelvis].x_traj(1);
-            pointpub_msg.polygon.points[5].z = dc.tocabi_.link_[Pelvis].x_traj(2);
-
-            pointpub_msg.polygon.points[6].x = dc.tocabi_.link_[COM_id].v_traj(0);
-            pointpub_msg.polygon.points[6].y = dc.tocabi_.link_[COM_id].v_traj(1);
-            pointpub_msg.polygon.points[6].z = dc.tocabi_.link_[COM_id].v_traj(2);
-
-            pointpub_msg.polygon.points[7].x = dc.tocabi_.link_[COM_id].v(0);
-            pointpub_msg.polygon.points[7].y = dc.tocabi_.link_[COM_id].v(1);
-            pointpub_msg.polygon.points[7].z = dc.tocabi_.link_[COM_id].v(2);
-
-            pointpub_msg.polygon.points[8].x = dc.tocabi_.fstar(0);
-            pointpub_msg.polygon.points[8].y = dc.tocabi_.fstar(1);
-            pointpub_msg.polygon.points[8].z = dc.tocabi_.fstar(2);
-
-            pointpub_msg.polygon.points[9].x = dc.tocabi_.ZMP(0); //from task torque -> contact force -> zmp
-            pointpub_msg.polygon.points[9].y = dc.tocabi_.ZMP(1);
-            pointpub_msg.polygon.points[9].z = dc.tocabi_.ZMP(2);
-
-            pointpub_msg.polygon.points[10].x = dc.tocabi_.ZMP_local(0); //from acceleration trajecoty -> tasktorque -> contactforce -> zmp
-            pointpub_msg.polygon.points[10].y = dc.tocabi_.ZMP_local(1);
-            pointpub_msg.polygon.points[10].z = dc.tocabi_.ZMP_local(2);
-
-            pointpub_msg.polygon.points[11].x = dc.tocabi_.ZMP_desired(0); //from acceleration trajectory
-            pointpub_msg.polygon.points[11].y = dc.tocabi_.ZMP_desired(1);
-            pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired(2);
-
-            pointpub_msg.polygon.points[12].x = dc.tocabi_.ZMP_ft(0); //calc from ft sensor
-            pointpub_msg.polygon.points[12].y = dc.tocabi_.ZMP_ft(1);
-            pointpub_msg.polygon.points[12].z = dc.tocabi_.ZMP_ft(2);
-
-            pointpub_msg.polygon.points[13].x = dc.tocabi_.com_.ZMP(0);
-            pointpub_msg.polygon.points[13].y = dc.tocabi_.com_.ZMP(1);
-            pointpub_msg.polygon.points[13].z = 0.0;
-
-            pointpub_msg.polygon.points[14].x = dc.tocabi_.link_[COM_id].a_traj(0);
-            pointpub_msg.polygon.points[14].y = dc.tocabi_.link_[COM_id].a_traj(1);
-            pointpub_msg.polygon.points[14].z = dc.tocabi_.link_[COM_id].a_traj(2);
-
-            //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
-            //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
-            //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
-
-            pointpub_msg.polygon.points[15].x = dc.tocabi_.com_.accel(0);
-            pointpub_msg.polygon.points[15].y = dc.tocabi_.com_.accel(1);
-            pointpub_msg.polygon.points[15].z = dc.tocabi_.com_.accel(2);
-
-            pointpub_msg.polygon.points[16].x = dc.tocabi_.ZMP_command(0);
-            pointpub_msg.polygon.points[16].y = dc.tocabi_.ZMP_command(1);
-            pointpub_msg.polygon.points[16].z = dc.tocabi_.ZMP_command(2);
-
-            point_pub.publish(pointpub_msg);
-
-            for (int i = 0; i < 2; i++)
-            {
-                ft_viz_msg.markers[i].header.stamp = ros::Time::now();
-            }
-
-            ft_viz_msg.markers[0].points[0].x = link_[Right_Foot].xpos(0);
-            ft_viz_msg.markers[0].points[0].y = link_[Right_Foot].xpos(1);
-            ft_viz_msg.markers[0].points[0].z = link_[Right_Foot].xpos(2);
-
-            ft_viz_msg.markers[0].points[1].x = RF_FT(0);
-            ft_viz_msg.markers[0].points[1].y = RF_FT(1);
-            ft_viz_msg.markers[0].points[1].z = RF_FT(2) / 100.0;
-
-            ft_viz_msg.markers[1].points[0].x = link_[Left_Foot].xpos(0);
-            ft_viz_msg.markers[1].points[0].y = link_[Left_Foot].xpos(1);
-            ft_viz_msg.markers[1].points[0].z = link_[Left_Foot].xpos(2);
-
-            ft_viz_msg.markers[1].points[1].x = LF_FT(0);
-            ft_viz_msg.markers[1].points[1].y = LF_FT(1);
-            ft_viz_msg.markers[1].points[1].z = LF_FT(2) / 100.0;
-
-            ft_viz_pub.publish(ft_viz_msg);
+            adv2ROS();
         }
 
         //every 1 seconds
@@ -334,6 +424,8 @@ void StateManager::stateThread(void)
         //std::this_thread::sleep_until(int_StartTime + dc.stm_timestep);
         int_StartTime = std::chrono::high_resolution_clock::now();
     }
+
+    std::cout << cyellow << "Status Thread End !" << creset << std::endl;
 }
 void StateManager::testThread()
 {
@@ -342,30 +434,42 @@ void StateManager::testThread()
     std::chrono::milliseconds ms(50);
 
     std::chrono::duration<double> e_s(0);
-    //ROS_INFO("START");
+    ROS_INFO("Test Thread START");
     int ThreadCount = 0;
 
-    while (ros::ok())
+    std::chrono::high_resolution_clock::time_point t[4];
+    int wait_t = 1;
+
+    std::chrono::duration<double> dur[3];
+
+    while (!shutdown_tocabi_bool)
     {
-
+        t[0] = std::chrono::high_resolution_clock::now();
         updateState();
-        updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
-        stateEstimate();
+        t[1] = std::chrono::high_resolution_clock::now();
         updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+        t[2] = std::chrono::high_resolution_clock::now();
+
+        //stateEstimate();
+        //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
         storeState();
+        t[3] = std::chrono::high_resolution_clock::now();
 
-        //std::this_thread::sleep_until(StartTime + ThreadCount * dc.stm_timestep);
-        if ((ThreadCount % 2000) == 0)
+        dur[0] = t[1] - t[0];
+        dur[1] = t[2] - t[1];
+        dur[2] = t[3] - t[2];
+
+        if (t[3] > (StartTime + sec10 * wait_t))
         {
-            e_s = std::chrono::high_resolution_clock::now() - StartTime;
-            rprint(dc, 19, 10, "Kinematics update %8.4f hz                         ", 2000 / e_s.count());
-            StartTime = std::chrono::high_resolution_clock::now();
+            printf("state thread calc, up.state %f up.kin. %f st.state %f \n", dur[0].count() * 1000, dur[1].count() * 1000, dur[2].count() * 1000);
+            wait_t++;
         }
-        if (dc.shutdown)
+
+        if (shutdown_tocabi_bool)
         {
-            rprint(dc, true, 19, 10, "state end");
+            printf("state end\n");
             break;
         }
         ThreadCount++;
@@ -404,6 +508,7 @@ void StateManager::initialize()
 
 void StateManager::storeState()
 {
+
     mtx_dc.lock();
 
     for (int i = 0; i < LINK_NUMBER + 1; i++)
@@ -421,7 +526,6 @@ void StateManager::storeState()
     dc.q_ddot_virtual_ = q_ddot_virtual_;
     dc.tau_nonlinear_ = tau_nonlinear_;
 
-    dc.yaw_radian = yaw;
     dc.yaw = yaw;
     dc.roll = roll;
     dc.pitch = pitch;
@@ -459,16 +563,18 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
    * */
 
     //std::cout << control_time_ << " : q_v(0) : " << q_virtual(0) << " : q_v(1) : " << q_virtual(1) << " : q_v(2) : " << q_virtual(2) << std::endl;
+
     mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_, &q_virtual, &q_dot_virtual, &q_ddot_virtual);
+
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, A_temp_, false);
+
     //Eigen::VectorXd tau_coriolis;
     //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
     mtx_rbdl.unlock();
+    tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
 
-    tf::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
-
-    tf::Matrix3x3 m(q);
+    tf2::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
 
     A_ = A_temp_;
@@ -504,10 +610,11 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
 
     //CS.AddContactConstraint(link_[Right_Foot].id,)
 
-    ROS_INFO_ONCE("TOTAL MASS : %f", com_mass);
+    //ROS_INFO_ONCE("TOTAL MASS : %f", com_mass);
     com_.mass = com_mass;
     com_.pos = com_pos;
 
+    //ROS_INFO_ONCE("COM POS : %f %f %f", com_pos(0), com_pos(1), com_pos(2));
     //RigidBodyDynamics::Utils::
     /*
     if (com_pos(1) < link_[Right_Foot].xpos(1))
@@ -819,5 +926,17 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
             std::cout << "qp2nd mode on" << std::endl;
         }
         dc.qp2nd = !dc.qp2nd;
+    }
+    else if (msg->data == "ecatinit")
+    {
+        dc.start_initialize_sequence = true;
+    }
+    else if (msg->data == "safetyreset")
+    {
+        dc.disableSafetyLock = true;
+    }
+    else if (msg->data == "ftcalib")
+    {
+        dc.ftcalib = true;
     }
 }

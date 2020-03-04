@@ -1,11 +1,11 @@
 #ifndef REALROBOT_INTERFACE_H
 #define REALROBOT_INTERFACE_H
 
-
 #include <iostream>
 #include <thread>
 
 #include <Eigen/Dense>
+#include <vector>
 
 #include "ethercattype.h"
 #include "nicdrv.h"
@@ -17,6 +17,8 @@
 #include "ethercatconfig.h"
 #include "ethercatprint.h"
 
+#include <std_msgs/Float32MultiArray.h>
+#include "tocabi_controller/mx5_imu.h"
 //#include "ethercat.h"
 
 #include "tocabi_controller/state_manager.h"
@@ -55,53 +57,108 @@
 #define Kv_Pitch3 30 //Ankle
 #define Kv_Roll2 60  //Ankle
 
-
 #define EC_TIMEOUTMON 500
+
+extern volatile bool shutdown_tocabi_bool;
 
 const double CNT2RAD[MODEL_DOF] =
     {
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46,
-        CNT_TO_RAD_46};
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46};
 
 const double RAD2CNT[MODEL_DOF] =
     {
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46,
-        RAD_TO_CNT_46};
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46};
 
-const double NM2CNT[MODEL_DOF] =
-    {
-        0.1724,
+const double CNT2NM[MODEL_DOF] =
+    {             //Elmo 순서
+        0.010526, //head
+        0.010526,
+        0.010526, //wrist
+        0.010526,
+        0.010526,
+        0.010526,
+        0.064516, //shoulder3
+        0.064516, //arm
+        0.064516, //arm
+        0.064516, //shoulder3
+        0.02381,  //Elbow
+        0.02381,  //Forearm
+        0.02381,  //Forearm
+        0.02381,  //Elbow
+        0.064516, //shoulder1
+        0.064516, //shoulder2
+        0.064516, //shoulder2
+        0.064516, //shoulder1
+        0.30303,  //Waist
+        0.30303,
+        0.1724, //rightLeg
         0.2307,
-        0.2834,
-        0.2834,
+        0.2635,
+        0.2890,
         0.2834,
         0.0811,
-        0.1724,
+        0.30303, //upperbody
+        0.1724,  //leftLeg
         0.2307,
         0.2635,
         0.2890,
         0.2834,
         0.0811};
+
+const double NM2CNT[MODEL_DOF] =
+    {       //Elmo 순서
+        95, //head
+        95,
+        95, //wrist
+        95,
+        95,
+        95,
+        15.5, //shoulder3
+        15.5, //arm
+        15.5, //arm
+        15.5, //shoulder3
+        42,   //Elbow
+        42,   //Forearm
+        42,   //Forearm
+        42,   //Elbow
+        15.5, //shoulder1
+        15.5, //shoulder2
+        15.5, //shoulder2
+        15.5, //shoulder1
+        3.3,  //Waist
+        3.3,
+        5.8, //rightLeg
+        4.3,
+        3.8,
+        3.46,
+        4.5,
+        12.33,
+        3.3, //upperbody
+        5.8, //leftLeg
+        4.3,
+        3.8,
+        3.46,
+        4.5,
+        12.33};
+
+const int positionExternalModElmo[MODEL_DOF] =
+    {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0,
+        5370, 3942, 5148, 3234, 7499, 4288,
+        0,
+        3799, 2522, 735, 8132, 2127, 7155};
 
 const double MOTORCONTSTANT[MODEL_DOF] =
     {
@@ -150,8 +207,12 @@ const double Kv[MODEL_DOF] =
 
 //Axis correction parameter.
 const double Dr[MODEL_DOF] =
-    {-1, 1, -1, -1, 1, -1,
-     -1, 1, 1, 1, -1, -1};
+    {1, -1, 1, 1, 1, 1,
+     1, 1, 1, -1, -1, 1,
+     1, -1, 1, 1, 1, 1,
+     1, 1, -1, -1, -1, -1,
+     1, 1, 1, 1, -1, 1,
+     1, -1, 1};
 
 using namespace std;
 
@@ -184,17 +245,44 @@ struct ElmoGoldDevice
     struct elmo_gold_rx
     {
         int32_t positionActualValue;
-        int32_t positionFollowingErrrorValue;
-        int16_t torqueActualValue;
-        uint16_t statusWord;
-        int8_t modeOfOperationDisplay;
-        int32_t velocityActualValue;
-        int16_t torqueDemandValue;
-        int32_t positionExternal;
+        //int32_t positionFollowingErrrorValue;
         uint32_t hommingSensor;
+        uint16_t statusWord;
+        //int8_t modeOfOperationDisplay;
+        int32_t velocityActualValue;
+        int16_t torqueActualValue;
+        //int16_t torqueDemandValue;
+        int32_t positionExternal;
     };
 };
 } // namespace EtherCAT_Elmo
+
+namespace ElmoHommingStatus
+{
+enum FZResult
+{
+    SUCCESS = 11,
+    FAILURE = 22
+};
+}; // namespace ElmoHommingStatus
+
+struct ElmoHomming
+{
+    bool hommingElmo;
+    bool hommingElmo_before;
+    bool startFound = false;
+    bool endFound = false;
+    int findZeroSequence = 0;
+    double initTime;
+    double initPos;
+    double posStart;
+    double posEnd;
+    double req_length = 0.2;
+    double firstPos;
+    double init_direction = 1;
+
+    int result;
+};
 
 class RealRobotInterface : public StateManager
 {
@@ -217,6 +305,11 @@ public:
     void imuThread();
     void ftsensorThread();
 
+    int checkTrajContinuity(int slv_number);
+    void checkSafety(int slv_number, double max_vel, double max_dis);
+    void findZeroPoint(int slv_number);
+    void findZeroLeg();
+
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
 
     const int FAULT_BIT = 3;
@@ -232,21 +325,77 @@ public:
         CW_DISABLEOP = 7,
     };
 
-    int wkc;
-    int Walking_State;
+    enum
+    {
+        FZ_CHECKHOMMINGSTATUS,
+        FZ_FINDHOMMINGSTART,
+        FZ_FINDHOMMINGEND,
+        FZ_FINDHOMMING,
+        FZ_GOTOZEROPOINT,
+        FZ_HOLDZEROPOINT,
+        FZ_FAILEDANDRETURN,
+        FZ_MANUALDETECTION,
+        FZ_TORQUEZERO,
+    };
+
+    ElmoHomming elmofz[MODEL_DOF];
+
+    int expectedWKC;
+    boolean needlf;
+    volatile int wkc;
+    boolean inOP;
+    uint8 currentgroup = 0;
+
+    int ElmoMode[MODEL_DOF];
+    bool checkPosSafety[MODEL_DOF];
+    //int ElmoState[MODEL_DOF];
+    //int ElmoState_before[MODEL_DOF];
+    fstream file_homming;
+    fstream elmo_zp;
+    fstream elmo_zp_log;
+    std::string zp_path, zplog_path, pack_path;
+
+
+    int checkfirst = -1;
+    int checkfirst_before = -1;
+    int al = 111;
+    int fr_count = 0;
+
+    enum
+    {
+        EM_POSITION = 11,
+        EM_TORQUE = 22,
+        EM_DEFAULT = 33,
+        EM_COMMUTATION = 44,
+    };
 
     Eigen::VectorQd positionElmo;
     Eigen::VectorQd positionExternalElmo;
     Eigen::VectorQd velocityElmo;
     Eigen::VectorQd torqueElmo;
     Eigen::VectorQd torqueDemandElmo;
-    Eigen::VectorQd positionDesiredElmo;
     Eigen::VectorQd velocityDesiredElmo;
     Eigen::VectorQd torqueDesiredElmo;
     Eigen::VectorQd torqueDesiredController;
-     
+    Eigen::VectorQd positionDesiredElmo;
+    Eigen::VectorQd positionDesiredElmo_Before;
+    Eigen::VectorQd positionDesiredController;
+    Eigen::VectorQd positionInitialElmo;
+    Eigen::VectorQd positionZeroElmo;
+    Eigen::VectorQd positionZeroModElmo;
+    Eigen::VectorQd initTimeElmo;
+    Eigen::VectorQd positionSafteyHoldElmo;
 
-    unsigned int hommingElmo[MODEL_DOF];
+    Eigen::VectorQd rq_;
+    Eigen::VectorQd rq_dot_;
+
+    int stateElmo[MODEL_DOF];
+    int stateElmo_before[MODEL_DOF];
+
+    bool hommingElmo[MODEL_DOF];
+    bool hommingElmo_before[MODEL_DOF];
+
+    int ElmoSafteyMode[MODEL_DOF];
 
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[MODEL_DOF];
     EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[MODEL_DOF];
@@ -254,19 +403,31 @@ public:
     bool ElmoConnected = false;
     bool ElmoTerminate = false;
 
+    std::vector<int> fz_group1;
+    bool fz_group1_check = false;
+    std::vector<int> fz_group2;
+    bool fz_group2_check = false;
+    std::vector<int> fz_group3;
+    bool fz_group3_check = false;
+    int fz_group = 0;
+
+    bool ConnectionUnstableBeforeStart = false;
+
+    int bootseq = 0;
+    //int bootseq
+    const int firstbootseq[5] = {0, 33, 35, 8, 64};
+    const int secondbootseq[4] = {0, 33, 35, 39};
+
 private:
     DataContainer &dc;
 
     Eigen::VectorQd getCommand();
-    void ImuCallback(const sensor_msgs::ImuConstPtr &msg);
-    void add_timespec(struct timespec *ts, int64 addtime);
 
-    ros::Subscriber imuSubscriber;
     ros::Subscriber gainSubscriber;
     Eigen::VectorQd CustomGain;
-    void gainCallbak(const tocabi_controller::GainCommandConstPtr &msg);
+    void gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg);
 
-    mujoco_ros_msgs::JointSet mujoco_joint_set_msg_;
+    double elmoJointMove(double init, double angle, double start_time, double traj_time);
 
     Eigen::Vector6d RealConstant;
 
