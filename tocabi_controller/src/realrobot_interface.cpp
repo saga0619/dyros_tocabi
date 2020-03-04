@@ -1353,7 +1353,7 @@ void RealRobotInterface::ftsensorThread()
     is_ft_board_ok = ft.open();
     if (is_ft_board_ok == 1)
     {
-        pub_to_gui(dc, "ftgood");
+        pub_to_gui(dc, "initreq");
     }
     else
     {
@@ -1396,6 +1396,7 @@ void RealRobotInterface::ftsensorThread()
             if (ft_calib_ui == false)
             {
                 pub_to_gui(dc, "ft sensor : calibration finish ");
+                pub_to_gui(dc, "ftgood");
                 ft_calib_ui = true;
             }
             ft.analogOversample();
