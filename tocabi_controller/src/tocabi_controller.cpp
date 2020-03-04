@@ -201,7 +201,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.dob = msg->dob;
     if (msg->walking_enable == 1)
     {
-        tc.mode = 14;
+        tc.mode = 10;
         walkingCallbackOn = true;
     }
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
