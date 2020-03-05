@@ -6,7 +6,7 @@
 
 const double SAMPLE_RATE = 1000; // Hz
 
-enum SLOT_TIME {NONE = 0, DEFAULT = 50};
+enum SLOT_TIME {NONE = 0, DEFAULT = 25};
 
 struct SLOTATTR
 {
@@ -14,17 +14,24 @@ struct SLOTATTR
     uint tsettle;   // settling time in microseconds
 };
 
-const SLOTATTR slotAttrs[16] = {
+/*const SLOTATTR slotAttrs[24] = {
+    {0, DEFAULT}, {0, 0}, {1, DEFAULT}, {1, 0}, {2, DEFAULT}, {2, 0}, {3, DEFAULT}, {3, 0},
+    {4, DEFAULT}, {4, 0}, {5, DEFAULT}, {5, 0}, 
+    {6, DEFAULT}, {6, 0}, {7, DEFAULT}, {7, 0}, {8, DEFAULT}, {8, 0}, {9, DEFAULT}, {9, 0},
+    {10, DEFAULT},{10, 0}, {11, DEFAULT}, {11, 0},
+};*/
+
+const SLOTATTR slotAttrs[12] = {
     {0, DEFAULT}, {1, DEFAULT}, {2, DEFAULT}, {3, DEFAULT},
-    {4, DEFAULT}, {5, DEFAULT}, {6, DEFAULT}, {7, NONE},
+    {4, DEFAULT}, {5, DEFAULT}, {6, DEFAULT}, {7, DEFAULT},
     {8, DEFAULT}, {9, DEFAULT}, {10, DEFAULT}, {11, DEFAULT},
-    {12, DEFAULT}, {13, DEFAULT}, {14, DEFAULT}, {15, NONE}
 };
+
 
 class sensoray826_dev
 {
 
-    static const int ADC_MAX_SLOT = 16;
+    static const int ADC_MAX_SLOT = 12;
 
     uint board;// change this if you want to use other than board number 0
     int errcode;
@@ -38,13 +45,14 @@ class sensoray826_dev
     uint _timeStamp[ADC_MAX_SLOT];
     int _adBuf[ADC_MAX_SLOT];
 
-    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 8};
+    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 6};
 
 
 public:
     // Analog Datas
     int adcDatas[ADC_MAX_SLOT];
     double adcVoltages[ADC_MAX_SLOT];
+    double adcVoltagesPrev[ADC_MAX_SLOT];
     int burstNum[ADC_MAX_SLOT];
 
     const double calibrationMatrixLFoot[6][6] = 
@@ -172,6 +180,32 @@ public:
 
         for(int i=0; i<ADC_MAX_SLOT; i++)
         {
+            // extract adcdata, burstnum, and bufoverflowflag from buf
+            adcDatas[i/2] = 0.0;
+            burstNum[i/2] = 0.0;
+            adcVoltages[i/2] = 0.0;
+        }
+
+   /*     for(int i=0; i<ADC_MAX_SLOT; i++)
+        {
+            if ((((slotList >> (int)i) & 1) != 0)) {
+                // extract adcdata, burstnum, and bufoverflowflag from buf
+                adcDatas[i/2] += (int16_t)((_adBuf[i/2] & 0xFFFF));
+                burstNum[i/2] += ((uint32_t)_adBuf[i/2] >> 24);
+                adcVoltages[i/2] = adcDatas[i/2] * 10.0 / (32768*2);
+            }
+
+            if(adcVoltages[i/2] == 0.00)
+            {
+                adcVoltages[i/2] = adcVoltagesPrev[i/2];
+            }
+
+            adcVoltagesPrev[i/2] = adcVoltages[i/2];   
+        }*/
+         
+  
+        for(int i=0; i<ADC_MAX_SLOT; i++)
+        {
             if ((((slotList >> (int)i) & 1) != 0)) {
                 // extract adcdata, burstnum, and bufoverflowflag from buf
                 adcDatas[i] = (int16_t)((_adBuf[i] & 0xFFFF));
@@ -179,6 +213,7 @@ public:
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
         }
+     //   ROS_INFO("%.3lf", adcVoltages[11]);
     //    ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
     }
 
@@ -249,8 +284,8 @@ public:
 
             leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
             rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
-            leftFootAxisData_prev[i] = leftFootAxisData[i];
-            rightFootAxisData_prev[i] = rightFootAxisData[i];
+            //leftFootAxisData[i] = _lf;
+           // rightFootAxisData[i] = _rf;
         }
     }
 };

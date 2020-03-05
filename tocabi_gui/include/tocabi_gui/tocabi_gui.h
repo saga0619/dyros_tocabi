@@ -110,6 +110,9 @@ protected slots:
     virtual void timercb(const std_msgs::Float32ConstPtr &msg);
     virtual void ftcalibbtn();
     virtual void tasksendcb();
+    virtual void stateestimationbtncb();
+    virtual void qp2ndbtncb();
+    virtual void torqueredisbtncb();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>

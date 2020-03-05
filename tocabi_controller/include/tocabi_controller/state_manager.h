@@ -83,7 +83,7 @@ public:
   Link link_[LINK_NUMBER + 1];
   Com com_;
 
-  Eigen::Vector6d RF_FT, LF_FT, LH_FT, RH_FT;
+  Eigen::Vector6d RF_FT, LF_FT, LH_FT, RH_FT, RF_FT_prev, LF_FT_prev;
 
   std::chrono::steady_clock::time_point st_start_time;
 

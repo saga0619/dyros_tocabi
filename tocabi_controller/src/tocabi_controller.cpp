@@ -333,10 +333,10 @@ void TocabiController::dynamicsThreadLow()
     Vector3d kp_, kd_, kpa_, kda_;
     for (int i = 0; i < 3; i++)
     {
-        kp_(i) = 400;
-        kd_(i) = 40;
-        kpa_(i) = 400;
-        kda_(i) = 40;
+        kp_(i) = 100;
+        kd_(i) = 5;
+        kpa_(i) = 100;
+        kda_(i) = 5;
     }
 
     //kd_(1) = 120;
