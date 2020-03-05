@@ -1,18 +1,5 @@
 #include "tocabi_controller/walking_controller.h"
-#include "tocabi_controller/walking_pattern.h"
-
-Walking_controller::Walking_controller(DataContainer &dc_global, RobotData &kind) : dc(dc_global), rk_(kind)
-{
-    walking_tick = 0;
-    setRobotStateInitialize();
-
-    for(int i=0; i<1;i++)
-    {
-      file[i].open(FILE_NAMES[i].c_str(),std::ios_base::out);
-    }
-}
-
-void Walking_controller::walkingCompute()
+void Walking_controller::walkingCompute(RobotData Robot)
 {
     if(walking_enable == true)
     {   
@@ -20,8 +7,8 @@ void Walking_controller::walkingCompute()
         footStepGenerator();
         
         /////ModelUpdate//////
-        getRobotInitState();
-        getRobotState();
+        getRobotInitState(Robot);
+        getRobotState(Robot);
 
         /////FrameChange//////
         changeFootSteptoLocal();
@@ -164,6 +151,7 @@ void Walking_controller::inverseKinematics()
     desired_leg_q(8) = asin(r_tr2(2,0)/cos(desired_leg_q(7))) - offset_hip_pitch;
     desired_leg_q(9) = -desired_leg_q(9) + offset_knee_pitch;
     desired_leg_q(10) = -desired_leg_q(10) + offset_ankle_pitch;
+
 }
 
 void Walking_controller::setInitPose()
@@ -176,25 +164,25 @@ void Walking_controller::walkingInitialize()
 
 }
 
-void Walking_controller::getRobotState()
+void Walking_controller::getRobotState(RobotData Robot)
 {
     if(walking_tick == 0)
     {
 
     }
     //////Real Robot Float Frame//////
-    RF_float_current.translation() = dc.link_[Right_Foot].xpos;
-    RF_float_current.linear() = dc.link_[Right_Foot].Rotm;
-    LF_float_current.translation() = dc.link_[Left_Foot].xpos;
-    LF_float_current.linear() = dc.link_[Left_Foot].Rotm;
-    PELV_float_current.translation() = dc.link_[Pelvis].xpos;
-    PELV_float_current.linear() = dc.link_[Pelvis].Rotm;
+    RF_float_current.translation() = Robot.link_[Right_Foot].xpos;
+    RF_float_current.linear() = Robot.link_[Right_Foot].Rotm;
+    LF_float_current.translation() = Robot.link_[Left_Foot].xpos;
+    LF_float_current.linear() = Robot.link_[Left_Foot].Rotm;
+    PELV_float_current.translation() = Robot.link_[Pelvis].xpos;
+    PELV_float_current.linear() = Robot.link_[Pelvis].Rotm;
 
-    COM_float_current.translation() = dc.link_[COM_id].xpos;
-    COM_float_current.linear() = dc.link_[COM_id].Rotm;
+    COM_float_current.translation() = Robot.link_[COM_id].xpos;
+    COM_float_current.linear() = Robot.link_[COM_id].Rotm;
 
-    COMV_support_currentV = dc.com_.vel;
-    COMV_support_currentV = dc.com_.accel;
+    COMV_support_currentV = Robot.com_.vel;
+    COMV_support_currentV = Robot.com_.accel;
 
     if(foot_step(current_step_num,6) == 0)
     {
@@ -234,20 +222,20 @@ void Walking_controller::getRobotState()
     COM_support_current =  DyrosMath::multiplyIsometry3d(PELV_support_current, COM_float_current);
 }
 
-void Walking_controller::getRobotInitState()
+void Walking_controller::getRobotInitState(RobotData Robot)
 {
     if(walking_tick == 0)
     {
-        RF_float_init.translation() = dc.link_[Right_Foot].xpos;
-        RF_float_init.linear() = dc.link_[Right_Foot].Rotm;
-        LF_float_init.translation() = dc.link_[Left_Foot].xpos;
-        LF_float_init.linear() = dc.link_[Left_Foot].Rotm;
+        RF_float_init.translation() = Robot.link_[Right_Foot].xpos;
+        RF_float_init.linear() = Robot.link_[Right_Foot].Rotm;
+        LF_float_init.translation() = Robot.link_[Left_Foot].xpos;
+        LF_float_init.linear() = Robot.link_[Left_Foot].Rotm;
 
-        COM_float_init.translation() = dc.com_.pos;
-        COM_float_init.linear() = dc.link_[COM_id].Rotm;
+        COM_float_init.translation() = Robot.com_.pos;
+        COM_float_init.linear() = Robot.link_[COM_id].Rotm;
 
-        PELV_float_init.translation() = dc.link_[Pelvis].xpos;
-        PELV_float_init.linear() = dc.link_[Pelvis].Rotm;
+        PELV_float_init.translation() = Robot.link_[Pelvis].xpos;
+        PELV_float_init.linear() = Robot.link_[Pelvis].Rotm;
         
         if(foot_step(0,6) == 0)
         {
@@ -295,16 +283,16 @@ void Walking_controller::getRobotInitState()
     }
     else if(current_step_num!=0 && walking_tick == t_start)
     {   
-        RF_float_init.translation() = dc.link_[Right_Foot].xpos;
-        RF_float_init.linear() = dc.link_[Right_Foot].Rotm;
-        LF_float_init.translation() = dc.link_[Left_Foot].xpos;
-        LF_float_init.linear() = dc.link_[Left_Foot].Rotm;
+        RF_float_init.translation() = Robot.link_[Right_Foot].xpos;
+        RF_float_init.linear() = Robot.link_[Right_Foot].Rotm;
+        LF_float_init.translation() = Robot.link_[Left_Foot].xpos;
+        LF_float_init.linear() = Robot.link_[Left_Foot].Rotm;
 
-        COM_float_init.translation() = dc.com_.pos;
-        COM_float_init.linear() = dc.link_[COM_id].Rotm;
+        COM_float_init.translation() = Robot.com_.pos;
+        COM_float_init.linear() = Robot.link_[COM_id].Rotm;
 
-        PELV_float_init.translation() = dc.link_[Pelvis].xpos;
-        PELV_float_init.linear() = dc.link_[Pelvis].Rotm;
+        PELV_float_init.translation() = Robot.link_[Pelvis].xpos;
+        PELV_float_init.linear() = Robot.link_[Pelvis].Rotm;
 
         if(foot_step(current_step_num,6) == 0)
         {
@@ -426,29 +414,34 @@ void Walking_controller::setRobotStateInitialize()
     target.setZero();
     
     current_step_num = 0.0;
+    walking_tick = 0;
+    for(int i=0; i<1;i++)
+    {
+      file[i].open(FILE_NAMES[i].c_str(),std::ios_base::out);
+    }
 }
 
 void Walking_controller::updateNextStepTime()
 {
-  if(walking_tick == t_last)
-  {
-      if(current_step_num != total_step_num-1)
-      {
-         t_start = t_last +1;
-         t_start_real = t_start + t_rest_init;
-         t_last = t_start + t_total -1;
+    if(walking_tick == t_last)
+    {
+        if(current_step_num != total_step_num-1)
+        {
+            t_start = t_last +1;
+            t_start_real = t_start + t_rest_init;
+            t_last = t_start + t_total -1;
 
-         current_step_num ++;
-      }
-  }
-  if(current_step_num == total_step_num -1 && walking_tick >= t_total+t_last-3)
-  {
-      walking_enable = false;
-  }
-  walking_tick ++;
+            current_step_num ++;
+        }
+    }
+    if(current_step_num == total_step_num -1 && walking_tick >= t_total+t_last-3)
+    {
+        walking_enable = false;
+    }
+    walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, RobotData Robot)
 {
     ik_mode = wtc.ik_mode;
     walking_pattern = wtc.walking_pattern;
@@ -487,13 +480,13 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz)
         com_gain = 100.0;
     }
 
-    setWalkingParameter();
+    setWalkingParameter(Robot);
 }
 
-void Walking_controller::setWalkingParameter()
+void Walking_controller::setWalkingParameter(RobotData Robot)
 {
     desired_foot_step_num = 10;
-    foot_distance = dc.link_[Left_Foot].xpos -  dc.link_[Right_Foot].xpos; 
+    foot_distance = Robot.link_[Left_Foot].xpos -  Robot.link_[Right_Foot].xpos; 
 
     t_rest_init = 0.05*Hz_;
     t_rest_last = 0.05*Hz_;

@@ -2283,32 +2283,6 @@ OFF</string>
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <widget class="QPushButton" name="walkinginit_btn">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>300</y>
-        <width>201</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>InitWalking</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="walkingstart_btn">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>370</y>
-        <width>201</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>WalkingStart</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="checkBox_dob">
       <property name="geometry">
        <rect>
@@ -2642,6 +2616,32 @@ OFF</string>
       </property>
       <property name="text">
        <string>0.0</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="walkinginit_btn">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>10</y>
+        <width>181</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>walking init</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="walkingstart_btn">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>60</y>
+        <width>181</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>walking start</string>
       </property>
      </widget>
     </widget>

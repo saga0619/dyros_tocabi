@@ -104,6 +104,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     scene->addLine(0, -20, 0, 40, blackpen);
 
     QGraphicsTextItem *front = scene->addText("front");
+    
     front->setPos(0, 50);
 
     //ui_.graphicsView->setSceneRect(-210, -260, 421, 521);

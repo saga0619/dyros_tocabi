@@ -1,7 +1,6 @@
 #include "tocabi_controller/dynamics_manager.h"
 #include "tocabi_controller/mujoco_interface.h"
 #include "tocabi_controller/realrobot_interface.h"
-#include "tocabi_controller/walking_controller.h"
 #include "custom_controller.h"
 
 #define Kp_Yaw1s 1500   //Hip
@@ -59,6 +58,7 @@ public:
   TaskCommand tc;
 
   WholebodyController wbc_;
+  Walking_controller wkc_;
 
   void stateThread();
   void dynamicsThreadLow();
