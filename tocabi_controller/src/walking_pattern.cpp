@@ -579,44 +579,33 @@ void WalkingPattern::setComTrajectory()
     else
         start_time = t_start;
 
-    if(walking_pattern == 0)
-    {
-        ///Preview
-    }
-    else if(walking_pattern == 1)
-    {
-        ///CapturePoint
-        xyd.setZero();
-        xyd(0) = com_refx(walking_tick);
-        xyd(1) = com_refy(walking_tick);
-        zmp_desired(0) = zmp_refx(walking_tick);
-        zmp_desired(1) = zmp_refy(walking_tick);  
-        xyd(3) = 1.;
-        xyd = GlobaltoLocal_current * xyd;
-        xd(0) = xyd(0);
-        yd(0) = xyd(1);
+    ///CapturePoint
+    xyd.setZero();
+    xyd(0) = com_refx(walking_tick);
+    xyd(1) = com_refy(walking_tick);
+    zmp_desired(0) = zmp_refx(walking_tick);
+    zmp_desired(1) = zmp_refy(walking_tick);  
+    xyd(3) = 1.;
+    xyd = GlobaltoLocal_current * xyd;
+    xd(0) = xyd(0);
+    yd(0) = xyd(1);
 
-        if(walking_tick == 0)
-        {
-            xd(1) = 0.0;
-            xd(2) = 0.0;
-            yd(1) = 0.0;
-            yd(2) = 0.0;
-        }
-        else
-        {
-            xd(1) = COMV_support_currentV(0);
-            xd(2) = COMV_support_currentV(0);
-            yd(1) = COMV_support_currentV(1);
-            yd(2) = COMV_support_currentV(1);
-        }
-        xs = xd;
-        ys = yd;
+    if(walking_tick == 0)
+    {
+        xd(1) = 0.0;
+        xd(2) = 0.0;
+        yd(1) = 0.0;
+        yd(2) = 0.0;
     }
     else
     {
-        ///MPC
+        xd(1) = COMV_support_currentV(0);
+        xd(2) = COMV_support_currentV(0);
+        yd(1) = COMV_support_currentV(1);
+        yd(2) = COMV_support_currentV(1);
     }
+    xs = xd;
+    ys = yd;
 
     if(walking_tick == t_start+t_total-1 && current_step_num != total_step_num - 1)
     {
