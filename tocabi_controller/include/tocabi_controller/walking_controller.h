@@ -2,6 +2,7 @@
 #define WALKINGCONTROLLER_H
 
 #include "tocabi_controller/walking_pattern.h"
+#include "tocabi_controller/link.h"
 
 struct WalkingCommand
 {
@@ -19,26 +20,21 @@ struct WalkingCommand
   bool dob;
 };
 
-class Walking_controller : public WalkingPattern
+class Walking_controller : virtual public WalkingPattern
 {
 public:
-    Walking_controller(DataContainer &dc_global, RobotData &kind);
-    //~Walking_controller();
-    
-    DataContainer &dc;
-    RobotData &rk_;
     WalkingCommand wtc;
     Eigen::Vector12d desired_leg_q;
 
-    void walkingCompute();
-    void inverseKinematics();
+    void walkingCompute(RobotData Robot);
+    void inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);
     void setInitPose();
-    void getRobotState();
-    void getRobotInitState();
+    void getRobotState(RobotData Robot);
+    void getRobotInitState(RobotData Robot);
     void setRobotStateInitialize();
     void updateNextStepTime();
-    void getUiWalkingParameter(int controller_Hz);
-    void setWalkingParameter();
+    void getUiWalkingParameter(int controller_Hz, RobotData Robot);
+    void setWalkingParameter(RobotData Robot);
     void walkingInitialize();
 
 private:

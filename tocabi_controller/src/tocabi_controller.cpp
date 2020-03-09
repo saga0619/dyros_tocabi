@@ -173,6 +173,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tocabi_.link_[COM_id].Set_initpos();
 
     task_switch = true;
+    tc_command = true;
 
     // Arm Desired Setting
     Eigen::Vector3d TargetDelta_l, TargetDelta_r;
@@ -201,8 +202,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.dob = msg->dob;
     if (msg->walking_enable == 1)
     {
-        tc.mode = 10;
-        walkingCallbackOn = true;
+        tc.mode = 11;
     }
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
 }
@@ -333,10 +333,10 @@ void TocabiController::dynamicsThreadLow()
     Vector3d kp_, kd_, kpa_, kda_;
     for (int i = 0; i < 3; i++)
     {
-        kp_(i) = 100;
-        kd_(i) = 5;
-        kpa_(i) = 100;
-        kda_(i) = 5;
+        kp_(i) = 400;
+        kd_(i) = 40;
+        kpa_(i) = 400;
+        kda_(i) = 40;
     }
 
     //kd_(1) = 120;
@@ -443,7 +443,11 @@ void TocabiController::dynamicsThreadLow()
             else if (tc.mode >= 10)
             {
                 cr_mode = 2;
-                mycontroller.taskCommandToCC(tc);
+                if(tc_command == true)
+                {
+                    mycontroller.taskCommandToCC(tc);
+                    tc_command = false;
+                }
                 mycontroller.computeSlow();
             }
         }

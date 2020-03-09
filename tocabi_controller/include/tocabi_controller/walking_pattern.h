@@ -1,7 +1,6 @@
 #ifndef WALKINGPATTERN_H
 #define WALKINGPATTERN_H
 
-#include "tocabi_controller/data_container.h"
 #include <fstream>
 #include "math_type_define.h"
 

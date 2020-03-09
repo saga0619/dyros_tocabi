@@ -52,8 +52,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
         dc.currentGain(i) = NM2CNT[i];
     }
 
-//    file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
-    file_homming.open("/home/dyros/hommingcheck.txt", ios_base::out);
+    file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
     file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
     fz_group1.resize(16);
@@ -1197,8 +1196,8 @@ void RealRobotInterface::ethercatThread()
 
                             if (dc.print_elmo_info_tofile)
                             {
-                    //            file_homming << hommingElmo[2] << "\t" << hommingElmo[3] << "\t" << hommingElmo[4] << "\t" << hommingElmo[5] << "\t" << hommingElmo[6] << "\t" << hommingElmo[7] << "\t" << hommingElmo[8] << "\t" << hommingElmo[9] << "\t" << hommingElmo[10] << "\t" << hommingElmo[11] << "\t" << hommingElmo[12] << "\t" << hommingElmo[13] << "\t" << hommingElmo[14] << "\t" << hommingElmo[15] << "\t" << hommingElmo[16] << "\t" << hommingElmo[17] << "\t" << hommingElmo[18] << "\t" << hommingElmo[19] << endl;
-                    //            file_homming << hommingElmo[18] << "\t" << positionElmo[18] << "\t" << hommingElmo[19] << "\t" << positionElmo[19] << "\t" << hommingElmo[26] << "\t" << positionElmo[26] << "\t" << endl;
+                                file_homming << hommingElmo[2] << "\t" << hommingElmo[3] << "\t" << hommingElmo[4] << "\t" << hommingElmo[5] << "\t" << hommingElmo[6] << "\t" << hommingElmo[7] << "\t" << hommingElmo[8] << "\t" << hommingElmo[9] << "\t" << hommingElmo[10] << "\t" << hommingElmo[11] << "\t" << hommingElmo[12] << "\t" << hommingElmo[13] << "\t" << hommingElmo[14] << "\t" << hommingElmo[15] << "\t" << hommingElmo[16] << "\t" << hommingElmo[17] << "\t" << hommingElmo[18] << "\t" << hommingElmo[19] << endl;
+                                file_homming << hommingElmo[18] << "\t" << positionElmo[18] << "\t" << hommingElmo[19] << "\t" << positionElmo[19] << "\t" << hommingElmo[26] << "\t" << positionElmo[26] << "\t" << endl;
                             }
 
                             cycle_count++;
@@ -1364,8 +1363,6 @@ void RealRobotInterface::ftsensorThread()
     ft.analogSingleSamplePrepare(slotAttrs, 16);
     ft.initCalibration();
 
-    //Test 
-    dc.ftcalib = true;
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
@@ -1390,6 +1387,10 @@ void RealRobotInterface::ftsensorThread()
                 ft.calibrationFTData(ft_calib_finish);
             }
         }
+        else
+        {
+            pub_to_gui(dc, "initreq");
+        }
         if (ft_calib_finish == true)
         {
             if (ft_calib_ui == false)
@@ -1399,27 +1400,16 @@ void RealRobotInterface::ftsensorThread()
                 ft_calib_ui = true;
             }
             ft.analogOversample();
-            ft.computeFTData();
         }
-        
+        ft.computeFTData();
+
         for (int i = 0; i < 6; i++)
         {
             RF_FT(i) = ft.rightFootAxisData[i];
             LF_FT(i) = ft.leftFootAxisData[i];
         }
-        
-   //     RF_FT = DyrosMath::lowPassFilter<6>(RF_FT, RF_FT_prev,1000.0, 0.1);
-   //     LF_FT = DyrosMath::lowPassFilter<6>(LF_FT, LF_FT_prev,1000.0, 0.1);
-
-
-        if(ft_calib_finish == true)
-        {
-         //   file_homming<<ft.adcVoltages[7]<<"\t"<<ft.adcVoltages[8]<<std::endl;//<<"\t" << ft.adcVoltages[2]<<"\t"<<ft.adcVoltages[3]<<"\t"<<ft.adcVoltages[4]<<"\t" << ft.adcVoltages[5]<<"\t"<<ft.adcVoltages[6]<<"\t"<<ft.adcVoltages[7]<<std::endl;//"\t"<<ft.adcVoltages[8]<<"\t"<<ft.adcVoltages[9]<<"\t"<<ft.adcVoltages[10]<<"\t"<<ft.adcVoltages[11]<<"\t"<<ft.adcVoltages[12]<<std::endl;
-        }
-
-   //     printf("FTsensorL x : %f \t y : %f \t z : %f\n", LF_FT(0), LF_FT(1), LF_FT(2));
-   //     printf("FTsensorR x : %f \t y : %f \t z : %f\n", RF_FT(0), RF_FT(1), RF_FT(2));
     }
+
     std::cout << "FTsensor Thread End!" << std::endl;
 }
 
