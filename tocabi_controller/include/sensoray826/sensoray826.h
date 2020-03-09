@@ -14,24 +14,23 @@ struct SLOTATTR
     uint tsettle;   // settling time in microseconds
 };
 
-/*const SLOTATTR slotAttrs[24] = {
+const SLOTATTR slotAttrs[24] = {
     {0, DEFAULT}, {0, 0}, {1, DEFAULT}, {1, 0}, {2, DEFAULT}, {2, 0}, {3, DEFAULT}, {3, 0},
     {4, DEFAULT}, {4, 0}, {5, DEFAULT}, {5, 0}, 
     {6, DEFAULT}, {6, 0}, {7, DEFAULT}, {7, 0}, {8, DEFAULT}, {8, 0}, {9, DEFAULT}, {9, 0},
     {10, DEFAULT},{10, 0}, {11, DEFAULT}, {11, 0},
-};*/
-
+};
+/*
 const SLOTATTR slotAttrs[12] = {
     {0, DEFAULT}, {1, DEFAULT}, {2, DEFAULT}, {3, DEFAULT},
     {4, DEFAULT}, {5, DEFAULT}, {6, DEFAULT}, {7, DEFAULT},
     {8, DEFAULT}, {9, DEFAULT}, {10, DEFAULT}, {11, DEFAULT},
-};
-
+};*/
 
 class sensoray826_dev
 {
 
-    static const int ADC_MAX_SLOT = 12;
+    static const int ADC_MAX_SLOT = 24;
 
     uint board;// change this if you want to use other than board number 0
     int errcode;
@@ -186,7 +185,7 @@ public:
             adcVoltages[i/2] = 0.0;
         }
 
-   /*     for(int i=0; i<ADC_MAX_SLOT; i++)
+        for(int i=0; i<ADC_MAX_SLOT; i++)
         {
             if ((((slotList >> (int)i) & 1) != 0)) {
                 // extract adcdata, burstnum, and bufoverflowflag from buf
@@ -195,16 +194,16 @@ public:
                 adcVoltages[i/2] = adcDatas[i/2] * 10.0 / (32768*2);
             }
 
-            if(adcVoltages[i/2] == 0.00)
+        /*    if(adcVoltages[i/2] == 0.00)
             {
                 adcVoltages[i/2] = adcVoltagesPrev[i/2];
             }
 
-            adcVoltagesPrev[i/2] = adcVoltages[i/2];   
-        }*/
+            adcVoltagesPrev[i/2] = adcVoltages[i/2]; */  
+        }
          
   
-        for(int i=0; i<ADC_MAX_SLOT; i++)
+/*        for(int i=0; i<ADC_MAX_SLOT; i++)
         {
             if ((((slotList >> (int)i) & 1) != 0)) {
                 // extract adcdata, burstnum, and bufoverflowflag from buf
@@ -212,8 +211,7 @@ public:
                 burstNum[i] = ((uint32_t)_adBuf[i] >> 24);
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
-        }
-     //   ROS_INFO("%.3lf", adcVoltages[11]);
+        }*/
     //    ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
     }
 

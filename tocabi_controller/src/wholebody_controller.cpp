@@ -520,8 +520,8 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         Fsl(6 * i + 5, 6 * i + 5) = 0.00001;
     }
 
-    double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
-    double rl = DyrosMath::minmax_cut(ratio_l / ratio_r * 10, 1, 10);
+    double rr = DyrosMath::minmax_cut(ratio_r / ratio_l*10, 1, 10);
+    double rl = DyrosMath::minmax_cut(ratio_l / ratio_r*10, 1, 10);
     //std::cout << "left : " << rr << "\t right : " << rl << std::endl;
 
     if (Robot.qp2nd)
@@ -1506,6 +1506,7 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
     Eigen::MatrixXd tg_temp = ppinv * J_g * Robot.A_matrix_inverse * Robot.N_C;
     torque_grav = tg_temp * Robot.G;
 
+
     Robot.contact_calc = false;
     return torque_grav;
 }
@@ -1672,6 +1673,7 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     //W.svd(s,u,v);
     //V2.resize(28,6);
     //V2.zero();
+
 
     return torque_task;
 }
@@ -1904,6 +1906,12 @@ Vector3d WholebodyController::getfstar_tra(RobotData &Robot, int link_id)
     for (int i = 0; i < 3; i++)
     {
         fstar_(i) = Robot.link_[link_id].a_traj(i) + Robot.link_[link_id].pos_p_gain(i) * (Robot.link_[link_id].x_traj(i) - Robot.link_[link_id].xpos(i)) + Robot.link_[link_id].pos_d_gain(i) * (Robot.link_[link_id].v_traj(i) - Robot.link_[link_id].v(i));
+
+        if (i == 1)
+        {
+            //std::cout<<"xtraj y : "<<rk_.link_[link_id].x_traj(i) <<"\t xpos y : "<<rk_.link_[link_id].xpos(i)<<"\t f_star : "<<fstar_(i)<<std::endl;
+        }
+        //fstar_(i) = rk_.link_[link_id].a_traj(i) + rk_.link_[link_id].pos_p_gain(i) * (rk_.link_[link_id].x_traj(i) - rk_.link_[link_id].xpos(i)) + rk_.link_[link_id].pos_d_gain(i) * (rk_.link_[link_id].v_traj(i) - rk_.link_[link_id].v(i));
     }
     Robot.fstar = fstar_;
     return fstar_;
