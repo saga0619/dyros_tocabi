@@ -520,8 +520,8 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         Fsl(6 * i + 5, 6 * i + 5) = 0.00001;
     }
 
-    double rr = DyrosMath::minmax_cut(ratio_r / ratio_l*10, 1, 10);
-    double rl = DyrosMath::minmax_cut(ratio_l / ratio_r*10, 1, 10);
+    double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
+    double rl = DyrosMath::minmax_cut(ratio_l / ratio_r * 10, 1, 10);
     //std::cout << "left : " << rr << "\t right : " << rl << std::endl;
 
     if (Robot.qp2nd)
@@ -741,14 +741,33 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
 
     MatrixXd W_fr;
 
-    W_fr.setZero(6, 12);
-    W_fr.block(0, 0, 3, 3) = Robot.link_[Left_Foot].Rotm;
-    W_fr.block(3, 3, 3, 3) = Robot.link_[Left_Foot].Rotm;
-    W_fr.block(3, 0, 3, 3) = Robot.link_[Left_Foot].Rotm * DyrosMath::skm(Robot.link_[Left_Foot].xpos_contact - Robot.com_.pos);
+    if (Robot.ee_[0].contact && Robot.ee_[1].contact)
+    {
+        W_fr.setZero(6, 12);
+        W_fr.block(0, 0, 3, 3) = Robot.link_[Left_Foot].Rotm;
+        W_fr.block(3, 3, 3, 3) = Robot.link_[Left_Foot].Rotm;
+        W_fr.block(3, 0, 3, 3) = Robot.link_[Left_Foot].Rotm * DyrosMath::skm(Robot.link_[Left_Foot].xpos_contact - Robot.com_.pos);
 
-    W_fr.block(0, 6, 3, 3) = Robot.link_[Right_Foot].Rotm;
-    W_fr.block(3, 9, 3, 3) = Robot.link_[Right_Foot].Rotm;
-    W_fr.block(3, 6, 3, 3) = Robot.link_[Right_Foot].Rotm * DyrosMath::skm(Robot.link_[Right_Foot].xpos_contact - Robot.com_.pos);
+        W_fr.block(0, 6, 3, 3) = Robot.link_[Right_Foot].Rotm;
+        W_fr.block(3, 9, 3, 3) = Robot.link_[Right_Foot].Rotm;
+        W_fr.block(3, 6, 3, 3) = Robot.link_[Right_Foot].Rotm * DyrosMath::skm(Robot.link_[Right_Foot].xpos_contact - Robot.com_.pos);
+    }
+    else if(Robot.ee_[0].contact)
+    {
+        W_fr.setZero(6, 6);
+        W_fr.block(0, 0, 3, 3) = Robot.link_[Left_Foot].Rotm;
+        W_fr.block(3, 3, 3, 3) = Robot.link_[Left_Foot].Rotm;
+        W_fr.block(3, 0, 3, 3) = Robot.link_[Left_Foot].Rotm * DyrosMath::skm(Robot.link_[Left_Foot].xpos_contact - Robot.com_.pos);
+
+
+    }
+    else if(Robot.ee_[1].contact)
+    {
+        W_fr.setZero(6, 6);
+        W_fr.block(0, 0, 3, 3) = Robot.link_[Right_Foot].Rotm;
+        W_fr.block(3, 3, 3, 3) = Robot.link_[Right_Foot].Rotm;
+        W_fr.block(3, 0, 3, 3) = Robot.link_[Right_Foot].Rotm * DyrosMath::skm(Robot.link_[Right_Foot].xpos_contact - Robot.com_.pos);
+    }
 
     VectorXd fr = W_fr * fc;
 
@@ -1506,7 +1525,6 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
     Eigen::MatrixXd tg_temp = ppinv * J_g * Robot.A_matrix_inverse * Robot.N_C;
     torque_grav = tg_temp * Robot.G;
 
-
     Robot.contact_calc = false;
     return torque_grav;
 }
@@ -1673,7 +1691,6 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     //W.svd(s,u,v);
     //V2.resize(28,6);
     //V2.zero();
-
 
     return torque_task;
 }
