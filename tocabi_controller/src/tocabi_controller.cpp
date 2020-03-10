@@ -139,7 +139,7 @@ void TocabiController::pubfromcontroller()
 
 void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg)
 {
-    control_time_pre_ = control_time_;
+    tocabi_.control_time_pre_ = control_time_;
 
     tc.command_time = control_time_;
     tc.traj_time = msg->time;
