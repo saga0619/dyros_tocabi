@@ -197,6 +197,7 @@ public:
   double roll, pitch, yaw;
 
   Eigen::VectorQd q_desired_;
+  Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd q_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
@@ -232,6 +233,7 @@ public:
   int ee_idx[4];
 
   double control_time_; // updated by control_base
+  double control_time_pre_;
   double d_time_;
 
   double start_time_[4];
