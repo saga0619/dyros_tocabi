@@ -329,10 +329,12 @@ void StateManager::stateThread2(void)
             updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
             //std::cout << " uk done, " << std::flush;
 
-            stateEstimate();
+            if (dc.semode)
+            {
+                stateEstimate();
 
-            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-
+                updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+            }
             storeState();
             //std::cout << " ss done, " << std::flush;
 

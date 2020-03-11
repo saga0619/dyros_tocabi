@@ -35,3 +35,10 @@ float32 walking_height
 float32 theta
 float32 step_length_x
 float32 step_length_y
+
+# TaskGain
+bool customTaskGain
+float32 pos_p
+float32 pos_d
+float32 ang_p
+float32 ang_d

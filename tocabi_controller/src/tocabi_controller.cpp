@@ -150,6 +150,12 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.angle = msg->angle;
     tc.height = msg->height;
 
+    tc.custom_taskgain = msg->customTaskGain;
+    tc.pos_p = msg->pos_p;
+    tc.pos_d = msg->pos_d;
+    tc.ang_p = msg->ang_p;
+    tc.ang_d = msg->ang_d;
+
     tc.l_x = msg->l_x;
     tc.l_y = msg->l_y;
     tc.l_z = msg->l_z;
