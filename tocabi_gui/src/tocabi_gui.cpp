@@ -128,6 +128,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.torqueredis, SIGNAL(pressed()), this, SLOT(torquerediscb()));
     connect(ui_.qp2nd, SIGNAL(pressed()), this, SLOT(qp2ndcb()));
 
+    connect(ui_.gravity_button_4, SIGNAL(pressed()), this, SLOT(gravcompcb()));
+    connect(ui_.task_button_4, SIGNAL(pressed()), this, SLOT(posconcb()));
+    connect(ui_.contact_button_4, SIGNAL(pressed()), this, SLOT(fixedgravcb()));
+
     //connect(ui_.)
 
     if (mode == "simulation")
@@ -542,6 +546,8 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     double dis = ((a * com_x + b * com_y + c)) / sqrt(a * a + b * b);
 
     //com distance from both foot
+
+    dis = msg->polygon.points[0].z;
     ui_.label_3->setText(QString::number(dis, 'f', 5));
 
     com_x = msg->polygon.points[12].x;
@@ -749,6 +755,24 @@ void TocabiGui::wheelEvent(QWheelEvent *event)
 {
     std::cout << "wheel event" << std::endl;
 }*/
+
+void TocabiGui::fixedgravcb()
+{
+    com_msg.data = std::string("fixedgravity");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::gravcompcb()
+{
+    com_msg.data = std::string("gravity");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::posconcb()
+{
+    com_msg.data = std::string("positioncontrol");
+    com_pub.publish(com_msg);
+}
 
 } // namespace tocabi_gui
 

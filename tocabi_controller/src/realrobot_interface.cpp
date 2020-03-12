@@ -129,7 +129,7 @@ void RealRobotInterface::updateState()
         mtx_q.unlock();
         q_virtual_.setZero();
         q_virtual_.segment(3, 3) = imu_quat.segment(0, 3);
-        q_virtual_(MODEL_DOF) = imu_quat(3);
+        q_virtual_(MODEL_DOF_VIRTUAL) = imu_quat(3);
         q_virtual_.segment(6, MODEL_DOF) = q_;
         q_dot_virtual_.setZero();
         q_dot_virtual_.segment(3, 3) = imu_ang_vel;
