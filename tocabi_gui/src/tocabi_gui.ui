@@ -105,7 +105,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -476,7 +476,7 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>ov :</string>
+          <string>z :</string>
          </property>
         </widget>
        </item>
@@ -583,7 +583,7 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_19">
          <property name="text">
-          <string>z :</string>
+          <string>yaw :</string>
          </property>
         </widget>
        </item>
@@ -599,7 +599,7 @@ OFF</string>
        </rect>
       </property>
       <property name="text">
-       <string>Pelvis position</string>
+       <string>Pelvis orientation</string>
       </property>
      </widget>
     </widget>

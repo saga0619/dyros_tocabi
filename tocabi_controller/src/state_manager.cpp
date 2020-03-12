@@ -53,6 +53,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
     gravity_.setZero();
     gravity_(2) = GRAVITY;
+    yaw_init = 0.0;
 
     initialize();
     bool verbose = false; //set verbose true for State Manager initialization info
@@ -177,7 +178,7 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[0].x = temp(0); //com_pos(0);
     pointpub_msg.polygon.points[0].y = temp(1);
-    pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2);
+    pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2) - 0.5 * dc.tocabi_.link_[Right_Foot].xpos(2) - 0.5 * dc.tocabi_.link_[Left_Foot].xpos(2);
 
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Right_Foot].xpos;
 
@@ -209,7 +210,7 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[4].x = dc.tocabi_.roll;
     pointpub_msg.polygon.points[4].y = dc.tocabi_.pitch;
-    pointpub_msg.polygon.points[4].z = dc.tocabi_.link_[COM_id].x_traj(2);
+    pointpub_msg.polygon.points[4].z = dc.tocabi_.yaw;
 
     pointpub_msg.polygon.points[5].x = dc.tocabi_.link_[Pelvis].x_traj(0);
     pointpub_msg.polygon.points[5].y = dc.tocabi_.link_[Pelvis].x_traj(1);
@@ -291,6 +292,28 @@ void StateManager::adv2ROS(void)
 
     ft_viz_pub.publish(ft_viz_msg);
 }
+void StateManager::initYaw()
+{
+    if (dc.semode)
+    {
+        static bool yawinit = true;
+
+        if (yawinit)
+        {
+            yaw_init = yaw;
+            yawinit = false;
+        }
+        tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF_VIRTUAL));
+        tf2::Quaternion q_rot;
+        q_rot.setRPY(0, 0, -yaw_init);
+        q = q * q_rot;
+
+        q_virtual_(3) = q.getX();
+        q_virtual_(4) = q.getY();
+        q_virtual_(5) = q.getZ();
+        q_virtual_(MODEL_DOF_VIRTUAL) = q.getW();
+    }
+}
 
 void StateManager::stateThread2(void)
 {
@@ -321,6 +344,9 @@ void StateManager::stateThread2(void)
             //
             updateState();
             //std::cout << " us done,  " << std::flush;
+
+            initYaw();
+
             if (shutdown_tocabi_bool)
             {
                 std::cout << "shutdown signal received" << std::endl;

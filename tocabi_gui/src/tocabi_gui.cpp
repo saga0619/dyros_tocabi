@@ -522,6 +522,7 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
 
     ui_.label_14->setText(QString::number(msg->polygon.points[4].x, 'f', 5));
     ui_.label_15->setText(QString::number(msg->polygon.points[4].y, 'f', 5));
+    ui_.label_16->setText(QString::number(msg->polygon.points[4].z, 'f', 5));
 
     //zmp by ft
 

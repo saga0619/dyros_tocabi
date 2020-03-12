@@ -257,13 +257,14 @@ void TocabiController::dynamicsThreadHigh()
                     torque_desired(i) = Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - Kvs[i] * (tocabi_.q_dot_(i));
                 }
             }
-
-            if (tc.mode >= 10)
+            if (task_switch)
             {
-                mycontroller.computeFast();
-                torque_desired = mycontroller.getControl();
+                if (tc.mode >= 10)
+                {
+                    mycontroller.computeFast();
+                    torque_desired = mycontroller.getControl();
+                }
             }
-
             mtx.lock();
             s_.sendCommand(torque_desired, sim_time);
             mtx.unlock();
@@ -449,7 +450,7 @@ void TocabiController::dynamicsThreadLow()
             else if (tc.mode >= 10)
             {
                 cr_mode = 2;
-                if(tc_command == true)
+                if (tc_command == true)
                 {
                     mycontroller.taskCommandToCC(tc);
                     tc_command = false;
