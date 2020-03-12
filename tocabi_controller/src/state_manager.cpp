@@ -143,12 +143,17 @@ void StateManager::adv2ROS(void)
     static tf2_ros::TransformBroadcaster br;
     geometry_msgs::TransformStamped transformStamped;
     transformStamped.header.stamp = ros::Time::now();
+
     transformStamped.header.frame_id = "world";
     transformStamped.child_frame_id = "Pelvis_Link";
     transformStamped.transform.rotation.x = q_virtual_(3);
     transformStamped.transform.rotation.y = q_virtual_(4);
     transformStamped.transform.rotation.z = q_virtual_(5);
     transformStamped.transform.rotation.w = q_virtual_(MODEL_DOF_VIRTUAL);
+    transformStamped.transform.translation.x = q_virtual_(0);
+    transformStamped.transform.translation.y = q_virtual_(1);
+    transformStamped.transform.translation.z = q_virtual_(2) - link_[Right_Foot].xpos(2)-link_[Right_Foot].contact_point(2);
+
     br.sendTransform(transformStamped);
 
     joint_state_msg.header.stamp = ros::Time::now();
@@ -294,6 +299,10 @@ void StateManager::adv2ROS(void)
 }
 void StateManager::initYaw()
 {
+    tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF_VIRTUAL));
+    tf2::Matrix3x3 m(q);
+    m.getRPY(roll, pitch, yaw);
+
     if (dc.semode)
     {
         static bool yawinit = true;
@@ -303,15 +312,21 @@ void StateManager::initYaw()
             yaw_init = yaw;
             yawinit = false;
         }
-        tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF_VIRTUAL));
-        tf2::Quaternion q_rot;
-        q_rot.setRPY(0, 0, -yaw_init);
-        q = q * q_rot;
 
-        q_virtual_(3) = q.getX();
-        q_virtual_(4) = q.getY();
-        q_virtual_(5) = q.getZ();
-        q_virtual_(MODEL_DOF_VIRTUAL) = q.getW();
+        //const tf2Scalar& r_,p_,y_;
+
+        tf2::Quaternion q_mod;
+        yaw = yaw - yaw_init;
+
+        q_mod.setRPY(roll, pitch, yaw);
+        //tf2::Quaternion q_rot;
+        //q_rot.setRPY(0, 0, -yaw_init);
+        //q = q * q_rot;
+
+        q_virtual_(3) = q_mod.getX();
+        q_virtual_(4) = q_mod.getY();
+        q_virtual_(5) = q_mod.getZ();
+        q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
     }
 }
 
@@ -600,10 +615,7 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     //Eigen::VectorXd tau_coriolis;
     //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
     mtx_rbdl.unlock();
-    tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
-
-    tf2::Matrix3x3 m(q);
-    m.getRPY(roll, pitch, yaw);
+    //tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
 
     A_ = A_temp_;
     A_inv = A_.inverse();
