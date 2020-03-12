@@ -105,7 +105,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -476,7 +476,7 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>ov :</string>
+          <string>z :</string>
          </property>
         </widget>
        </item>
@@ -583,7 +583,7 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_19">
          <property name="text">
-          <string>z :</string>
+          <string>yaw :</string>
          </property>
         </widget>
        </item>
@@ -599,7 +599,7 @@ OFF</string>
        </rect>
       </property>
       <property name="text">
-       <string>Pelvis position</string>
+       <string>Pelvis orientation</string>
       </property>
      </widget>
     </widget>
@@ -1707,10 +1707,10 @@ OFF</string>
      <widget class="QWidget" name="horizontalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>10</x>
         <y>50</y>
         <width>251</width>
-        <height>301</height>
+        <height>311</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1983,7 +1983,7 @@ OFF</string>
      <widget class="QLabel" name="label_63">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>10</x>
         <y>30</y>
         <width>121</width>
         <height>20</height>
@@ -1999,7 +1999,7 @@ OFF</string>
      <widget class="QLabel" name="label_82">
       <property name="geometry">
        <rect>
-        <x>150</x>
+        <x>140</x>
         <y>30</y>
         <width>121</width>
         <height>20</height>
@@ -2076,7 +2076,7 @@ OFF</string>
      <widget class="QLabel" name="label_81">
       <property name="geometry">
        <rect>
-        <x>340</x>
+        <x>310</x>
         <y>20</y>
         <width>91</width>
         <height>20</height>
@@ -2089,7 +2089,7 @@ OFF</string>
      <widget class="QWidget" name="horizontalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>300</x>
+        <x>280</x>
         <y>50</y>
         <width>160</width>
         <height>161</height>
@@ -2258,7 +2258,7 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>70</x>
-        <y>350</y>
+        <y>370</y>
         <width>81</width>
         <height>20</height>
        </rect>
@@ -2266,6 +2266,107 @@ OFF</string>
       <property name="text">
        <string>deg</string>
       </property>
+     </widget>
+     <widget class="QCheckBox" name="customtaskgain">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>20</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Custom Task gain</string>
+      </property>
+     </widget>
+     <widget class="QFrame" name="taskgain">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>40</y>
+        <width>161</width>
+        <height>141</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QWidget" name="horizontalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>160</width>
+         <height>122</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>pos p</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>    pos d   </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>ang p</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>ang d</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QLineEdit" name="pospgain"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="posdgain"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="angpgain"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="angdgain"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
     <widget class="QFrame" name="frame_14">
@@ -2802,19 +2903,6 @@ OFF</string>
     </widget>
    </widget>
    <widget class="QWidget" name="WALKING"/>
-  </widget>
-  <widget class="QPushButton" name="ecat_btn">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>91</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>ECAT</string>
-   </property>
   </widget>
   <widget class="QPushButton" name="ecat_btn">
    <property name="geometry">

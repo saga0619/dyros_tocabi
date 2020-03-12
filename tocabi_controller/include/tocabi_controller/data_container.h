@@ -65,6 +65,14 @@ struct TaskCommand
   double step_length_x;
   double step_length_y;
   bool dob;
+
+  //taskgain
+  bool custom_taskgain;
+  double pos_p;
+  double pos_d;
+  double ang_p;
+  double ang_d;
+  
 };
 
 
@@ -200,7 +208,7 @@ public:
   bool qp2nd = false;
 
   bool spalarm = false; // support polygon alarm bool
-  bool semode = true;  // state estimation running or not.
+  bool semode = false;  // state estimation running or not.
 
   bool initialize_request = false;
 

@@ -49,6 +49,8 @@ public:
   //testThread to test multithread
   void testThread();
 
+
+  void initYaw();
   //private variables
 
   unsigned int link_id_[40];
@@ -71,6 +73,7 @@ public:
 
   double roll, pitch, yaw;
   double yaw_radian;
+  double yaw_init;
 
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;

@@ -150,6 +150,12 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.angle = msg->angle;
     tc.height = msg->height;
 
+    tc.custom_taskgain = msg->customTaskGain;
+    tc.pos_p = msg->pos_p;
+    tc.pos_d = msg->pos_d;
+    tc.ang_p = msg->ang_p;
+    tc.ang_d = msg->ang_d;
+
     tc.l_x = msg->l_x;
     tc.l_y = msg->l_y;
     tc.l_z = msg->l_z;
@@ -251,13 +257,14 @@ void TocabiController::dynamicsThreadHigh()
                     torque_desired(i) = Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - Kvs[i] * (tocabi_.q_dot_(i));
                 }
             }
-
-            if (tc.mode >= 10)
+            if (task_switch)
             {
-                mycontroller.computeFast();
-                torque_desired = mycontroller.getControl();
+                if (tc.mode >= 10)
+                {
+                    mycontroller.computeFast();
+                    torque_desired = mycontroller.getControl();
+                }
             }
-
             mtx.lock();
             s_.sendCommand(torque_desired, sim_time);
             mtx.unlock();
@@ -443,7 +450,7 @@ void TocabiController::dynamicsThreadLow()
             else if (tc.mode >= 10)
             {
                 cr_mode = 2;
-                if(tc_command == true)
+                if (tc_command == true)
                 {
                     mycontroller.taskCommandToCC(tc);
                     tc_command = false;
