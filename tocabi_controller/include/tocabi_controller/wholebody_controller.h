@@ -67,7 +67,8 @@ public:
   * task jacobian and f_star must be defined. 
   */
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
-
+  
+  VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 

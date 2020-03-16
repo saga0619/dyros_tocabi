@@ -255,6 +255,15 @@ public:
   Eigen::MatrixVVd A_matrix;
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_matrix_inverse;
+  
+  Eigen::MatrixVVd Motor_inertia;
+  Eigen::MatrixVVd Motor_inertia_inverse;
+  Eigen::MatrixXd Lambda_c_motor;
+  Eigen::MatrixXd J_task_inv_motor, J_task_inv_motor_T;
+  Eigen::MatrixXd lambda_motor_inv, lambda_motor;
+  Eigen::MatrixXd W_motor, W_motor_inv;
+  Eigen::MatrixXd N_C_motor;
+  Eigen::MatrixXd Q_motor, Q_motor_T_, Q_motor_temp, Q_motor_temp_inv;//, Jtemp, Jtemp_2;
 
   Eigen::MatrixXd J_C, J_C_INV_T;
   Eigen::MatrixXd J_COM;

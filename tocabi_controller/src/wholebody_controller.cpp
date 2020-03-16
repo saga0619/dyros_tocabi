@@ -27,6 +27,31 @@ void WholebodyController::update(RobotData &Robot)
 {
     Robot.A_matrix = Robot.A_;
     Robot.A_matrix_inverse = Robot.A_.inverse();
+    for(int i=0; i<6; ++i){
+        Robot.Motor_inertia(i,i) = 10.0;
+    }
+    for(int i=0; i<2; ++i){
+        Robot.Motor_inertia(6+6*i,6+6*i) = 0.56;
+        Robot.Motor_inertia(7+6*i,7+6*i) = 0.8;
+        Robot.Motor_inertia(8+6*i,8+6*i) = 1.08;
+        Robot.Motor_inertia(9+6*i,9+6*i) = 1.08;
+        Robot.Motor_inertia(10+6*i,10+6*i) = 1.08;
+        Robot.Motor_inertia(11+6*i,11+6*i) = 0.306;
+
+        Robot.Motor_inertia(21+10*i,21+10*i) = 0.185;
+        Robot.Motor_inertia(22+10*i,22+10*i) = 0.184;
+        Robot.Motor_inertia(23+10*i,23+10*i) = 0.192;
+        Robot.Motor_inertia(24+10*i,24+10*i) = 0.184;
+        Robot.Motor_inertia(25+10*i,25+10*i) = 0.056;
+        Robot.Motor_inertia(26+10*i,26+10*i) = 0.05;
+        Robot.Motor_inertia(27+10*i,27+10*i) = 0.015;
+        Robot.Motor_inertia(28+10*i,28+10*i) = 0.015;
+    }
+    Robot.Motor_inertia(18,18) = 1.01;
+    Robot.Motor_inertia(19,19) = 1.01;
+    Robot.Motor_inertia(20,20) = 1.27;
+    Robot.Motor_inertia(29,29) = 0.015;
+    Robot.Motor_inertia(30,30) = 0.015;
 }
 /*
 void WholebodyController::contact_set(int contact_number, int link_id[])
@@ -1691,6 +1716,39 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     //W.svd(s,u,v);
     //V2.resize(28,6);
     //V2.zero();
+
+    return torque_task;
+}
+
+VectorQd WholebodyController::task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
+{
+    Robot.task_dof = J_task.rows();
+
+    //Task Control Torque;
+    Robot.J_task = J_task;
+    Robot.J_task_T.resize(MODEL_DOF + 6, Robot.task_dof);
+    Robot.J_task_T.setZero();
+    Robot.lambda_inv.resize(Robot.task_dof, Robot.task_dof);
+    Robot.lambda_inv.setZero();
+    Robot.lambda.resize(Robot.task_dof, Robot.task_dof);
+    Robot.lambda.setZero();
+
+    Robot.J_task_T = J_task.transpose();
+
+    Robot.lambda_motor_inv = J_task * Robot.Motor_inertia_inverse * (Robot.I37 - Robot.J_C.transpose() * Robot.J_C_INV_T) * Robot.J_task_T;
+
+    Robot.lambda_motor = Robot.lambda_motor_inv.inverse();
+    Robot.J_task_inv_motor_T = Robot.lambda_motor * J_task * Robot.Motor_inertia_inverse * (Robot.I37 - Robot.J_C.transpose() * Robot.J_C_INV_T);
+
+    Robot.Q_motor = Robot.J_task_inv_motor_T * Robot.Slc_k_T;
+    Robot.Q_motor_T_ = Robot.Q_motor.transpose();
+
+    Robot.Q_motor_temp = Robot.Q_motor * Robot.W_inv * Robot.Q_motor_T_;
+
+    Robot.Q_motor_temp_inv = DyrosMath::pinv_SVD(Robot.Q_motor_temp);
+
+    VectorQd torque_task;
+    torque_task = Robot.W_inv * Robot.Q_motor_T_ * Robot.Q_motor_temp_inv * Robot.lambda_motor * f_star_;
 
     return torque_task;
 }
