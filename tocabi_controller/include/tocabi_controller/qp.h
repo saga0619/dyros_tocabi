@@ -30,6 +30,7 @@ public:
   void EnableEqualityCondition(const double Tolerance);
   void DisableEqualityCondition();
   VectorXd SolveQPoases(const int &num_max_iter);
+  int SolveQPoases(const int &num_max_iter, VectorXd &solv);
 
 private:
   SQProblem _QPprob;
