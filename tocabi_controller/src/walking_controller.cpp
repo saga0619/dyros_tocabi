@@ -5,20 +5,25 @@ void Walking_controller::walkingCompute(RobotData Robot)
     {   
         /////FootStep//////
         footStepGenerator();
-        
+
         /////ModelUpdate//////
         getRobotInitState(Robot);
-        getRobotState(Robot);
 
+        getRobotState(Robot);
+   
         /////FrameChange//////
         changeFootSteptoLocal();
+
         referenceFrameChange();
 
-        /////Capturepoint//////
-        setCpPosition();
-        cpReferencePatternGeneration();
-        cptoComTrajectory();
-
+        /////Capturepoint//////       
+        if(walking_tick == 0)
+        {
+            setCpPosition();
+            cpReferencePatternGeneration();
+            cptoComTrajectory();
+        }
+         
         /////ComTrajectory//////
         setComTrajectory();
 
@@ -31,7 +36,6 @@ void Walking_controller::walkingCompute(RobotData Robot)
 
         /////InverseKinematics//////
         inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
-
         updateNextStepTime();
     }
 }
@@ -151,6 +155,10 @@ void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transfor
     leg_q(8) = asin(r_tr2(2,0)/cos(leg_q(7))) - offset_hip_pitch;
     leg_q(9) = -leg_q(9) + offset_knee_pitch;
     leg_q(10) = -leg_q(10) + offset_ankle_pitch;
+
+    leg_q(8) = leg_q(8)*(-1);
+    leg_q(9) = leg_q(9)*(-1);
+    leg_q(10) = leg_q(10)*(-1);
 }
 
 void Walking_controller::setInitPose()
@@ -224,7 +232,7 @@ void Walking_controller::getRobotState(RobotData Robot)
 void Walking_controller::getRobotInitState(RobotData Robot)
 {
     if(walking_tick == 0)
-    {
+    {   
         RF_float_init.translation() = Robot.link_[Right_Foot].xpos;
         RF_float_init.linear() = Robot.link_[Right_Foot].Rotm;
         LF_float_init.translation() = Robot.link_[Left_Foot].xpos;
@@ -235,9 +243,9 @@ void Walking_controller::getRobotInitState(RobotData Robot)
 
         PELV_float_init.translation() = Robot.link_[Pelvis].xpos;
         PELV_float_init.linear() = Robot.link_[Pelvis].Rotm;
-        
+ 
         if(foot_step(0,6) == 0)
-        {
+        {   
             SUF_float_init = RF_float_init;
             SWF_float_init = LF_float_init;
             for(int i=0; i<3; i++)
@@ -252,7 +260,7 @@ void Walking_controller::getRobotInitState(RobotData Robot)
             }
         }
         else
-        {
+        {   
             SUF_float_init = LF_float_init;
             SWF_float_init = RF_float_init;
             for(int i=0; i<3; i++)
@@ -266,7 +274,6 @@ void Walking_controller::getRobotInitState(RobotData Robot)
                 SWF_float_initV(i+3) = DyrosMath::rot2Euler(SWF_float_init.linear())(i);
             }
         }
-
         //////Real Robot Support Foot Frame//////
         RF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), RF_float_init);
         LF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), LF_float_init);
@@ -440,11 +447,11 @@ void Walking_controller::updateNextStepTime()
     walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz, RobotData Robot)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot)
 {
-    ik_mode = wtc.ik_mode;
-    walking_pattern = wtc.walking_pattern;
-    if(wtc.foot_step_dir == 0)
+    ik_mode = ikmode;
+    walking_pattern = walking_pattern;
+    if(footstepdir == 0)
     {
         foot_step_dir = 1.0;
     }
@@ -452,16 +459,15 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, RobotData Robo
     {
         foot_step_dir = -1.0;
     }
-    target(0) = wtc.target_x;
-    target(1) = wtc.target_y;
-    target(2) = wtc.target_z;
-    target(3) = wtc.theta;
-    height = wtc.height;
-    step_length_y = wtc.step_length_y;
-    step_length_x = wtc.step_length_x;
-    dob = wtc.dob;
-    //Hz_ = controller_Hz;
-    Hz_ = 300;
+    target(0) = target_x;
+    target(1) = target_y;
+    target(2) = target_z;
+    target(3) = theta;
+    height = targetheight;
+    step_length_y = steplength_y;
+    step_length_x = steplength_x;
+    dob = dob_;
+    Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = true;
     foot_height = 0.05;
