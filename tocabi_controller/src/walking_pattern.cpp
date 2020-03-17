@@ -304,13 +304,16 @@ void WalkingPattern::changeFootSteptoLocal()
     {
         if(foot_step(0,6) == 0) //right support
         {
-            reference.translation() = RF_float_init.translation();
+            reference.translation()(0) = 0.0;//RF_float_init.translation();
+            reference.translation()(1) = RF_float_init.translation()(1);
             reference.translation()(2) = 0.0;
             reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(RF_float_init.linear())(2));
         }
         else  //left support
         {
-            reference.translation() = LF_float_init.translation();
+
+            reference.translation()(0) = 0.0;//LF_float_init.translation();
+            reference.translation()(1) = LF_float_init.translation()(1);
             reference.translation()(2) = 0.0;
             reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(LF_float_init.linear())(2));
         }
@@ -493,7 +496,14 @@ void WalkingPattern::setCpPosition()
     /////////////////////TEMP 200228 JH
 
     capturePoint_ox(0) = COM_support_init.translation()(0) + capturePoint_offsetx(0);
-    capturePoint_oy(0) = COM_float_init.translation()(1) + capturePoint_offsety(0);
+    if(foot_step(0,6) == 0)
+    {
+        capturePoint_oy(0) = COM_support_init.translation()(1) - foot_distance(1)/2 + capturePoint_offsety(0);
+    }
+    else
+    {
+        capturePoint_oy(0) = COM_support_init.translation()(1) + foot_distance(1)/2 + capturePoint_offsety(0);
+    }
     capturePoint_ox(total_step_num + 1) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 1);
     capturePoint_oy(total_step_num + 1) = 0.0 + capturePoint_offsety(total_step_num + 1);
     capturePoint_ox(total_step_num + 2) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 2);
@@ -506,7 +516,7 @@ void WalkingPattern::setCpPosition()
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = 0.0 + capturePoint_offsety(1);
+                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
             }
             else
             {
@@ -527,7 +537,7 @@ void WalkingPattern::setCpPosition()
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = 0.0 + capturePoint_offsety(1);
+                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
             }
             else
             {
@@ -564,7 +574,14 @@ void WalkingPattern::cptoComTrajectory()
         else
         {
             com_refx(i) = COM_support_init.translation()(0);
-            com_refy(i) = COM_float_init.translation()(1);
+            if(foot_step(0,6) == 0)
+            {
+                com_refy(i) = COM_support_init.translation()(1) - foot_distance(1)/2;
+            }
+            else
+            {
+                com_refy(i) = COM_support_init.translation()(1) + foot_distance(1)/2;
+            }
         }      
     }
 }
@@ -580,14 +597,21 @@ void WalkingPattern::setComTrajectory()
         start_time = t_start;
 
     ///CapturePoint
-    xyd.setZero();
+    xyd.setZero(); 
     xyd(0) = com_refx(walking_tick);
     xyd(1) = com_refy(walking_tick);
     zmp_desired(0) = zmp_refx(walking_tick);
     zmp_desired(1) = zmp_refy(walking_tick);  
     xyd(3) = 1.;
     xyd = GlobaltoLocal_current * xyd;
-    xd(0) = xyd(0);
+    if(current_step_num == 0)
+    {
+        xd(0) = com_refx(walking_tick);
+    }
+    else
+    {
+        xd(0) = xyd(0);
+    }
     yd(0) = xyd(1);
 
     if(walking_tick == 0)
@@ -677,8 +701,8 @@ void WalkingPattern::setPelvisTrajectory()
     //Trunk Position
     if(com_control_mode == true)
     {
-        PELV_trajectory_support.translation()(0) = PELV_support_current.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
-        PELV_trajectory_support.translation()(1) = PELV_support_current.translation()(1) + pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
+        PELV_trajectory_support.translation()(0) = com_desired(0);//PELV_support_current.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
+        PELV_trajectory_support.translation()(1) = com_desired(1);//PELV_support_current.translation()(1) + pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
         PELV_trajectory_support.translation()(2) = com_desired(2); //PELV_trajectory_support.translation()(2) + pelvis_pgain*(com_desired(2) - COM_support_current.translation()(2));
     }
     else
@@ -710,27 +734,27 @@ void WalkingPattern::setPelvisTrajectory()
             PELV_trajectory_euler(i) = DyrosMath::cubic(walking_tick, t_start, t_start_real+t_double1, PELV_support_euler_init(i),0.0,0.0,0.0);;
         PELV_trajectory_euler(2) = PELV_support_euler_init(2);
     }
-  else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
-  {
-    for(int i=0; i<2; i++)
-      PELV_trajectory_euler(i) = 0.0;
+    else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
+    {
+        for(int i=0; i<2; i++)
+        PELV_trajectory_euler(i) = 0.0;
 
-    if(foot_step(current_step_num,6) == 2)
-      PELV_trajectory_euler(2) = PELV_support_euler_init(2);
+        if(foot_step(current_step_num,6) == 2)
+        PELV_trajectory_euler(2) = PELV_support_euler_init(2);
+        else
+        PELV_trajectory_euler(2) = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start + t_total - t_double2 - t_rest_last, PELV_support_euler_init(2), z_rot/2.0, 0.0,0.0);
+    }
     else
-      PELV_trajectory_euler(2) = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start + t_total - t_double2 - t_rest_last, PELV_support_euler_init(2), z_rot/2.0, 0.0,0.0);
-  }
-  else
-  {
-    for(int i=0; i<2; i++)
-      PELV_trajectory_euler(i) = 0.0;
+    {
+        for(int i=0; i<2; i++)
+        PELV_trajectory_euler(i) = 0.0;
 
-    if(foot_step(current_step_num,6) == 2)
-      PELV_trajectory_euler(2) = PELV_support_euler_init(2);
-    else
-      PELV_trajectory_euler(2) = z_rot/2.0;
-  }
-  PELV_trajectory_support.linear() = DyrosMath::rotateWithZ(PELV_trajectory_euler(2))*DyrosMath::rotateWithY(PELV_trajectory_euler(1))*DyrosMath::rotateWithX(PELV_trajectory_euler(0));
+        if(foot_step(current_step_num,6) == 2)
+        PELV_trajectory_euler(2) = PELV_support_euler_init(2);
+        else
+        PELV_trajectory_euler(2) = z_rot/2.0;
+    }
+    PELV_trajectory_support.linear() = DyrosMath::rotateWithZ(PELV_trajectory_euler(2))*DyrosMath::rotateWithY(PELV_trajectory_euler(1))*DyrosMath::rotateWithX(PELV_trajectory_euler(0));
 }
 
 void WalkingPattern::setFootTrajectory()
@@ -965,6 +989,8 @@ void WalkingPattern::supportToFloatPattern()
         LF_trajectory_euler_float = DyrosMath::rot2Euler(LF_trajectory_float.linear());
         RF_trajectory_euler_float = DyrosMath::rot2Euler(RF_trajectory_float.linear());
     }
+        //file[0] << PELV_trajectory_support.translation()(0) <<"\t"<<PELV_trajectory_support.translation()(1) <<"\t"<<PELV_trajectory_support.translation()(2) <<"\t"<<LF_trajectory_float.translation()(0) <<"\t"<<LF_trajectory_float.translation()(1) <<"\t"<<LF_trajectory_float.translation()(2) <<"\t"<<RF_trajectory_float.translation()(0) <<"\t"<<LF_trajectory_support.translation()(1) <<"\t"<<LF_trajectory_support.translation()(2) <<"\t"<<RF_trajectory_support.translation()(0) <<"\t"<<RF_trajectory_support.translation()(1) <<"\t"<<RF_trajectory_support.translation()(2) <<std::endl;
+
 }
 
 void WalkingPattern::floatToSupportPattern()
@@ -993,7 +1019,8 @@ void WalkingPattern::referenceFrameChange()
             reference.translation() = reference.translation();
             reference.linear() =  reference.linear();
             LocaltoGlobal_current = reference;
-            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(reference);
+            GlobaltoLocal_current.translation() = -1*reference.translation();
+            GlobaltoLocal_current.linear() = reference.linear().transpose();
         }
     }
     else

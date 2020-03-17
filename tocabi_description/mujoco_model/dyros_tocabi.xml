@@ -6,7 +6,7 @@
         <joint damping="4.0" frictionloss="1.0"/>
         <motor ctrllimited="true" ctrlrange="-300 300"/>
         <default class="viz">
-            <geom contype="0" conaffinity="0" group="1" type="mesh" rgba=".6 .6 .7 1"/>
+            <geom contype="0" conaffinity="0" group="1" type="mesh" rgba=".6 .6 .7 1" />
         </default>
         <default class="cls">
             <geom group="2" rgba="0.79216 0.81961 0.93333 0.5"/>
@@ -19,7 +19,7 @@
         </default>
     </default>
 
-    <option timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9" />
+    <option timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
 
     <visual>
         <quality shadowsize="2048" offsamples="16"/>
@@ -341,6 +341,7 @@
         <motor name="R_Knee_Motor" joint="R_Knee_Joint"/>
         <motor name="R_AnklePitch_Motor" joint="R_AnklePitch_Joint"/>
         <motor name="R_AnkleRoll_Motor" joint="R_AnkleRoll_Joint"/>
++
 
         <motor name="Waist1_Motor" joint="Waist1_Joint"/>
         <motor name="Waist2_Motor" joint="Waist2_Joint"/>
@@ -385,13 +386,12 @@
     </sensor>
 
     <keyframe>
-        <!--Initial Position Setting -->
+        <!-- Initial Position Setting 0.94783-->
         <key name="front" time="0" qpos ="0 0 0.94783 1 0 0 0 
-								0 0 -0.24 0.7 -0.36 0 
-								0 0 -0.24 0.7 -0.36 0 
+								0 0 -0.24 0.6 -0.36 0 
+								0 0 -0.24 0.6 -0.36 0 
 								0 0 0 0 0
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
-								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>
+								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>    
     </keyframe>    
 </mujoco>
-s

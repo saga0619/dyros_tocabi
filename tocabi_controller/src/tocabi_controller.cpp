@@ -18,7 +18,6 @@ std::mutex mtx_ncurse;
 TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm) : dc(dc_global), s_(sm), d_(dm), tocabi_(dc_global.tocabi_), wbc_(dc_global.wbc_), mycontroller(*(new CustomController(dc_global, dc_global.tocabi_)))
 {
     initialize();
-
     task_command = dc.nh.subscribe("/tocabi/taskcommand", 100, &TocabiController::TaskCommandCallback, this);
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/cdata_pub", 1);
     pointpub_msg.polygon.points.resize(13);
@@ -203,6 +202,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     if (msg->walking_enable == 1)
     {
         tc.mode = 11;
+        dc.positionControl = true;
     }
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
 }
@@ -240,23 +240,25 @@ void TocabiController::dynamicsThreadHigh()
             cycle_count++;
 
             if (dc.positionControl)
-            { /*
-                if (set_q_init)
+            { 
+                if(set_q_init)
                 {
-                    q_desired_ = q_;
+                    tocabi_.q_desired_ = tocabi_.q_;
                     set_q_init = false;
-                }*/
+                }
                 for (int i = 0; i < MODEL_DOF; i++)
                 {
                     torque_desired(i) = Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - Kvs[i] * (tocabi_.q_dot_(i));
-                }
+                   // mycontroller.wkc_.file[0] << tocabi_.q_desired_(8) <<"\t"<< tocabi_.q_(8) << std::endl;
+                }            
             }
 
             if (tc.mode >= 10)
             {
                 mycontroller.computeFast();
-                torque_desired = mycontroller.getControl();
-            }
+                //torque_desired = mycontroller.getControl();
+                //std::cout<<tocabi_.q_desired_(3)<<"\t"<<tocabi_.q_(3)<<"\t"<<tocabi_.q_desired_(4)<<"\t"<<tocabi_.q_(4)<<"\t"<<tocabi_.q_desired_(5)<<"\t"<<tocabi_.q_(5)<<"\t"<<tocabi_.q_desired_(2)<<"\t"<<tocabi_.q_(2)<<std::endl;
+             }
 
             mtx.lock();
             s_.sendCommand(torque_desired, sim_time);
@@ -421,7 +423,7 @@ void TocabiController::dynamicsThreadLow()
         ///////////////////////////////////////////////////////////////////////////////////////
         /////////////              Controller Code Here !                     /////////////////
         ///////////////////////////////////////////////////////////////////////////////////////
-
+        
         torque_task.setZero(MODEL_DOF);
         TorqueContact.setZero();
 
@@ -443,6 +445,7 @@ void TocabiController::dynamicsThreadLow()
             else if (tc.mode >= 10)
             {
                 cr_mode = 2;
+
                 if(tc_command == true)
                 {
                     mycontroller.taskCommandToCC(tc);
@@ -489,7 +492,14 @@ void TocabiController::dynamicsThreadLow()
         ///////////////////////////////////////////////////////////////////////////////////////
 
         mtx.lock();
-        torque_desired = TorqueDesiredLocal + TorqueContact;
+        if(dc.positionControl == false)
+        {
+            torque_desired = TorqueDesiredLocal + TorqueContact;
+        }
+        else if(dc.positionControl == true && tc.mode >= 10)
+        {
+            tocabi_.q_desired_.segment<12>(0) = mycontroller.getControl().segment<12>(0);
+        }
         mtx.unlock();
 
         //wbc_.task_control_torque(J_task,Eigen)
@@ -717,6 +727,7 @@ void TocabiController::getState()
 void TocabiController::initialize()
 {
     torque_desired.setZero();
+    set_q_init = true;
 }
 
 void TocabiController::ContinuityChecker(double data)
