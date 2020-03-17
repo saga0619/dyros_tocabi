@@ -44,7 +44,7 @@ class sensoray826_dev
     uint _timeStamp[ADC_MAX_SLOT];
     int _adBuf[ADC_MAX_SLOT];
 
-    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 8};
+    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 6};
 
 
 public:
