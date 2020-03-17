@@ -65,6 +65,14 @@ struct TaskCommand
   double step_length_x;
   double step_length_y;
   bool dob;
+
+  //taskgain
+  bool custom_taskgain;
+  double pos_p;
+  double pos_d;
+  double ang_p;
+  double ang_d;
+  
 };
 
 

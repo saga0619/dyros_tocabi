@@ -138,7 +138,7 @@ void TocabiController::pubfromcontroller()
 
 void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg)
 {
-    control_time_pre_ = control_time_;
+    tocabi_.control_time_pre_ = control_time_;
 
     tc.command_time = control_time_;
     tc.traj_time = msg->time;
@@ -148,6 +148,12 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.ratio = msg->ratio;
     tc.angle = msg->angle;
     tc.height = msg->height;
+
+    tc.custom_taskgain = msg->customTaskGain;
+    tc.pos_p = msg->pos_p;
+    tc.pos_d = msg->pos_d;
+    tc.ang_p = msg->ang_p;
+    tc.ang_d = msg->ang_d;
 
     tc.l_x = msg->l_x;
     tc.l_y = msg->l_y;
@@ -252,8 +258,7 @@ void TocabiController::dynamicsThreadHigh()
                    // mycontroller.wkc_.file[0] << tocabi_.q_desired_(8) <<"\t"<< tocabi_.q_(8) << std::endl;
                 }            
             }
-
-            if (tc.mode >= 10)
+            if (task_switch)
             {
                 mycontroller.computeFast();
                 //torque_desired = mycontroller.getControl();

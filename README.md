@@ -59,6 +59,8 @@ cd ~/catkin_ws/src/
 git clone https://github.com/saga0619/dyros_cc
 git clone https://github.com/saga0619/mujoco_ros_sim
 git clone https://github.com/saga0619/dyros_tocabi
+cd ~/catkin_ws/
+catkin_make
 ```
 
 ## How to launch
