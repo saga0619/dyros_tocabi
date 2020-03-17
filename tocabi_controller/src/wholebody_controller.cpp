@@ -957,8 +957,8 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         Fsl(6 * i + 5, 6 * i + 5) = 0.00001;
     }
 
-    double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
-    double rl = DyrosMath::minmax_cut(ratio_l / ratio_r * 10, 1, 10);
+    double rr = DyrosMath::minmax_cut(ratio_r / ratio_l*10, 1, 10);
+    double rl = DyrosMath::minmax_cut(ratio_l / ratio_r*10, 1, 10);
     //std::cout << "left : " << rr << "\t right : " << rl << std::endl;
 
     if (Robot.qp2nd)
@@ -1960,6 +1960,7 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
     Eigen::MatrixXd tg_temp = ppinv * J_g * Robot.A_matrix_inverse * Robot.N_C;
     torque_grav = tg_temp * Robot.G;
 
+
     Robot.contact_calc = false;
     return torque_grav;
 }
@@ -2126,6 +2127,7 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     //W.svd(s,u,v);
     //V2.resize(28,6);
     //V2.zero();
+
 
     return torque_task;
 }
