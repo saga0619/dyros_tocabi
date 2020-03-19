@@ -133,6 +133,8 @@ public:
   const int QUAD_SUPPORT = 4;
 
   RigidBodyDynamics::Model model_virtual;
+
+  void CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix);
   /*
 
   // motion time

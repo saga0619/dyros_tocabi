@@ -1,4 +1,5 @@
 #include "tocabi_controller/wholebody_controller.h"
+#include "ros/ros.h"
 
 //Left Foot is first! LEFT = 0, RIGHT = 1 !
 // #include "cvxgen/solver.h"
@@ -21,6 +22,32 @@ void WholebodyController::init(RobotData &Robot)
 
     Robot.Grav_ref.setZero(3);
     Robot.Grav_ref(2) = -9.81;
+
+    
+    bool verbose = false; //set verbose true for State Manager initialization info
+    bool urdfmode;
+    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
+    std::string urdf_path, desc_package_path;
+
+    ros::param::get("/tocabi_controller/urdf_path", desc_package_path);
+
+    if (urdfmode)
+    {
+        urdf_path = desc_package_path + "/dyros_tocabi_ankleRollDamping.urdf";
+    }
+    else
+    {
+        urdf_path = desc_package_path + "/dyros_tocabi.urdf";
+    }
+
+    RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_virtual, true, verbose);
+
+}
+
+void WholebodyController::CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix)
+{
+    A_matrix.setZero(MODEL_DOF_VIRTUAL,MODEL_DOF_VIRTUAL);
+    RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_virtual, Robot.q_virtual_, A_matrix, true);
 }
 
 void WholebodyController::update(RobotData &Robot)
