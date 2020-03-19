@@ -104,7 +104,7 @@ public:
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;
   bool ftcalib = false;
-
+  std::string sim_mode;
   std::string mode;
 
   //Tui Var..

@@ -527,7 +527,7 @@ void StateManager::updateState()
     //overrid by simulation or red robot
 }
 
-void StateManager::sendCommand(Eigen::VectorQd command, double simt)
+void StateManager::sendCommand(Eigen::VectorQd command, double simt, int control_mode)
 {
     //overrid by simulation or red robot
 }

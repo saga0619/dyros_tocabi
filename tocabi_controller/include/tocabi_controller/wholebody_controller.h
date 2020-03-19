@@ -132,6 +132,7 @@ public:
   const int TRIPPLE_SUPPORT = 3;
   const int QUAD_SUPPORT = 4;
 
+  RigidBodyDynamics::Model model_virtual;
   /*
 
   // motion time

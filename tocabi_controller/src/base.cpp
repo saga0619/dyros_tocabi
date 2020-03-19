@@ -27,13 +27,14 @@ int main(int argc, char **argv)
     dc.nh.param<std::string>("/tocabi_controller/ifname", dc.ifname, "enp0s31f6");
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
+    dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
 
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");
     dc.statusPubMsg.data = strr;
 
     bool simulation = true;
-    dc.dym_hz = 500; 
+    dc.dym_hz = 500;
     dc.stm_hz = 4000;
     dc.dym_timestep = std::chrono::microseconds((int)(1000000 / dc.dym_hz));
     dc.stm_timestep = std::chrono::microseconds((int)(1000000 / dc.stm_hz));

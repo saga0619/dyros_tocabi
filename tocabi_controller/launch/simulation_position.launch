@@ -9,12 +9,13 @@
 
   <node name="mujoco_ros" pkg="mujoco_ros" type="mujoco_ros" required="true" respawn="false" output="screen">
     <param name="license" type="string" value="$(env HOME)/mjkey.txt" />
-    <param name="model_file" type="string" value="$(find tocabi_description)/mujoco_model/dyros_tocabi.xml"/>
+    <param name="model_file" type="string" value="$(find tocabi_description)/mujoco_model/dyros_tocabi_position.xml"/>
     <param name="pub_mode" value="$(arg pub_mode)"/>
   </node>
 
   <group if="$(arg controller)">
     <node name="tocabi_controller" pkg="tocabi_controller" type="tocabi_controller" output="screen">
+      <param name="sim_mode" value="position"/>
       <param name="run_mode" value="$(arg run_mode)"/>
       <param name="debug" value="$(arg debug)" />
       <param name="rviz_pub" value="$(arg rviz)"/>
