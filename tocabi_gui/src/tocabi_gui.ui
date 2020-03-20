@@ -105,7 +105,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -2388,6 +2388,7 @@ OFF</string>
      </widget>
     </widget>
    </widget>
+   <widget class="QWidget" name="page_2"/>
    <widget class="QWidget" name="page">
     <widget class="QLabel" name="label_39">
      <property name="geometry">
@@ -2596,7 +2597,7 @@ OFF</string>
     <string>M TUNE</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_5">
+  <widget class="QPushButton" name="walking_btn">
    <property name="geometry">
     <rect>
      <x>360</x>
@@ -2869,9 +2870,6 @@ OFF</string>
    </property>
    <property name="horizontalScrollBarPolicy">
     <enum>Qt::ScrollBarAlwaysOff</enum>
-   </property>
-   <property name="sizeAdjustPolicy">
-    <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
    </property>
    <property name="interactive">
     <bool>true</bool>

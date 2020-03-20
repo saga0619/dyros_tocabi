@@ -73,6 +73,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.stat_btn, SIGNAL(pressed()), this, SLOT(statpbtn()));
     connect(ui_.command_btn, SIGNAL(pressed()), this, SLOT(commandpbtn()));
     connect(ui_.mtunebtn, SIGNAL(pressed()), this, SLOT(mtunebtn()));
+    connect(ui_.walking_btn, SIGNAL(pressed()), this, SLOT(walkingbtn()));
 
     connect(ui_.sendtunebtn, SIGNAL(pressed()), this, SLOT(sendtunebtn()));
     connect(ui_.resettunebtn, SIGNAL(pressed()), this, SLOT(resettunebtn()));
@@ -84,6 +85,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     ui_.stat_btn->setShortcut(QKeySequence(Qt::Key_2));
     ui_.command_btn->setShortcut(QKeySequence(Qt::Key_3));
     ui_.mtunebtn->setShortcut(QKeySequence(Qt::Key_4));
+    ui_.walking_btn->setShortcut(QKeySequence(Qt::Key_5));
 
     scene = new MyQGraphicsScene(widget_);
     ui_.graphicsView->setScene(scene);
@@ -119,6 +121,8 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     connect(ui_.com_send_button, SIGNAL(pressed()), this, SLOT(comsendcb()));   
     connect(ui_.arm_send_button, SIGNAL(pressed()), this, SLOT(armsendcb()));
+
+    connect(ui_.walking_speed_slider, SIGNAL(sliderMoved(int)), this, SLOT(walkingspeedcb(int)));
 
     if (mode == "simulation")
     {
@@ -287,7 +291,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     ui_.imu_roll->setRenderHint(QPainter::Antialiasing);
 
     ui_.imu_pitch->setChart(chart_pitch);
-    ui_.imu_pitch->setRenderHint(QPainter::Antialiasing);
+    ui_.imu_pitch->setRenderHint(QPainter::AntialiasinstackedWidgetg);
 
     ui_.imu_yaw->setChart(chart_yaw);
     ui_.imu_yaw->setRenderHint(QPainter::Antialiasing);*/
@@ -303,10 +307,7 @@ void TocabiGui::saveSettings(qt_gui_cpp::Settings &plugin_settings, qt_gui_cpp::
 {
 }
 
-void TocabiGui::restoreSettings(const qt_gui_cpp::Settings &plugin_settings, const qt_gui_cpp::Settings &instance_settings)
-{
-}
-
+void TocabiGui::restoreSettings(const qt_gui_cpp::SettstackedWidget
 void TocabiGui::torqueoncb()
 {
     com_msg.data = std::string("torqueon");
@@ -346,7 +347,10 @@ void TocabiGui::mtunebtn()
 {
     ui_.stackedWidget->setCurrentIndex(3);
 }
-
+void TocabiGui::walkingbtn()
+{
+    ui_.stackedWidget->setCurrentIndex(4);
+}
 /*
 void TocabiGui::guiLogCallback(const std_msgs::StringConstPtr &msg)
 {
@@ -596,6 +600,11 @@ void TocabiGui::armsendcb()
     ui_.text_r_roll->setText(QString::number(0.0, 'f', 1));
     ui_.text_r_pitch->setText(QString::number(0.0, 'f', 1));
     ui_.text_r_yaw->setText(QString::number(0.0, 'f', 1));
+}
+
+void TocabiGui::walkingspeedcb(int value)
+{
+    
 }
 
 void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)

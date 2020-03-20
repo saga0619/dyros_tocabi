@@ -110,6 +110,8 @@ protected slots:
     virtual void ftcalibbtn();
     virtual void comsendcb();
     virtual void armsendcb();
+    virtual void walkingspeedcb(int value);
+
 
 private:
     //ROS_DEPRECATED virtual QList<QString>

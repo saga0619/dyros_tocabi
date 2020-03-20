@@ -595,7 +595,6 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
 
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
-
         link_[i].COM_Jac_Update(model_, q_virtual_);
     }
     //COM link information update ::
@@ -700,7 +699,7 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     link_[COM_id].Jac_COM_p = jacobian_com;
 
     link_[COM_id].xpos = com_.pos;
-    link_[COM_id].xpos(2) = link_[Pelvis].xpos(2);
+    // link_[COM_id].xpos(2) = link_[Pelvis].xpos(2);
     link_[COM_id].Rotm = link_[Pelvis].Rotm;
 
     for (int i = 0; i < LINK_NUMBER + 1; i++)

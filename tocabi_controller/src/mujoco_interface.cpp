@@ -179,6 +179,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         }
         q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
     }
+    
     for (int i = 0; i < msg->sensor.size(); i++)
     {
         if (msg->sensor[i].name == "Gyro_Pelvis_IMU")

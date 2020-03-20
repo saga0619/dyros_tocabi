@@ -280,6 +280,7 @@ static Eigen::Matrix3d rotateWithX(double roll_angle)
 
 static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
 {
+  //Rot = R_z(angle(2))*R_y(angle(1))*R_x(angle(0))
   double beta;
   Eigen::Vector3d angle;
   beta = -asin(Rot(2, 0));
@@ -287,11 +288,11 @@ static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
   if (abs(beta) < 90 * DEG2RAD)
     beta = beta;
   else
-    beta = 180 * DEG2RAD - beta;
+    beta = M_PI - beta;
 
   angle(0) = atan2(Rot(2, 1), Rot(2, 2) + 1E-37); //roll
-  angle(2) = atan2(Rot(1, 0), Rot(0, 0) + 1E-37); //pitch
-  angle(1) = beta;                                //yaw
+  angle(2) = atan2(Rot(1, 0), Rot(0, 0) + 1E-37); //yaw
+  angle(1) = beta;                                //pitch
 
   return angle;
 }

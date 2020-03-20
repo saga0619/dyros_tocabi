@@ -1,9 +1,10 @@
 <mujoco model="dyros_tocabi_description">
     <compiler angle="radian" meshdir="../meshes/" balanceinertia="true"/>
     <size njmax="500" nconmax="100" />
+    <!-- <option gravity= "0 0 0"/> -->
 
    <default>
-        <joint damping="4.0" frictionloss="1.0"/>
+        <joint damping="5.0" frictionloss="1.0"/>
         <motor ctrllimited="true" ctrlrange="-300 300"/>
         <default class="viz">
             <geom contype="0" conaffinity="0" group="1" type="mesh" rgba=".6 .6 .7 1"/>
@@ -73,7 +74,7 @@
     </asset>
 
     <worldbody>
-        <geom name="ground" type="plane" pos="0 0 0" size="10 10 .05" rgba="0.7 0.6 0.5 1" material="MatPlane2" group="3"/>
+        <geom name="ground" type="plane" pos="0 0 0" size="10 10 .05" rgba="0.7 0.6 0.5 1" material="MatPlane2" group="3" friction = "0.8 0.01 0.01"/>
         <light directional="true" diffuse=".8 .8 .8" pos="0 0 10" dir="0 0 -10"/>
         <light directional="true" diffuse=".5 .5 .5" pos="10 0 0" dir="-10 0 0"/>
 
@@ -384,13 +385,15 @@
         <frameangvel name="Pelvis_angular_vel" objtype="site" objname="Pelvis_IMU"/>
     </sensor>
 
+
     <keyframe>
         <!--Initial Position Setting -->
-        <key name="front" time="0" qpos ="0 0 0.94783 1 0 0 0 
-								0 0 -0.24 0.6 -0.36 0 
-								0 0 -0.24 0.6 -0.36 0 
+        <key name="front" time="0" qpos ="0 0 1 1 0 0 0 
+								0 0 0.02 0.1 -0.12 0 
+								0 0 0.02 0.1 -0.12 0 
 								0 0 0 0 0
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
 								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>
-    </keyframe>    
+    </keyframe>
+
 </mujoco>
