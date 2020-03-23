@@ -301,6 +301,9 @@ public:
   bool task_force_control_feedback;
   bool zmp_control;
   bool mpc_init;
+
+  
+  RigidBodyDynamics::Model model_virtual;
 };
 
 std::ostream &

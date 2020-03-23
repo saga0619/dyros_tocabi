@@ -40,14 +40,14 @@ void WholebodyController::init(RobotData &Robot)
         urdf_path = desc_package_path + "/dyros_tocabi.urdf";
     }
 
-    RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_virtual, true, verbose);
+    RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &(Robot.model_virtual), true, verbose);
 
 }
 
 void WholebodyController::CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix)
 {
     A_matrix.setZero(MODEL_DOF_VIRTUAL,MODEL_DOF_VIRTUAL);
-    RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_virtual, Robot.q_virtual_, A_matrix, true);
+    RigidBodyDynamics::CompositeRigidBodyAlgorithm(Robot.model_virtual, Robot.q_virtual_, A_matrix, true);
 }
 
 void WholebodyController::update(RobotData &Robot)
