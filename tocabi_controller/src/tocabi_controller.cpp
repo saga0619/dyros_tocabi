@@ -2532,10 +2532,10 @@ void TocabiController::setWalkingParameter(double walking_duration, double walki
 void TocabiController::initWalkingParameter()
 {
     walking_mode_on_ = true;
-    stop_vel_threshold_ =  0.12;
+    stop_vel_threshold_ =  0.10;
     walking_duration_ = 0.6;
     walking_speed_ = 0.2;
-    step_width_ = 0.10;
+    step_width_ = 0.090;
     knee_target_angle_ = 0.1;                               //4.5degree
     // knee_target_angle_ = M_PI/40;                               //4.5degree
     yaw_angular_vel_ = 1;                                       //   rad/s
@@ -2546,7 +2546,7 @@ void TocabiController::initWalkingParameter()
     first_step_trigger_ = false;
     foot_swing_trigger_ = false;
     stop_walking_trigger_ = false;
-    foot_contact_ = 1;
+    foot_contact_ = -1;
     jac_com_.setZero(6, MODEL_DOF_VIRTUAL);
     jac_com_pos_.setZero(3, MODEL_DOF_VIRTUAL);
     jac_rhand_.setZero(6, MODEL_DOF_VIRTUAL);
@@ -2577,7 +2577,7 @@ void TocabiController::getRobotData(Wholebody_controller &wc)
 
     current_q_ = tocabi_.q_;
     current_q_dot_ = tocabi_.q_dot_;
-
+    current_q_ddot_ = tocabi_.q_ddot_virtual_.segment(6, MODEL_DOF);
     pelv_pos_current_ = tocabi_.link_[Pelvis].xpos;
     pelv_vel_current_ = tocabi_.link_[Pelvis].v;
     pelv_rot_current_ = tocabi_.link_[Pelvis].Rotm;
@@ -2647,7 +2647,7 @@ void TocabiController::walkingStateManager()
     {
         if(walking_speed_ == 0)
         {
-            //처음 시작
+            //first step start
             if(foot_swing_trigger_ == false)
             {
                 if(first_step_flag_ == true)
@@ -2662,6 +2662,7 @@ void TocabiController::walkingStateManager()
                     }
                     else
                     {
+                        stop_walking_trigger_ == false;
                         foot_swing_trigger_ = false;
                         first_step_flag_ = true;
                         first_step_trigger_ = false;
@@ -2676,7 +2677,7 @@ void TocabiController::walkingStateManager()
             {
                 // if( checkZMPinWhichFoot(zmp_measured_) == true )
                 if( (com_pos_current_(0) - support_foot_transform_current_.translation()(0) )/(walking_speed_*walking_duration_)> 0.2 
-                || (com_vel_current_(0)/(walking_speed_ + 1e-2) > 0.4))
+                || (com_vel_current_(0)/(walking_speed_ + 1e-3) > 0.3))
                 {
                     first_step_trigger_ = true;
                     foot_swing_trigger_ = true;
@@ -2697,10 +2698,11 @@ void TocabiController::walkingStateManager()
                     phi_swing_ankle = -DyrosMath::getPhi(rfoot_transform_current_from_global_.linear(), swing_foot_rot_trajectory_from_global_);
 
                     if( (walking_phase_ > 0.5) && (-r_ft_(2) > tocabi_.com_.mass*GRAVITY/2) 
-                    && (abs(phi_swing_ankle.norm())<0.01) && (r_ft_.segment(3,2).norm() < 5) )
+                    && (abs(phi_swing_ankle.norm())<0.03) && (r_ft_.segment(3,2).norm() < 20) )
                     {
-                        // start_time_ = current_time_ - walking_duration_; //make walking_phase_ 1
-                        // walking_phase_ =1;
+                        start_time_ = current_time_ - walking_duration_; //make walking_phase_ 1
+                        walking_phase_ =1;
+                        cout<<" ################ Early Step Change Occured! #########################"<<endl;
                     }
                 }
                 else if(foot_contact_ == -1)
@@ -2709,10 +2711,11 @@ void TocabiController::walkingStateManager()
                     phi_swing_ankle = -DyrosMath::getPhi(lfoot_transform_current_from_global_.linear(), swing_foot_rot_trajectory_from_global_);
 
                     if( (walking_phase_ > 0.5) && (-l_ft_(2) > tocabi_.com_.mass*GRAVITY/2) 
-                    && (abs(phi_swing_ankle.norm())<0.01) && (r_ft_.segment(3,2).norm() < 5) )
+                    && (abs(phi_swing_ankle.norm())<0.03) && (r_ft_.segment(3,2).norm() < 20) )
                     {
-                        // start_time_ = current_time_ - walking_duration_; //make walking_phase_ 1
-                        // walking_phase_ =1;
+                        start_time_ = current_time_ - walking_duration_; //make walking_phase_ 1
+                        walking_phase_ =1;
+                        cout<<" ################ Early Step Change Occured! #########################"<<endl;
                     }
                 }
             }
@@ -2771,13 +2774,8 @@ bool TocabiController::balanceTrigger(Eigen::Vector2d com_pos_2d, Eigen::Vector2
     double omega;
     omega = sqrt(GRAVITY/(com_pos_current_(2) - support_foot_transform_current_.translation()(2)));
     capture_point_2d = com_pos_2d + com_vel_2d/omega;
-    middle_point_of_foot_2d = lfoot_transform_current_from_global_.translation().segment(0, 2) + rfoot_transform_current_from_global_.translation().segment(0, 2);
+    middle_point_of_foot_2d = middle_of_both_foot_.segment(0, 2);
 
-    if( true)
-    {
-        cout<<"capture_point_2d: "<<capture_point_2d<<endl;
-        cout<<"middle_point_of_foot_2d: "<<middle_point_of_foot_2d<<endl;
-    }
     
 
     // if(capture_point_2d.norm() > stop_vel_threshold_)
@@ -2785,19 +2783,24 @@ bool TocabiController::balanceTrigger(Eigen::Vector2d com_pos_2d, Eigen::Vector2
     //     trigger = true;
     //     cout<<"balance swing foot control activated"<<endl;
     // }
-    if( (capture_point_2d(0)>middle_point_of_foot_2d(0) + stop_vel_threshold_)||(capture_point_2d(0)<middle_point_of_foot_2d(0) - stop_vel_threshold_) )
-    {
-        trigger = true;
-        cout<<"Catpure point in X axis is over the safety boundary! balance swing foot control activated"<<endl;
-    }
+    // if( (capture_point_2d(0)>middle_point_of_foot_2d(0) + stop_vel_threshold_)||(capture_point_2d(0)<middle_point_of_foot_2d(0) - stop_vel_threshold_) )
+    // {
+    //     trigger = true;
+    //     cout<<"Catpure point in X axis is over the safety boundary! balance swing foot control activated"<<endl;
+    // }
     
 
-    if( (capture_point_2d(1)>lfoot_transform_current_from_global_.translation()(1))|| (capture_point_2d(1)<rfoot_transform_current_from_global_.translation()(1)) ) 
+    // if( (capture_point_2d(1)>lfoot_transform_current_from_global_.translation()(1) + 0.05)|| (capture_point_2d(1)<rfoot_transform_current_from_global_.translation()(1) - 0.05) ) 
+    // {
+    //     trigger = true;
+    //     cout<<"Catpure point in Y axis is over the safety boundary! balance swing foot control activated"<<endl;
+    // }
+
+    if( com_vel_2d.norm() > stop_vel_threshold_)
     {
         trigger = true;
-        cout<<"Catpure point in Y axis is over the safety boundary! balance swing foot control activated"<<endl;
+        cout<<"com vel is over the limit ("<< com_vel_2d.norm()<<")"<<endl;
     }
-
     
 
     return trigger;
@@ -3011,9 +3014,9 @@ void TocabiController::motionGenerator()
         }
         else
         {
-            swing_foot_pos_trajectory_from_global_(2) = DyrosMath::QuinticSpline(walking_phase_, 0.5, 1, support_foot_transform_current_.translation()(2)+swing_foot_height_, 0, 0, support_foot_transform_current_.translation()(2)-0.000, 0, 0)(0);
-            swing_foot_vel_trajectory_from_global_(2) = DyrosMath::QuinticSpline(walking_phase_, 0.5, 1, support_foot_transform_current_.translation()(2)+swing_foot_height_, 0, 0, support_foot_transform_current_.translation()(2)-0.000, 0, 0)(1); 
-            swing_foot_acc_trajectory_from_global_(2) = DyrosMath::QuinticSpline(walking_phase_, 0.5, 1, support_foot_transform_current_.translation()(2)+swing_foot_height_, 0, 0, support_foot_transform_current_.translation()(2)-0.000, 0, 0)(2); 
+            swing_foot_pos_trajectory_from_global_(2) = DyrosMath::QuinticSpline(walking_phase_, 0.5, 1, support_foot_transform_current_.translation()(2)+swing_foot_height_, 0, 0, support_foot_transform_current_.translation()(2)+0.000, 0, 0)(0);
+            swing_foot_vel_trajectory_from_global_(2) = DyrosMath::QuinticSpline(walking_phase_, 0.5, 1, support_foot_transform_current_.translation()(2)+swing_foot_height_, 0, 0, support_foot_transform_current_.translation()(2)+0.000, 0, 0)(1); 
+            swing_foot_acc_trajectory_from_global_(2) = DyrosMath::QuinticSpline(walking_phase_, 0.5, 1, support_foot_transform_current_.translation()(2)+swing_foot_height_, 0, 0, support_foot_transform_current_.translation()(2)+0.000, 0, 0)(2); 
         }
         
         double current_swing_foot_height_from_ground = swing_foot_transform_current_.translation()(2) - support_foot_transform_current_.translation()(2);
@@ -3037,7 +3040,7 @@ void TocabiController::getCOMTrajectory()
     com_vel_desired_(2) = com_vel_current_(2);
     com_acc_desired_.setZero();
 
-    if( (foot_swing_trigger_ == true) || (walking_speed_ != 0)) // when the robot want to move
+    if( (walking_speed_ != 0)) // when the robot want to move
     {
 
         // com_vel_desired_(0) = walking_speed_;
@@ -3064,7 +3067,9 @@ void TocabiController::getCOMTrajectory()
         else
         {
             com_vel_desired_(0) = walking_speed_;
-            com_pos_desired_(0) = com_pos_current_(0);   
+            // com_pos_desired_(0) = com_pos_current_(0);  
+            com_pos_desired_(0) = com_pos_current_(0) + com_vel_desired_(0)*dt_;
+ 
 
             desired_step_position_in_y = - (step_width_)*foot_contact_ ;
             double target_com_y_speed = ( support_foot_transform_init_.translation()(1)+desired_step_position_in_y-com_pos_init_(1) )/(walking_duration_);
@@ -3088,18 +3093,41 @@ void TocabiController::getCOMTrajectory()
     }
     else
     {
-        double traj_duraiton = 0.5;
+        if((foot_swing_trigger_ == true))
+        {
+            double traj_duraiton = 3.0;
 
-        com_pos_desired_(0) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(0), 0, 0, (middle_of_both_foot_)(0), 0, 0)(0);
-        com_vel_desired_(0) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(0), 0, 0, (middle_of_both_foot_)(0), 0, 0)(1);
-        // com_pos_desired_(0) = com_pos_init_(0);
-        // com_vel_desired_(0) = 0;
-        // com_pos_desired_(0) = middle_of_both_foot_(0);
- 
-        // com_pos_desired_(1) = DyrosMath::QuinticSpline(current_time_, start_time_, start_time_+5, (com_pos_init_)(1), 0, 0, lfoot_transform_current_from_global_.translation()(1), 0, 0)(0);
-        // com_vel_desired_(1) = DyrosMath::QuinticSpline(current_time_, start_time_, start_time_+5, (com_pos_init_)(1), 0, 0, lfoot_transform_current_from_global_.translation()(1), 0, 0)(1);
-        com_pos_desired_(1) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(1), 0, 0, (middle_of_both_foot_)(1), 0, 0)(0);
-        com_vel_desired_(1) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(1), 0, 0, (middle_of_both_foot_)(1), 0, 0)(1);
+            // com_pos_desired_(0) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(0), 0, 0, (middle_of_both_foot_)(0), 0, 0)(0);
+            // com_vel_desired_(0) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(0), 0, 0, (middle_of_both_foot_)(0), 0, 0)(1);
+            com_pos_desired_(0) = com_pos_current_(0);
+            com_vel_desired_(0) = 0;
+            // com_pos_desired_(0) = middle_of_both_foot_(0);
+    
+            desired_step_position_in_y = - (step_width_)*foot_contact_ ;
+            double target_com_y_speed = ( support_foot_transform_init_.translation()(1)+desired_step_position_in_y-com_pos_init_(1) )/(walking_duration_);
+
+            // com_vel_desired_(1) = 0;
+            // com_pos_desired_(1) = com_pos_current_(1);
+            // com_vel_desired_(1) = DyrosMath::cubic(walking_phase_, 0, 5*switching_phase_duration_, 0, target_com_y_speed, 0, 0);
+            com_vel_desired_(1) = target_com_y_speed;
+            com_pos_desired_(1) = support_foot_transform_current_.translation()(1) + (1-walking_phase_)*( com_pos_init_(1) - support_foot_transform_init_.translation()(1) ) + walking_phase_*(desired_step_position_in_y );        
+        }
+        else
+        {     
+            double traj_duraiton = 0.5;
+
+            com_pos_desired_(0) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(0), 0, 0, (middle_of_both_foot_)(0), 0, 0)(0);
+            com_vel_desired_(0) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(0), 0, 0, (middle_of_both_foot_)(0), 0, 0)(1);
+            // com_pos_desired_(0) = com_pos_init_(0);
+            // com_vel_desired_(0) = 0;
+            // com_pos_desired_(0) = middle_of_both_foot_(0);
+    
+            // com_pos_desired_(1) = DyrosMath::QuinticSpline(current_time_, start_time_, start_time_+5, (com_pos_init_)(1), 0, 0, lfoot_transform_current_from_global_.translation()(1), 0, 0)(0);
+            // com_vel_desired_(1) = DyrosMath::QuinticSpline(current_time_, start_time_, start_time_+5, (com_pos_init_)(1), 0, 0, lfoot_transform_current_from_global_.translation()(1), 0, 0)(1);
+            com_pos_desired_(1) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(1), 0, 0, (middle_of_both_foot_)(1), 0, 0)(0);
+            com_vel_desired_(1) = DyrosMath::QuinticSpline(current_time_, stance_start_time_, stance_start_time_+traj_duraiton, (com_pos_init_)(1), 0, 0, (middle_of_both_foot_)(1), 0, 0)(1);    
+        }
+        
     }
 }
 
@@ -3129,6 +3157,11 @@ void TocabiController::getSwingFootXYTrajectory(double phase, Eigen::Vector3d co
             d_temp_y = sqrt(d_temp_y);
 
         d(1) = com_vel_current(1)*d_temp_y;
+
+        if(com_vel_current(0)*walking_speed_ < 0)
+        {
+            alpha_x = 0.2;
+        }
 
         d_prime(0) = d(0) - alpha_x*com_vel_desired(0);
         // d_prime(1) = d(1) - 0.06*step_width_/walking_duration_*foot_contact_;
@@ -3254,27 +3287,27 @@ void TocabiController::getSwingFootXYTrajectory(double phase, Eigen::Vector3d co
     // if( int(current_time_*10)%5 == 0 )
     if(true)
     {
-        cout<<"current_time_: "<<current_time_<<endl;
+        // cout<<"current_time_: "<<current_time_<<endl;
         // cout<<"stance_start_time_: "<<stance_start_time_<<endl;
-        cout<<"start_time_: "<<start_time_<<endl;
+        // cout<<"start_time_: "<<start_time_<<endl;
         // cout<<"tc.command_time: "<<tc.command_time<<endl;
-        cout<<"foot_contact_: "<<foot_contact_<<endl;
-        cout<<"walking_phase_: "<<walking_phase_<<endl;
-        cout<<"first_step_flag_: "<<first_step_flag_<<endl;
-        cout<<"first_step_trigger_: "<<first_step_trigger_<<endl;
-        cout<<"foot_swing_trigger_: "<<foot_swing_trigger_<<endl;
-        cout<<"stop_walking_trigger_: "<<stop_walking_trigger_<<endl;
+        // cout<<"foot_contact_: "<<foot_contact_<<endl;
+        // cout<<"walking_phase_: "<<walking_phase_<<endl;
+        // cout<<"first_step_flag_: "<<first_step_flag_<<endl;
+        // cout<<"first_step_trigger_: "<<first_step_trigger_<<endl;
+        // cout<<"foot_swing_trigger_: "<<foot_swing_trigger_<<endl;
+        // cout<<"stop_walking_trigger_: "<<stop_walking_trigger_<<endl;
         // cout<<"support_foot_transform_current_.translation()(2):"<< support_foot_transform_current_.translation()(2)<<endl;
-        cout<<"d_temp_y:"<< d_temp_y<<endl;
-        cout<<"d_prime:"<< d_prime<<endl;
-        cout<<"com_vel_desired_:"<< com_vel_desired<<endl;        
-        cout<<"com_pos_desired_:"<< com_pos_desired_<<endl;
-        cout<<"com_vel_current:"<< com_vel_current<<endl;
-        cout<<"com_pos_current_:"<< com_pos_current<<endl;
-        cout<<"com_pos_init_:"<< com_pos_init_<<endl;
-        cout<<"target_foot_landing_from_pelv_:"<< target_foot_landing_from_pelv_<<endl;
-        cout<<"swing_foot_pos_trajectory_from_global_:"<< swing_foot_pos_trajectory_from_global_<<endl;
-        cout<<"swing_foot_transform_current_.translation():"<< swing_foot_transform_current_.translation()<<endl;
+        // cout<<"d_temp_y:"<< d_temp_y<<endl;
+        // cout<<"d_prime:"<< d_prime<<endl;
+        // cout<<"com_vel_desired_:"<< com_vel_desired<<endl;        
+        // cout<<"com_pos_desired_:"<< com_pos_desired_<<endl;
+        // cout<<"com_vel_current:"<< com_vel_current<<endl;
+        // cout<<"com_pos_current_:"<< com_pos_current<<endl;
+        // cout<<"com_pos_init_:"<< com_pos_init_<<endl;
+        // cout<<"target_foot_landing_from_pelv_:"<< target_foot_landing_from_pelv_<<endl;
+        // cout<<"swing_foot_pos_trajectory_from_global_:"<< swing_foot_pos_trajectory_from_global_<<endl;
+        // cout<<"swing_foot_transform_current_.translation():"<< swing_foot_transform_current_.translation()<<endl;
     }
 }
 
@@ -3630,7 +3663,7 @@ Eigen::VectorQd TocabiController::comVelocityControlCompute2(Wholebody_controlle
     {
         // cout<<"pelv_rot_current_: \n"<<pelv_rot_current_<<endl;
         // cout<<"pelv_rpy_current_: \n"<<pelv_rpy_current_<<endl;
-        cout<<"f_star: \n"<<f_star<<endl;
+        // cout<<"f_star: \n"<<f_star<<endl;
         // cout<<"torque: \n"<<torque<<endl;
         // cout<<"torque_g: \n"<<torque_g<<endl;
         // cout<<"lfoot_task_torque_switch: \n"<<lfoot_task_torque_switch<<endl;
@@ -3693,8 +3726,8 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
     phi_pelv = -DyrosMath::getPhi(pelv_rot_current_yaw_aline_, Eigen::Matrix3d::Identity());
     ang_vel_pelv = pelv_yaw_rot_current_from_global_.transpose()*tocabi_.link_[Pelvis].w;
     
-    double kpa_pelv = 4900;  //angle error gain
-    double kva_pelv = 140;   //angular velocity gain
+    double kpa_pelv = 10000;  //angle error gain
+    double kva_pelv = 200;   //angular velocity gain
     torque_pelv = kpa_pelv*phi_pelv - kva_pelv*ang_vel_pelv;
     Vector3d axis;
     double angle;
@@ -3764,8 +3797,8 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
     kv_joint(12) = 14;
     kp_joint(13) = 50;
     kv_joint(13) = 14;
-    kp_joint(14) = 16;
-    kv_joint(14) = 8;
+    kp_joint(14) = 50;
+    kv_joint(14) = 14;
 
     for(int i = 0; i<2; i++)      //Head Joint Gains
     {
@@ -3776,13 +3809,13 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
     //stiff
     kp_stiff_joint(0) = 900;   //R hip yaw joint gain
     kv_stiff_joint(0) = 60;
-    kp_stiff_joint(1) = 1600;   //L hip roll joint gain
-    kv_stiff_joint(1) = 80;
-    kp_stiff_joint(2) = 1600;   //L hip pitch joint gain
-    kv_stiff_joint(2) = 80;
+    kp_stiff_joint(1) = 2500;   //L hip roll joint gain
+    kv_stiff_joint(1) = 100;
+    kp_stiff_joint(2) = 2500;   //L hip pitch joint gain
+    kv_stiff_joint(2) = 100;
 
-    kp_stiff_joint(3) = 1600;   //L knee joint gain
-    kv_stiff_joint(3) = 80;
+    kp_stiff_joint(3) = 2500;   //L knee joint gain
+    kv_stiff_joint(3) = 100;
 
     kp_stiff_joint(4) = 900;    //L ankle pitch joint gain
     kv_stiff_joint(4) = 60;
@@ -3791,45 +3824,50 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
 
     kp_stiff_joint(6) = 900;   //R hip yaw joint gain
     kv_stiff_joint(6) = 60;
-    kp_stiff_joint(7) = 1600;   //R hip roll joint gain
-    kv_stiff_joint(7) = 80;
-    kp_stiff_joint(8) = 1600;   //R hip pitch joint gain
-    kv_stiff_joint(8) = 80;
+    kp_stiff_joint(7) = 2500;   //R hip roll joint gain
+    kv_stiff_joint(7) = 100;
+    kp_stiff_joint(8) = 2500;   //R hip pitch joint gain
+    kv_stiff_joint(8) = 100;
 
-    kp_stiff_joint(9) = 1600;   //R knee joint gain
-    kv_stiff_joint(9) = 80;
+    kp_stiff_joint(9) = 2500;   //R knee joint gain
+    kv_stiff_joint(9) = 100;
 
     kp_stiff_joint(10) = 900;   //R ankle pitch joint gain
     kv_stiff_joint(10) = 60;
     kp_stiff_joint(11) = 900;   //R ankle roll joint gain
     kv_stiff_joint(11) = 60;
 
+
     //soft
     kp_soft_joint(0) = 900;     //L hip yaw joint gain
     kv_soft_joint(0) = 60;
-    kp_soft_joint(1) = 600;     //L hip roll joint gain
-    kv_soft_joint(1) = 50;
-    kp_soft_joint(2) = 600;     //L hip pitch joint gain
-    kv_soft_joint(2) = 50;
-    kp_soft_joint(3) = 600;     //L knee joint gain
-    kv_soft_joint(3) = 50;
-    kp_soft_joint(4) = 400;     //L knee joint gain
-    kv_soft_joint(4) = 40;
-    kp_soft_joint(5) = 400;     //L knee joint gain
-    kv_soft_joint(5) = 40;
+    kp_soft_joint(1) = 400;     //L hip roll joint gain
+    kv_soft_joint(1) = 40;
+    kp_soft_joint(2) = 400;     //L hip pitch joint gain
+    kv_soft_joint(2) = 40;
+
+    kp_soft_joint(3) = 400;     //L knee joint gain
+    kv_soft_joint(3) = 40;
+
+    kp_soft_joint(4) = 64;     //L ankle pitch joint gain
+    kv_soft_joint(4) = 16;
+    kp_soft_joint(5) = 64;     //L ankle roll joint gain
+    kv_soft_joint(5) = 16;
     
-    kp_soft_joint(6) = 400;     //R hip yaw joint gain
-    kv_soft_joint(6) = 20;
-    kp_soft_joint(7) = 600;     //R hip roll joint gain
-    kv_soft_joint(7) = 50;
-    kp_soft_joint(8) = 600;     //R hip pitch joint gain
-    kv_soft_joint(8) = 50;
-    kp_soft_joint(9) = 600;     //R knee joint gain
-    kv_soft_joint(9) = 50;
-    kp_soft_joint(10) = 400;    //R ankle pitch joint gain
-    kv_soft_joint(10) = 40;
-    kp_soft_joint(11) = 400;    //R ankle roll joint gain
-    kv_soft_joint(11) = 40;
+    kp_soft_joint(6) = 900;     //R hip yaw joint gain
+    kv_soft_joint(6) = 60;
+    kp_soft_joint(7) = 400;     //R hip roll joint gain
+    kv_soft_joint(7) = 40;
+    kp_soft_joint(8) = 400;     //R hip pitch joint gain
+    kv_soft_joint(8) = 40;
+
+    kp_soft_joint(9) = 400;     //R knee joint gain
+    kv_soft_joint(9) = 40;
+
+    kp_soft_joint(10) = 64;    //R ankle pitch joint gain
+    kv_soft_joint(10) = 16;
+    kp_soft_joint(11) = 64;    //R ankle roll joint gain
+    kv_soft_joint(11) = 16;
 
     for(int i = 0; i<12; i++)      //Leg
     {
@@ -3847,9 +3885,9 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             lleg_transform_from_global.translation() = swing_foot_pos_trajectory_from_global_;
             lleg_transform_from_global.linear() = swing_foot_rot_trajectory_from_global_;
             
-            rleg_transform_from_global.translation()(0) = DyrosMath::QuinticSpline(walking_phase_, 0, support_transition_phase, support_foot_transform_init_.translation()(0), 0, 0, rleg_transform_target.translation()(0), 0, 0)(0);
-            rleg_transform_from_global.translation()(1) = DyrosMath::QuinticSpline(walking_phase_, 0, support_transition_phase, support_foot_transform_init_.translation()(1), 0, 0, rleg_transform_target.translation()(1), 0, 0)(0);
-            rleg_transform_from_global.translation()(2) = DyrosMath::QuinticSpline(walking_phase_, 0, support_transition_phase, support_foot_transform_init_.translation()(2), 0, 0, rleg_transform_target.translation()(2), 0, 0)(0);
+            rleg_transform_from_global.translation()(0) = DyrosMath::QuinticSpline(walking_phase_, 0, switching_phase_duration_, support_foot_transform_init_.translation()(0), 0, 0, rleg_transform_target.translation()(0), 0, 0)(0);
+            rleg_transform_from_global.translation()(1) = DyrosMath::QuinticSpline(walking_phase_, 0, switching_phase_duration_, support_foot_transform_init_.translation()(1), 0, 0, rleg_transform_target.translation()(1), 0, 0)(0);
+            rleg_transform_from_global.translation()(2) = DyrosMath::QuinticSpline(walking_phase_, 0, switching_phase_duration_, support_foot_transform_init_.translation()(2), 0, 0, rleg_transform_target.translation()(2), 0, 0)(0);
 
             rleg_transform_from_global.linear() = rleg_transform_target.linear();
             // rleg_transform_from_global = rleg_transform_target;
@@ -3879,10 +3917,18 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             phi_swing_ankle = -DyrosMath::getPhi(tocabi_.link_[Left_Foot].Rotm, pelv_yaw_rot_current_from_global_);
             // phi_trunk = -DyrosMath::getPhi(pelv_rot_current_yaw_aline_, Eigen::Matrix3d::Identity());
 
-            desired_q_dot_(4) = 100*phi_swing_ankle(1); //swing ankle pitch
-            desired_q_dot_(5) = 100*phi_swing_ankle(0); //swing ankle roll           
+            desired_q_dot_(4) = 200*phi_swing_ankle(1); //swing ankle pitch
+            desired_q_dot_(5) = 200*phi_swing_ankle(0); //swing ankle roll           
             desired_q_(4) = current_q_(4) + desired_q_dot_(4)*dt_;
             desired_q_(5) = current_q_(5) + desired_q_dot_(5)*dt_;
+
+            Vector3d phi_support_ankle;
+            phi_support_ankle = -DyrosMath::getPhi(tocabi_.link_[Right_Foot].Rotm, pelv_yaw_rot_current_from_global_);
+            
+            desired_q_dot_(10) = 200*phi_support_ankle(1);
+            desired_q_dot_(11) = 200*phi_support_ankle(0);
+            desired_q_(10) = current_q_(10) + desired_q_dot_(10)*dt_;
+            desired_q_(11) = current_q_(11) + desired_q_dot_(11)*dt_;
 
             // low pass filter for suppport foot target position
             desired_q_(6) = 0.5*motion_q_(6) + 0.5*pre_desired_q_(6); //right support foot hip yaw
@@ -3893,14 +3939,21 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             // desired_q_(11) = 0.5*desired_q_leg(11) + 0.5*pre_desired_q_(11); //right support foot anlke roll
             // desired_q_(10) = 0.3*motion_q_(10) + 0.7*pre_desired_q_(10); //right support foot ankle pitc
             // desired_q_(11) = 0.3*motion_q_(11) + 0.7*pre_desired_q_(11); //right support foot anlke roll            
-            desired_q_(10) = desired_q_leg(10) ;
-            desired_q_(11) = desired_q_leg(11) ;
+            // desired_q_(10) = desired_q_leg(10) ;
+            // desired_q_(11) = desired_q_leg(11) ;
 
-            // for(int i = 1; i<6; i++)
-            // {
-            //     kp_joint(i) = DyrosMath::cubic(walking_phase_, 0.8, 1, kp_stiff_joint(i), kp_soft_joint(i), 0, 0); //swing foot
-            //     kp_joint(i+6) = DyrosMath::cubic(walking_phase_, 0, 0.1, kp_soft_joint(i+6), kp_stiff_joint(i+6), 0, 0); //support foot
-            // }
+            for(int i = 1; i<6; i++)
+            {
+                if(kp_joint(i+6) == kp_soft_joint(i+6))
+                {
+                    kp_joint(i+6) = DyrosMath::cubic(walking_phase_, 0, switching_phase_duration_, kp_soft_joint(i+6), kp_stiff_joint(i+6), 0, 0); //support foot
+                }
+
+                if(kp_joint(i) == kp_stiff_joint(i))
+                {
+                    kp_joint(i) = DyrosMath::cubic(walking_phase_, 0.9, 1, kp_stiff_joint(i), kp_soft_joint(i), 0, 0); //swing foot
+                }    
+            }
             // kp_joint(3) = DyrosMath::cubic(walking_phase_, 0.8, 1, 2000, 600, 0, 0); //swing foot knee
             // kv_joint(3) = DyrosMath::cubic(walking_phase_, 0.8, 1, 60, 50, 0, 0);    
 
@@ -3912,14 +3965,14 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             /////////////////Swing Assist Torque/////////////////////////////////////////
             // left foot swing height assist feed forward torque on hip roll, hip pitch, knee pitch
             Eigen::VectorXd f_star;
-            f_star.setZero(1);
-            f_star(0) = swing_foot_acc_trajectory_from_global_(2);
+            f_star.setZero(3);
+            f_star(2) = swing_foot_acc_trajectory_from_global_(2);
 
             
             // torque_swing_assist.segment(1, 3) = jac_lfoot_.block(2, 7, 1, 3).transpose()*swing_foot_acc_trajectory_from_global_(2); 
             // torque_swing_assist.segment(1, 3) = (jac_lfoot_.transpose()).block(7, 0, 3, 6)*tocabi_.lambda.block(0, 2, 6, 1)*swing_foot_acc_trajectory_from_global_(2); 
             
-            torque_swing_assist.segment(1, 3) = wc.task_control_torque(tocabi_, jac_lfoot_.block(2, 0, 1, MODEL_DOF_VIRTUAL), f_star).segment(1, 3);
+            torque_swing_assist.segment(1, 3) = wc.task_control_torque(tocabi_, jac_lfoot_.block(0, 0, 3, MODEL_DOF_VIRTUAL), f_star).segment(1, 3);
 
             /////////////////////////////////////////////////////////////////////////////
 
@@ -3965,9 +4018,9 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             rleg_transform_from_global.translation() = swing_foot_pos_trajectory_from_global_;
             rleg_transform_from_global.linear() = swing_foot_rot_trajectory_from_global_;
 
-            lleg_transform_from_global.translation()(0) = DyrosMath::QuinticSpline(walking_phase_, 0, support_transition_phase, support_foot_transform_init_.translation()(0), 0, 0, lleg_transform_target.translation()(0), 0, 0)(0);
-            lleg_transform_from_global.translation()(1) = DyrosMath::QuinticSpline(walking_phase_, 0, support_transition_phase, support_foot_transform_init_.translation()(1), 0, 0, lleg_transform_target.translation()(1), 0, 0)(0);
-            lleg_transform_from_global.translation()(2) = DyrosMath::QuinticSpline(walking_phase_, 0, support_transition_phase, support_foot_transform_init_.translation()(2), 0, 0, lleg_transform_target.translation()(2), 0, 0)(0);
+            lleg_transform_from_global.translation()(0) = DyrosMath::QuinticSpline(walking_phase_, 0, switching_phase_duration_, support_foot_transform_init_.translation()(0), 0, 0, lleg_transform_target.translation()(0), 0, 0)(0);
+            lleg_transform_from_global.translation()(1) = DyrosMath::QuinticSpline(walking_phase_, 0, switching_phase_duration_, support_foot_transform_init_.translation()(1), 0, 0, lleg_transform_target.translation()(1), 0, 0)(0);
+            lleg_transform_from_global.translation()(2) = DyrosMath::QuinticSpline(walking_phase_, 0, switching_phase_duration_, support_foot_transform_init_.translation()(2), 0, 0, lleg_transform_target.translation()(2), 0, 0)(0);
             
             lleg_transform_from_global.linear() = lleg_transform_target.linear();
             // lleg_transform_from_global = lleg_transform_target;
@@ -3999,11 +4052,19 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             phi_swing_ankle = -DyrosMath::getPhi(tocabi_.link_[Right_Foot].Rotm, pelv_yaw_rot_current_from_global_);
             // phi_trunk = -DyrosMath::getPhi(pelv_rot_current_yaw_aline_, Eigen::Matrix3d::Identity());
 
-            desired_q_dot_(10) = 100*phi_swing_ankle(1); //swing ankle pitch
-            desired_q_dot_(11) = 100*phi_swing_ankle(0); //swing ankle roll           
+            desired_q_dot_(10) = 200*phi_swing_ankle(1); //swing ankle pitch
+            desired_q_dot_(11) = 200*phi_swing_ankle(0); //swing ankle roll           
             desired_q_(10) = current_q_(10) + desired_q_dot_(10)*dt_;
             desired_q_(11) = current_q_(11) + desired_q_dot_(11)*dt_;
             
+            Vector3d phi_support_ankle;
+            phi_support_ankle = -DyrosMath::getPhi(tocabi_.link_[Left_Foot].Rotm, pelv_yaw_rot_current_from_global_);
+            
+            desired_q_dot_(4) = 200*phi_support_ankle(1);
+            desired_q_dot_(5) = 200*phi_support_ankle(0);
+            desired_q_(4) = current_q_(4) + desired_q_dot_(4)*dt_;
+            desired_q_(5) = current_q_(5) + desired_q_dot_(5)*dt_;
+
             desired_q_(0) = 0.5*motion_q_(0) + 0.5*pre_desired_q_(0); //left support foot hip yaw
             desired_q_(3) = DyrosMath::QuinticSpline(walking_phase_, 0.0, switching_phase_duration_, init_q_(3), 0, 0, motion_q_(3), 0, 0)(0);
             // desired_q_(3) = 0.5*motion_q_(3) + 0.5*pre_desired_q_(3); //left support foot knee
@@ -4012,14 +4073,21 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             // desired_q_(5) = 0.5*desired_q_leg(5) + 0.5*pre_desired_q_(5); //left support foot anlke roll
             // desired_q_(4) = 0.3*motion_q_(4) + 0.7*pre_desired_q_(4); //left support foot ankle pitch
             // desired_q_(5) = 0.3*motion_q_(5) + 0.7*pre_desired_q_(5); //left support foot anlke roll
-            desired_q_(4) = desired_q_leg(4) ;
-            desired_q_(5) = desired_q_leg(5) ;
+            // desired_q_(4) = desired_q_leg(4) ;
+            // desired_q_(5) = desired_q_leg(5) ;
 
-            // for(int i = 1; i<6; i++)
-            // {
-            //     kp_joint(i+6) = DyrosMath::cubic(walking_phase_, 0.8, 1, kp_stiff_joint(i+6), kp_soft_joint(i+6), 0, 0); //swing foot
-            //     kp_joint(i) = DyrosMath::cubic(walking_phase_, 0, 0.1, kp_soft_joint(i), kp_stiff_joint(i), 0, 0); //support foot
-            // }
+            for(int i = 1; i<6; i++)
+            {
+                if(kp_joint(i) == kp_soft_joint(i))
+                {
+                    kp_joint(i) = DyrosMath::cubic(walking_phase_, 0, switching_phase_duration_, kp_soft_joint(i), kp_stiff_joint(i), 0, 0); //support foot
+                }
+
+                if(kp_joint(i+6) == kp_stiff_joint(i+6))
+                {
+                    kp_joint(i+6) = DyrosMath::cubic(walking_phase_, 0.9, 1, kp_stiff_joint(i+6), kp_soft_joint(i+6), 0, 0); //swing foot
+                }    
+            }
             // kp_joint(9) = DyrosMath::cubic(walking_phase_, 0.8, 1, 2000, 600, 0, 0); //swing foot knee
             // kv_joint(9) = DyrosMath::cubic(walking_phase_, 0.8, 1, 60, 50, 0, 0);
 
@@ -4032,11 +4100,11 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
             /////////////////Swing Assist Torque/////////////////////////////////////////
             // right foot swing height assist feed forward torque on hip roll, hip pitch, knee pitch
             Eigen::VectorXd f_star;
-            f_star.setZero(1);
-            f_star(0) = swing_foot_acc_trajectory_from_global_(2);
+            f_star.setZero(3);
+            f_star(2) = swing_foot_acc_trajectory_from_global_(2);
 
 
-            torque_swing_assist.segment(7, 3) = wc.task_control_torque(tocabi_, jac_rfoot_.block(2, 0, 1, MODEL_DOF_VIRTUAL), f_star).segment(7, 3);
+            torque_swing_assist.segment(7, 3) = wc.task_control_torque(tocabi_, jac_rfoot_.block(0, 0, 3, MODEL_DOF_VIRTUAL), f_star).segment(7, 3);
 
             // torque_swing_assist.segment(7, 3) = (jac_lfoot_.transpose()).block(13, 0, 3, 6)*tocabi_.lambda.block(0, 2, 6, 1)*swing_foot_acc_trajectory_from_global_(2); 
             /////////////////////////////////////////////////////////////////////////////
@@ -4210,7 +4278,7 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
 
     desired_q_dot_(12) = 20*phi_trunk(2); //waist yaw
     desired_q_dot_(13) = 20*phi_trunk(1); //waist pitch
-    desired_q_dot_(14) = -20*phi_trunk(0); //waist roll
+    desired_q_dot_(14) = -40*phi_trunk(0); //waist roll
     
     desired_q_.segment(12, 3) = current_q_.segment(12, 3) + desired_q_dot_.segment(12, 3)*dt_;
 
@@ -4229,6 +4297,7 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
     //////////////////////////////////////////////////////////////////////////////////
     
     //////////////////////////////////MOTION CONTROL/////////////////////////////////////
+    // torque += stablePDControl(1000, 1000*dt_*16, current_q_, current_q_dot_, current_q_ddot_, desired_q_, desired_q_dot_);
     for(int i = 0; i< MODEL_DOF; i++)
     {
         torque(i) = kp_joint(i)*(desired_q_(i) - current_q_(i)) + kv_joint(i)*(desired_q_dot_(i) - current_q_dot_(i));
@@ -4239,7 +4308,7 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
     ////////////////////////////////SWING FOOT ASSIST TORQUE///////////////////////////
     for(int i=0; i<12; i++)
     {
-        // torque(i) += torque_swing_assist(i)*pd_control_mask_(i);
+        torque(i) += torque_swing_assist(i)*pd_control_mask_(i);
     }
     //////////////////////////////////////////////////////////////////////////////////
 
@@ -4260,8 +4329,8 @@ Eigen::VectorQd TocabiController::jointTrajectoryPDControlCompute(Wholebody_cont
         // cout<<"joint_pd_torque: \n"<<torque<<endl;
         // cout<<"torque_stance_hip: \n"<<torque_stance_hip<<endl;
         
-        cout<<"swing_foot_acc_trajectory_from_global_(2): \n"<<swing_foot_acc_trajectory_from_global_(2) <<endl;
-        cout<<"torque_swing_assist: \n"<<torque_swing_assist.segment(0, 12) <<endl;
+        // cout<<"swing_foot_acc_trajectory_from_global_(2): \n"<<swing_foot_acc_trajectory_from_global_(2) <<endl;
+        // cout<<"torque_swing_assist: \n"<<torque_swing_assist.segment(0, 12) <<endl;
     }
 
     // torque(4) = DyrosMath::minmax_cut(torque(4), -0.15*tocabi_.com_.mass*GRAVITY, +0.15*tocabi_.com_.mass*GRAVITY);
@@ -4368,11 +4437,11 @@ Eigen::VectorQd TocabiController::jointComTrackingTuning()
     desired_q_tune.setZero();
 
     //ankle
-    double kp_ank_sag = 0.00; //x direction ankle pitch gain for com position error
-    double kv_ank_sag = 0.00; //x direction ankle pitch gain for com velocity error
+    double kp_ank_sag = 0.1; //x direction ankle pitch gain for com position error
+    double kv_ank_sag = 0.1; //x direction ankle pitch gain for com velocity error
 
-    double kp_ank_cor = 0.00; //y direction ankle pitch gain for com position error
-    double kv_ank_cor = 0.00; //y direction ankle pitch gain for com velocity error
+    double kp_ank_cor = 0.1; //y direction ankle pitch gain for com position error
+    double kv_ank_cor = 0.1; //y direction ankle pitch gain for com velocity error
 
     //hip
     double kp_hip_sag = 0;//0.01; //x direction ankle pitch gain for com position error
@@ -4468,8 +4537,8 @@ void TocabiController::computeIk(Eigen::Isometry3d float_trunk_transform, Eigen:
             // R_r(2) *= mapping_xy;
 
             R_C = L_max;
-            cout<<"swing xy projection gain: "<<mapping_xy<<endl;
-            cout<<"swing xy projection point: "<<R_r<<endl;
+            // cout<<"swing xy projection gain: "<<mapping_xy<<endl;
+            // cout<<"swing xy projection point: "<<R_r<<endl;
         }
     }
     else if(foot_contact_ == -1)
@@ -4483,8 +4552,8 @@ void TocabiController::computeIk(Eigen::Isometry3d float_trunk_transform, Eigen:
             // L_r(2) *= mapping_xy;
             
             L_C = L_max;
-            cout<<"swing xy projection gain: "<<mapping_xy<<endl;
-            cout<<"swing xy projection point: "<<L_r<<endl;
+            // cout<<"swing xy projection gain: "<<mapping_xy<<endl;
+            // cout<<"swing xy projection point: "<<L_r<<endl;
         }
     }
   }
@@ -4757,18 +4826,36 @@ Eigen::VectorQd TocabiController::tuneTorqueForZMPSafety(Eigen::VectorQd task_to
 
     if((left_ankle_pitch_tune*left_ankle_roll_tune*right_ankle_pitch_tune*right_ankle_roll_tune) != 1)
     {
-        if( true )
-        {
-            cout<<"############### ankle torque tuning! ###############"<<endl;
-            cout<<"########left_ankle_pitch_tune:"<<left_ankle_pitch_tune<< "############"<<endl;
-            cout<<"########left_ankle_roll_tune:"<<left_ankle_roll_tune<< "############"<<endl;
-            cout<<"########right_ankle_pitch_tune:"<<right_ankle_pitch_tune<< "############"<<endl;
-            cout<<"########right_ankle_roll_tune:"<<right_ankle_roll_tune<< "############"<<endl;
-            cout<<"############### ankle torque tuning! ###############"<<endl;
-        }
+        // if( true )
+        // {
+        //     cout<<"############### ankle torque tuning! ###############"<<endl;
+        //     cout<<"########left_ankle_pitch_tune:"<<left_ankle_pitch_tune<< "############"<<endl;
+        //     cout<<"########left_ankle_roll_tune:"<<left_ankle_roll_tune<< "############"<<endl;
+        //     cout<<"########right_ankle_pitch_tune:"<<right_ankle_pitch_tune<< "############"<<endl;
+        //     cout<<"########right_ankle_roll_tune:"<<right_ankle_roll_tune<< "############"<<endl;
+        //     cout<<"############### ankle torque tuning! ###############"<<endl;
+        // }
     } 
 
     return task_torque;
+}
+
+Eigen::VectorQd TocabiController::stablePDControl(double kp, double kd, Eigen::VectorQd current_q, Eigen::VectorQd current_q_dot, Eigen::VectorQd estimated_q_ddot, Eigen::VectorQd desired_q_next_step, Eigen::VectorQd desired_q_dot_next_step) // without velocity reference
+{
+    Eigen::VectorQd torque;
+
+    torque = kp*(desired_q_next_step - current_q - current_q_dot*dt_) + kd*(desired_q_dot_next_step -current_q_dot - estimated_q_ddot*dt_);
+
+    return torque;
+}
+
+Eigen::VectorQd TocabiController::stablePDControl(double kp, double kd, Eigen::VectorQd current_q, Eigen::VectorQd current_q_dot, Eigen::VectorQd estimated_q_ddot, Eigen::VectorQd desired_q_next_step) // without velocity reference
+{
+    Eigen::VectorQd torque;
+
+    torque = kp*(desired_q_next_step - current_q - current_q_dot*dt_) + kd*( -current_q_dot - estimated_q_ddot*dt_);
+    
+    return torque;
 }
 
 void TocabiController::savePreData()

@@ -74,7 +74,7 @@
     </asset>
 
     <worldbody>
-        <geom name="ground" type="plane" pos="0 0 0" size="10 10 .05" rgba="0.7 0.6 0.5 1" material="MatPlane2" group="3" friction = "0.8 0.01 0.01"/>
+        <geom name="ground" type="plane" pos="0 0 0" size="100 100 .05" rgba="0.7 0.6 0.5 1" material="MatPlane2" group="3" friction = "0.8 0.01 0.01"/>
         <light directional="true" diffuse=".8 .8 .8" pos="0 0 10" dir="0 0 -10"/>
         <light directional="true" diffuse=".5 .5 .5" pos="10 0 0" dir="-10 0 0"/>
 

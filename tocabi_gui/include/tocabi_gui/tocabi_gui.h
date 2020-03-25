@@ -104,6 +104,7 @@ protected slots:
     virtual void mtunebtn();
     virtual void sendtunebtn();
     virtual void resettunebtn();
+    virtual void walkingbtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
     virtual void imucb(const sensor_msgs::ImuConstPtr &msg);
     virtual void timercb(const std_msgs::Float32ConstPtr &msg);

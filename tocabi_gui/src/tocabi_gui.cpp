@@ -122,7 +122,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.com_send_button, SIGNAL(pressed()), this, SLOT(comsendcb()));   
     connect(ui_.arm_send_button, SIGNAL(pressed()), this, SLOT(armsendcb()));
 
-    connect(ui_.walking_speed_slider, SIGNAL(sliderMoved(int)), this, SLOT(walkingspeedcb(int)));
+    connect(ui_.walking_speed_slider, SIGNAL(sliderMoved()), this, SLOT(walkingspeedcb()));
 
     if (mode == "simulation")
     {
@@ -306,8 +306,10 @@ void TocabiGui::shutdownPlugin()
 void TocabiGui::saveSettings(qt_gui_cpp::Settings &plugin_settings, qt_gui_cpp::Settings &instance_settings) const
 {
 }
+void TocabiGui::restoreSettings(const qt_gui_cpp::Settings &plugin_settings, const qt_gui_cpp::Settings &instance_settings)
+{
+}
 
-void TocabiGui::restoreSettings(const qt_gui_cpp::SettstackedWidget
 void TocabiGui::torqueoncb()
 {
     com_msg.data = std::string("torqueon");
@@ -604,9 +606,8 @@ void TocabiGui::armsendcb()
 
 void TocabiGui::walkingspeedcb(int value)
 {
-    
-}
 
+}
 void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
 { /*
     //std::cout<<robot_time<<"msg->linacc"<<msg->linear_acceleration.x<<std::endl;
