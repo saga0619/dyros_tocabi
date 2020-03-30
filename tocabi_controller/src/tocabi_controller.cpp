@@ -244,7 +244,7 @@ void TocabiController::dynamicsThreadHigh()
 
             std::this_thread::sleep_until(dc.start_time_point + (cycle_count * cycletime));
             cycle_count++;
-            /*
+
             if (dc.positionControl)
             {
                 if (set_q_init)
@@ -257,19 +257,20 @@ void TocabiController::dynamicsThreadHigh()
                     torque_desired(i) = Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - Kvs[i] * (tocabi_.q_dot_(i));
                     // mycontroller.wkc_.file[0] << tocabi_.q_desired_(8) <<"\t"<< tocabi_.q_(8) << std::endl;
                 }
-            }*/
-            if (task_switch)
-            {
-                if(tc.mode>=10)
-                {
-                mycontroller.computeFast();
-                torque_desired = mycontroller.getControl();
-
-                }
-                
-                //std::cout<<tocabi_.q_desired_(3)<<"\t"<<tocabi_.q_(3)<<"\t"<<tocabi_.q_desired_(4)<<"\t"<<tocabi_.q_(4)<<"\t"<<tocabi_.q_desired_(5)<<"\t"<<tocabi_.q_(5)<<"\t"<<tocabi_.q_desired_(2)<<"\t"<<tocabi_.q_(2)<<std::endl;
             }
+            else
+            {
+                if (task_switch)
+                {
+                    if (tc.mode >= 10)
+                    {
+                        mycontroller.computeFast();
+                        torque_desired = mycontroller.getControl();
+                    }
 
+                    //std::cout<<tocabi_.q_desired_(3)<<"\t"<<tocabi_.q_(3)<<"\t"<<tocabi_.q_desired_(4)<<"\t"<<tocabi_.q_(4)<<"\t"<<tocabi_.q_desired_(5)<<"\t"<<tocabi_.q_(5)<<"\t"<<tocabi_.q_desired_(2)<<"\t"<<tocabi_.q_(2)<<std::endl;
+                }
+            }
             mtx.lock();
             s_.sendCommand(torque_desired, sim_time);
             mtx.unlock();
