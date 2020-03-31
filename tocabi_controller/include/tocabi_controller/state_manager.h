@@ -60,6 +60,9 @@ public:
   void initYaw();
   //private variables
 
+  //Set Position Joint PD Gain
+  void SetPositionPDGainMatrix();
+
   unsigned int link_id_[40];
 
   double control_time_;

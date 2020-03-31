@@ -22,6 +22,7 @@
       <param name="pub_mode" value="$(arg pub_mode)"/>
       <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_sim.urdf"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_simulation_positionPDgain.yaml" />
     </node>
   </group>
 

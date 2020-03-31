@@ -28,7 +28,9 @@ int main(int argc, char **argv)
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
     dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
-
+    dc.nh.getParam("/tocabi_controller/Kp",dc.tocabi_.vector_kp);
+    dc.nh.getParam("/tocabi_controller/Kv",dc.tocabi_.vector_kv);
+    
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");
     dc.statusPubMsg.data = strr;
