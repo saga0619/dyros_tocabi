@@ -8,13 +8,11 @@
 //#include <Eigen/SVD>
 #include <iostream>
 
-
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4
 #define LINK_NUMBER 34
 #define MODEL_DOF_VIRTUAL 39
 #define MODEL_DOF_QVIRTUAL 40
-
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U

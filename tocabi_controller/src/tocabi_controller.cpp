@@ -208,7 +208,6 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     if (msg->walking_enable == 1)
     {
         tc.mode = 11;
-        dc.positionControl = true;
     }
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
 }
@@ -267,7 +266,6 @@ void TocabiController::dynamicsThreadHigh()
                         mycontroller.computeFast();
                         torque_desired = mycontroller.getControl();
                     }
-
                     //std::cout<<tocabi_.q_desired_(3)<<"\t"<<tocabi_.q_(3)<<"\t"<<tocabi_.q_desired_(4)<<"\t"<<tocabi_.q_(4)<<"\t"<<tocabi_.q_desired_(5)<<"\t"<<tocabi_.q_(5)<<"\t"<<tocabi_.q_desired_(2)<<"\t"<<tocabi_.q_(2)<<std::endl;
                 }
             }
@@ -486,7 +484,9 @@ void TocabiController::dynamicsThreadLow()
                     tc_command = false;
                 }
                 mycontroller.computeSlow();
-            }
+                tocabi_.q_desired_.segment<12>(0) = mycontroller.getControl().segment<12>(0);
+             }
+                  mycontroller.file[0] << mycontroller.wkc_.PELV_support_current.translation()(1)<< "\t"<< mycontroller.wkc_.PELV_trajectory_float.translation()(1)<< "\t"<< mycontroller.wkc_.desired_leg_q(0) <<"\t"<<tocabi_.q_(0)<<"\t" << mycontroller.wkc_.desired_leg_q(1) <<"\t"<<tocabi_.q_(1)<<"\t" << mycontroller.wkc_.desired_leg_q(2) <<"\t"<<tocabi_.q_(2)<<"\t"<< mycontroller.wkc_.desired_leg_q(3) <<"\t"<<tocabi_.q_(3)<<"\t"<< mycontroller.wkc_.desired_leg_q(4) <<"\t"<<tocabi_.q_(4)<<"\t"<< mycontroller.wkc_.desired_leg_q(5) <<"\t"<<tocabi_.q_(5)<<"\t"<< mycontroller.wkc_.desired_leg_q(6) <<"\t"<<tocabi_.q_(6)<<"\t" << mycontroller.wkc_.desired_leg_q(7) <<"\t"<<tocabi_.q_(7)<<"\t" << mycontroller.wkc_.desired_leg_q(8) <<"\t"<<tocabi_.q_(8)<<"\t"<< mycontroller.wkc_.desired_leg_q(9) <<"\t"<<tocabi_.q_(9)<<"\t"<< mycontroller.wkc_.desired_leg_q(10) <<"\t"<<tocabi_.q_(10)<<"\t"<< mycontroller.wkc_.desired_leg_q(11) <<"\t"<<tocabi_.q_(11)<<"\t"<< tocabi_.q_desired_(12) <<"\t"<<tocabi_.q_(12)<<"\t" << tocabi_.q_desired_(13) <<"\t"<<tocabi_.q_(13)<<"\t" << tocabi_.q_desired_(14) <<"\t"<<tocabi_.q_(14)<<"\t"<< tocabi_.q_desired_(15) <<"\t"<<tocabi_.q_(15)<<"\t"<< tocabi_.q_desired_(16) <<"\t"<<tocabi_.q_(16)<<"\t"<< tocabi_.q_desired_(17) <<"\t"<<tocabi_.q_(17)<<"\t"<<tocabi_.q_desired_(19) <<"\t"<<tocabi_.q_(19)<<"\t" << tocabi_.q_desired_(20) <<"\t"<<tocabi_.q_(20)<<"\t" << tocabi_.q_desired_(21) <<"\t"<<tocabi_.q_(21)<<"\t"<< tocabi_.q_desired_(22) <<"\t"<<tocabi_.q_(22)<<"\t"<< tocabi_.q_desired_(23) <<"\t"<<tocabi_.q_(23)<<"\t"<< tocabi_.q_desired_(24) <<"\t"<<tocabi_.q_(24)<<"\t" << tocabi_.q_desired_(26) <<"\t"<<tocabi_.q_(26)<<"\t" << tocabi_.q_desired_(27) <<"\t"<<tocabi_.q_(27)<<"\t" << tocabi_.q_desired_(28) <<"\t"<<tocabi_.q_(28)<<"\t"<< tocabi_.q_desired_(29) <<"\t"<<tocabi_.q_(29)<<"\t"<< tocabi_.q_desired_(30) <<"\t"<<tocabi_.q_(30)<<"\t"<< tocabi_.q_desired_(31) <<"\t"<<tocabi_.q_(31)<<"\t"<<tocabi_.q_desired_(32) <<"\t"<<tocabi_.q_(32)<<std::endl;
         }
         else
         {

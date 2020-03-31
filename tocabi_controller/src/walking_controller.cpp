@@ -22,8 +22,7 @@ void Walking_controller::walkingCompute(RobotData Robot)
             setCpPosition();
             cpReferencePatternGeneration();
             cptoComTrajectory();
-        }
-         
+        }  
         /////ComTrajectory//////
         setComTrajectory();
 
@@ -36,6 +35,8 @@ void Walking_controller::walkingCompute(RobotData Robot)
 
         /////InverseKinematics//////
         inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
+       // inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q);
+        
         updateNextStepTime();
     }
 }
@@ -70,9 +71,8 @@ void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transfor
     double l_lower = 0.35; //direct length from knee to ankle
 
     double offset_hip_pitch = 0.0*DEG2RAD;
-    double offset_knee_pitch = 0.0*DEG2RAD;
+    double offset_knee_pitch =  0.0*DEG2RAD;
     double offset_ankle_pitch = 0.0*DEG2RAD;
-
   //////////////////////////// LEFT LEG INVERSE KINEMATICS ////////////////////////////
 
     double lc = sqrt(lr(0)*lr(0)+lr(1)*lr(1)+lr(2)*lr(2));
@@ -156,6 +156,8 @@ void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transfor
     leg_q(9) = -leg_q(9) + offset_knee_pitch;
     leg_q(10) = -leg_q(10) + offset_ankle_pitch;
 
+
+    leg_q(0) = leg_q(0)*(-1);
     leg_q(8) = leg_q(8)*(-1);
     leg_q(9) = leg_q(9)*(-1);
     leg_q(10) = leg_q(10)*(-1);
@@ -421,10 +423,7 @@ void Walking_controller::setRobotStateInitialize()
     
     current_step_num = 0.0;
     walking_tick = 0;
-    for(int i=0; i<1;i++)
-    {
-      file[i].open(FILE_NAMES[i].c_str(),std::ios_base::out);
-    }
+
 }
 
 void Walking_controller::updateNextStepTime()
@@ -470,12 +469,12 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, in
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = true;
-    foot_height = 0.05;
+    foot_height = 0.03;
     com_control_mode = true;
     gyro_frame_flag = false;
     if(com_control_mode == true)
     {
-        pelvis_pgain = 0.15;
+        pelvis_pgain = 0.1;
         com_gain = 100.0;
     }
     else
@@ -493,12 +492,20 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     desired_foot_step_num = 10;
     foot_distance = Robot.link_[Left_Foot].xpos -  Robot.link_[Right_Foot].xpos; 
 
-    t_rest_init = 0.05*Hz_;
+    /*t_rest_init = 0.05*Hz_;
     t_rest_last = 0.05*Hz_;
     t_double1 = 0.10*Hz_;
     t_double2 = 0.10*Hz_;
-    t_total = 1.2*Hz_;
-    t_temp = 3.0*Hz_;
+    t_total = 1.2*Hz_;*/
+    t_temp = 4.0*Hz_;
+
+    t_double1 = 0.10*Hz_;
+    t_double2 = 0.10*Hz_;
+    t_rest_init = .20*Hz_;
+    t_rest_last = .20*Hz_;
+    t_total= 3.0*Hz_;
+
+
     t_imp = 0.0*Hz_;
     t_last = t_total + t_temp;
     t_start = t_temp + 1;

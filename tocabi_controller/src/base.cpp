@@ -71,6 +71,26 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
+    else if(dc.mode == "simulationposition")
+    {
+        std::cout << "Simulation Mode position" << std::endl;
+
+        dc.simulationMode = true;
+        
+        MujocoInterface stm(dc);
+        DynamicsManager dym(dc);
+        TocabiController rc(dc, stm, dym);
+        std::thread thread[4];
+        thread[0] = std::thread(&TocabiController::stateThread, &rc);
+        thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
+        thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
+        thread[3] = std::thread(&TocabiController::tuiThread, &rc);
+
+        for (int i = 0; i < 4; i++)
+        {
+            thread[i].join();
+        }
+    }
     else if (dc.mode == "realrobot")
     {
         std::cout << "RealRobot Mode" << std::endl;
