@@ -48,10 +48,20 @@ void MujocoInterface::sendCommand(Eigen::VectorQd command, double simt)
     {
         for (int j = 0; j < MODEL_DOF; j++)
         {
-            if (TOCABI::ACTUATOR_NAME[i] == joint_name_mj[j])
+ /*           if(dc.simulationMode == false)
+            {*/   
+                if (TOCABI::ACTUATOR_NAME[i] == joint_name_mj[j])
+                {
+                    mujoco_joint_set_msg_.torque[j] = command[i];
+                }
+           // }
+          /*  else
             {
-                mujoco_joint_set_msg_.torque[j] = command[i];
-            }
+                if (TOCABI::POSITIONACTUATOR_NAME[i] == joint_name_mj[j])
+                {
+                    mujoco_joint_set_msg_.position[j] = command[i];
+                }
+            }*/
         }
     }
 

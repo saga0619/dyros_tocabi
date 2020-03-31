@@ -212,7 +212,8 @@ public:
 
   bool initialize_request = false;
 
-
+  //Simulation mode
+  bool simulationMode;
 
   ros::Publisher statusPub;
   std_msgs::String statusPubMsg;

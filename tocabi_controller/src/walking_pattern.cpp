@@ -493,21 +493,26 @@ void WalkingPattern::setCpPosition()
     {
         b(i) = exp(lipm_w*t_total/Hz_);
     }
-    /////////////////////TEMP 200228 JH
 
-    capturePoint_ox(0) = COM_support_init.translation()(0) + capturePoint_offsetx(0);
+    for(int i=0; i<total_step_num+3; i++)
+    {
+        capturePoint_offsety(i) = 0.00;
+    }
+    //capturePoint_ox(0) = COM_support_init.translation()(0) + capturePoint_offsetx(0);
+    
+    capturePoint_ox(0) = PELV_support_init.translation()(0) + capturePoint_offsetx(0);
     if(foot_step(0,6) == 0)
     {
-        capturePoint_oy(0) = COM_support_init.translation()(1) - foot_distance(1)/2 + capturePoint_offsety(0);
+        capturePoint_oy(0) = PELV_support_init.translation()(1) - foot_distance(1)/2;
     }
     else
     {
-        capturePoint_oy(0) = COM_support_init.translation()(1) + foot_distance(1)/2 + capturePoint_offsety(0);
+        capturePoint_oy(0) = PELV_support_init.translation()(1) + foot_distance(1)/2;
     }
     capturePoint_ox(total_step_num + 1) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 1);
-    capturePoint_oy(total_step_num + 1) = 0.0 + capturePoint_offsety(total_step_num + 1);
+    capturePoint_oy(total_step_num + 1) = 0.0;
     capturePoint_ox(total_step_num + 2) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 2);
-    capturePoint_oy(total_step_num + 2) = 0.0 + capturePoint_offsety(total_step_num + 2);
+    capturePoint_oy(total_step_num + 2) = 0.0;
 
     for(int i = 0; i<total_step_num; i++)
     {
@@ -516,7 +521,7 @@ void WalkingPattern::setCpPosition()
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
+                capturePoint_oy(1) = -foot_step(0,1) + capturePoint_offsety(1);
             }
             else
             {
@@ -528,7 +533,7 @@ void WalkingPattern::setCpPosition()
                 else
                 {
                     capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1);
-                    capturePoint_oy(i+1) = foot_step(i-1,1) + capturePoint_offsety(i+1);
+                    capturePoint_oy(i+1) = foot_step(i-1,1) - capturePoint_offsety(i+1);
                 }
             }
         }
@@ -537,14 +542,14 @@ void WalkingPattern::setCpPosition()
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
+                capturePoint_oy(1) = -foot_step(0,1) - capturePoint_offsety(1);
             }
             else
             {
                 if(i % 2 == 0)
                 {
                     capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1);
-                    capturePoint_oy(i+1) = foot_step(i-1,1) + capturePoint_offsety(i+1);
+                    capturePoint_oy(i+1) = foot_step(i-1,1) - capturePoint_offsety(i+1);
                 }      
                 else
                 {
@@ -573,7 +578,7 @@ void WalkingPattern::cptoComTrajectory()
         }
         else
         {
-            com_refx(i) = COM_support_init.translation()(0);
+            com_refx(i) = PELV_support_init.translation()(0);
             if(foot_step(0,6) == 0)
             {
                 com_refy(i) = COM_support_init.translation()(1) - foot_distance(1)/2;
@@ -582,7 +587,7 @@ void WalkingPattern::cptoComTrajectory()
             {
                 com_refy(i) = COM_support_init.translation()(1) + foot_distance(1)/2;
             }
-        }      
+        }    
     }
 }
 
@@ -602,7 +607,7 @@ void WalkingPattern::setComTrajectory()
     xyd(1) = com_refy(walking_tick);
     zmp_desired(0) = zmp_refx(walking_tick);
     zmp_desired(1) = zmp_refy(walking_tick);  
-    xyd(3) = 1.;
+    xyd(3) = 1.0;
     xyd = GlobaltoLocal_current * xyd;
     if(current_step_num == 0)
     {
@@ -701,9 +706,9 @@ void WalkingPattern::setPelvisTrajectory()
     //Trunk Position
     if(com_control_mode == true)
     {
-        PELV_trajectory_support.translation()(0) = com_desired(0);//PELV_support_current.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
-        PELV_trajectory_support.translation()(1) = com_desired(1);//PELV_support_current.translation()(1) + pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
-        PELV_trajectory_support.translation()(2) = com_desired(2); //PELV_trajectory_support.translation()(2) + pelvis_pgain*(com_desired(2) - COM_support_current.translation()(2));
+        PELV_trajectory_support.translation()(0) = com_desired(0);// PELV_support_current.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
+        PELV_trajectory_support.translation()(1) = com_desired(1);//PELV_support_current.translation()(1); //+ pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
+        PELV_trajectory_support.translation()(2) = com_desired(2);//PELV_support_current.translation()(2);// + pelvis_pgain*(com_desired(2) - COM_support_current.translation()(2));
     }
     else
     {
@@ -982,14 +987,19 @@ void WalkingPattern::supportToFloatPattern()
         RF_trajectory_euler_float = DyrosMath::rot2Euler(RF_trajectory_float.linear());
     }
     else
-    {
-        PELV_trajectory_float = DyrosMath::inverseIsometry3d(PELV_trajectory_support)*PELV_trajectory_support;
-        LF_trajectory_float = DyrosMath::inverseIsometry3d(PELV_trajectory_support)*LF_trajectory_support;
-        RF_trajectory_float = DyrosMath::inverseIsometry3d(PELV_trajectory_support)*RF_trajectory_support;
+    {   
+        PELV_trajectory_float = LocaltoGlobal_current*PELV_trajectory_support;
+        PELV_trajectory_float.linear().setIdentity();
+        LF_trajectory_float = FoottoGlobal_current*LF_trajectory_support;    
+        LF_trajectory_float.linear().setIdentity();
+        RF_trajectory_float = FoottoGlobal_current*RF_trajectory_support;
+        RF_trajectory_float.linear().setIdentity();
         LF_trajectory_euler_float = DyrosMath::rot2Euler(LF_trajectory_float.linear());
         RF_trajectory_euler_float = DyrosMath::rot2Euler(RF_trajectory_float.linear());
     }
-        //file[0] << PELV_trajectory_support.translation()(0) <<"\t"<<PELV_trajectory_support.translation()(1) <<"\t"<<PELV_trajectory_support.translation()(2) <<"\t"<<LF_trajectory_float.translation()(0) <<"\t"<<LF_trajectory_float.translation()(1) <<"\t"<<LF_trajectory_float.translation()(2) <<"\t"<<RF_trajectory_float.translation()(0) <<"\t"<<LF_trajectory_support.translation()(1) <<"\t"<<LF_trajectory_support.translation()(2) <<"\t"<<RF_trajectory_support.translation()(0) <<"\t"<<RF_trajectory_support.translation()(1) <<"\t"<<RF_trajectory_support.translation()(2) <<std::endl;
+    Com_measured = FoottoGlobal_current*PELV_support_current;
+    RF_measured = FoottoGlobal_current*RF_support_current;
+    LF_measured = FoottoGlobal_current*LF_support_current;
 
 }
 
@@ -1000,40 +1010,58 @@ void WalkingPattern::floatToSupportPattern()
 
 void WalkingPattern::referenceFrameChange()
 {
-    Eigen::Isometry3d reference;
+    Eigen::Isometry3d reference, reference1;
 
     if(current_step_num == 0)
-    {
+    {            
+        FoottoGlobal_current.translation().setZero();
+                        
         if(foot_step(0,6) == 0) //right support
         {
-            reference.translation() = RF_float_init.translation();
-            reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(RF_float_init.linear())(2));
+            Framereference.translation() = RF_float_init.translation();
+            FoottoGlobal_current.translation()(1) = RF_float_init.translation()(1);
+            Framereference.linear() = RF_float_init.linear();
         }
         else  //left support
         {
-            reference.translation() = LF_float_init.translation();
-            reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(LF_float_init.linear())(2));
+            Framereference.translation() = LF_float_init.translation();
+            FoottoGlobal_current.translation()(1) =  LF_float_init.translation()(1);
+            Framereference.linear() = LF_float_init.linear();
         }
-        if (walking_tick == 0)
+        if (walking_tick == 0 )
         {
-            reference.translation() = reference.translation();
-            reference.linear() =  reference.linear();
-            LocaltoGlobal_current = reference;
-            GlobaltoLocal_current.translation() = -1*reference.translation();
-            GlobaltoLocal_current.linear() = reference.linear().transpose();
+            FoottoGlobal_current.linear() = Framereference.linear();
+            FoottoGlobal_current_init.setIdentity();
+            FoottoGlobal_current_init.translation() = Framereference.translation();
+            reference1.translation()(2) = -1*PELV_support_current.translation()(2);
+            LocaltoGlobal_current = FoottoGlobal_current;
+            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(LocaltoGlobal_current);
         }
     }
     else
     {
-        reference.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));
-        for(int i=0 ;i<3; i++)
-        reference.translation()(i) = foot_step(current_step_num-1,i);
         if(walking_tick == t_start)
-        {
-            reference.translation() = reference.translation();
-            reference.linear() =  reference.linear();
-            LocaltoGlobal_current = reference;
-            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(reference);
-         }
+        {  
+            if(foot_step(current_step_num,6) == 0) //right support
+            {
+                Framereference.translation()(0) = foot_step(current_step_num-1,0);//+= DyrosMath::inverseIsometry3d(LF_float_current).translation()(0)-1*PELV_support_current.translation()(0);//foot_step(current_step_num-1,0);// + RF_float_init.translation()(0);
+                Framereference.translation()(1) = foot_step(current_step_num-1,1);
+                Framereference.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));//RF_float_init.linear();
+            }
+            else  //left support
+            {
+                Framereference.translation()(0) = foot_step(current_step_num-1,0); //DyrosMath::inverseIsometry3d(RF_float_current).translation()(0)-1*PELV_support_current.translation()(0);//foot_step(current_step_num-1,0);// + LF_float_init.translation()(0);
+                Framereference.translation()(1) = foot_step(current_step_num-1,1);
+                Framereference.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));//LF_float_init.linear();
+            }
+            LocaltoGlobal_current = Framereference;
+            LocaltoGlobal_current.translation()(0) = Framereference.translation()(0);// - FoottoGlobal_current_init.translation()(0);
+            LocaltoGlobal_current.translation()(2) = 0.0;
+
+            FoottoGlobal_current = Framereference;
+            FoottoGlobal_current.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));
+            FoottoGlobal_current.translation()(2) = 0.0;
+            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(LocaltoGlobal_current);
+        }
     }  
 }
