@@ -527,7 +527,7 @@ void StateManager::updateState()
     //overrid by simulation or red robot
 }
 
-void StateManager::sendCommand(Eigen::VectorQd command, double simt)
+void StateManager::sendCommand(Eigen::VectorQd command, double simt, int control_mode)
 {
     //overrid by simulation or red robot
 }
@@ -610,6 +610,7 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_, &q_virtual, &q_dot_virtual, &q_ddot_virtual);
 
+    A_temp_.setZero();
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, A_temp_, false);
 
     //Eigen::VectorXd tau_coriolis;

@@ -39,33 +39,52 @@ void MujocoInterface::updateState()
     }
 }
 
-void MujocoInterface::sendCommand(Eigen::VectorQd command, double simt)
+void MujocoInterface::sendCommand(Eigen::VectorQd command, double simt, int control_mode)
 {
-
-    mujoco_joint_set_msg_.MODE = 1;
-
-    for (int i = 0; i < MODEL_DOF; i++)
+    if (control_mode == Torquemode)
     {
-        for (int j = 0; j < MODEL_DOF; j++)
+        if (dc.sim_mode == "torque")
         {
- /*           if(dc.simulationMode == false)
-            {*/   
-                if (TOCABI::ACTUATOR_NAME[i] == joint_name_mj[j])
-                {
-                    mujoco_joint_set_msg_.torque[j] = command[i];
-                }
-           // }
-          /*  else
+            mujoco_joint_set_msg_.MODE = 1;
+
+            for (int i = 0; i < MODEL_DOF; i++)
             {
-                if (TOCABI::POSITIONACTUATOR_NAME[i] == joint_name_mj[j])
+                for (int j = 0; j < MODEL_DOF; j++)
                 {
-                    mujoco_joint_set_msg_.position[j] = command[i];
+                    if (TOCABI::ACTUATOR_NAME[i] == joint_name_mj[j])
+                    {
+                        mujoco_joint_set_msg_.torque[j] = command[i];
+                    }
                 }
-            }*/
+            }
+        }
+        else
+        {
+            std::cout << "COMMAND DISMATCH! -- mujoco mode : positon, controller mode : torque" << std::endl;
         }
     }
+    else if (control_mode == Positionmode)
+    {
+        if (dc.sim_mode == "position")
+        {
+            mujoco_joint_set_msg_.MODE = 0;
 
-    torque_desired = command;
+            for (int i = 0; i < MODEL_DOF; i++)
+            {
+                for (int j = 0; j < MODEL_DOF; j++)
+                {
+                    if (TOCABI::ACTUATOR_NAME[i] == joint_name_mj[j])
+                    {
+                        mujoco_joint_set_msg_.position[j] = command[i];
+                    }
+                }
+            }
+        }
+        else
+        {
+            std::cout << "COMMAND DISMATCH! -- mujoco mode : torque, controller mode : position" << std::endl;
+        }
+    }
 
     mujoco_joint_set_msg_.header.stamp = ros::Time::now();
     mujoco_joint_set_msg_.time = simt;

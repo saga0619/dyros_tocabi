@@ -132,6 +132,8 @@ public:
   const int TRIPPLE_SUPPORT = 3;
   const int QUAD_SUPPORT = 4;
 
+
+  void CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix);
   /*
 
   // motion time

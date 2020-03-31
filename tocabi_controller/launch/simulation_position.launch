@@ -3,7 +3,7 @@
   <arg name="rviz" default="false"/>
   <arg name="controller" default="true" />
   <arg name="gui" default="true"/>
-  <arg name="run_mode" default="simulationposition"/>
+  <arg name="run_mode" default="simulation"/>
   <arg name="pub_mode" default="true"/>
   <arg name="urdfDampingmodel" default="false"/>
 
@@ -15,6 +15,7 @@
 
   <group if="$(arg controller)">
     <node name="tocabi_controller" pkg="tocabi_controller" type="tocabi_controller" output="screen">
+      <param name="sim_mode" value="position"/>
       <param name="run_mode" value="$(arg run_mode)"/>
       <param name="debug" value="$(arg debug)" />
       <param name="rviz_pub" value="$(arg rviz)"/>

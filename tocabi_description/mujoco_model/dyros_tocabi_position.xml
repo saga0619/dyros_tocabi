@@ -17,9 +17,6 @@
         <default class="FTsensor">
             <site type="cylinder" size="0.005 0.005" group="4" rgba=".1 .1 .9 1"/>
         </default>
-        <default class="position">
-			<position ctrllimited="true" forcelimited="false" ></position> 
-	    </default>
     </default>
 
     <option timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9"/>
@@ -127,7 +124,7 @@
                                     <body name="L_Foot_Link" pos="0 0 0">
                                         <inertial pos="-0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
-                                        <geom size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
+                                        <geom size="0.15 0.085 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                         <geom size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                                         <site class="FTsensor" name="LF_FT" pos="0 0 -0.075"/>                                                                        
                                     </body>
@@ -175,7 +172,7 @@
                                     <body name="R_Foot_Link" pos="0 0 0">
                                         <inertial pos="-0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
-                                        <geom size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
+                                        <geom size="0.15 0.085 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                         <geom size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                                         <site class="FTsensor" name="RF_FT" pos="0 0 -0.0725"/>
                                     </body>
@@ -321,7 +318,9 @@
                                     </body>
                                 </body>
                             </body>
-                        </body>                        
+                        </body>
+                        
+                        
                     </body>
                 </body>
             </body>
@@ -329,42 +328,46 @@
 
     </worldbody>
     <actuator>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_HipYaw" joint="L_HipYaw_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8" name="L_HipRoll" joint="L_HipRoll_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_HipPitch" joint="L_HipPitch_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_KneePitch" joint="L_Knee_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_AnklePitch" joint="L_AnklePitch_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_AnkleRoll" joint="L_AnkleRoll_Joint" kp = "18000"/>
+        <motor name="L_HipYaw_Motor" joint="L_HipYaw_Joint"/>
+        <motor name="L_HipRoll_Motor" joint="L_HipRoll_Joint"/>
+        <motor name="L_HipPitch_Motor" joint="L_HipPitch_Joint"/>
+        <motor name="L_Knee_Motor" joint="L_Knee_Joint"/>
+        <motor name="L_AnklePitch_Motor" joint="L_AnklePitch_Joint"/>
+        <motor name="L_AnkleRoll_Motor" joint="L_AnkleRoll_Joint"/>
 
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_HipYaw" joint="R_HipYaw_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8" name="R_HipRoll" joint="R_HipRoll_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_HipPitch" joint="R_HipPitch_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8" name="R_KneePitch" joint="R_Knee_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_AnklePitch" joint="R_AnklePitch_Joint" kp = "18000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_AnkleRoll" joint="R_AnkleRoll_Joint" kp = "18000"/>
+        <motor name="R_HipYaw_Motor" joint="R_HipYaw_Joint"/>
+        <motor name="R_HipRoll_Motor" joint="R_HipRoll_Joint"/>
+        <motor name="R_HipPitch_Motor" joint="R_HipPitch_Joint"/>
+        <motor name="R_Knee_Motor" joint="R_Knee_Joint"/>
+        <motor name="R_AnklePitch_Motor" joint="R_AnklePitch_Joint"/>
+        <motor name="R_AnkleRoll_Motor" joint="R_AnkleRoll_Joint"/>
++
 
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="WaistPitch" joint="Waist1_Joint" kp = "35000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="WaistYaw" joint="Waist2_Joint" kp = "35000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="Upperbody" joint="Upperbody_Joint" kp = "35000"/>
+        <motor name="Waist1_Motor" joint="Waist1_Joint"/>
+        <motor name="Waist2_Motor" joint="Waist2_Joint"/>
+        <motor name="Upperbody_Motor" joint="Upperbody_Joint"/>
 
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="Neck" joint="Neck_Joint" kp = "35000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="Head" joint="Head_Joint" kp = "35000"/>
+        <motor name="Neck_Motor" joint="Neck_Joint"/>
+        <motor name="Head_Motor" joint="Head_Joint"/>
 
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_Shoulder1" joint="L_Shoulder1_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_Shoulder2" joint="L_Shoulder2_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_Shoulder3" joint="L_Shoulder3_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_Elbow" joint="L_Elbow_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_Forearm" joint="L_Forearm_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_Wrist1" joint="L_Wrist1_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="L_Wrist2" joint="L_Wrist2_Joint" kp = "40000"/>
+        <motor name="L_Shoulder1_Motor" joint="L_Shoulder1_Joint"/>
+        <motor name="L_Shoulder2_Motor" joint="L_Shoulder2_Joint"/>
+        <motor name="L_Shoulder3_Motor" joint="L_Shoulder3_Joint"/>
+        <motor name="L_Armlink_Motor" joint="L_Armlink_Joint"/>
+        <motor name="L_Elbow_Motor" joint="L_Elbow_Joint"/>
+        <motor name="L_Forearm_Motor" joint="L_Forearm_Joint"/>
+        <motor name="L_Wrist1_Motor" joint="L_Wrist1_Joint"/>
+        <motor name="L_Wrist2_Motor" joint="L_Wrist2_Joint"/>
 
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_Shoulder1" joint="R_Shoulder1_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_Shoulder2" joint="R_Shoulder2_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_Shoulder3" joint="R_Shoulder3_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_Elbow" joint="R_Elbow_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_Wrist1" joint="R_Wrist1_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_Wrist2" joint="R_Wrist2_Joint" kp = "40000"/>
-                <position class="position" ctrllimited="false" ctrlrange="-8 8"  name="R_Forearm" joint="R_Forearm_Joint" kp = "40000"/>
+        <motor name="R_Shoulder1_Motor" joint="R_Shoulder1_Joint"/>
+        <motor name="R_Shoulder2_Motor" joint="R_Shoulder2_Joint"/>
+        <motor name="R_Shoulder3_Motor" joint="R_Shoulder3_Joint"/>
+        <motor name="R_Armlink_Motor" joint="R_Armlink_Joint"/>
+        <motor name="R_Elbow_Motor" joint="R_Elbow_Joint"/>
+        <motor name="R_Forearm_Motor" joint="R_Forearm_Joint"/>
+        <motor name="R_Wrist1_Motor" joint="R_Wrist1_Joint"/>
+        <motor name="R_Wrist2_Motor" joint="R_Wrist2_Joint"/>
+
     </actuator>
 
     <sensor>
@@ -385,8 +388,8 @@
     <keyframe>
         <!-- Initial Position Setting 0.94783-->
         <key name="front" time="0" qpos ="0 0 0.94783 1 0 0 0 
-								0.0 0 -0.24 0.6 -0.36 0 
-								0.0 0 -0.24 0.6 -0.36 0
+								0 0 -0.24 0.7 -0.36 0 
+								0 0 -0.24 0.7 -0.36 0 
 								0 0 0 0 0
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
 								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>    

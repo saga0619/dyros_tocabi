@@ -245,8 +245,8 @@ void TocabiController::dynamicsThreadHigh()
             cycle_count++;
 
             if (dc.positionControl)
-            { 
-                if(set_q_init)
+            {
+                if (set_q_init)
                 {
                     tocabi_.q_desired_ = tocabi_.q_;
                     set_q_init = false;
@@ -254,13 +254,21 @@ void TocabiController::dynamicsThreadHigh()
                 for (int i = 0; i < MODEL_DOF; i++)
                 {
                     torque_desired(i) = Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - Kvs[i] * (tocabi_.q_dot_(i));
-                }            
+                    // mycontroller.wkc_.file[0] << tocabi_.q_desired_(8) <<"\t"<< tocabi_.q_(8) << std::endl;
+                }
             }
-            if (task_switch)
+            else
             {
-                mycontroller.computeFast();
+                if (task_switch)
+                {
+                    if (tc.mode >= 10)
+                    {
+                        mycontroller.computeFast();
+                        torque_desired = mycontroller.getControl();
+                    }
+                    //std::cout<<tocabi_.q_desired_(3)<<"\t"<<tocabi_.q_(3)<<"\t"<<tocabi_.q_desired_(4)<<"\t"<<tocabi_.q_(4)<<"\t"<<tocabi_.q_desired_(5)<<"\t"<<tocabi_.q_(5)<<"\t"<<tocabi_.q_desired_(2)<<"\t"<<tocabi_.q_(2)<<std::endl;
+                }
             }
-
             mtx.lock();
             s_.sendCommand(torque_desired, sim_time);
             mtx.unlock();
@@ -302,7 +310,7 @@ void TocabiController::dynamicsThreadLow()
     Eigen::VectorXd G;
     Eigen::MatrixXd J_g;
     Eigen::MatrixXd aa;
-    Eigen::VectorXd torque_grav, torque_task;
+    Eigen::VectorQd torque_grav, torque_task;
     Eigen::MatrixXd ppinv;
     Eigen::MatrixXd tg_temp;
     Eigen::MatrixXd A_matrix_inverse;
@@ -363,6 +371,9 @@ void TocabiController::dynamicsThreadLow()
 
     std::stringstream ss;
 
+    ///////////////////////
+    wbc_.init(tocabi_);
+
     //Control Loop Start
     while ((!shutdown_tocabi_bool))
     {
@@ -414,7 +425,6 @@ void TocabiController::dynamicsThreadLow()
         tocabi_.link_[COM_id].pos_p_gain = kp_;
         tocabi_.link_[COM_id].pos_d_gain = kd_;
 
-        wbc_.init(tocabi_);
         wbc_.update(tocabi_);
 
         sec = std::chrono::high_resolution_clock::now() - start_time;
@@ -422,7 +432,7 @@ void TocabiController::dynamicsThreadLow()
         ///////////////////////////////////////////////////////////////////////////////////////
         /////////////              Controller Code Here !                     /////////////////
         ///////////////////////////////////////////////////////////////////////////////////////
-        
+
         torque_task.setZero(MODEL_DOF);
         TorqueContact.setZero();
 
@@ -440,12 +450,35 @@ void TocabiController::dynamicsThreadLow()
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. 
                 */
+                wbc_.set_contact(tocabi_, 1, 1);
+
+                int task_number = 6;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task = tocabi_.link_[Pelvis].Jac;
+
+                if (tc.custom_taskgain)
+                {
+                    tocabi_.link_[Pelvis].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[Pelvis].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[Pelvis].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[Pelvis].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                }
+
+                tocabi_.link_[Pelvis].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[Pelvis].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
+                tocabi_.link_[Pelvis].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+
+                tocabi_.f_star = wbc_.getfstar6d(tocabi_, Pelvis);
+                wbc_.task_control_torque_QP(tocabi_, tocabi_.J_task, tocabi_.f_star, torque_task);
+                torque_grav.setZero();
             }
             else if (tc.mode >= 10)
             {
                 cr_mode = 2;
 
-                if(tc_command == true)
+                if (tc_command == true)
                 {
                     mycontroller.taskCommandToCC(tc);
                     tc_command = false;
@@ -493,14 +526,7 @@ void TocabiController::dynamicsThreadLow()
         ///////////////////////////////////////////////////////////////////////////////////////
 
         mtx.lock();
-        if(dc.positionControl == false)
-        {
-            torque_desired = TorqueDesiredLocal + TorqueContact;
-        }
-        else if(dc.positionControl == true && tc.mode == 11 && tc_command == false)
-        {
-//            mycontroller.computeSlow();
-        }
+        torque_desired = TorqueDesiredLocal + TorqueContact;
         mtx.unlock();
 
         //wbc_.task_control_torque(J_task,Eigen)

@@ -17,6 +17,13 @@ extern std::mutex mtx_rbdl;
 extern std::mutex mtx_dc;
 extern volatile bool shutdown_tocabi_bool;
 
+
+enum MODE_OF_COMMAND
+{
+    Positionmode = 0,
+    Torquemode = 1
+};
+
 class StateManager
 {
 public:
@@ -28,7 +35,7 @@ public:
   virtual void stateThread2(); //main thread managing state
   virtual void updateState();
   //virtual void sendCommand(Eigen::VectorQd command);
-  virtual void sendCommand(Eigen::VectorQd command, double sim_time);
+  virtual void sendCommand(Eigen::VectorQd command, double sim_time, int control_mode = Torquemode);
 
   //initialize variables
   virtual void initialize();

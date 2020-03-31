@@ -399,7 +399,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     }
 }
 
-void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time)
+void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time, int control_mode)
 {
     if (mtx_elmo_command.try_lock())
     {
@@ -488,6 +488,27 @@ void RealRobotInterface::ethercatCheck()
     }
     std::cout << cyellow << "checking thread end !" << creset << std::endl;
 }
+
+void RealRobotInterface::ethercatThreadLower()
+{
+
+}
+
+void RealRobotInterface::ethercatThreadUpper()
+{
+
+}
+
+void RealRobotInterface::ethercatCheckLower()
+{
+
+}
+
+void RealRobotInterface::ethercatCheckUpper()
+{
+    
+}
+
 
 void RealRobotInterface::ethercatThread()
 {
