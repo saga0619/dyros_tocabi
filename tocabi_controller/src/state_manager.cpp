@@ -53,6 +53,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
     gravity_.setZero();
     gravity_(2) = GRAVITY;
+    yaw_init = 0.0;
 
     initialize();
     bool verbose = false; //set verbose true for State Manager initialization info
@@ -142,12 +143,17 @@ void StateManager::adv2ROS(void)
     static tf2_ros::TransformBroadcaster br;
     geometry_msgs::TransformStamped transformStamped;
     transformStamped.header.stamp = ros::Time::now();
+
     transformStamped.header.frame_id = "world";
     transformStamped.child_frame_id = "Pelvis_Link";
     transformStamped.transform.rotation.x = q_virtual_(3);
     transformStamped.transform.rotation.y = q_virtual_(4);
     transformStamped.transform.rotation.z = q_virtual_(5);
     transformStamped.transform.rotation.w = q_virtual_(MODEL_DOF_VIRTUAL);
+    transformStamped.transform.translation.x = q_virtual_(0);
+    transformStamped.transform.translation.y = q_virtual_(1);
+    transformStamped.transform.translation.z = q_virtual_(2) - link_[Right_Foot].xpos(2)-link_[Right_Foot].contact_point(2);
+
     br.sendTransform(transformStamped);
 
     joint_state_msg.header.stamp = ros::Time::now();
@@ -177,7 +183,7 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[0].x = temp(0); //com_pos(0);
     pointpub_msg.polygon.points[0].y = temp(1);
-    pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2);
+    pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2) - 0.5 * dc.tocabi_.link_[Right_Foot].xpos(2) - 0.5 * dc.tocabi_.link_[Left_Foot].xpos(2);
 
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Right_Foot].xpos;
 
@@ -209,7 +215,7 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[4].x = dc.tocabi_.roll;
     pointpub_msg.polygon.points[4].y = dc.tocabi_.pitch;
-    pointpub_msg.polygon.points[4].z = dc.tocabi_.link_[COM_id].x_traj(2);
+    pointpub_msg.polygon.points[4].z = dc.tocabi_.yaw;
 
     pointpub_msg.polygon.points[5].x = dc.tocabi_.link_[Pelvis].x_traj(0);
     pointpub_msg.polygon.points[5].y = dc.tocabi_.link_[Pelvis].x_traj(1);
@@ -291,6 +297,38 @@ void StateManager::adv2ROS(void)
 
     ft_viz_pub.publish(ft_viz_msg);
 }
+void StateManager::initYaw()
+{
+    tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF_VIRTUAL));
+    tf2::Matrix3x3 m(q);
+    m.getRPY(roll, pitch, yaw);
+
+    if (dc.semode)
+    {
+        static bool yawinit = true;
+
+        if (yawinit)
+        {
+            yaw_init = yaw;
+            yawinit = false;
+        }
+
+        //const tf2Scalar& r_,p_,y_;
+
+        tf2::Quaternion q_mod;
+        yaw = yaw - yaw_init;
+
+        q_mod.setRPY(roll, pitch, yaw);
+        //tf2::Quaternion q_rot;
+        //q_rot.setRPY(0, 0, -yaw_init);
+        //q = q * q_rot;
+
+        q_virtual_(3) = q_mod.getX();
+        q_virtual_(4) = q_mod.getY();
+        q_virtual_(5) = q_mod.getZ();
+        q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
+    }
+}
 
 void StateManager::stateThread2(void)
 {
@@ -321,6 +359,9 @@ void StateManager::stateThread2(void)
             //
             updateState();
             //std::cout << " us done,  " << std::flush;
+
+            initYaw();
+
             if (shutdown_tocabi_bool)
             {
                 std::cout << "shutdown signal received" << std::endl;
@@ -329,10 +370,12 @@ void StateManager::stateThread2(void)
             updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
             //std::cout << " uk done, " << std::flush;
 
-            stateEstimate();
+            if (dc.semode)
+            {
+                stateEstimate();
 
-            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-
+                updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+            }
             storeState();
             //std::cout << " ss done, " << std::flush;
 
@@ -484,7 +527,7 @@ void StateManager::updateState()
     //overrid by simulation or red robot
 }
 
-void StateManager::sendCommand(Eigen::VectorQd command, double simt)
+void StateManager::sendCommand(Eigen::VectorQd command, double simt, int control_mode)
 {
     //overrid by simulation or red robot
 }
@@ -567,15 +610,13 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_, &q_virtual, &q_dot_virtual, &q_ddot_virtual);
 
+    A_temp_.setZero();
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, A_temp_, false);
 
     //Eigen::VectorXd tau_coriolis;
     //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
     mtx_rbdl.unlock();
-    tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
-
-    tf2::Matrix3x3 m(q);
-    m.getRPY(roll, pitch, yaw);
+    //tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
 
     A_ = A_temp_;
     A_inv = A_.inverse();
@@ -794,6 +835,15 @@ void StateManager::stateEstimate()
     }
 }
 
+void StateManager::SetPositionPDGainMatrix()
+{
+    for(int i=0; i<MODEL_DOF; i++)
+    {
+        dc.tocabi_.Kps[i] = dc.tocabi_.vector_kp[i];
+        dc.tocabi_.Kvs[i] = dc.tocabi_.vector_kv[i];
+    }
+}
+
 void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
 {
     //std::cout << "msg from gui : " << msg->data << std::endl;
@@ -917,7 +967,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "qp2nd")
     {
-        if (dc.qp2nd)
+        if (dc.tocabi_.qp2nd)
         {
             std::cout << "qp2nd mode off" << std::endl;
         }
@@ -925,7 +975,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         {
             std::cout << "qp2nd mode on" << std::endl;
         }
-        dc.qp2nd = !dc.qp2nd;
+        dc.tocabi_.qp2nd = !dc.tocabi_.qp2nd;
     }
     else if (msg->data == "ecatinit")
     {

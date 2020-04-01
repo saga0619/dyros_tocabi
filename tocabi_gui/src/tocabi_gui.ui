@@ -98,14 +98,14 @@ OFF</string>
      <x>0</x>
      <y>60</y>
      <width>841</width>
-     <height>741</height>
+     <height>731</height>
     </rect>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -476,7 +476,7 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>ov :</string>
+          <string>z :</string>
          </property>
         </widget>
        </item>
@@ -583,7 +583,7 @@ OFF</string>
        <item>
         <widget class="QLabel" name="label_19">
          <property name="text">
-          <string>z :</string>
+          <string>yaw :</string>
          </property>
         </widget>
        </item>
@@ -599,7 +599,7 @@ OFF</string>
        </rect>
       </property>
       <property name="text">
-       <string>Pelvis position</string>
+       <string>Pelvis orientation</string>
       </property>
      </widget>
     </widget>
@@ -1694,9 +1694,9 @@ OFF</string>
      <widget class="QLabel" name="label_56">
       <property name="geometry">
        <rect>
-        <x>160</x>
+        <x>110</x>
         <y>10</y>
-        <width>71</width>
+        <width>81</width>
         <height>20</height>
        </rect>
       </property>
@@ -1707,283 +1707,272 @@ OFF</string>
      <widget class="QWidget" name="horizontalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>10</x>
         <y>50</y>
-        <width>354</width>
-        <height>301</height>
+        <width>251</width>
+        <height>311</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_6">
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <layout class="QVBoxLayout" name="verticalLayout_18">
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_18">
-             <item>
-              <widget class="QLabel" name="l_arm_x">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>40</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>x</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="l_arm_y">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>40</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>y</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="l_arm_z">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>40</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>z</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="l_arm_roll">
-               <property name="text">
-                <string>roll(degree)</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="l_arm_pitch">
-               <property name="text">
-                <string>pitch</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="l_arm_yaw">
-               <property name="text">
-                <string>yaw</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QLabel" name="l_arm_x">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>40</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>x</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_17">
-             <item>
-              <widget class="QLineEdit" name="text_l_x">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_l_y">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_l_z">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_l_roll">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_l_pitch">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_l_yaw">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QLabel" name="l_arm_y">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>40</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>y</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="l_arm_z">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>40</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>z</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="l_arm_roll">
+             <property name="text">
+              <string>roll</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="l_arm_pitch">
+             <property name="text">
+              <string>pitch</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="l_arm_yaw">
+             <property name="text">
+              <string>yaw</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_17">
+           <item>
+            <widget class="QLineEdit" name="text_l_x">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_l_y">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_l_z">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_l_roll">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_l_pitch">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_l_yaw">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_21"/>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <layout class="QVBoxLayout" name="verticalLayout_23">
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_23">
-             <item>
-              <widget class="QLabel" name="label_62">
-               <property name="text">
-                <string>x</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_61">
-               <property name="text">
-                <string>y</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_60">
-               <property name="text">
-                <string>z</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_59">
-               <property name="text">
-                <string>roll(degree)</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_58">
-               <property name="text">
-                <string>pitch</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_57">
-               <property name="text">
-                <string>yaw</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QLabel" name="label_62">
+             <property name="text">
+              <string>x</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_19">
-             <item>
-              <widget class="QLineEdit" name="text_r_x">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_r_y">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_r_z">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_r_roll">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_r_pitch">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_r_yaw">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            <widget class="QLabel" name="label_61">
+             <property name="text">
+              <string>y</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_60">
+             <property name="text">
+              <string>z</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_59">
+             <property name="text">
+              <string>roll</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_58">
+             <property name="text">
+              <string>pitch</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_57">
+             <property name="text">
+              <string>yaw</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_19">
+           <item>
+            <widget class="QLineEdit" name="text_r_x">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_r_y">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_r_z">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_r_roll">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_r_pitch">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="text_r_yaw">
+             <property name="text">
+              <string>0.0</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -1994,9 +1983,9 @@ OFF</string>
      <widget class="QLabel" name="label_63">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>10</x>
         <y>30</y>
-        <width>171</width>
+        <width>121</width>
         <height>20</height>
        </rect>
       </property>
@@ -2010,9 +1999,9 @@ OFF</string>
      <widget class="QLabel" name="label_82">
       <property name="geometry">
        <rect>
-        <x>190</x>
+        <x>140</x>
         <y>30</y>
-        <width>171</width>
+        <width>121</width>
         <height>20</height>
        </rect>
       </property>
@@ -2026,9 +2015,9 @@ OFF</string>
      <widget class="QLabel" name="label_80">
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>370</y>
-        <width>171</width>
+        <x>330</x>
+        <y>375</y>
+        <width>101</width>
         <height>21</height>
        </rect>
       </property>
@@ -2042,9 +2031,9 @@ OFF</string>
      <widget class="QLabel" name="label_84">
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>410</y>
-        <width>181</width>
+        <x>330</x>
+        <y>417</y>
+        <width>101</width>
         <height>20</height>
        </rect>
       </property>
@@ -2058,7 +2047,7 @@ OFF</string>
      <widget class="QLineEdit" name="text_traj_time">
       <property name="geometry">
        <rect>
-        <x>360</x>
+        <x>440</x>
         <y>370</y>
         <width>181</width>
         <height>31</height>
@@ -2074,9 +2063,9 @@ OFF</string>
      <widget class="QPushButton" name="task_send_button">
       <property name="geometry">
        <rect>
-        <x>190</x>
+        <x>440</x>
         <y>450</y>
-        <width>341</width>
+        <width>181</width>
         <height>41</height>
        </rect>
       </property>
@@ -2087,8 +2076,8 @@ OFF</string>
      <widget class="QLabel" name="label_81">
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>10</y>
+        <x>310</x>
+        <y>20</y>
         <width>91</width>
         <height>20</height>
        </rect>
@@ -2100,7 +2089,7 @@ OFF</string>
      <widget class="QWidget" name="horizontalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>440</x>
+        <x>280</x>
         <y>50</y>
         <width>160</width>
         <height>161</height>
@@ -2171,9 +2160,9 @@ OFF</string>
      <widget class="QComboBox" name="task_mode">
       <property name="geometry">
        <rect>
-        <x>360</x>
-        <y>410</y>
-        <width>187</width>
+        <x>440</x>
+        <y>412</y>
+        <width>181</width>
         <height>27</height>
        </rect>
       </property>
@@ -2239,167 +2228,522 @@ OFF</string>
         <string>9. Arm with fixed base(No Gravity Compensation, Torque PD)</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>10. CustomController 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>11. CustomController 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>12. CustomController 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>13. CustomController 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>14. CustomController 5</string>
+       </property>
+      </item>
      </widget>
-     <widget class="QLabel" name="label_81">
+     <widget class="QLabel" name="label_88">
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>10</y>
-        <width>91</width>
+        <x>70</x>
+        <y>370</y>
+        <width>81</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>COM Mover</string>
+       <string>deg</string>
       </property>
      </widget>
-     <widget class="QWidget" name="horizontalLayoutWidget_3">
+     <widget class="QCheckBox" name="customtaskgain">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>20</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Custom Task gain</string>
+      </property>
+     </widget>
+     <widget class="QFrame" name="taskgain">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>40</y>
+        <width>161</width>
+        <height>141</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QWidget" name="horizontalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>160</width>
+         <height>122</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>pos p</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>    pos d   </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>ang p</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>ang d</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QLineEdit" name="pospgain"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="posdgain"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="angpgain"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="angdgain"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QFrame" name="frame_14">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>530</y>
+       <width>821</width>
+       <height>201</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QCheckBox" name="checkBox_dob">
       <property name="geometry">
        <rect>
         <x>440</x>
-        <y>50</y>
-        <width>160</width>
-        <height>161</height>
+        <y>0</y>
+        <width>201</width>
+        <height>61</height>
        </rect>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_26">
-         <item>
-          <widget class="QLabel" name="label_83">
-           <property name="text">
-            <string>COM Pos</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_86">
-           <property name="text">
-            <string>Height</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_87">
-           <property name="text">
-            <string>Angle</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_16">
-         <item>
-          <widget class="QLineEdit" name="com_pos">
-           <property name="text">
-            <string>0.5</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="com_height">
-           <property name="text">
-            <string>0.75</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="com_angle">
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
+      <property name="text">
+       <string>DOB</string>
+      </property>
      </widget>
-     <widget class="QComboBox" name="task_mode">
+     <widget class="QComboBox" name="walking_pattern">
       <property name="geometry">
        <rect>
-        <x>360</x>
-        <y>410</y>
-        <width>187</width>
-        <height>27</height>
+        <x>440</x>
+        <y>60</y>
+        <width>121</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Previewcontrol</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>DCM</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>MPC</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QComboBox" name="step_mode">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>100</y>
+        <width>121</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Right</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Left</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QComboBox" name="ik_mode">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>140</y>
+        <width>121</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Torque</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>IK</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Jacobian</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="walking_x">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>98</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="maximumSize">
+      <property name="minimumSize">
        <size>
-        <width>187</width>
-        <height>27</height>
+        <width>40</width>
+        <height>0</height>
        </size>
       </property>
-      <item>
-       <property name="text">
-        <string>0. Arm with Floating Base(with Balancing)</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>0. Pelvis Position Control</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>1. COM position Control</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>2. COM to lf</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>3. COM to lf, pelvis to horizonta</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>4. lf control with single support</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>5. zmp feedback test</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>6. capture point walking</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>7. Arm with COM(Torque PD)</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>8. Arm with wholebody dynamics</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>9. Arm with fixed base(No Gravity Compensation, Torque PD)</string>
-       </property>
-      </item>
+      <property name="text">
+       <string>x</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_88">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>0</y>
+        <width>131</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Walking Control</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="walking_y">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>50</y>
+        <width>98</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>y</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="text_walking_x">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>20</y>
+        <width>88</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0.5</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="text_walking_y">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>50</y>
+        <width>88</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0.0</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="walking_z">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>80</y>
+        <width>98</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>z</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="text_walking_z">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>80</y>
+        <width>88</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0.0</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="walking_height">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>113</y>
+        <width>100</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>height</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="text_walking_height">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>110</y>
+        <width>88</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0.0</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="walking_theta">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>135</y>
+        <width>98</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>theta</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="text_walking_theta">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>140</y>
+        <width>88</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0.0</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="walking_steplengthx">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>-60</y>
+        <width>98</width>
+        <height>184</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>step_length_x</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="text_walking_steplengthx">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>20</y>
+        <width>88</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0.1</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="walking_steplengthy">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>-115</y>
+        <width>98</width>
+        <height>374</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>step_length_y</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="text_walking_steplengthy">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>60</y>
+        <width>88</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0.0</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="walkinginit_btn">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>10</y>
+        <width>181</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>walking init</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="walkingstart_btn">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>60</y>
+        <width>181</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>walking start</string>
+      </property>
      </widget>
     </widget>
    </widget>
@@ -2558,345 +2902,7 @@ OFF</string>
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="WALKING">
-    <widget class="QFrame" name="frame_14">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>30</y>
-       <width>391</width>
-       <height>451</height>
-      </rect>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <widget class="QLabel" name="label_56">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>5</y>
-        <width>131</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Walking Control</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="horizontalLayoutWidget_3">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>-10</y>
-        <width>204</width>
-        <height>301</height>
-       </rect>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_7">
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_29">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_8">
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_30">
-             <item>
-              <widget class="QLabel" name="walking_x">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>40</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>x</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="walking_y">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>40</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>y</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="walking_z">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>40</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>z</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="walking_height">
-               <property name="text">
-                <string>height</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="walking_theta">
-               <property name="text">
-                <string>theta</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="walking_steplengthx">
-               <property name="text">
-                <string>step_length_x</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="walking_steplengthy">
-               <property name="text">
-                <string>step_length_y</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_31">
-             <item>
-              <widget class="QLineEdit" name="text_walking_x">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_walking_y">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_walking_z">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_walking_height">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_walking_theta">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_walking_steplengthx">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="text_walking_steplengthy">
-               <property name="text">
-                <string>0.0</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_21"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QPushButton" name="walkinginit_btn">
-      <property name="geometry">
-      <rect>
-       <x>50</x>
-       <y>270</y>
-       <width>201</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>InitWalking</string>
-     </property>
-     </widget>
-     <widget class="QPushButton" name="walkingstart_btn">
-      <property name="geometry">
-      <rect>
-       <x>50</x>
-       <y>340</y>
-       <width>201</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>WalkingStart</string>
-     </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_dob">
-      <property name="geometry">
-      <rect>
-       <x>280</x>
-       <y>13</y>
-       <width>201</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>DOB</string>
-     </property>
-     </widget>
-    <widget class="QComboBox" name="walking_pattern">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>100</y>
-        <width>121</width>
-        <height>28</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>Previewcontrol</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>DCM</string>
-       </property>
-      </item>
-       <item>
-       <property name="text">
-        <string>MPC</string>
-       </property>
-      </item>
-     </widget> 
-     <widget class="QComboBox" name="step_mode">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>130</y>
-        <width>121</width>
-        <height>28</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>Right</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Left</string>
-       </property>
-      </item>
-     </widget> 
-     <widget class="QComboBox" name="ik_mode">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>160</y>
-        <width>121</width>
-        <height>28</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>Torque</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>IK</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Jacobian</string>
-       </property>
-      </item>      
-     </widget>         
-    </widget>    
-   </widget>
-  </widget> 
-  <widget class="QPushButton" name="ecat_btn">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>91</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>ECAT</string>
-   </property>
+   <widget class="QWidget" name="WALKING"/>
   </widget>
   <widget class="QPushButton" name="ecat_btn">
    <property name="geometry">
@@ -2960,7 +2966,7 @@ OFF</string>
     </rect>
    </property>
    <property name="text">
-    <string>WALKING</string>
+    <string>??</string>
    </property>
   </widget>
   <widget class="QPushButton" name="torqueoff_button">

@@ -293,7 +293,7 @@ public:
     //update state of Robot from mujoco
     virtual void updateState() override;
 
-    virtual void sendCommand(Eigen::VectorQd command, double sim_time) override;
+    virtual void sendCommand(Eigen::VectorQd command, double sim_time, int control_mode = Torquemode) override;
 
     //connect to ethercat
     //virtual void connect() override;
@@ -305,6 +305,11 @@ public:
     void imuThread();
     void ftsensorThread();
 
+    void ethercatThreadLower();
+    void ethercatThreadUpper();
+    void ethercatCheckLower();
+    void ethercatCheckUpper();
+    
     int checkTrajContinuity(int slv_number);
     void checkSafety(int slv_number, double max_vel, double max_dis);
     void findZeroPoint(int slv_number);
@@ -355,7 +360,6 @@ public:
     fstream elmo_zp_log;
     std::string zp_path, zplog_path, pack_path;
 
-
     int checkfirst = -1;
     int checkfirst_before = -1;
     int al = 111;
@@ -388,6 +392,10 @@ public:
 
     Eigen::VectorQd rq_;
     Eigen::VectorQd rq_dot_;
+
+    Eigen::Vector4d imu_quat;
+    Eigen::Vector3d imu_ang_vel;
+    Eigen::Vector3d imu_lin_acc;
 
     int stateElmo[MODEL_DOF];
     int stateElmo_before[MODEL_DOF];

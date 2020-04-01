@@ -127,9 +127,16 @@ void RealRobotInterface::updateState()
         q_ = rq_;
         q_dot_ = rq_dot_;
         mtx_q.unlock();
+        q_virtual_.setZero();
+        q_virtual_.segment(3, 3) = imu_quat.segment(0, 3);
+        q_virtual_(MODEL_DOF_VIRTUAL) = imu_quat(3);
         q_virtual_.segment(6, MODEL_DOF) = q_;
+        q_dot_virtual_.setZero();
+        q_dot_virtual_.segment(3, 3) = imu_ang_vel;
         q_dot_virtual_.segment(6, MODEL_DOF) = q_dot_;
-        mtx_q.unlock();
+
+        q_ddot_virtual_.setZero();
+        q_ddot_virtual_.segment(0, 3) = imu_lin_acc;
     }
 }
 
@@ -392,7 +399,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     }
 }
 
-void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time)
+void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time, int control_mode)
 {
     if (mtx_elmo_command.try_lock())
     {
@@ -481,6 +488,27 @@ void RealRobotInterface::ethercatCheck()
     }
     std::cout << cyellow << "checking thread end !" << creset << std::endl;
 }
+
+void RealRobotInterface::ethercatThreadLower()
+{
+
+}
+
+void RealRobotInterface::ethercatThreadUpper()
+{
+
+}
+
+void RealRobotInterface::ethercatCheckLower()
+{
+
+}
+
+void RealRobotInterface::ethercatCheckUpper()
+{
+    
+}
+
 
 void RealRobotInterface::ethercatThread()
 {
@@ -1090,7 +1118,7 @@ void RealRobotInterface::ethercatThread()
                                         txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * NM2CNT[i] * Dr[i]);
                                     }
                                 }
-                                else if(ElmoMode[i] == EM_COMMUTATION)
+                                else if (ElmoMode[i] == EM_COMMUTATION)
                                 {
                                 }
                                 else
@@ -1313,18 +1341,19 @@ void RealRobotInterface::imuThread()
             //Code here
             //
             imu_msg = mx5.getIMU();
-            q_virtual_(3) = imu_msg.orientation.x;
-            q_virtual_(4) = imu_msg.orientation.y;
-            q_virtual_(5) = imu_msg.orientation.z;
-            q_virtual_(MODEL_DOF_VIRTUAL) = imu_msg.orientation.w;
 
-            q_dot_virtual_(3) = imu_msg.angular_velocity.x;
-            q_dot_virtual_(4) = imu_msg.angular_velocity.y;
-            q_dot_virtual_(5) = imu_msg.angular_velocity.z;
+            imu_quat(0) = imu_msg.orientation.x;
+            imu_quat(1) = imu_msg.orientation.y;
+            imu_quat(2) = imu_msg.orientation.z;
+            imu_quat(3) = imu_msg.orientation.w;
 
-            q_ddot_virtual_(0) = imu_msg.linear_acceleration.x;
-            q_ddot_virtual_(1) = imu_msg.linear_acceleration.y;
-            q_ddot_virtual_(2) = imu_msg.linear_acceleration.z;
+            imu_ang_vel(0) = imu_msg.angular_velocity.x;
+            imu_ang_vel(1) = imu_msg.angular_velocity.y;
+            imu_ang_vel(2) = imu_msg.angular_velocity.z;
+
+            imu_lin_acc(0) = imu_msg.linear_acceleration.x;
+            imu_lin_acc(1) = imu_msg.linear_acceleration.y;
+            imu_lin_acc(2) = imu_msg.linear_acceleration.z;
         }
         mx5.endIMU();
     }
@@ -1353,7 +1382,7 @@ void RealRobotInterface::ftsensorThread()
     is_ft_board_ok = ft.open();
     if (is_ft_board_ok == 1)
     {
-        pub_to_gui(dc, "ftgood");
+        pub_to_gui(dc, "initreq");
     }
     else
     {
@@ -1387,11 +1416,16 @@ void RealRobotInterface::ftsensorThread()
                 ft.calibrationFTData(ft_calib_finish);
             }
         }
+        else
+        {
+            pub_to_gui(dc, "initreq");
+        }
         if (ft_calib_finish == true)
         {
             if (ft_calib_ui == false)
             {
                 pub_to_gui(dc, "ft sensor : calibration finish ");
+                pub_to_gui(dc, "ftgood");
                 ft_calib_ui = true;
             }
             ft.analogOversample();
@@ -1402,12 +1436,6 @@ void RealRobotInterface::ftsensorThread()
         {
             RF_FT(i) = ft.rightFootAxisData[i];
             LF_FT(i) = ft.leftFootAxisData[i];
-        }
-        
-        if(cycle_count % 400 == 0)
-        {
-            printf("FTsensorL x : %f \t y : %f \t z : %f\n", ft.leftFootAxisData[0], ft.leftFootAxisData[1], ft.leftFootAxisData[2]);
-            printf("FTsensorR x : %f \t y : %f \t z : %f\n", ft.rightFootAxisData[0], ft.rightFootAxisData[1], ft.rightFootAxisData[2]);
         }
     }
 

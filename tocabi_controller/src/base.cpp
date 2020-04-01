@@ -27,13 +27,16 @@ int main(int argc, char **argv)
     dc.nh.param<std::string>("/tocabi_controller/ifname", dc.ifname, "enp0s31f6");
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
-
+    dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
+    dc.nh.getParam("/tocabi_controller/Kp",dc.tocabi_.vector_kp);
+    dc.nh.getParam("/tocabi_controller/Kv",dc.tocabi_.vector_kv);
+    
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");
     dc.statusPubMsg.data = strr;
 
     bool simulation = true;
-    dc.dym_hz = 500; 
+    dc.dym_hz = 500;
     dc.stm_hz = 4000;
     dc.dym_timestep = std::chrono::microseconds((int)(1000000 / dc.dym_hz));
     dc.stm_timestep = std::chrono::microseconds((int)(1000000 / dc.stm_hz));
@@ -56,6 +59,26 @@ int main(int argc, char **argv)
     {
         std::cout << "Simulation Mode " << std::endl;
 
+        MujocoInterface stm(dc);
+        DynamicsManager dym(dc);
+        TocabiController rc(dc, stm, dym);
+        std::thread thread[4];
+        thread[0] = std::thread(&TocabiController::stateThread, &rc);
+        thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
+        thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
+        thread[3] = std::thread(&TocabiController::tuiThread, &rc);
+
+        for (int i = 0; i < 4; i++)
+        {
+            thread[i].join();
+        }
+    }
+    else if(dc.mode == "simulationposition")
+    {
+        std::cout << "Simulation Mode position" << std::endl;
+
+        dc.simulationMode = true;
+        
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController rc(dc, stm, dym);

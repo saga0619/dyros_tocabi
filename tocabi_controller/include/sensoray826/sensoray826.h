@@ -2,11 +2,11 @@
 #include <ros/ros.h>
 #include <thread>
 
-#define PRINT_ERR(FUNC)   if ((errcode = FUNC) != S826_ERR_OK) { /*ROS_INFO("\nERROR: %d\n", errcode); */}
+#define PRINT_ERR(FUNC)   if ((errcode = FUNC) != S826_ERR_OK) {/*ROS_INFO("\nERROR: %d\n", errcode);*/}
 
 const double SAMPLE_RATE = 1000; // Hz
 
-enum SLOT_TIME {NONE = 0, DEFAULT = 50};
+enum SLOT_TIME {NONE = 0, DEFAULT = 10};
 
 struct SLOTATTR
 {
@@ -14,12 +14,18 @@ struct SLOTATTR
     uint tsettle;   // settling time in microseconds
 };
 
+const SLOTATTR slotAttrs[16] = { 
+    {0, DEFAULT}, {1, DEFAULT}, {2, DEFAULT}, {3, DEFAULT},
+    {4, DEFAULT}, {5, DEFAULT},
+    {8, DEFAULT}, {9, DEFAULT}, {10, DEFAULT}, {11, DEFAULT},
+    {12, DEFAULT}, {13, DEFAULT},
+};
+/*
 const SLOTATTR slotAttrs[16] = {
     {0, DEFAULT}, {1, DEFAULT}, {2, DEFAULT}, {3, DEFAULT},
-    {4, DEFAULT}, {5, DEFAULT}, {6, DEFAULT}, {7, NONE},
+    {4, DEFAULT}, {5, DEFAULT}, {6, DEFAULT}, {7, DEFAULT},
     {8, DEFAULT}, {9, DEFAULT}, {10, DEFAULT}, {11, DEFAULT},
-    {12, DEFAULT}, {13, DEFAULT}, {14, DEFAULT}, {15, NONE}
-};
+};*/
 
 class sensoray826_dev
 {
@@ -38,13 +44,14 @@ class sensoray826_dev
     uint _timeStamp[ADC_MAX_SLOT];
     int _adBuf[ADC_MAX_SLOT];
 
-    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 8};
+    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 6};
 
 
 public:
     // Analog Datas
     int adcDatas[ADC_MAX_SLOT];
     double adcVoltages[ADC_MAX_SLOT];
+    double adcVoltagesPrev[ADC_MAX_SLOT];
     int burstNum[ADC_MAX_SLOT];
 
     const double calibrationMatrixLFoot[6][6] = 
@@ -168,8 +175,8 @@ public:
     void analogOversample()
     {
         uint slotList = 0xFFFF;
-        PRINT_ERR ( S826_AdcRead(board, _adBuf, _timeStamp, &slotList, 0));
-
+        PRINT_ERR ( S826_AdcRead(board, _adBuf, _timeStamp, &slotList, 0));         
+  
         for(int i=0; i<ADC_MAX_SLOT; i++)
         {
             if ((((slotList >> (int)i) & 1) != 0)) {
@@ -179,7 +186,6 @@ public:
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
         }
-    //    ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
     }
 
     double lowPassFilter(double input, double prev, double ts, double tau)
@@ -249,8 +255,6 @@ public:
 
             leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
             rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
-            leftFootAxisData_prev[i] = leftFootAxisData[i];
-            rightFootAxisData_prev[i] = rightFootAxisData[i];
         }
     }
 };

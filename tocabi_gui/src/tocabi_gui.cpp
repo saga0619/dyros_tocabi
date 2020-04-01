@@ -77,6 +77,8 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.resettunebtn, SIGNAL(pressed()), this, SLOT(resettunebtn()));
     connect(ui_.ftcalibbtn, SIGNAL(pressed()), this, SLOT(ftcalibbtn()));
 
+    connect(ui_.customtaskgain, SIGNAL(stateChanged(int)), this, SLOT(customtaskgaincb(int)));
+
     ui_.stackedWidget->setCurrentIndex(0);
 
     ui_.ecat_btn->setShortcut(QKeySequence(Qt::Key_1));
@@ -120,6 +122,16 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.task_send_button, SIGNAL(pressed()), this, SLOT(tasksendcb()));
     connect(ui_.walkinginit_btn, SIGNAL(pressed()), this, SLOT(walkinginitbtncb()));
     connect(ui_.walkingstart_btn, SIGNAL(pressed()), this, SLOT(walkingstartbtncb()));
+
+    connect(ui_.sebutton, SIGNAL(pressed()), this, SLOT(stateestimationcb()));
+    connect(ui_.torqueredis, SIGNAL(pressed()), this, SLOT(torquerediscb()));
+    connect(ui_.qp2nd, SIGNAL(pressed()), this, SLOT(qp2ndcb()));
+
+    connect(ui_.gravity_button_4, SIGNAL(pressed()), this, SLOT(gravcompcb()));
+    connect(ui_.task_button_4, SIGNAL(pressed()), this, SLOT(posconcb()));
+    connect(ui_.contact_button_4, SIGNAL(pressed()), this, SLOT(fixedgravcb()));
+
+    //connect(ui_.)
 
     if (mode == "simulation")
     {
@@ -224,6 +236,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecattexts[i]->setText(QString::fromUtf8("0.0"));
         ecattexts[i]->setValidator(new QDoubleValidator(0, 1000, 3, this));
     }
+    ui_.taskgain->setDisabled(true);
 
     //for(int i=0;i<)
 
@@ -308,6 +321,18 @@ void TocabiGui::restoreSettings(const qt_gui_cpp::Settings &plugin_settings, con
 {
 }
 
+void TocabiGui::customtaskgaincb(int state)
+{
+    if (ui_.customtaskgain->isChecked())
+    {
+        ui_.taskgain->setEnabled(true);
+    }
+    else
+    {
+        ui_.taskgain->setDisabled(true);
+    }
+}
+
 void TocabiGui::torqueoncb()
 {
     com_msg.data = std::string("torqueon");
@@ -322,6 +347,22 @@ void TocabiGui::torqueoffcb()
 void TocabiGui::emergencyoffcb()
 {
     com_msg.data = std::string("emergencyoff");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::stateestimationcb()
+{
+    com_msg.data = std::string("stateestimation");
+    com_pub.publish(com_msg);
+}
+void TocabiGui::torquerediscb()
+{
+    com_msg.data = std::string("torqueredis");
+    com_pub.publish(com_msg);
+}
+void TocabiGui::qp2ndcb()
+{
+    com_msg.data = std::string("qp2nd");
     com_pub.publish(com_msg);
 }
 
@@ -416,6 +457,11 @@ void TocabiGui::plainTextEditcb(const std_msgs::StringConstPtr &msg)
         ui_.label_zpstatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
         ui_.label_zpstatus->setText(QString::fromUtf8("OK"));
     }
+    else if (msg->data == "initreq")
+    {
+        ui_.label_ftstatus->setStyleSheet("QLabel { background-color : yellow ; color : black; }");
+        ui_.label_ftstatus->setText(QString::fromUtf8("INIT REQ"));
+    }
     else if (msg->data == "ftgood")
     {
         ui_.label_ftstatus->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
@@ -473,16 +519,15 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     ui_.label_64->setText(QString::number(msg->polygon.points[2].x, 'f', 5));
     ui_.label_65->setText(QString::number(msg->polygon.points[2].y, 'f', 5));
 
-    ui_.label_14->setText(QString::number(msg->polygon.points[4].x,'f',5));
-    ui_.label_15->setText(QString::number(msg->polygon.points[4].y,'f',5));
-
-
+    ui_.label_14->setText(QString::number(msg->polygon.points[4].x, 'f', 5));
+    ui_.label_15->setText(QString::number(msg->polygon.points[4].y, 'f', 5));
+    ui_.label_16->setText(QString::number(msg->polygon.points[4].z, 'f', 5));
 
     //zmp by ft
 
     ui_.label_22->setText(QString::number(msg->polygon.points[12].x, 'f', 5));
     ui_.label_23->setText(QString::number(msg->polygon.points[12].y, 'f', 5));
-
+    
     double com_x = msg->polygon.points[0].x;
     double com_y = msg->polygon.points[0].y;
 
@@ -501,6 +546,8 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     double dis = ((a * com_x + b * com_y + c)) / sqrt(a * a + b * b);
 
     //com distance from both foot
+
+    dis = msg->polygon.points[0].z;
     ui_.label_3->setText(QString::number(dis, 'f', 5));
 
 
@@ -579,6 +626,15 @@ void TocabiGui::tasksendcb()
 
     task_msg.time = ui_.text_traj_time->text().toFloat();
     task_msg.mode = ui_.task_mode->currentIndex();
+
+    task_msg.customTaskGain = ui_.customtaskgain->isChecked();
+    if (task_msg.customTaskGain)
+    {
+        task_msg.pos_p = ui_.pospgain->text().toFloat();
+        task_msg.pos_d = ui_.posdgain->text().toFloat();
+        task_msg.ang_p = ui_.angpgain->text().toFloat();
+        task_msg.ang_d = ui_.angdgain->text().toFloat();
+    }
 
     task_pub.publish(task_msg);
 
@@ -659,52 +715,30 @@ void TocabiGui::walkinginitbtncb()
 
     task_pub.publish(task_msg);
 }
-/*
-void TocabiGui::walkingstartbtncb()
-{   
-    walking_msg.walking_enable = 2.0;
-    walking_msg.ik_mode = ui_.ik_mode->currentIndex();
-    
-    if(ui_.walking_pattern->currentIndex() == 0)
-    {
-        walking_msg.pattern = 0;
-    }
-    else if(ui_.walking_pattern->currentIndex() == 1)
-    {
-        walking_msg.pattern = 1;
-    }
-    else
-    {  
-        walking_msg.pattern = 2;
-    }
 
-    if(ui_.checkBox_dob->isChecked() == true)
-    {
-        walking_msg.dob = true;
-    }
-    else
-    {
-        walking_msg.dob = false;
-    }    
-
-    walking_msg.first_foot_step = ui_.step_mode->currentIndex();
-    
-    walking_msg.x = ui_.text_walking_x->text().toFloat();
-    walking_msg.y = ui_.text_walking_y->text().toFloat();
-    walking_msg.z = ui_.text_walking_z->text().toFloat();
-    walking_msg.height=ui_.text_walking_height->text().toFloat();
-    walking_msg.theta=ui_.text_walking_theta->text().toFloat();
-    walking_msg.step_length_x=ui_.text_walking_steplengthx->text().toFloat();
-    walking_msg.step_length_y=ui_.text_walking_steplengthy->text().toFloat();
-
-    walking_pub.publish(walking_msg);
-}
-*/
 /*
 void TocabiGui::wheelEvent(QWheelEvent *event)
 {
     std::cout << "wheel event" << std::endl;
 }*/
+
+void TocabiGui::fixedgravcb()
+{
+    com_msg.data = std::string("fixedgravity");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::gravcompcb()
+{
+    com_msg.data = std::string("gravity");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::posconcb()
+{
+    com_msg.data = std::string("positioncontrol");
+    com_pub.publish(com_msg);
+}
 
 } // namespace tocabi_gui
 

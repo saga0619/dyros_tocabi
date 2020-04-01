@@ -2,9 +2,7 @@
 #define WHOLEBODY_CONTROLLER_H
 
 //#include "dyros_red_controller/dyros_red_model.h"
-#include "tocabi_controller/data_container.h"
-#include "math_type_define.h"
-
+#include "tocabi_controller/link.h"
 #include "tocabi_controller/redsvd.h"
 #include "tocabi_controller/qp.h"
 #include <qpOASES.hpp>
@@ -32,23 +30,11 @@ using namespace qpOASES;
 
 */
 
-namespace WholebodyController
-{
-}
-
-class Wholebody_controller
+class WholebodyController
 {
 public:
-  //walking_controller();
-
-  Wholebody_controller(DataContainer &dc, RobotData &kd_);
-  DataContainer &dc;
-  RobotData &rk_;
-
-  //const VectorQd &current_q_; // updated by control_base
-
+  //const VectorQd &current_q_;
   //Main loop wholebody function
-
   // update kinematics information
   //
   void init(RobotData &Robot);
@@ -81,11 +67,12 @@ public:
   */
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
 
+  VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 
   */
-  VectorQd task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  int task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, Eigen::VectorQd &task_torque);
   VectorQd task_control_torque_QP2(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP_gravity(RobotData &Robot);
   VectorXd check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
@@ -127,7 +114,7 @@ public:
   Vector6d getfstar6d(RobotData &Robot, int link_id, Vector3d kpt, Vector3d kdt, Vector3d kpa, Vector3d kda);
   Vector6d getfstar6d(RobotData &Robot, int link_id);
 
-  Vector3d COM_traj_with_zmp();
+  Vector3d COM_traj_with_zmp(RobotData &Robot);
 
   //zmp controller
   VectorQd CP_control_init(RobotData &Robot, double dT);
@@ -137,7 +124,7 @@ public:
 
   //Vector2d getcptraj(double time, Vector2d zmp);
 
-  Vector2d getcpref(double task_time, double future_time);
+  Vector2d getcpref(RobotData &Robot, double task_time, double future_time);
   //Contact Mode
   const int DOUBLE_SUPPORT = 0;
   const int SINGLE_SUPPORT_LEFT = 1;
@@ -145,6 +132,8 @@ public:
   const int TRIPPLE_SUPPORT = 3;
   const int QUAD_SUPPORT = 4;
 
+
+  void CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix);
   /*
 
   // motion time

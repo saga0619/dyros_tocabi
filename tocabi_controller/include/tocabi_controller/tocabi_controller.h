@@ -1,95 +1,9 @@
 #include "tocabi_controller/dynamics_manager.h"
 #include "tocabi_controller/mujoco_interface.h"
 #include "tocabi_controller/realrobot_interface.h"
-#include "tocabi_controller/walking_controller.h"
-#include "tocabi_controller/wholebody_controller.h"
-
 #include "custom_controller.h"
 
-
-#define Kp_Yaw1s 1500   //Hip
-#define Kp_Roll1s 5000  //Hip
-#define Kp_Pitch1s 5000 //Hip
-#define Kp_Pitch2s 5000 //Knee
-#define Kp_Pitch3s 5000 //Ankle
-#define Kp_Roll2s 6500  //Ankle
-
-#define Kv_Yaw1s 50   //Hip
-#define Kv_Roll1s 50  //Hip
-#define Kv_Pitch1s 50 //Hip
-#define Kv_Pitch2s 40 //Knee
-#define Kv_Pitch3s 30 //Ankle
-#define Kv_Roll2s 60  //Ankle
-
 extern volatile bool shutdown_tocabi_bool;
-const double Kps[MODEL_DOF] =
-    {
-        Kp_Yaw1s,
-        Kp_Roll1s,
-        Kp_Pitch1s,
-        Kp_Pitch2s,
-        Kp_Pitch3s,
-        Kp_Roll2s,
-        Kp_Yaw1s,
-        Kp_Roll1s,
-        Kp_Pitch1s,
-        Kp_Pitch2s,
-        Kp_Pitch3s,
-        Kp_Roll2s};
-
-const double Kvs[MODEL_DOF] =
-    {
-        Kv_Yaw1s,
-        Kv_Roll1s,
-        Kv_Pitch1s,
-        Kv_Pitch2s,
-        Kv_Pitch3s,
-        Kv_Roll2s,
-        Kv_Yaw1s,
-        Kv_Roll1s,
-        Kv_Pitch1s,
-        Kv_Pitch2s,
-        Kv_Pitch3s,
-        Kv_Roll2s};
-
-struct TaskCommand
-{
-  double command_time;
-  double traj_time;
-  bool task_init;
-  int mode;
-  // COM Related
-  double ratio;
-  double height;
-  double angle;
-  // Arm Related
-  double l_x;
-  double l_y;
-  double l_z;
-  double l_roll;
-  double l_pitch;
-  double l_yaw;
-  double r_x;
-  double r_y;
-  double r_z;
-  double r_roll;
-  double r_pitch;
-  double r_yaw;
-  
-  //Walking Related
-  int walking_enable;
-  int ik_mode;
-  int walking_pattern;
-  int foot_step_dir;
-  double target_x;
-  double target_y;
-  double target_z;
-  double theta;
-  double walking_height;
-  double step_length_x;
-  double step_length_y;
-  bool dob;
-};
 
 class TocabiController
 {
@@ -97,9 +11,11 @@ public:
   TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm);
 
   DataContainer &dc;
-
   CustomController &mycontroller;
   TaskCommand tc;
+
+  WholebodyController wbc_;
+  Walking_controller wkc_;
 
   void stateThread();
   void dynamicsThreadLow();
@@ -109,7 +25,7 @@ public:
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void pubfromcontroller();
-  
+
   ros::Subscriber task_command;
   std::ofstream data_out;
 
@@ -136,9 +52,10 @@ private:
   bool safetymode;
 
   bool task_switch = false;
+  bool tc_command = false;
 
   int dym_hz, stm_hz;
-/*
+  /*
   Eigen::VectorQd q_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
@@ -147,6 +64,7 @@ private:
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd torque_;
+
   //Command Var
   Eigen::VectorQd torque_desired;
 
@@ -169,5 +87,5 @@ private:
 
   //Walking Information
   bool walkingCallbackOn;
-
+  bool set_q_init;
 };

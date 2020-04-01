@@ -124,7 +124,7 @@
                                     <body name="L_Foot_Link" pos="0 0 0">
                                         <inertial pos="-0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
-                                        <geom size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
+                                        <geom size="0.15 0.085 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                         <geom size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                                         <site class="FTsensor" name="LF_FT" pos="0 0 -0.075"/>                                                                        
                                     </body>
@@ -172,7 +172,7 @@
                                     <body name="R_Foot_Link" pos="0 0 0">
                                         <inertial pos="-0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
-                                        <geom size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
+                                        <geom size="0.15 0.085 0.0135" pos="0.03 0 -0.145" type="box" rgba="0.79216 0.81961 0.93333 1" />
                                         <geom size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" rgba="0.79216 0.81961 0.93333 1" />
                                         <site class="FTsensor" name="RF_FT" pos="0 0 -0.0725"/>
                                     </body>
@@ -318,7 +318,9 @@
                                     </body>
                                 </body>
                             </body>
-                        </body>                        
+                        </body>
+                        
+                        
                     </body>
                 </body>
             </body>
@@ -386,10 +388,11 @@
     <keyframe>
         <!-- Initial Position Setting 0.94783-->
         <key name="front" time="0" qpos ="0 0 0.94783 1 0 0 0 
-								0.0 0.0 -0.24 0.6 -0.36 0 
-								0.0 0.0 -0.24 0.6 -0.36 0
+								0 0 -0.24 0.7 -0.36 0 
+								0 0 -0.24 0.7 -0.36 0 
 								0 0 0 0 0
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
 								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>    
     </keyframe>    
 </mujoco>
+s

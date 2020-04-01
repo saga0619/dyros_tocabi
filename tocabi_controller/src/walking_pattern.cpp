@@ -295,7 +295,7 @@ void WalkingPattern::footStepTotal()
   }
 }
 
-void WalkingPattern::chagneFootSteptoLocal()
+void WalkingPattern::changeFootSteptoLocal()
 {
     Eigen::Isometry3d reference;
     foot_step_support.resize(total_step_num,7);
@@ -304,13 +304,16 @@ void WalkingPattern::chagneFootSteptoLocal()
     {
         if(foot_step(0,6) == 0) //right support
         {
-            reference.translation() = RF_float_init.translation();
+            reference.translation()(0) = 0.0;//RF_float_init.translation();
+            reference.translation()(1) = RF_float_init.translation()(1);
             reference.translation()(2) = 0.0;
             reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(RF_float_init.linear())(2));
         }
         else  //left support
         {
-            reference.translation() = LF_float_init.translation();
+
+            reference.translation()(0) = 0.0;//LF_float_init.translation();
+            reference.translation()(1) = LF_float_init.translation()(1);
             reference.translation()(2) = 0.0;
             reference.linear() = DyrosMath::rotateWithZ(DyrosMath::rot2Euler(LF_float_init.linear())(2));
         }
@@ -394,84 +397,77 @@ void WalkingPattern::chagneFootSteptoLocal()
 
 void WalkingPattern::cpReferencePatternGeneration()
 {
-  capturePoint_refx.resize((t_total*(total_step_num+1)+t_temp+1));
-  capturePoint_refy.resize((t_total*(total_step_num+1)+t_temp+1));
-  com_refx.resize((t_total*(total_step_num+1)+t_temp+1));
-  com_refy.resize((t_total*(total_step_num+1)+t_temp+1));
-  zmp_refx.resize((t_total*(total_step_num+1)+t_temp+1));
-  zmp_refy.resize((t_total*(total_step_num+1)+t_temp+1));
+  capturePoint_refx.resize((t_total*(total_step_num+1)+t_temp-1));
+  capturePoint_refy.resize((t_total*(total_step_num+1)+t_temp-1));
+  com_refx.resize((t_total*(total_step_num+1)+t_temp-1));
+  com_refy.resize((t_total*(total_step_num+1)+t_temp-1));
+  zmp_refx.resize((t_total*(total_step_num+1)+t_temp-1));
+  zmp_refy.resize((t_total*(total_step_num+1)+t_temp-1));
 
 
-  for(int i=0; i<(t_total*(total_step_num+1)+t_temp+1); i++)
+  for(int i=0; i<(t_total*(total_step_num+1)+t_temp-1); i++)
   {
     int current_step, capturePointChange;
     double tick;
     if(i<t_temp-1)
     {
         current_step=i/(t_temp+t_total);
-    if(t_temp-t_total <= i)
-    {  
-        tick = (i-(t_temp-t_total-1))/Hz_; 
-    }
-    else
-    {
-        tick = i/(Hz_);
-    }
-
+        if(t_temp-t_total <= i)
+        {  
+            tick = (i-(t_temp-t_total-1))/Hz_; 
+        }
+        else
+        {
+            tick = i/(Hz_);
+        }
         capturePointChange = i/(t_temp-1);
     }
    else
     {
-      current_step = (i-t_temp-t_total)/(t_total)+1;
-      capturePointChange = (i-t_temp+1)/(t_total)+1;
-      tick = i/(Hz_)-t_total*(capturePointChange-1)/Hz_-(t_temp-1)/Hz_;
+        current_step = (i-t_temp-t_total)/(t_total)+1;
+        capturePointChange = (i-t_temp+1)/(t_total)+1;
+        tick = i/(Hz_)-t_total*(capturePointChange-1)/Hz_-(t_temp-1)/Hz_;
     }
     //ZMP trajectory from CP
 
     if(!(capturePointChange==total_step_num+1 && tick>(t_total)/Hz_)) //revise
     {
-      if(capturePointChange == total_step_num+2)
-      {
-        capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange-1);
-        capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange-1);
-      }
-      else
-      {
-        capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange);
-        capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange);
-      }
+        if(capturePointChange == total_step_num+2)
+        {
+            capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange-1);
+            capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange-1)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange-1);
+        }
+        else
+        {
+            capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange);
+            capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange);
+        }
     }
     else
     {
-      capturePoint_refx(i) = exp(lipm_w*t_total/Hz_)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*t_total/Hz_))*zmp_dx(capturePointChange);
-      capturePoint_refy(i) = exp(lipm_w*t_total/Hz_)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*t_total/Hz_))*zmp_dy(capturePointChange);
+        capturePoint_refx(i) = exp(lipm_w*t_total/Hz_)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*t_total/Hz_))*zmp_dx(capturePointChange);
+        capturePoint_refy(i) = exp(lipm_w*t_total/Hz_)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*t_total/Hz_))*zmp_dy(capturePointChange);
     }
     if(capturePointChange==0 && i<t_temp-t_total)
     {
-      capturePoint_refx(i) = capturePoint_ox(0);
-      capturePoint_refy(i) = capturePoint_oy(0);
+        capturePoint_refx(i) = capturePoint_ox(0);
+        capturePoint_refy(i) = capturePoint_oy(0);
     }
     else if(capturePointChange==0 && t_temp-t_total <= i)
     {   
-      capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange);
-      capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange);
+        capturePoint_refx(i) = exp(lipm_w*tick)*capturePoint_ox(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dx(capturePointChange);
+        capturePoint_refy(i) = exp(lipm_w*tick)*capturePoint_oy(capturePointChange)+(1-exp(lipm_w*tick))*zmp_dy(capturePointChange);
     }
-        
     if(i == 0)
     {
-      zmp_refx(0) = COM_support_init.translation()(0);
-      zmp_refy(0) = COM_float_init.translation()(1);
+        zmp_refx(0) = COM_support_init.translation()(0);
+        zmp_refy(0) = COM_float_init.translation()(1);
     }
     else
     {
-      zmp_refx(i) = (capturePoint_refx(i-1))-(capturePoint_refx(i)-capturePoint_refx(i-1))*Hz_/(lipm_w);
-      zmp_refy(i) = (capturePoint_refy(i-1))-(capturePoint_refy(i)-capturePoint_refy(i-1))*Hz_/(lipm_w); 
+        zmp_refx(i) = (capturePoint_refx(i-1))-(capturePoint_refx(i)-capturePoint_refx(i-1))*Hz_/(lipm_w);
+        zmp_refy(i) = (capturePoint_refy(i-1))-(capturePoint_refy(i)-capturePoint_refy(i-1))*Hz_/(lipm_w); 
     }
-/*
-    if(walking_tick == 0)
-    {
-      file[0] << capturePoint_refx(i) << "\t" << capturePoint_refy(i) <<std::endl;
-    }*/
   }
 }
 
@@ -497,23 +493,35 @@ void WalkingPattern::setCpPosition()
     {
         b(i) = exp(lipm_w*t_total/Hz_);
     }
-    /////////////////////TEMP 200228 JH
 
-    capturePoint_ox(0) = COM_support_init.translation()(0) + capturePoint_offsetx(0);
-    capturePoint_oy(0) = COM_float_init.translation()(0) + capturePoint_offsety(0);
+    for(int i=0; i<total_step_num+3; i++)
+    {
+        capturePoint_offsety(i) = 0.00;
+    }
+    //capturePoint_ox(0) = COM_support_init.translation()(0) + capturePoint_offsetx(0);
+    
+    capturePoint_ox(0) = PELV_support_init.translation()(0) + capturePoint_offsetx(0);
+    if(foot_step(0,6) == 0)
+    {
+        capturePoint_oy(0) = PELV_support_init.translation()(1) - foot_distance(1)/2;
+    }
+    else
+    {
+        capturePoint_oy(0) = PELV_support_init.translation()(1) + foot_distance(1)/2;
+    }
     capturePoint_ox(total_step_num + 1) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 1);
-    capturePoint_oy(total_step_num + 1) = 0.0 + capturePoint_offsety(total_step_num + 1);
+    capturePoint_oy(total_step_num + 1) = 0.0;
     capturePoint_ox(total_step_num + 2) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 2);
-    capturePoint_oy(total_step_num + 2) = 0.0 + capturePoint_offsety(total_step_num + 2);
+    capturePoint_oy(total_step_num + 2) = 0.0;
 
-    for(int i = 0; i<total_step_num+1; i++)
+    for(int i = 0; i<total_step_num; i++)
     {
         if(foot_step(0,6)==0) //right support
         {
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
+                capturePoint_oy(1) = -foot_step(0,1) + capturePoint_offsety(1);
             }
             else
             {
@@ -525,7 +533,7 @@ void WalkingPattern::setCpPosition()
                 else
                 {
                     capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1);
-                    capturePoint_oy(i+1) = foot_step(i-1,1) + capturePoint_offsety(i+1);
+                    capturePoint_oy(i+1) = foot_step(i-1,1) - capturePoint_offsety(i+1);
                 }
             }
         }
@@ -534,14 +542,14 @@ void WalkingPattern::setCpPosition()
             if(i == 0)
             {
                 capturePoint_ox(1) = 0.0 + capturePoint_offsetx(1);
-                capturePoint_oy(1) = -1*foot_step(0,1) + capturePoint_offsety(1);
+                capturePoint_oy(1) = -foot_step(0,1) - capturePoint_offsety(1);
             }
             else
             {
                 if(i % 2 == 0)
                 {
                     capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1);
-                    capturePoint_oy(i+1) = foot_step(i-1,1) + capturePoint_offsety(i+1);
+                    capturePoint_oy(i+1) = foot_step(i-1,1) - capturePoint_offsety(i+1);
                 }      
                 else
                 {
@@ -561,7 +569,7 @@ void WalkingPattern::setCpPosition()
 
 void WalkingPattern::cptoComTrajectory()
 {
-    for(int i=0; i<(t_total*(total_step_num+1)+t_temp+1); i++)
+    for(int i=0; i<(t_total*(total_step_num+1)+t_temp-1); i++)
     {
         if(i>=t_temp-t_total)
         {
@@ -570,9 +578,16 @@ void WalkingPattern::cptoComTrajectory()
         }
         else
         {
-            com_refx(i) = COM_support_init.translation()(0);
-            com_refy(i) = COM_float_init.translation()(1);
-        }
+            com_refx(i) = PELV_support_init.translation()(0);
+            if(foot_step(0,6) == 0)
+            {
+                com_refy(i) = COM_support_init.translation()(1) - foot_distance(1)/2;
+            }
+            else
+            {
+                com_refy(i) = COM_support_init.translation()(1) + foot_distance(1)/2;
+            }
+        }    
     }
 }
 
@@ -586,47 +601,40 @@ void WalkingPattern::setComTrajectory()
     else
         start_time = t_start;
 
-    if(walking_pattern == 1)
+    ///CapturePoint
+    xyd.setZero(); 
+    xyd(0) = com_refx(walking_tick);
+    xyd(1) = com_refy(walking_tick);
+    zmp_desired(0) = zmp_refx(walking_tick);
+    zmp_desired(1) = zmp_refy(walking_tick);  
+    xyd(3) = 1.0;
+    xyd = GlobaltoLocal_current * xyd;
+    if(current_step_num == 0)
     {
-        ///Preview
-    }
-    else if(walking_pattern == 2)
-    {
-        ///CapturePoint
-        xyd.setZero();
-        xyd(0) = com_refx(walking_tick);
-        xyd(1) = com_refx(walking_tick);
-        xyd(3) = 1.;
-
-        xyd = GlobaltoLocal_current * xyd;
-        xd(0) = xyd(0);
-        yd(0) = xyd(1);
-
-        if(walking_tick == 0)
-        {
-            xd(1) = 0.0;
-            xd(2) = 0.0;
-            yd(1) = 0.0;
-            yd(2) = 0.0;
-        }
-        else
-        {
-            xd(1) = COMV_support_currentV(0);
-            xd(2) = COMV_support_currentV(0);
-            yd(1) = COMV_support_currentV(1);
-            yd(2) = COMV_support_currentV(1);
-        }
-
-        xs = xd;
-        ys = yd;
-
-        zmp_desired(0) = zmp_refx(walking_tick);
-        zmp_desired(1) = zmp_refy(walking_tick);
+        xd(0) = com_refx(walking_tick);
     }
     else
     {
-        ///MPC
+        xd(0) = xyd(0);
     }
+    yd(0) = xyd(1);
+
+    if(walking_tick == 0)
+    {
+        xd(1) = 0.0;
+        xd(2) = 0.0;
+        yd(1) = 0.0;
+        yd(2) = 0.0;
+    }
+    else
+    {
+        xd(1) = COMV_support_currentV(0);
+        xd(2) = COMV_support_currentV(0);
+        yd(1) = COMV_support_currentV(1);
+        yd(2) = COMV_support_currentV(1);
+    }
+    xs = xd;
+    ys = yd;
 
     if(walking_tick == t_start+t_total-1 && current_step_num != total_step_num - 1)
     {
@@ -637,7 +645,7 @@ void WalkingPattern::setComTrajectory()
         for(int i=0; i<3; i++)
             temp_pos(i) = foot_step_support(current_step_num,i);
 
-        com_pos_prev(0) = xs(0);
+        com_pos_prev(0) = xs(0);        
         com_pos_prev(1) = ys(0);
         com_pos = temp_rot*(com_pos_prev - temp_pos);
 
@@ -646,7 +654,7 @@ void WalkingPattern::setComTrajectory()
         com_vel_prev(2) = 0.0;
         com_vel = temp_rot*com_vel_prev;
 
-        com_acc_prev(0) = ys(2);
+        com_acc_prev(0) = xs(2);
         com_acc_prev(1) = ys(2);
         com_acc_prev(2) = 0.0;
         com_acc = temp_rot*com_acc_prev;
@@ -698,9 +706,9 @@ void WalkingPattern::setPelvisTrajectory()
     //Trunk Position
     if(com_control_mode == true)
     {
-        PELV_trajectory_support.translation()(0) = PELV_trajectory_support.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
-        PELV_trajectory_support.translation()(1) = PELV_trajectory_support.translation()(1) + pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
-        PELV_trajectory_support.translation()(2) = com_desired(2); //PELV_trajectory_support.translation()(2) + pelvis_pgain*(com_desired(2) - COM_support_current.translation()(2));
+        PELV_trajectory_support.translation()(0) = com_desired(0);// PELV_support_current.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
+        PELV_trajectory_support.translation()(1) = com_desired(1);//PELV_support_current.translation()(1); //+ pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
+        PELV_trajectory_support.translation()(2) = com_desired(2);//PELV_support_current.translation()(2);// + pelvis_pgain*(com_desired(2) - COM_support_current.translation()(2));
     }
     else
     {
@@ -731,31 +739,31 @@ void WalkingPattern::setPelvisTrajectory()
             PELV_trajectory_euler(i) = DyrosMath::cubic(walking_tick, t_start, t_start_real+t_double1, PELV_support_euler_init(i),0.0,0.0,0.0);;
         PELV_trajectory_euler(2) = PELV_support_euler_init(2);
     }
-  else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
-  {
-    for(int i=0; i<2; i++)
-      PELV_trajectory_euler(i) = 0.0;
+    else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
+    {
+        for(int i=0; i<2; i++)
+        PELV_trajectory_euler(i) = 0.0;
 
-    if(foot_step(current_step_num,6) == 2)
-      PELV_trajectory_euler(2) = PELV_support_euler_init(2);
+        if(foot_step(current_step_num,6) == 2)
+        PELV_trajectory_euler(2) = PELV_support_euler_init(2);
+        else
+        PELV_trajectory_euler(2) = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start + t_total - t_double2 - t_rest_last, PELV_support_euler_init(2), z_rot/2.0, 0.0,0.0);
+    }
     else
-      PELV_trajectory_euler(2) = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start + t_total - t_double2 - t_rest_last, PELV_support_euler_init(2), z_rot/2.0, 0.0,0.0);
-  }
-  else
-  {
-    for(int i=0; i<2; i++)
-      PELV_trajectory_euler(i) = 0.0;
+    {
+        for(int i=0; i<2; i++)
+        PELV_trajectory_euler(i) = 0.0;
 
-    if(foot_step(current_step_num,6) == 2)
-      PELV_trajectory_euler(2) = PELV_support_euler_init(2);
-    else
-      PELV_trajectory_euler(2) = z_rot/2.0;
-  }
-  PELV_trajectory_support.linear() = DyrosMath::rotateWithZ(PELV_trajectory_euler(2))*DyrosMath::rotateWithY(PELV_trajectory_euler(1))*DyrosMath::rotateWithX(PELV_trajectory_euler(0));
+        if(foot_step(current_step_num,6) == 2)
+        PELV_trajectory_euler(2) = PELV_support_euler_init(2);
+        else
+        PELV_trajectory_euler(2) = z_rot/2.0;
+    }
+    PELV_trajectory_support.linear() = DyrosMath::rotateWithZ(PELV_trajectory_euler(2))*DyrosMath::rotateWithY(PELV_trajectory_euler(1))*DyrosMath::rotateWithX(PELV_trajectory_euler(0));
 }
 
 void WalkingPattern::setFootTrajectory()
-{
+{   
     for(int i=0; i<6; i++)
         SWF_target(i) = foot_step_support(current_step_num,i);
 
@@ -766,204 +774,205 @@ void WalkingPattern::setFootTrajectory()
 
         if(foot_step(current_step_num,6) == 1) //left foot support
             LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, LF_support_init.translation()(2),0.0,0.0,0.0);
-    else // swing foot (right foot support)
-    {
-      if(current_step_num == 0)
-            LF_trajectory_support.translation()(2) = LF_support_init.translation()(2);
-      else
-      {
-        if(walking_tick < t_start)
-            LF_trajectory_support.translation()(2) = LF_support_init.translation()(2);
-        else if(walking_tick >= t_start && walking_tick < t_start_real)
-            LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, LF_support_init.translation()(2),0.0,0.0,0.0);
-        else
-            LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start_real, t_start_real + t_double1,0.0,0.0,0.0,0.0);
-      }
-    }
+        else // swing foot (right foot support)
+        {
+            if(current_step_num == 0)
+                    LF_trajectory_support.translation()(2) = LF_support_init.translation()(2);
+            else
+            {
+                if(walking_tick < t_start)
+                    LF_trajectory_support.translation()(2) = LF_support_init.translation()(2);
+                else if(walking_tick >= t_start && walking_tick < t_start_real)
+                    LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, LF_support_init.translation()(2),0.0,0.0,0.0);
+                else
+                    LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start_real, t_start_real + t_double1,0.0,0.0,0.0,0.0);
+            }
+        }
 
-    LF_trajectory_euler_support = LF_support_euler_init;
-
-    for(int i=0; i<2; i++)
-        LF_trajectory_euler_support(i) = DyrosMath::cubic(walking_tick, t_start, t_start_real, LF_support_euler_init(i),0.0,0.0,0.0);
-
-    LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
-
-    RF_trajectory_support.translation() = RF_support_init.translation();
-    RF_trajectory_dot_support.setZero();
-
-    if(foot_step(current_step_num,6) == 0) //right foot support
-       RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, RF_support_init.translation()(2),0.0,0.0,0.0);
-    else // swing foot (left foot support)
-    {
-      if(current_step_num == 0)
-        RF_trajectory_support.translation()(2) = RF_support_init.translation()(2);
-      else
-      {
-        if(walking_tick < t_start)
-          RF_trajectory_support.translation()(2) = RF_support_init.translation()(2);
-        else if(walking_tick >= t_start && walking_tick < t_start_real)
-          RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, RF_support_init.translation()(2),0.0,0.0,0.0);
-        else
-          RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start_real, t_start_real + t_double1,0.0,0.0,0.0,0.0);
-      }
-    }
-
-    RF_trajectory_euler_support = RF_support_euler_init;
-
-    for(int i=0; i<2; i++)
-        RF_trajectory_euler_support(i) = DyrosMath::cubic(walking_tick, t_start, t_start_real, RF_support_euler_init(i),0.0,0.0,0.0);
-
-    RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
-  }
-  else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
-  { 
-    double t_rest_temp = 0.05*Hz_;
-    double ankle_temp = 0*DEG2RAD;
- 
-    if(foot_step(current_step_num,6) == 1) //Left foot support : Left foot is fixed at initial values, and Right foot is set to go target position
-    {
-        LF_trajectory_support.translation() = LF_support_init.translation();
         LF_trajectory_euler_support = LF_support_euler_init;
-        LF_trajectory_euler_support.setZero();
 
-        LF_trajectory_dot_support.setZero();
+        for(int i=0; i<2; i++)
+            LF_trajectory_euler_support(i) = DyrosMath::cubic(walking_tick, t_start, t_start_real, LF_support_euler_init(i),0.0,0.0,0.0);
+
         LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
 
-      if(walking_tick < t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp)/2.0) // the period for lifting the right foot
-      {
-        RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0);
-        RF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0,Hz_);
+        RF_trajectory_support.translation() = RF_support_init.translation();
+        RF_trajectory_dot_support.setZero();
 
-        RF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0);
-        RF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0,Hz_);
-      } // the period for lifting the right foot
-      else
-      {
-        RF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,foot_height,SWF_target(2),0.0,0.0,Hz_);
+        if(foot_step(current_step_num,6) == 0) //right foot support
+        RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, RF_support_init.translation()(2),0.0,0.0,0.0);
+        else // swing foot (left foot support)
+        {
+            if(current_step_num == 0)
+                RF_trajectory_support.translation()(2) = RF_support_init.translation()(2);
+            else
+            {
+                if(walking_tick < t_start)
+                RF_trajectory_support.translation()(2) = RF_support_init.translation()(2);
+                else if(walking_tick >= t_start && walking_tick < t_start_real)
+                RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, RF_support_init.translation()(2),0.0,0.0,0.0);
+                else
+                RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick, t_start_real, t_start_real + t_double1,0.0,0.0,0.0,0.0);
+            }
+        }
 
-        RF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0);
-        RF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0,Hz_);
-      } // the period for putting the right foot
+        RF_trajectory_euler_support = RF_support_euler_init;
 
-      RF_trajectory_euler_support(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0);
-      RF_trajectory_dot_support(0+3) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0,Hz_);
+        for(int i=0; i<2; i++)
+            RF_trajectory_euler_support(i) = DyrosMath::cubic(walking_tick, t_start, t_start_real, RF_support_euler_init(i),0.0,0.0,0.0);
 
-      for(int i=0; i<2; i++)
-      {
-        RF_trajectory_support.translation()(i) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,RF_support_init.translation()(i),SWF_target(i),0.0,0.0);
-        RF_trajectory_dot_support(i) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,RF_support_init.translation()(i),SWF_target(i),0.0,0.0,Hz_);
-      }
-      RF_trajectory_euler_support(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,RF_support_euler_init(2),SWF_target(5),0.0,0.0);
-      RF_trajectory_dot_support(5) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,RF_support_euler_init(2),SWF_target(5),0.0,0.0,Hz_);
-      RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
+        RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
     }
-    else if(foot_step(current_step_num,6) == 0) // Right foot support : Right foot is fixed at initial values, and Left foot is set to go target position
-    {
-      RF_trajectory_support.translation() = RF_support_init.translation();
-      RF_trajectory_support.translation()(2) = 0.0;
-      RF_trajectory_euler_support = RF_support_euler_init;
-      RF_trajectory_euler_support(0) = 0.0;
-      RF_trajectory_euler_support(1) = 0.0;
-      RF_trajectory_dot_support.setZero();
+    else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
+    { 
+        double t_rest_temp = 0.05*Hz_;
+        double ankle_temp = 0*DEG2RAD;
+        
+        if(foot_step(current_step_num,6) == 1) //Left foot support : Left foot is fixed at initial values, and Right foot is set to go target position
+        {
+            LF_trajectory_support.translation() = LF_support_init.translation();
+            LF_trajectory_euler_support = LF_support_euler_init;
+            LF_trajectory_euler_support.setZero();
 
-      double ankle_temp;
-      ankle_temp = 0*DEG2RAD;
+            LF_trajectory_dot_support.setZero();
+            LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
 
-      RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
+            if(walking_tick < t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp)/2.0) // the period for lifting the right foot
+            {
+                RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0);
+                RF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0,Hz_);
 
-      if(walking_tick < t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0)
-      {
-        LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0);
-        LF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0,Hz_);
-        LF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0);
-        LF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0,Hz_);
-      }
-      else
-      {
-        LF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0);
-        LF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0,Hz_);
-        LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,foot_height,SWF_target(2),0.0,0.0);
-        LF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,foot_height,SWF_target(2),0.0,0.0,Hz_);
-      }
+                RF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0);
+                RF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0,Hz_);
+            } // the period for lifting the right foot
+            else
+            {
+                RF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,foot_height,SWF_target(2),0.0,0.0);
+                RF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,foot_height,SWF_target(2),0.0,0.0,Hz_);
 
-      LF_trajectory_euler_support(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0);
-      LF_trajectory_dot_support(0+3) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0,Hz_);
+                RF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0);
+                RF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0,Hz_);
+            } // the period for putting the right foot
 
-      for(int i=0; i<2; i++)
-      {
-        LF_trajectory_support.translation()(i) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,LF_support_init.translation()(i),SWF_target(i),0.0,0.0);
-        LF_trajectory_dot_support(i) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,LF_support_init.translation()(i),SWF_target(i),0.0,0.0,Hz_);
-      }
+            RF_trajectory_euler_support(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0);
+            RF_trajectory_dot_support(0+3) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0,Hz_);
 
-      LF_trajectory_euler_support(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,LF_support_euler_init(2),SWF_target(5),0.0,0.0);
-      LF_trajectory_dot_support(5) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,LF_support_euler_init(2),SWF_target(5),0.0,0.0,Hz_);
+            for(int i=0; i<2; i++)
+            {  
+                RF_trajectory_support.translation()(i) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,RF_support_init.translation()(i),SWF_target(i),0.0,0.0);
+                RF_trajectory_dot_support(i) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,RF_support_init.translation()(i),SWF_target(i),0.0,0.0,Hz_);
+            }
+            RF_trajectory_euler_support(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,RF_support_euler_init(2),SWF_target(5),0.0,0.0);
+            RF_trajectory_dot_support(5) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,RF_support_euler_init(2),SWF_target(5),0.0,0.0,Hz_);
+            RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
+        }
+        else if(foot_step(current_step_num,6) == 0) // Right foot support : Right foot is fixed at initial values, and Left foot is set to go target position
+        {   
+            RF_trajectory_support.translation() = RF_support_init.translation();
+            RF_trajectory_support.translation()(2) = 0.0;
+            RF_trajectory_euler_support = RF_support_euler_init;
+            RF_trajectory_euler_support(0) = 0.0;
+            RF_trajectory_euler_support(1) = 0.0;
+            RF_trajectory_dot_support.setZero();
 
-      LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
+            double ankle_temp;
+            ankle_temp = 0*DEG2RAD;
+
+            RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
+
+            if(walking_tick < t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0)
+            {
+                LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0);
+                LF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0,foot_height,0.0,0.0,Hz_);
+                LF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0);
+                LF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,0.0,ankle_temp,0.0,0.0,Hz_);
+            }
+            else
+            {
+                LF_trajectory_euler_support(1) = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0);
+                LF_trajectory_dot_support(4) = DyrosMath::cubicDot(walking_tick,t_start+t_total-t_rest_last-t_double2-t_rest_temp,t_start+t_total-t_rest_last,ankle_temp,0.0,0.0,0.0,Hz_);
+                LF_trajectory_support.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,foot_height,SWF_target(2),0.0,0.0);
+                LF_trajectory_dot_support(2) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,foot_height,SWF_target(2),0.0,0.0,Hz_);
+            }
+
+            LF_trajectory_euler_support(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0);
+            LF_trajectory_dot_support(0+3) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,0.0,SWF_target(3),0.0,0.0,Hz_);
+
+            for(int i=0; i<2; i++)
+            {
+                LF_trajectory_support.translation()(i) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,LF_support_init.translation()(i),SWF_target(i),0.0,0.0);
+                LF_trajectory_dot_support(i) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,LF_support_init.translation()(i),SWF_target(i),0.0,0.0,Hz_);
+            }
+
+            LF_trajectory_euler_support(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,LF_support_euler_init(2),SWF_target(5),0.0,0.0);
+            LF_trajectory_dot_support(5) = DyrosMath::cubicDot(walking_tick,t_start_real+t_double1,t_start+t_total-t_rest_last-t_double2-t_imp,LF_support_euler_init(2),SWF_target(5),0.0,0.0,Hz_);
+
+            LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
+        }
+        else
+        {
+            LF_trajectory_support.translation() = LF_support_init.translation();
+            LF_trajectory_support.linear() = LF_support_init.linear();
+            LF_trajectory_euler_support = LF_support_euler_init;
+            LF_trajectory_dot_support.setZero();
+
+            RF_trajectory_support.translation() = RF_support_init.translation();
+            RF_trajectory_support.linear() = RF_support_init.linear();
+            RF_trajectory_euler_support = RF_support_euler_init;
+            RF_trajectory_dot_support.setZero();
+        }
     }
     else
     {
-      LF_trajectory_support.translation() = LF_support_init.translation();
-      LF_trajectory_support.linear() = LF_support_init.linear();
-      LF_trajectory_euler_support = LF_support_euler_init;
-      LF_trajectory_dot_support.setZero();
+        if(foot_step(current_step_num,6) == 1)
+        {
+            LF_trajectory_support.translation() = LF_support_init.translation();
+            LF_trajectory_support.translation()(2) = 0.0;
+            LF_trajectory_euler_support = LF_support_euler_init;
+            LF_trajectory_euler_support(0) = 0.0;
+            LF_trajectory_euler_support(1) = 0.0;
+            LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
+            LF_trajectory_dot_support.setZero();
 
-      RF_trajectory_support.translation() = RF_support_init.translation();
-      RF_trajectory_support.linear() = RF_support_init.linear();
-      RF_trajectory_euler_support = RF_support_euler_init;
-      RF_trajectory_dot_support.setZero();
-    }
-  }
-  else
-  {
-    if(foot_step(current_step_num,6) == 1)
-    {
-      LF_trajectory_support.translation() = LF_support_init.translation();
-      LF_trajectory_support.translation()(2) = 0.0;
-      LF_trajectory_euler_support = LF_support_euler_init;
-      LF_trajectory_euler_support(0) = 0.0;
-      LF_trajectory_euler_support(1) = 0.0;
-      LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
-      LF_trajectory_dot_support.setZero();
+            for(int i=0; i<3; i++)
+            {  
+                RF_trajectory_support.translation()(i) = SWF_target(i);
+                RF_trajectory_euler_support(i) = SWF_target(i+3);
+            }
+            RF_trajectory_dot_support.setZero();
 
-      for(int i=0; i<3; i++)
-      {
-        RF_trajectory_support.translation()(i) = SWF_target(i);
-        RF_trajectory_euler_support(i) = SWF_target(i+3);
-      }
-      RF_trajectory_dot_support.setZero();
+            RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
+        }
+        else if (foot_step(current_step_num,6) == 0)
+        {
+            RF_trajectory_support.translation() = RF_support_init.translation();
+            RF_trajectory_support.translation()(2) = 0.0;
+            RF_trajectory_euler_support = RF_support_euler_init;
+            RF_trajectory_euler_support(0) = 0.0;
+            RF_trajectory_euler_support(1) = 0.0;
+            RF_trajectory_dot_support.setZero();
+            RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
 
-      RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
+            for(int i=0; i<3; i++)
+            {
+                LF_trajectory_support.translation()(i) = SWF_target(i);
+                LF_trajectory_euler_support(i) = SWF_target(i+3);
+            }
+            LF_trajectory_dot_support.setZero();
+            LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
+        }
+        else
+        {
+            LF_trajectory_support.translation() = LF_support_init.translation();
+            LF_trajectory_support.linear() = LF_support_init.linear();
+            LF_trajectory_euler_support = LF_support_euler_init;
+            LF_trajectory_dot_support.setZero();
+            RF_trajectory_support.translation() = RF_support_init.translation();
+            RF_trajectory_support.linear() = RF_support_init.linear();
+            RF_trajectory_euler_support = RF_support_euler_init;
+            RF_trajectory_dot_support.setZero();
+        }
     }
-    else if (foot_step(current_step_num,6) == 0)
-    {
-      RF_trajectory_support.translation() = RF_support_init.translation();
-      RF_trajectory_support.translation()(2) = 0.0;
-      RF_trajectory_euler_support = RF_support_euler_init;
-      RF_trajectory_euler_support(0) = 0.0;
-      RF_trajectory_euler_support(1) = 0.0;
-      RF_trajectory_dot_support.setZero();
-      RF_trajectory_support.linear() = DyrosMath::rotateWithZ(RF_trajectory_euler_support(2))*DyrosMath::rotateWithY(RF_trajectory_euler_support(1))*DyrosMath::rotateWithX(RF_trajectory_euler_support(0));
-
-      for(int i=0; i<3; i++)
-      {
-        LF_trajectory_support.translation()(i) = SWF_target(i);
-        LF_trajectory_euler_support(i) = SWF_target(i+3);
-      }
-      LF_trajectory_dot_support.setZero();
-      LF_trajectory_support.linear() = DyrosMath::rotateWithZ(LF_trajectory_euler_support(2))*DyrosMath::rotateWithY(LF_trajectory_euler_support(1))*DyrosMath::rotateWithX(LF_trajectory_euler_support(0));
-    }
-    else
-    {
-      LF_trajectory_support.translation() = LF_support_init.translation();
-      LF_trajectory_support.linear() = LF_support_init.linear();
-      LF_trajectory_euler_support = LF_support_euler_init;
-      LF_trajectory_dot_support.setZero();
-      RF_trajectory_support.translation() = RF_support_init.translation();
-      RF_trajectory_support.linear() = RF_support_init.linear();
-      RF_trajectory_euler_support = RF_support_euler_init;
-      RF_trajectory_dot_support.setZero();
-    }
-  }    
 }
 
 void WalkingPattern::supportToFloatPattern()
@@ -978,13 +987,20 @@ void WalkingPattern::supportToFloatPattern()
         RF_trajectory_euler_float = DyrosMath::rot2Euler(RF_trajectory_float.linear());
     }
     else
-    {
-        PELV_trajectory_float = DyrosMath::inverseIsometry3d(PELV_trajectory_support)*PELV_trajectory_support;
-        LF_trajectory_float = DyrosMath::inverseIsometry3d(PELV_trajectory_support)*LF_trajectory_support;
-        RF_trajectory_float = DyrosMath::inverseIsometry3d(PELV_trajectory_support)*RF_trajectory_support;
+    {   
+        PELV_trajectory_float = LocaltoGlobal_current*PELV_trajectory_support;
+        PELV_trajectory_float.linear().setIdentity();
+        LF_trajectory_float = FoottoGlobal_current*LF_trajectory_support;    
+        LF_trajectory_float.linear().setIdentity();
+        RF_trajectory_float = FoottoGlobal_current*RF_trajectory_support;
+        RF_trajectory_float.linear().setIdentity();
         LF_trajectory_euler_float = DyrosMath::rot2Euler(LF_trajectory_float.linear());
         RF_trajectory_euler_float = DyrosMath::rot2Euler(RF_trajectory_float.linear());
     }
+    Com_measured = FoottoGlobal_current*PELV_support_current;
+    RF_measured = FoottoGlobal_current*RF_support_current;
+    LF_measured = FoottoGlobal_current*LF_support_current;
+
 }
 
 void WalkingPattern::floatToSupportPattern()
@@ -994,39 +1010,58 @@ void WalkingPattern::floatToSupportPattern()
 
 void WalkingPattern::referenceFrameChange()
 {
-    Eigen::Isometry3d reference;
+    Eigen::Isometry3d reference, reference1;
 
     if(current_step_num == 0)
-    {
+    {            
+        FoottoGlobal_current.translation().setZero();
+                        
         if(foot_step(0,6) == 0) //right support
         {
-            reference.translation() = RF_float_init.translation();
-            reference.linear() = RF_float_init.linear();
+            Framereference.translation() = RF_float_init.translation();
+            FoottoGlobal_current.translation()(1) = RF_float_init.translation()(1);
+            Framereference.linear() = RF_float_init.linear();
         }
         else  //left support
         {
-            reference.translation() = LF_float_init.translation();
-            reference.linear() =LF_float_init.linear();
+            Framereference.translation() = LF_float_init.translation();
+            FoottoGlobal_current.translation()(1) =  LF_float_init.translation()(1);
+            Framereference.linear() = LF_float_init.linear();
         }
-        if (walking_tick == 0)
+        if (walking_tick == 0 )
         {
-            reference.translation() = reference.translation();
-            reference.linear() =  reference.linear();
-            LocaltoGlobal_current = reference;
-            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(reference);
+            FoottoGlobal_current.linear() = Framereference.linear();
+            FoottoGlobal_current_init.setIdentity();
+            FoottoGlobal_current_init.translation() = Framereference.translation();
+            reference1.translation()(2) = -1*PELV_support_current.translation()(2);
+            LocaltoGlobal_current = FoottoGlobal_current;
+            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(LocaltoGlobal_current);
         }
     }
     else
     {
-        reference.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));
-        for(int i=0 ;i<3; i++)
-        reference.translation()(i) = foot_step(current_step_num-1,i);
         if(walking_tick == t_start)
-        {
-            reference.translation() = reference.translation();
-            reference.linear() =  reference.linear();
-            LocaltoGlobal_current = reference;
-            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(reference);
-         }
+        {  
+            if(foot_step(current_step_num,6) == 0) //right support
+            {
+                Framereference.translation()(0) = foot_step(current_step_num-1,0);//+= DyrosMath::inverseIsometry3d(LF_float_current).translation()(0)-1*PELV_support_current.translation()(0);//foot_step(current_step_num-1,0);// + RF_float_init.translation()(0);
+                Framereference.translation()(1) = foot_step(current_step_num-1,1);
+                Framereference.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));//RF_float_init.linear();
+            }
+            else  //left support
+            {
+                Framereference.translation()(0) = foot_step(current_step_num-1,0); //DyrosMath::inverseIsometry3d(RF_float_current).translation()(0)-1*PELV_support_current.translation()(0);//foot_step(current_step_num-1,0);// + LF_float_init.translation()(0);
+                Framereference.translation()(1) = foot_step(current_step_num-1,1);
+                Framereference.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));//LF_float_init.linear();
+            }
+            LocaltoGlobal_current = Framereference;
+            LocaltoGlobal_current.translation()(0) = Framereference.translation()(0);// - FoottoGlobal_current_init.translation()(0);
+            LocaltoGlobal_current.translation()(2) = 0.0;
+
+            FoottoGlobal_current = Framereference;
+            FoottoGlobal_current.linear() = DyrosMath::rotateWithZ(foot_step(current_step_num-1,5));
+            FoottoGlobal_current.translation()(2) = 0.0;
+            GlobaltoLocal_current = DyrosMath::inverseIsometry3d(LocaltoGlobal_current);
+        }
     }  
 }
