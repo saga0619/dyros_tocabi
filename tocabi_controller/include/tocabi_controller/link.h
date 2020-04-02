@@ -205,6 +205,7 @@ public:
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd q_;
+  Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;

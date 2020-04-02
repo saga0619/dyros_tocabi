@@ -250,12 +250,19 @@ void TocabiController::dynamicsThreadHigh()
                 if (set_q_init)
                 {
                     tocabi_.q_desired_ = tocabi_.q_;
+                    tocabi_.q_init_ = tocabi_.q_;
                     set_q_init = false;
                 }
                 for (int i = 0; i < MODEL_DOF; i++)
                 {
                     torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
-                    // mycontroller.wkc_.file[0] << tocabi_.q_desired_(8) <<"\t"<< tocabi_.q_(8) << std::endl;
+                }
+                if(task_switch)
+                {
+                    if(tc.mode >= 10)
+                    {
+                        mycontroller.computeFast();
+                    }
                 }
             }
             else
@@ -265,16 +272,13 @@ void TocabiController::dynamicsThreadHigh()
                     if (tc.mode >= 10)
                     {
                         mycontroller.computeFast();
-                        torque_desired = mycontroller.getControl();
+                        torque_desired = mycontroller.getControl();                           
                     }
-                    //std::cout<<tocabi_.q_desired_(3)<<"\t"<<tocabi_.q_(3)<<"\t"<<tocabi_.q_desired_(4)<<"\t"<<tocabi_.q_(4)<<"\t"<<tocabi_.q_desired_(5)<<"\t"<<tocabi_.q_(5)<<"\t"<<tocabi_.q_desired_(2)<<"\t"<<tocabi_.q_(2)<<std::endl;
                 }
             }
             mtx.lock();
             s_.sendCommand(torque_desired, sim_time);
             mtx.unlock();
-
-                mycontroller.file[0] <<cycle_count<<"\t"<< dc.tocabi_.vector_kp[0]<<"\t"<<dc.tocabi_.Kps[32]<<std::endl;
         }
     }
     std::cout << cyellow << "Dynamics High Thread : End !" << creset << std::endl;
@@ -487,7 +491,10 @@ void TocabiController::dynamicsThreadLow()
                     tc_command = false;
                 }
                 mycontroller.computeSlow();
-                tocabi_.q_desired_.segment<12>(0) = mycontroller.getControl().segment<12>(0);
+                if(dc.positionControl)
+                {
+                    tocabi_.q_desired_ = mycontroller.getControl(); 
+                }
              }
         }
         else
