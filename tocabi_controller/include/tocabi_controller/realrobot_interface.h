@@ -304,6 +304,7 @@ public:
     void ethercatCheck();
     void imuThread();
     void ftsensorThread();
+    void handftsensorThread();
 
     void ethercatThreadLower();
     void ethercatThreadUpper();

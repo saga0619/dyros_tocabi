@@ -22,11 +22,8 @@
 #include "tocabi_controller/walking_controller.h"
 #include "tocabi_controller/wholebody_controller.h"
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //robot definition variables here
-
-
 
 struct TaskCommand
 {

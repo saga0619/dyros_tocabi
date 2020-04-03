@@ -715,47 +715,7 @@ void TocabiGui::walkinginitbtncb()
 
     task_pub.publish(task_msg);
 }
-/*
-void TocabiGui::walkingstartbtncb()
-{   
-    walking_msg.walking_enable = 2.0;
-    walking_msg.ik_mode = ui_.ik_mode->currentIndex();
-    
-    if(ui_.walking_pattern->currentIndex() == 0)
-    {
-        walking_msg.pattern = 0;
-    }
-    else if(ui_.walking_pattern->currentIndex() == 1)
-    {
-        walking_msg.pattern = 1;
-    }
-    else
-    {  
-        walking_msg.pattern = 2;
-    }
 
-    if(ui_.checkBox_dob->isChecked() == true)
-    {
-        walking_msg.dob = true;
-    }
-    else
-    {
-        walking_msg.dob = false;
-    }    
-
-    walking_msg.first_foot_step = ui_.step_mode->currentIndex();
-    
-    walking_msg.x = ui_.text_walking_x->text().toFloat();
-    walking_msg.y = ui_.text_walking_y->text().toFloat();
-    walking_msg.z = ui_.text_walking_z->text().toFloat();
-    walking_msg.height=ui_.text_walking_height->text().toFloat();
-    walking_msg.theta=ui_.text_walking_theta->text().toFloat();
-    walking_msg.step_length_x=ui_.text_walking_steplengthx->text().toFloat();
-    walking_msg.step_length_y=ui_.text_walking_steplengthy->text().toFloat();
-
-    walking_pub.publish(walking_msg);
-}
-*/
 /*
 void TocabiGui::wheelEvent(QWheelEvent *event)
 {
