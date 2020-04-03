@@ -50,6 +50,14 @@ sudo make install
 ```
 
 
+### 5. Kvaser installation
+```sh
+wget --content-disposition "https://www.kvaser.com/download/?utm_source=software&utm_ean=7330130980754&utm_status=latest"
+tar xvzf linuxcan.tar.gz
+cd linuxcan
+sudo make install
+```
+
 
 ## Tocabi Controller installation
 Git clone https://github.com/saga0619/dyros_cc , https://github.com/saga0619/mujoco_ros_sim
