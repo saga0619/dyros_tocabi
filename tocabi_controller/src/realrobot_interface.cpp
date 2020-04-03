@@ -512,16 +512,6 @@ void RealRobotInterface::ethercatCheckUpper()
 
 void RealRobotInterface::ethercatThread()
 {
-    cpu_set_t cpuset;
-    pthread_t thread;
-    thread = pthread_self();
-    CPU_ZERO(&cpuset);
-    CPU_SET(7, &cpuset);
-    //sched_setaffinity(getpid(),sizeof(cpuset),&cpuset);
-    if (pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset))
-    {
-        std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
-    }
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "ethercatThread Start" << std::endl;
@@ -532,8 +522,10 @@ void RealRobotInterface::ethercatThread()
     bool exit_middle = false;
 
     const char *ifname = dc.ifname.c_str();
+    const char *ifname2 = dc.ifname2.c_str();
 
     if (ec_init(ifname))
+    //if(ec_init_redundant(ifname, (char *)ifname2))
     {
         printf("ELMO : ec_init on %s succeeded.\n", ifname);
 
@@ -559,7 +551,7 @@ void RealRobotInterface::ethercatThread()
 
             if (!exit_middle)
             {
-                if (MODEL_DOF == ec_slavecount)
+                if (true)
                 {
 
                     for (int slave = 1; slave <= ec_slavecount; slave++)
@@ -678,7 +670,7 @@ void RealRobotInterface::ethercatThread()
                         int oc_cnt = 0;
                         int oct_cnt = 0;
 
-                        for (int i = 0; i < MODEL_DOF; i++)
+                        for (int i = 0; i < ec_slavecount; i++)
                         {
                             ElmoSafteyMode[i] = 0;
                         }
@@ -709,7 +701,7 @@ void RealRobotInterface::ethercatThread()
                             //ec_send_processdata();
 
                             tp[2] = std::chrono::steady_clock::now();
-                            wkc = ec_receive_processdata(200);
+                            wkc = ec_receive_processdata(350);
 
                             tp[3] = std::chrono::steady_clock::now();
 
@@ -719,7 +711,7 @@ void RealRobotInterface::ethercatThread()
                             td[2] = tp[2] - tp[1];
                             td[3] = tp[3] - tp[2];
 
-                            if (td[3] > std::chrono::microseconds(190))
+                            if (td[3] > std::chrono::microseconds(350))
                             {
                                 oc_cnt++;
                             }
@@ -845,7 +837,7 @@ void RealRobotInterface::ethercatThread()
                                         pub_to_gui(dc, "ELMO WARM START, LOADING ZP ");
 
                                         bool waitop = true;
-                                        for (int i = 0; i < MODEL_DOF; i++)
+                                        for (int i = 0; i < ec_slavecount; i++)
                                         {
                                             waitop = waitop && ((stateElmo[i] & al) == 39);
                                         }
@@ -858,7 +850,7 @@ void RealRobotInterface::ethercatThread()
                                         string tmp;
                                         double last_boot_time = 1;
                                         double last_save_time = 0;
-                                        double zp[MODEL_DOF];
+                                        double zp[ec_slavecount];
                                         bool loadfailed = false;
 
                                         elmo_zp_log.open(zplog_path, ios_base::in);
@@ -885,7 +877,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             if (elmo_zp.is_open())
                                             {
-                                                for (int i = 0; i < MODEL_DOF; i++)
+                                                for (int i = 0; i < ec_slavecount; i++)
                                                 {
                                                     if (elmo_zp.eof())
                                                     {
@@ -904,7 +896,7 @@ void RealRobotInterface::ethercatThread()
                                                     pub_to_gui(dc, "zpgood");
                                                     pub_to_gui(dc, "ecatgood");
                                                     elmo_init = false;
-                                                    for (int i = 0; i < MODEL_DOF; i++)
+                                                    for (int i = 0; i < ec_slavecount; i++)
                                                     {
                                                         positionZeroElmo[i] = zp[i];
                                                     }
@@ -937,7 +929,7 @@ void RealRobotInterface::ethercatThread()
                                 if ((bootseq == 6))
                                 {
                                     bool waitop = true;
-                                    for (int i = 0; i < MODEL_DOF; i++)
+                                    for (int i = 0; i < ec_slavecount; i++)
                                     {
                                         waitop = waitop && ((stateElmo[i] & al) == 39);
                                     }
@@ -968,7 +960,7 @@ void RealRobotInterface::ethercatThread()
                                 elmofz[TOCABI::L_Shoulder3_Joint].initTime = control_time_;
                                 pub_to_gui(dc, "jointzp %d %d", TOCABI::L_Shoulder3_Joint, 2);
 
-                                for (int j = 0; j < MODEL_DOF; j++)
+                                for (int j = 0; j < ec_slavecount; j++)
                                 {
                                     hommingElmo_before[j] = hommingElmo[j];
                                 }
@@ -996,7 +988,7 @@ void RealRobotInterface::ethercatThread()
                                 fz_group++;
                                 elmo_zp.open(zp_path, ios_base::out);
                                 elmo_zp << setprecision(12) << ros::Time::now().toSec() << "\n";
-                                for (int i = 0; i < MODEL_DOF; i++)
+                                for (int i = 0; i < ec_slavecount; i++)
                                 {
                                     elmo_zp << positionZeroElmo[i] << "\n";
                                 }
@@ -1012,7 +1004,7 @@ void RealRobotInterface::ethercatThread()
                             if (dc.elmo_Ready)
                                 torqueDesiredElmo = getCommand();
 
-                            for (int i = 0; i < MODEL_DOF; i++)
+                            for (int i = 0; i < ec_slavecount; i++)
                             {
                                 if (!dc.elmo_Ready)
                                 {
@@ -1129,7 +1121,7 @@ void RealRobotInterface::ethercatThread()
                             }
 
                             //Hold position if safety limit breached
-                            for (int i = 0; i < MODEL_DOF; i++)
+                            for (int i = 0; i < ec_slavecount; i++)
                             {
                                 if (ElmoMode[i] != EM_POSITION)
                                 {
@@ -1141,7 +1133,7 @@ void RealRobotInterface::ethercatThread()
                             //Torque off if emergency off received
                             if (dc.emergencyoff)
                             {
-                                for (int i = 0; i < MODEL_DOF; i++)
+                                for (int i = 0; i < ec_slavecount; i++)
                                 {
                                     txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
                                     txPDO[i]->targetTorque = (int)0;
@@ -1154,13 +1146,13 @@ void RealRobotInterface::ethercatThread()
                             positionDesiredElmo_Before = positionDesiredElmo;
                             if (dc.disableSafetyLock)
                             {
-                                for (int i = 0; i < MODEL_DOF; i++)
+                                for (int i = 0; i < ec_slavecount; i++)
                                 {
                                     ElmoSafteyMode[i] = 0;
                                 }
                                 dc.disableSafetyLock = false;
                             }
-                            for (int i = 0; i < MODEL_DOF; i++)
+                            for (int i = 0; i < ec_slavecount; i++)
                             {
                                 if (ElmoMode[i] == EM_POSITION)
                                 {
@@ -1190,7 +1182,7 @@ void RealRobotInterface::ethercatThread()
                                     printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us, oc : %d, oct : %d \n", control_time_, c_count, d_min * 1.0E+6,
                                            d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count, oc_cnt, oct_cnt);
 
-                                    pub_to_gui(dc, "%f : tout : %d, total : %d", control_time_, oc_cnt, oct_cnt);
+                                    pub_to_gui(dc, "%3.0f : tout : %d, total : %d", control_time_, oc_cnt, oct_cnt);
 
                                     //int al = 63;
                                     std::bitset<16> stx(stateElmo[0]);
@@ -1198,11 +1190,11 @@ void RealRobotInterface::ethercatThread()
                                     //std::cout << "current statusword : " << stx << std::endl;
                                     //std::cout << stx2 << std::endl;
 
-                                    for (int i = 0; i < MODEL_DOF; i++)
+                                    for (int i = 0; i < ec_slavecount; i++)
                                     {
                                         if ((stateElmo[i] & al) != 39)
                                         {
-                                            std::cout << "Joint " << i << "Not operational, " << (stateElmo[i] & al) << std::endl;
+                                            //std::cout << "Joint " << i << "Not operational, " << (stateElmo[i] & al) << std::endl;
                                         }
                                     }
                                 }

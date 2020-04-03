@@ -160,6 +160,7 @@ public:
 
   //For real robot
   std::string ifname;
+  std::string ifname2;
   int ctime;
 
   Eigen::VectorQd q_init_;

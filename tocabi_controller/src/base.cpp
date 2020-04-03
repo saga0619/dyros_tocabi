@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 
     dc.nh.param<std::string>("/tocabi_controller/run_mode", dc.mode, "default");
     dc.nh.param<std::string>("/tocabi_controller/ifname", dc.ifname, "enp0s31f6");
+    dc.nh.param<std::string>("/tocabi_controller/ifname2", dc.ifname2, "enp0s31f6");
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
     dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
@@ -112,7 +113,7 @@ int main(int argc, char **argv)
         //For RealTime Thread
         sched_param sch;
         int policy;
-        int priority[rt_thread_num] = {39, 38};
+        int priority[rt_thread_num] = {39, 30};
         for (int i = 0; i < rt_thread_num; i++)
         {
 
@@ -123,6 +124,15 @@ int main(int argc, char **argv)
             {
                 std::cout << "Failed to setschedparam: " << std::strerror(errno) << std::endl;
             }
+        }
+
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(7, &cpuset);
+        //sched_setaffinity(getpid(),sizeof(cpuset),&cpuset);
+        if (pthread_setaffinity_np(thread[0].native_handle(), sizeof(cpuset), &cpuset))
+        {
+            std::cout << "Failed to setaffinity: " << std::strerror(errno) << std::endl;
         }
 
         for (int i = 0; i < thread_num; i++)
