@@ -55,6 +55,7 @@ sudo make install
 wget --content-disposition "https://www.kvaser.com/download/?utm_source=software&utm_ean=7330130980754&utm_status=latest"
 tar xvzf linuxcan.tar.gz
 cd linuxcan
+make all
 sudo make install
 ```
 
