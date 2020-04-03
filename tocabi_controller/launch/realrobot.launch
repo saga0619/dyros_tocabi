@@ -15,6 +15,7 @@
       <param name="ifname" value="enp2s0"/>
       <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi.urdf"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_positionPDgain.yaml" />
     </node>
   </group>
 

@@ -112,6 +112,13 @@ public:
     //Reference Frame Transform
     Eigen::Isometry3d LocaltoGlobal_current;
     Eigen::Isometry3d GlobaltoLocal_current;
+    Eigen::Isometry3d FoottoGlobal_current;
+    Eigen::Isometry3d FoottoGlobal_current_init;
+    Eigen::Isometry3d Com_measured;
+    Eigen::Isometry3d RF_measured;
+    Eigen::Isometry3d LF_measured;
+    Eigen::Isometry3d Framereference;
+    Eigen::Isometry3d Debug_Iso;
 
     //User WalkingParameter
     int desired_foot_step_num;
@@ -130,8 +137,6 @@ public:
 
     // Walking
     int walking_tick;
-
-
 
     //Ui WalkingParameter
     int ik_mode;
@@ -152,12 +157,5 @@ public:
 
 
     std::fstream file[1];
-};
-
-
-const std::string FILE_NAMES[1] =
-{
-  ///change this directory when you use this code on the other computer///
-  "/home/jhk/data/walking/0_tocabi_.txt",
 };
 #endif

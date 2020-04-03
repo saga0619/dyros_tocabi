@@ -835,6 +835,15 @@ void StateManager::stateEstimate()
     }
 }
 
+void StateManager::SetPositionPDGainMatrix()
+{
+    for(int i=0; i<MODEL_DOF; i++)
+    {
+        dc.tocabi_.Kps[i] = dc.tocabi_.vector_kp[i];
+        dc.tocabi_.Kvs[i] = dc.tocabi_.vector_kv[i];
+    }
+}
+
 void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
 {
     //std::cout << "msg from gui : " << msg->data << std::endl;

@@ -196,9 +196,16 @@ public:
   double orientation;
   double roll, pitch, yaw;
 
+  //PositionPDGain
+  double Kps[MODEL_DOF];
+  double Kvs[MODEL_DOF];
+  std::vector<double> vector_kp, vector_kv;
+ 
+
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd q_;
+  Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;
@@ -301,7 +308,6 @@ public:
   bool task_force_control_feedback;
   bool zmp_control;
   bool mpc_init;
-
   
   RigidBodyDynamics::Model model_virtual;
 };

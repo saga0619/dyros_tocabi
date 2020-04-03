@@ -29,7 +29,9 @@ int main(int argc, char **argv)
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
     dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
-
+    dc.nh.getParam("/tocabi_controller/Kp",dc.tocabi_.vector_kp);
+    dc.nh.getParam("/tocabi_controller/Kv",dc.tocabi_.vector_kv);
+    
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");
     dc.statusPubMsg.data = strr;
@@ -72,6 +74,26 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
+    else if(dc.mode == "simulationposition")
+    {
+        std::cout << "Simulation Mode position" << std::endl;
+
+        dc.simulationMode = true;
+        
+        MujocoInterface stm(dc);
+        DynamicsManager dym(dc);
+        TocabiController rc(dc, stm, dym);
+        std::thread thread[4];
+        thread[0] = std::thread(&TocabiController::stateThread, &rc);
+        thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
+        thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
+        thread[3] = std::thread(&TocabiController::tuiThread, &rc);
+
+        for (int i = 0; i < 4; i++)
+        {
+            thread[i].join();
+        }
+    }
     else if (dc.mode == "realrobot")
     {
         std::cout << "RealRobot Mode" << std::endl;
@@ -84,7 +106,7 @@ int main(int argc, char **argv)
         //dc.statusPub.publish(dc.statusPubMsg);
 
         //Total Number of Thread
-        int thread_num = 8;
+        int thread_num = 9;
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
@@ -102,6 +124,7 @@ int main(int argc, char **argv)
         //Sensor Data Management Thread
         thread[t_id++] = std::thread(&RealRobotInterface::imuThread, &rtm);
         thread[t_id++] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
+        thread[t_id++] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
 
         //Robot Controller Threadx
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadHigh, &tc);
@@ -224,15 +247,12 @@ int main(int argc, char **argv)
         TocabiController tc(dc, rtm, dym);
 
         std::thread thread[1];
-        //thread[0] = std::thread(&StateManager::testThread, &stm);
-
-        //thread[1] = std::thread(&DynamicsManager::testThread, &dym);
-
-        //thread[1] = std::thread(&TocabiController::tuiThread, &tc);
 
         thread[0] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
-        for (int i = 0; i < 1; i++)
+        thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
+
+        for (int i = 0; i < 2; i++)
         {
             thread[i].join();
         }
