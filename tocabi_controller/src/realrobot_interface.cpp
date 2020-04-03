@@ -1,5 +1,6 @@
 #include "tocabi_controller/realrobot_interface.h"
 #include "sensoray826/sensoray826.h"
+#include "optoforce_can/optoforce_can.h"
 #include <errno.h>
 #include <bitset>
 #include <ros/package.h>
@@ -1370,6 +1371,7 @@ void RealRobotInterface::ftsensorThread()
     std::chrono::microseconds cycletime(1000);
 
     int cycle_count = 0;
+    int count = 0;
     int ft_cycle_count;
     bool is_ft_board_ok;
     bool ft_calib_init = false;
@@ -1379,14 +1381,12 @@ void RealRobotInterface::ftsensorThread()
     int SAMPLE_RATE = 1000;
 
     sensoray826_dev ft = sensoray826_dev(1);
+  
+    /////SENSORYA826 & ATI/////
     is_ft_board_ok = ft.open();
     if (is_ft_board_ok == 1)
     {
         pub_to_gui(dc, "initreq");
-    }
-    else
-    {
-        /* code */
     }
 
     ft.analogSingleSamplePrepare(slotAttrs, 16);
@@ -1396,6 +1396,8 @@ void RealRobotInterface::ftsensorThread()
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
+        
+        ft.analogOversample();
 
         if (dc.ftcalib) //enabled by gui
         {
@@ -1412,7 +1414,6 @@ void RealRobotInterface::ftsensorThread()
                     ft_calib_finish = true;
                     dc.ftcalib = false;
                 }
-                ft.analogOversample();
                 ft.calibrationFTData(ft_calib_finish);
             }
         }
@@ -1420,6 +1421,7 @@ void RealRobotInterface::ftsensorThread()
         {
             pub_to_gui(dc, "initreq");
         }
+
         if (ft_calib_finish == true)
         {
             if (ft_calib_ui == false)
@@ -1428,9 +1430,8 @@ void RealRobotInterface::ftsensorThread()
                 pub_to_gui(dc, "ftgood");
                 ft_calib_ui = true;
             }
-            ft.analogOversample();
         }
-        ft.computeFTData();
+        ft.computeFTData(ft_calib_finish);
 
         for (int i = 0; i < 6; i++)
         {
@@ -1438,8 +1439,88 @@ void RealRobotInterface::ftsensorThread()
             LF_FT(i) = ft.leftFootAxisData[i];
         }
     }
-
     std::cout << "FTsensor Thread End!" << std::endl;
+}
+
+void RealRobotInterface::handftsensorThread()
+{
+    //wait for
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_from_begin;
+
+    std::chrono::microseconds cycletime(500);
+
+    int cycle_count = 0;
+    int count = 0;
+    int ft_cycle_count;
+    bool is_ft_board_ok;
+    bool ft_calib_init = false;
+    bool ft_calib_finish = false;
+    bool ft_calib_ui = false;
+
+    int SAMPLE_RATE = 500;
+
+    optoforcecan ft_upper;
+
+   /* is_ft_board_ok = ft.open();
+    if (is_ft_board_ok == 1)
+    {
+        pub_to_gui(dc, "initreq");
+    }*/
+ 
+    //////OPTOFORCE//////
+    ft_upper.InitDriver();
+    dc.ftcalib = true;
+
+    while (!shutdown_tocabi_bool)
+    {
+        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+        cycle_count++;
+        
+        ft_upper.DAQSensorData();
+   
+        if (dc.ftcalib) //enabled by gui
+        {
+            if (ft_calib_init == false)
+            {
+                ft_cycle_count = cycle_count;
+                ft_calib_init = true;
+ //               pub_to_gui(dc, "ft sensor : calibration ... ");
+            }
+            if (cycle_count < 5 * SAMPLE_RATE + ft_cycle_count)
+            {
+                if (cycle_count == 5 * SAMPLE_RATE + ft_cycle_count - 1)
+                {
+                    ft_calib_finish = true;
+                    dc.ftcalib = false;
+                }
+                ft_upper.calibrationFTData(ft_calib_finish);
+            }
+        }
+        else
+        {
+//            pub_to_gui(dc, "initreq");
+        }
+
+        if (ft_calib_finish == true)
+        {
+            if (ft_calib_ui == false)
+            {
+//                pub_to_gui(dc, "ft sensor : calibration finish ");
+//                pub_to_gui(dc, "ftgood");
+                ft_calib_ui = true;
+            }
+        }
+        ft_upper.computeFTData(ft_calib_finish);
+
+        for (int i = 0; i < 6; i++)
+        {
+            RH_FT(i) = ft_upper.rightArmAxisData[i];
+            LH_FT(i) = ft_upper.leftArmAxisData[i];
+        }
+    }
+    std::cout << "HandFTsensor Thread End!" << std::endl;
 }
 
 bool RealRobotInterface::controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord)
@@ -1484,7 +1565,6 @@ bool RealRobotInterface::controlWordGenerate(const uint16_t statusWord, uint16_t
 
 void RealRobotInterface::gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg)
 {
-
     std::cout << "customgain Command received ! " << std::endl;
     for (int i = 0; i < MODEL_DOF; i++)
     {

@@ -88,6 +88,7 @@ target_link_libraries(tocabi_controller_lib
   -lrt
   -lqpOASES
   -lsoem
+  -lcanlib
   ${CMAKE_CURRENT_SOURCE_DIR}/include/sensoray826/lib/lib826_64.so
 )
 
