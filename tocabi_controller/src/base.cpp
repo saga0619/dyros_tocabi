@@ -109,11 +109,7 @@ int main(int argc, char **argv)
         //dc.statusPub.publish(dc.statusPubMsg);
 
         //Total Number of Thread
-<<<<<<< HEAD
-        int thread_num = 7;
-=======
         int thread_num = 10;
->>>>>>> 878cf73b84ed5ab3606c8268e8d51f444292d71b
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
