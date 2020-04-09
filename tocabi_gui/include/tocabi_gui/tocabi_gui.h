@@ -13,6 +13,9 @@
 #include <QSize>
 #include <QWidget>
 #include <QObject>
+#include <QStateMachine>
+#include <QState>
+#include <QEventTransition>
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>

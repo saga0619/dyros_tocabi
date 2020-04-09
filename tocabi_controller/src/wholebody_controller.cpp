@@ -1,4 +1,5 @@
 #include "tocabi_controller/wholebody_controller.h"
+#include <Eigen/QR> 
 #include "ros/ros.h"
 
 //Left Foot is first! LEFT = 0, RIGHT = 1 !
@@ -1971,6 +1972,7 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
     torque_grav.setZero();
     Eigen::MatrixXd ppinv = DyrosMath::pinv_QR(aa);
     */
+
     Eigen::MatrixXd ppinv;
     double epsilon = 1e-7;
     if (redsvd)
@@ -1984,9 +1986,9 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
         ppinv = DyrosMath::pinv_SVD(aa);
     }
 
+  // std::cout <<"Ddd" << std::endl;
     Eigen::MatrixXd tg_temp = ppinv * J_g * Robot.A_matrix_inverse * Robot.N_C;
     torque_grav = tg_temp * Robot.G;
-
 
     Robot.contact_calc = false;
     return torque_grav;

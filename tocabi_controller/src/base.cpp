@@ -62,14 +62,16 @@ int main(int argc, char **argv)
 
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
-        TocabiController rc(dc, stm, dym);
-        std::thread thread[4];
+        TocabiController rc(dc, stm, dym); 
+        
+        std::thread thread[5];
         thread[0] = std::thread(&TocabiController::stateThread, &rc);
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
         thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
-        thread[3] = std::thread(&TocabiController::tuiThread, &rc);
+        thread[3] = std::thread(&TocabiController::trajectoryplannar, &rc);
+        thread[4] = std::thread(&TocabiController::tuiThread, &rc);
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             thread[i].join();
         }
@@ -83,13 +85,14 @@ int main(int argc, char **argv)
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController rc(dc, stm, dym);
-        std::thread thread[4];
+        std::thread thread[5];
         thread[0] = std::thread(&TocabiController::stateThread, &rc);
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
         thread[2] = std::thread(&TocabiController::dynamicsThreadLow, &rc);
-        thread[3] = std::thread(&TocabiController::tuiThread, &rc);
+        thread[3] = std::thread(&TocabiController::trajectoryplannar, &rc);
+        thread[4] = std::thread(&TocabiController::tuiThread, &rc);
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             thread[i].join();
         }
@@ -106,7 +109,11 @@ int main(int argc, char **argv)
         //dc.statusPub.publish(dc.statusPubMsg);
 
         //Total Number of Thread
+<<<<<<< HEAD
         int thread_num = 7;
+=======
+        int thread_num = 10;
+>>>>>>> 878cf73b84ed5ab3606c8268e8d51f444292d71b
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
@@ -129,6 +136,7 @@ int main(int argc, char **argv)
         //Robot Controller Threadx
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadHigh, &tc);
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadLow, &tc);
+        thread[t_id++] = std::thread(&TocabiController::trajectoryplannar, &tc);
 
         //For Additional functions ..
         thread[t_id++] = std::thread(&TocabiController::tuiThread, &tc);

@@ -102,6 +102,7 @@ public:
     Eigen::Vector3d RF_trajectory_euler_float;
     Eigen::Vector3d LF_trajectory_euler_support;
     Eigen::Vector3d RF_trajectory_euler_support;
+    Eigen::Vector3d PELV_firstinit;
 
     Eigen::Vector3d foot_distance;
     double zc;
