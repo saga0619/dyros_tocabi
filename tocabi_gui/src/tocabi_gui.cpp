@@ -236,7 +236,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecattexts[i]->setText(QString::fromUtf8("0.0"));
         ecattexts[i]->setValidator(new QDoubleValidator(0, 1000, 3, this));
     }
-    ui_.taskgain->setDisabled(true);
+    ui_.taskgain->setDisabled(true);  
 
     //for(int i=0;i<)
 

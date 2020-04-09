@@ -380,7 +380,6 @@ void TocabiController::dynamicsThreadLow()
 
     ///////////////////////
     wbc_.init(tocabi_);
-
     //Control Loop Start
     while ((!shutdown_tocabi_bool))
     {
@@ -442,7 +441,7 @@ void TocabiController::dynamicsThreadLow()
 
         torque_task.setZero(MODEL_DOF);
         TorqueContact.setZero();
-
+        
         if (dc.gravityMode)
         {
             std::cout << "Task Turned Off,, gravity compensation only !" << std::endl;
@@ -491,11 +490,10 @@ void TocabiController::dynamicsThreadLow()
                     tc_command = false;
                 }
                 mycontroller.computeSlow();
-
-                if (dc.positionControl)
+           /*     if (dc.positionControl)
                 {
                     tocabi_.q_desired_ = mycontroller.getControl();
-                }
+                }*/
             }
         }
         else
@@ -531,12 +529,15 @@ void TocabiController::dynamicsThreadLow()
             TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
 
-        ///////////////////////////////////////////////////////////////////////////////////////
+        /////////////////(//////////////////////////////////////////////////////////////////////
         //////////////////              Controller Code End             ///////////////////////
         ///////////////////////////////////////////////////////////////////////////////////////
 
         mtx.lock();
-        torque_desired = TorqueDesiredLocal + TorqueContact;
+        if(dc.positionControl == false)
+        {
+            torque_desired = TorqueDesiredLocal + TorqueContact;
+        }
         mtx.unlock();
 
         //wbc_.task_control_torque(J_task,Eigen)
@@ -759,6 +760,46 @@ void TocabiController::getState()
     tocabi_.com_ = dc.com_;
 
     mtx_dc.unlock();
+}
+
+void TocabiController::trajectoryplannar()
+{
+    //wait for
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_from_begin, time_interval;
+    std::chrono::microseconds cycletime(1000);
+    std::chrono::microseconds cycletime1(0);
+
+    int cycle_count = 0;
+
+    while (!shutdown_tocabi_bool)
+    {
+        cycle_count++;
+        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+        std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
+        time_from_begin = (t_begin1 - t_begin);   
+        if (tc.mode >= 10)
+        {
+            cr_mode = 2;
+
+            if (tc_command == true)
+            {
+                mycontroller.taskCommandToCC(tc);
+                tc_command = false;
+            }
+            mycontroller.computePlanner();
+
+            if (dc.positionControl)
+            {
+                tocabi_.q_desired_ = mycontroller.getControl();
+            }
+
+      //   mycontroller.file[0] << mycontroller.wkc_.LF_trajectory_float.translation()(0) <<"\t" << mycontroller.wkc_.LF_trajectory_float.translation()(1) <<"\t"<< mycontroller.wkc_.LF_trajectory_float.translation()(2)<<"\t" << mycontroller.wkc_.RF_trajectory_float.translation()(0) <<"\t" << mycontroller.wkc_.RF_trajectory_float.translation()(1) <<"\t"<< mycontroller.wkc_.RF_trajectory_float.translation()(2) <<"\t"<< mycontroller.wkc_.LF_trajectory_support.translation()(0) <<"\t" << mycontroller.wkc_.LF_trajectory_support.translation()(1) <<"\t"<< mycontroller.wkc_.LF_trajectory_support.translation()(2)<<"\t" << mycontroller.wkc_.PELV_trajectory_float.translation()(0) <<"\t" << mycontroller.wkc_.PELV_trajectory_float.translation()(1)<<"\t" << mycontroller.wkc_.PELV_trajectory_float.translation()(2)<<"\t"<<mycontroller.wkc_.current_step_num<<"\t"<<mycontroller.wkc_.foot_step(mycontroller.wkc_.current_step_num,0)<<std::endl;
+         mycontroller.file[0] << tocabi_.q_desired_(0) <<"\t" << tocabi_.q_(0) << "\t"<< tocabi_.q_desired_(1) <<"\t" << tocabi_.q_(1) << "\t" << tocabi_.q_desired_(2) <<"\t" << tocabi_.q_(2) << "\t"<< tocabi_.q_desired_(3) <<"\t" << tocabi_.q_(3) << "\t"<< tocabi_.q_desired_(4) <<"\t" << tocabi_.q_(4) << "\t"<< tocabi_.q_desired_(5) <<"\t" << tocabi_.q_(5) << "\t"<<std::endl;
+
+        }
+    }
 }
 
 void TocabiController::initialize()

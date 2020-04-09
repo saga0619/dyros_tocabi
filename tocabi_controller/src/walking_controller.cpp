@@ -245,7 +245,7 @@ void Walking_controller::getRobotInitState(RobotData Robot)
 
         PELV_float_init.translation() = Robot.link_[Pelvis].xpos;
         PELV_float_init.linear() = Robot.link_[Pelvis].Rotm;
- 
+    
         if(foot_step(0,6) == 0)
         {   
             SUF_float_init = RF_float_init;
@@ -281,12 +281,13 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         LF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), LF_float_init);
         PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init);
         COM_support_init =  DyrosMath::multiplyIsometry3d(PELV_support_init, COM_float_init);
-    
+
         RF_support_euler_init = DyrosMath::rot2Euler(RF_support_init.linear());
         LF_support_euler_init = DyrosMath::rot2Euler(LF_support_init.linear());
         PELV_support_euler_init = DyrosMath::rot2Euler(PELV_support_init.linear());
 
         zc = COM_support_init.translation()(2);
+        PELV_firstinit(2) = PELV_support_init.translation()(2);
         lipm_w = sqrt(GRAVITY/zc);
     }
     else if(current_step_num!=0 && walking_tick == t_start)
@@ -469,7 +470,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, in
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = true;
-    foot_height = 0.03;
+    foot_height = 0.030;
     com_control_mode = true;
     gyro_frame_flag = false;
     if(com_control_mode == true)
@@ -499,10 +500,10 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     t_total = 1.2*Hz_;*/
     t_temp = 4.0*Hz_;
 
-    t_double1 = 0.10*Hz_;
-    t_double2 = 0.10*Hz_;
-    t_rest_init = .20*Hz_;
-    t_rest_last = .20*Hz_;
+    t_double1 = 0.20*Hz_;
+    t_double2 = 0.20*Hz_;
+    t_rest_init = .30*Hz_;
+    t_rest_last = .30*Hz_;
     t_total= 3.0*Hz_;
 
 
