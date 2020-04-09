@@ -109,7 +109,7 @@ int main(int argc, char **argv)
         //dc.statusPub.publish(dc.statusPubMsg);
 
         //Total Number of Thread
-        int thread_num = 10;
+        int thread_num = 7;
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
         //Robot Controller Threadx
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadHigh, &tc);
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadLow, &tc);
-        thread[t_id++] = std::thread(&TocabiController::trajectoryplannar, &tc);
+        //thread[t_id++] = std::thread(&TocabiController::trajectoryplannar, &tc);
 
         //For Additional functions ..
         thread[t_id++] = std::thread(&TocabiController::tuiThread, &tc);

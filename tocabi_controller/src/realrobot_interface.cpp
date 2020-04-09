@@ -146,32 +146,17 @@ Eigen::VectorQd RealRobotInterface::getCommand()
     Eigen::VectorQd t1_, t2_;
 
     mtx_elmo_command.lock();
+    
     t1_ = torqueDesiredController;
     mtx_elmo_command.unlock();
 
-    if (dc.positionControl)
+    for (int i = 0; i < MODEL_DOF; i++)
     {
-        for (int i = 0; i < MODEL_DOF; i++)
+        for (int j = 0; j < MODEL_DOF; j++)
         {
-            for (int j = 0; j < MODEL_DOF; j++)
+            if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
             {
-                if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
-                {
-                    //ttemp(i) = positionDesiredController(j);
-                }
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < MODEL_DOF; i++)
-        {
-            for (int j = 0; j < MODEL_DOF; j++)
-            {
-                if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
-                {
-                    t2_(i) = t1_(j);
-                }
+                t2_(i) = t1_(j);
             }
         }
     }
@@ -492,24 +477,19 @@ void RealRobotInterface::ethercatCheck()
 
 void RealRobotInterface::ethercatThreadLower()
 {
-
 }
 
 void RealRobotInterface::ethercatThreadUpper()
 {
-
 }
 
 void RealRobotInterface::ethercatCheckLower()
 {
-
 }
 
 void RealRobotInterface::ethercatCheckUpper()
 {
-    
 }
-
 
 void RealRobotInterface::ethercatThread()
 {
@@ -1052,6 +1032,7 @@ void RealRobotInterface::ethercatThread()
                                         to_ratio = DyrosMath::minmax_cut((control_time_ - dc.torqueOnTime) / rising_time, 0.0, 1.0);
                                         ElmoMode[i] = EM_TORQUE;
                                         dc.t_gain = to_ratio;
+                                        /*
                                         if (dc.positionControl)
                                         {
                                             torqueDesiredElmo(i) = to_ratio * (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
@@ -1059,7 +1040,8 @@ void RealRobotInterface::ethercatThread()
                                         else
                                         {
                                             torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
-                                        }
+                                        }*/
+                                        torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
                                     }
                                     else if (dc.torqueOff)
                                     {
@@ -1076,7 +1058,7 @@ void RealRobotInterface::ethercatThread()
                                         to_ratio = DyrosMath::minmax_cut(1.0 - to_calib - (control_time_ - dc.torqueOffTime) / rising_time, 0.0, 1.0);
 
                                         dc.t_gain = to_ratio;
-
+                                        /*
                                         if (dc.positionControl)
                                         {
                                             torqueDesiredElmo(i) = to_ratio * (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
@@ -1084,7 +1066,8 @@ void RealRobotInterface::ethercatThread()
                                         else
                                         {
                                             torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
-                                        }
+                                        }*/
+                                        torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
                                     }
                                     else
                                     {
@@ -1373,7 +1356,7 @@ void RealRobotInterface::ftsensorThread()
     int SAMPLE_RATE = 1000;
 
     sensoray826_dev ft = sensoray826_dev(1);
-  
+
     /////SENSORYA826 & ATI/////
     is_ft_board_ok = ft.open();
     if (is_ft_board_ok == 1)
@@ -1388,7 +1371,7 @@ void RealRobotInterface::ftsensorThread()
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
-        
+
         ft.analogOversample();
 
         if (dc.ftcalib) //enabled by gui
@@ -1456,7 +1439,7 @@ void RealRobotInterface::handftsensorThread()
     optoforcecan ft_upper;
 
     //////OPTOFORCE//////
-    
+
     printf("ssssss");
     ft_upper.InitDriver();
     dc.ftcalib = true;
@@ -1465,8 +1448,8 @@ void RealRobotInterface::handftsensorThread()
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
-        
-      /*  ft_upper.DAQSensorData();
+
+        /*  ft_upper.DAQSensorData();
    
         if (dc.ftcalib) //enabled by gui
         {
