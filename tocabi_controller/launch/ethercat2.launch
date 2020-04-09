@@ -5,9 +5,9 @@
   <arg name="gui" default="false"/>
   <arg name="run_mode" default="ethercattest"/>
   <arg name="urdfDampingmodel" default="false"/>
-  <arg name="ifname" default="enp2s0"/>
-  <arg name="ctime" default="1000"/>
-  
+  <arg name="ifname" default="enp3s0"/>
+  <arg name="ctime" default="500"/>
+
   <group if="$(arg controller)">
     <node name="tocabi_controller" pkg="tocabi_controller" type="tocabi_controller" output="screen">
       <param name="run_mode" value="$(arg run_mode)"/>
@@ -18,6 +18,7 @@
       <param name="ifname2" value="eno2"/>
       <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi.urdf"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_positionPDgain.yaml" />
     </node>
   </group>
 

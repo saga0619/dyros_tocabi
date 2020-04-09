@@ -381,12 +381,22 @@ void TocabiController::dynamicsThreadLow()
     ///////////////////////
     wbc_.init(tocabi_);
 
+    std::chrono::steady_clock::time_point tp[6];
+    std::chrono::duration<double> td[7];
+
     //Control Loop Start
     while ((!shutdown_tocabi_bool))
     {
         static double est;
         std::chrono::high_resolution_clock::time_point dyn_loop_start = std::chrono::high_resolution_clock::now();
         dynthread_cnt++;
+
+        td[0] = tp[1] - tp[0];
+        td[1] = tp[2] - tp[1];
+        td[2] = tp[3] - tp[2];
+        td[3] = tp[4] - tp[3];
+        td[4] = tp[5] - tp[4];
+
         if (control_time_ == 0)
         {
             first = true;
@@ -403,11 +413,17 @@ void TocabiController::dynamicsThreadLow()
                 pub_to_gui(dc, ss.str().c_str());
                 //dc.statusPub.publish(dc.statusPubMsg);
             }
+            if (dc.print_delay_info)
+            {
+                std::cout << "td1 : " << td[0].count() * 1000 << "  td2 : " << td[1].count() * 1000 << "  td3 : " << td[2].count() * 1000 << "  td4 : " << td[3].count() * 1000 << "  td5 : " << td[4].count() * 1000 << std::endl;
+            }
             dynthread_cnt = 0;
             est = 0;
         }
+        tp[0] = std::chrono::steady_clock::now();
         getState(); //link data override
 
+        tp[1] = std::chrono::steady_clock::now();
         //Task link gain setting.
         tocabi_.link_[COM_id].pos_p_gain = kp_;
         tocabi_.link_[COM_id].pos_d_gain = kd_;
@@ -434,6 +450,7 @@ void TocabiController::dynamicsThreadLow()
 
         wbc_.update(tocabi_);
 
+        tp[2] = std::chrono::steady_clock::now();
         sec = std::chrono::high_resolution_clock::now() - start_time;
 
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -501,10 +518,12 @@ void TocabiController::dynamicsThreadLow()
         else
         {
             wbc_.set_contact(tocabi_, 1, 1);
+            tp[3] = std::chrono::steady_clock::now();
             torque_grav = wbc_.gravity_compensation_torque(tocabi_);
             //torque_grav = wbc_.task_control_torque_QP_gravity(red_);
         }
 
+        tp[4] = std::chrono::steady_clock::now();
         TorqueDesiredLocal = torque_grav + torque_task;
 
         if (dc.torqueredis)
@@ -531,6 +550,7 @@ void TocabiController::dynamicsThreadLow()
             TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
 
+        tp[5] = std::chrono::steady_clock::now();
         ///////////////////////////////////////////////////////////////////////////////////////
         //////////////////              Controller Code End             ///////////////////////
         ///////////////////////////////////////////////////////////////////////////////////////

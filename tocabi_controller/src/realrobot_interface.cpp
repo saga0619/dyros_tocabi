@@ -1455,22 +1455,18 @@ void RealRobotInterface::handftsensorThread()
 
     optoforcecan ft_upper;
 
-   /* is_ft_board_ok = ft.open();
-    if (is_ft_board_ok == 1)
-    {
-        pub_to_gui(dc, "initreq");
-    }*/
- 
     //////OPTOFORCE//////
+    
+    printf("ssssss");
     ft_upper.InitDriver();
     dc.ftcalib = true;
-
+    printf("ssssss");
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
         
-        ft_upper.DAQSensorData();
+      /*  ft_upper.DAQSensorData();
    
         if (dc.ftcalib) //enabled by gui
         {
@@ -1510,7 +1506,7 @@ void RealRobotInterface::handftsensorThread()
         {
             RH_FT(i) = ft_upper.rightArmAxisData[i];
             LH_FT(i) = ft_upper.leftArmAxisData[i];
-        }
+        }*/
     }
     std::cout << "HandFTsensor Thread End!" << std::endl;
 }

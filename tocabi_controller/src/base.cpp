@@ -106,7 +106,7 @@ int main(int argc, char **argv)
         //dc.statusPub.publish(dc.statusPubMsg);
 
         //Total Number of Thread
-        int thread_num = 9;
+        int thread_num = 7;
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
@@ -123,8 +123,8 @@ int main(int argc, char **argv)
 
         //Sensor Data Management Thread
         thread[t_id++] = std::thread(&RealRobotInterface::imuThread, &rtm);
-        thread[t_id++] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
-        thread[t_id++] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
+        //thread[t_id++] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
+        //thread[t_id++] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
 
         //Robot Controller Threadx
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadHigh, &tc);

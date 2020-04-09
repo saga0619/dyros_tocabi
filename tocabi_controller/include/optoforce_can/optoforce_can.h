@@ -123,10 +123,11 @@ public:
 			leftArmAxisData_prev[i] = 0.0;
 			rightArmAxisData_prev[i] = 0.0;
 		} 
-
+		
 		//get number of present channels
+		
 		stat = canGetNumberOfChannels((int*)&m_channelData.channelCount);
-
+			printf("ssss2");
 		for (i = 0; (unsigned int)i < m_channelData.channelCount; i++) 
 		{
 			canHandle  hnd;
@@ -139,16 +140,19 @@ public:
 							&m_channelData.channel[i].hwType,
 							sizeof(DWORD));
 
+		printf("34443");
 			//open CAN channel
 			hnd = canOpenChannel(i, canOPEN_ACCEPT_VIRTUAL);
 			if (hnd < 0) 
 			{
+		printf("3333");
 				// error
 				PRINTF_ERR(("ERROR canOpenChannel() in initDriver() FAILED Err= %d. <line: %d>\n",
 							hnd, __LINE__));
 			}
 			else 
 			{
+		printf("4444");
 				m_channelData.channel[i].hnd = hnd;
 				if ((stat = canIoCtl(hnd, canIOCTL_FLUSH_TX_BUFFER, NULL, NULL)) != canOK)
 					PRINTF_ERR(("ERROR canIoCtl(canIOCTL_FLUSH_TX_BUFFER) FAILED, Err= %d <line: %d>\n",
@@ -210,7 +214,6 @@ public:
 				}
 			}
 		}
-		printf("\n");
 	}
 
 	void DAQSensorData()
