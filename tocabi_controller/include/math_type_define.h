@@ -5,8 +5,8 @@
 // constexpr size_t MAX_DOF=50;
 
 #include <Eigen/Dense>
-//#include <Eigen/SVD>
-#include <iostream>
+#include <Eigen/SVD>
+#include <iostream>   
 
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4

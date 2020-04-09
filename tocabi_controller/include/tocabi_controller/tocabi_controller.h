@@ -20,6 +20,7 @@ public:
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
+  void trajectoryplannar();
   void tuiThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void ContinuityChecker(double data);

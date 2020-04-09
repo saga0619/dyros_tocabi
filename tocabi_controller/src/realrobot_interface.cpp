@@ -1386,8 +1386,8 @@ void RealRobotInterface::ftsensorThread()
 
     while (!shutdown_tocabi_bool)
     {
-        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
+        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         
         ft.analogOversample();
 
@@ -1467,8 +1467,8 @@ void RealRobotInterface::handftsensorThread()
 
     while (!shutdown_tocabi_bool)
     {
-        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
+        std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         
         ft_upper.DAQSensorData();
    
