@@ -59,7 +59,7 @@ while true; do
                 make
                 sudo make install
                 
-                cd ..
+                cd ../..
 
                 sudo rm -rf Temp
                 echo "Run 'git clone https://github.com/saga0619/dyros_cc & git clone https://github.com/saga0619/mujoco_ros_sim'"
