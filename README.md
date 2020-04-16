@@ -59,6 +59,15 @@ make all
 sudo make install
 ```
 
+### 6. GSL installation
+```sh
+wget http://mirror.yongbok.net/gnu/gsl/gsl-2.6.tar.gz
+tar xvzf gsl-2.6.tar.gz
+cd gsl-2.6
+./configure
+make
+sudo make install
+```
 
 ## Tocabi Controller installation
 Git clone https://github.com/saga0619/dyros_cc , https://github.com/saga0619/mujoco_ros_sim
