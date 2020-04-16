@@ -61,7 +61,8 @@ while true; do
                 
                 cd ..
 
-                rm -rf Temp
+                sudo rm -rf Temp
+                echo "Run 'git clone https://github.com/saga0619/dyros_cc & git clone https://github.com/saga0619/mujoco_ros_sim'"
                 break;;
         [Nn]* ) echo "Aborting ...";
                 exit;;
