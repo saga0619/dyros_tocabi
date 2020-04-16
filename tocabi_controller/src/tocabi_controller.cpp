@@ -256,7 +256,6 @@ void TocabiController::dynamicsThreadHigh()
                 for (int i = 0; i < MODEL_DOF; i++)
                 {
                     torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
-
                 }
                 if (task_switch)
                 {
@@ -283,6 +282,41 @@ void TocabiController::dynamicsThreadHigh()
         }
     }
     std::cout << cyellow << "Dynamics High Thread : End !" << creset << std::endl;
+}
+void TocabiController::testThread()
+{
+    std::cout << "TC test thread " << std::endl;
+    wbc_.init(tocabi_);
+    dc.testmode = true;
+    int cnt = 0;
+    while ((!shutdown_tocabi_bool))
+    {
+        cnt++;
+        getState();
+        
+        wbc_.set_contact(tocabi_, 1, 1);
+        std::chrono::steady_clock::time_point tp1 = std::chrono::steady_clock::now();
+        
+        std::cout<<"//////////////////////////////////////"<<std::endl;
+        std::cout<<"Original Matrix : "<<std::endl;
+        std::cout<<tocabi_.W<<std::endl<<std::endl;
+        DyrosMath::pinv_SVD(tocabi_.W);
+
+        std::chrono::duration<double> d1 = std::chrono::steady_clock::now() - tp1;
+        std::chrono::steady_clock::time_point tp2 = std::chrono::steady_clock::now();
+        DyrosMath::pinv_glsSVD(tocabi_.W);
+
+        std::chrono::duration<double> d2 = std::chrono::steady_clock::now() - tp2;
+
+        std::cout << "##### eigen pinv" << d1.count() * 1000000 << "#### gls svd" << d2.count() * 1000000 << std::endl;
+
+        if (cnt > 10)
+        {
+            break;
+        }
+    }
+
+    std::cout << "TC tes thread end " << std::endl;
 }
 
 void TocabiController::dynamicsThreadLow()
@@ -460,7 +494,7 @@ void TocabiController::dynamicsThreadLow()
 
         torque_task.setZero(MODEL_DOF);
         TorqueContact.setZero();
-        
+
         if (dc.gravityMode)
         {
             std::cout << "Task Turned Off,, gravity compensation only !" << std::endl;
@@ -509,7 +543,7 @@ void TocabiController::dynamicsThreadLow()
                     tc_command = false;
                 }
                 mycontroller.computeSlow();
-           /*     if (dc.positionControl)
+                /*     if (dc.positionControl)
                 {
                     tocabi_.q_desired_ = mycontroller.getControl();
                 }*/
@@ -556,7 +590,7 @@ void TocabiController::dynamicsThreadLow()
         ///////////////////////////////////////////////////////////////////////////////////////
 
         mtx.lock();
-        if(dc.positionControl == false)
+        if (dc.positionControl == false)
         {
             torque_desired = TorqueDesiredLocal + TorqueContact;
         }
@@ -779,6 +813,8 @@ void TocabiController::getState()
     tocabi_.yaw = dc.yaw;
 
     tocabi_.A_ = dc.A_;
+    tocabi_.A_matrix = dc.A_;
+    tocabi_.A_matrix_inverse = dc.A_inv;
     tocabi_.com_ = dc.com_;
 
     mtx_dc.unlock();
@@ -798,7 +834,7 @@ void TocabiController::trajectoryplannar()
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
         std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
-        time_from_begin = (t_begin1 - t_begin);   
+        time_from_begin = (t_begin1 - t_begin);
         if (tc.mode >= 10)
         {
             cr_mode = 2;
@@ -808,14 +844,13 @@ void TocabiController::trajectoryplannar()
                 mycontroller.taskCommandToCC(tc);
                 tc_command = false;
             }
-            
+
             mycontroller.computePlanner();
 
             if (dc.positionControl)
             {
                 tocabi_.q_desired_ = mycontroller.getControl();
             }
-
         }
     }
 }

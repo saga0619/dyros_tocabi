@@ -295,6 +295,7 @@ public:
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;
+  Eigen::MatrixXd svd_W_U;
 
   int task_dof;
 
