@@ -50,6 +50,16 @@ while true; do
                 cd linuxcan
                 make all
                 sudo make install
+                cd ..
+                
+                wget http://mirror.yongbok.net/gnu/gsl/gsl-2.6.tar.gz
+                tar xvzf gsl-2.6.tar.gz
+                cd gsl-2.6
+                ./configure
+                make
+                sudo make install
+                
+                cd ..
 
                 rm -rf Temp
                 break;;
