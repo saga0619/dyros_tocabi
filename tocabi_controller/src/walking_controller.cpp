@@ -482,7 +482,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, in
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = true;
-    foot_height = 0.030;
+    foot_height = 0.000;
     com_control_mode = true;
     gyro_frame_flag = false;
     if(com_control_mode == true)
@@ -502,7 +502,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, in
 
 void Walking_controller::setWalkingParameter(RobotData Robot)
 {
-    desired_foot_step_num = 10;
+    desired_foot_step_num = 6;
     Eigen::Isometry3d foot;
     foot.translation() = Robot.link_[Pelvis].xpos;
     foot.linear() = Robot.link_[Pelvis].Rotm;
