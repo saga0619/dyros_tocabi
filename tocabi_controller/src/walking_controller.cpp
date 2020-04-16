@@ -3,12 +3,13 @@ void Walking_controller::walkingCompute(RobotData Robot)
 {
     if(walking_enable == true)
     {   
+        //////InitModel//////
+        getRobotInitState(Robot);
+
         /////FootStep//////
         footStepGenerator();
 
         /////ModelUpdate//////
-        getRobotInitState(Robot);
-
         getRobotState(Robot);
    
         /////FrameChange//////
@@ -34,8 +35,9 @@ void Walking_controller::walkingCompute(RobotData Robot)
         supportToFloatPattern();
 
         /////InverseKinematics//////
+
         inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
-       // inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q);
+      //  inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q);
         
         updateNextStepTime();
     }
@@ -156,8 +158,8 @@ void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transfor
     leg_q(9) = -leg_q(9) + offset_knee_pitch;
     leg_q(10) = -leg_q(10) + offset_ankle_pitch;
 
-
     leg_q(0) = leg_q(0)*(-1);
+    leg_q(6) = leg_q(6)*(-1);
     leg_q(8) = leg_q(8)*(-1);
     leg_q(9) = leg_q(9)*(-1);
     leg_q(10) = leg_q(10)*(-1);
@@ -225,7 +227,7 @@ void Walking_controller::getRobotState(RobotData Robot)
     }
 
     //////Real Robot Support Foot Frame//////
-    PELV_support_current = DyrosMath::inverseIsometry3d(SUF_float_current);
+    PELV_support_current = DyrosMath::inverseIsometry3d(SUF_float_current)*PELV_float_current;
     RF_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, RF_float_current);
     LF_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, LF_float_current);
     COM_support_current =  DyrosMath::multiplyIsometry3d(PELV_support_current, COM_float_current);
@@ -245,8 +247,12 @@ void Walking_controller::getRobotInitState(RobotData Robot)
 
         PELV_float_init.translation() = Robot.link_[Pelvis].xpos;
         PELV_float_init.linear() = Robot.link_[Pelvis].Rotm;
+
+        PELV_first_init = PELV_float_init;
+        RF_fisrt_init = RF_float_init;
+        LF_fisrt_init = LF_float_init;
     
-        if(foot_step(0,6) == 0)
+        if(foot_step_dir != 1)
         {   
             SUF_float_init = RF_float_init;
             SWF_float_init = LF_float_init;
@@ -279,15 +285,21 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         //////Real Robot Support Foot Frame//////
         RF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), RF_float_init);
         LF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), LF_float_init);
-        PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init);
+        PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init)*PELV_float_init;
         COM_support_init =  DyrosMath::multiplyIsometry3d(PELV_support_init, COM_float_init);
 
         RF_support_euler_init = DyrosMath::rot2Euler(RF_support_init.linear());
         LF_support_euler_init = DyrosMath::rot2Euler(LF_support_init.linear());
         PELV_support_euler_init = DyrosMath::rot2Euler(PELV_support_init.linear());
 
+        PELV_firstinit.head(3) = PELV_support_init.translation();
+        PELV_firstinit(3,0) = 1.0;
+        Eigen::Isometry3d temp;
+        temp.linear() = SUF_float_init.linear();
+        temp.translation().setZero();
+        PELV_firstinit = temp*PELV_firstinit;
         zc = COM_support_init.translation()(2);
-        PELV_firstinit(2) = PELV_support_init.translation()(2);
+
         lipm_w = sqrt(GRAVITY/zc);
     }
     else if(current_step_num!=0 && walking_tick == t_start)
@@ -337,7 +349,7 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         //////Real Robot Support Foot Frame//////
         RF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), RF_float_init);
         LF_support_init = DyrosMath::multiplyIsometry3d(DyrosMath::inverseIsometry3d(SUF_float_init), LF_float_init);
-        PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init);
+        PELV_support_init = DyrosMath::inverseIsometry3d(SUF_float_init)*PELV_float_init;
         COM_support_init =  DyrosMath::multiplyIsometry3d(PELV_support_init, COM_float_init);
     
         RF_support_euler_init = DyrosMath::rot2Euler(RF_support_init.linear());
@@ -491,8 +503,11 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, in
 void Walking_controller::setWalkingParameter(RobotData Robot)
 {
     desired_foot_step_num = 10;
-    foot_distance = Robot.link_[Left_Foot].xpos -  Robot.link_[Right_Foot].xpos; 
-
+    Eigen::Isometry3d foot;
+    foot.translation() = Robot.link_[Pelvis].xpos;
+    foot.linear() = Robot.link_[Pelvis].Rotm;
+    foot_distance = Robot.link_[Left_Foot].xpos -  foot.inverse()*Robot.link_[Right_Foot].xpos; 
+    foot_distance(1) = 0.2;
     /*t_rest_init = 0.05*Hz_;
     t_rest_last = 0.05*Hz_;
     t_double1 = 0.10*Hz_;

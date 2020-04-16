@@ -1453,7 +1453,7 @@ void RealRobotInterface::handftsensorThread()
 
     int SAMPLE_RATE = 500;
 
-    optoforcecan ft_upper;
+/*    optoforcecan ft_upper;
 
     //////OPTOFORCE//////
     
@@ -1507,7 +1507,7 @@ void RealRobotInterface::handftsensorThread()
             RH_FT(i) = ft_upper.rightArmAxisData[i];
             LH_FT(i) = ft_upper.leftArmAxisData[i];
         }*/
-    }
+   // }
     std::cout << "HandFTsensor Thread End!" << std::endl;
 }
 

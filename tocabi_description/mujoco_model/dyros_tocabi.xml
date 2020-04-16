@@ -339,7 +339,6 @@
         <motor name="R_Knee_Motor" joint="R_Knee_Joint"/>
         <motor name="R_AnklePitch_Motor" joint="R_AnklePitch_Joint"/>
         <motor name="R_AnkleRoll_Motor" joint="R_AnkleRoll_Joint"/>
-+
 
         <motor name="Waist1_Motor" joint="Waist1_Joint"/>
         <motor name="Waist2_Motor" joint="Waist2_Joint"/>
@@ -385,11 +384,11 @@
 
     <keyframe>
         <!-- Initial Position Setting 0.94783-->
-        <key name="front" time="0" qpos ="0 0 1.94783 1 0 0 0 
+        <key name="front" time="0" qpos ="0 0 0.94783 1 0 0 0 
 								0.0 0.0 -0.24 0.6 -0.36 0 
 								0.0 0.0 -0.24 0.6 -0.36 0
 								0 0 0 0 0
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
-								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>    
+								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>  
     </keyframe>    
 </mujoco>
