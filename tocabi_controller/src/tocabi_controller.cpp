@@ -844,9 +844,7 @@ void TocabiController::trajectoryplannar()
                 mycontroller.taskCommandToCC(tc);
                 tc_command = false;
             }
-
             mycontroller.computePlanner();
-
             if (dc.positionControl)
             {
                 tocabi_.q_desired_ = mycontroller.getControl();

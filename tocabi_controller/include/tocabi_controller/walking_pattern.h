@@ -81,6 +81,11 @@ public:
     Eigen::Isometry3d PELV_trajectory_float;
     Eigen::Isometry3d COM_support_current;
     Eigen::Isometry3d COM_support_init;
+    
+    //temp
+    Eigen::Isometry3d RF_fisrt_init;
+    Eigen::Isometry3d LF_fisrt_init;
+    Eigen::Isometry3d PELV_first_init;
  
     Eigen::Vector6d SUF_float_initV;
     Eigen::Vector6d SWF_float_initV;
@@ -102,7 +107,8 @@ public:
     Eigen::Vector3d RF_trajectory_euler_float;
     Eigen::Vector3d LF_trajectory_euler_support;
     Eigen::Vector3d RF_trajectory_euler_support;
-    Eigen::Vector3d PELV_firstinit;
+
+    Eigen::Vector4d PELV_firstinit;
 
     Eigen::Vector3d foot_distance;
     double zc;
