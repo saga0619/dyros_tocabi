@@ -2,14 +2,14 @@
 
 # Building
 ## Prerequisites
-### 0. All-in-one PreReq installer 
+### 0. All-in-one Prerequisites installer 
 After clone dyros_tocabi to catkin_ws/src, 
 ```sh
 cd dyros_tocabi
 ./install_prereq.sh
 ```
 And Everything except dyros_cc & mujoco_ros_sim are installed!
-After executing install_prereq.sh, clone dyros_cc & mujoco_ros_sim to your catkin_ws/src
+After executing install_prereq.sh, git clone dyros_cc & mujoco_ros_sim to your catkin_ws/src
 
 
 ### 1. mscl installation
