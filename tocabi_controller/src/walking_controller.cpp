@@ -268,8 +268,11 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         PELV_first_init = PELV_float_init;
         RF_fisrt_init = RF_float_init;
         LF_fisrt_init = LF_float_init;
-    
-        foot_distance = LF_fisrt_init.translation() - RF_fisrt_init.translation();
+        
+        Eigen::Isometry3d temp;
+        temp.linear() = PELV_float_init.linear();
+        temp.translation().setZero();
+        foot_distance = temp.inverse()*(LF_fisrt_init.translation() - RF_fisrt_init.translation());
 
         if(foot_step_dir != 1)
         {   
@@ -313,10 +316,7 @@ void Walking_controller::getRobotInitState(RobotData Robot)
 
         PELV_firstinit.head(3) = PELV_support_init.translation();
         PELV_firstinit(3,0) = 1.0;
-        Eigen::Isometry3d temp;
-        temp.linear() = SUF_float_init.linear();
-        temp.translation().setZero();
-        PELV_firstinit = temp*PELV_firstinit;
+
         zc = COM_support_init.translation()(2);
 
         lipm_w = sqrt(GRAVITY/zc);

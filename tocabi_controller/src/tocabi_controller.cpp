@@ -210,7 +210,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     {
         tc.mode = 11;
     }
-    
+
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
 }
 
