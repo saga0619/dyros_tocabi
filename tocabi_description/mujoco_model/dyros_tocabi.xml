@@ -1,7 +1,7 @@
 <mujoco model="dyros_tocabi_description">
     <compiler angle="radian" meshdir="../meshes/" balanceinertia="true"/>
     <size njmax="500" nconmax="100" />
-x
+
    <default>
         <joint damping="4.0" frictionloss="1.0"/>
         <motor ctrllimited="true" ctrlrange="-300 300"/>
@@ -19,7 +19,7 @@ x
         </default>
     </default>
 
-    <option timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9" gravity="0 0 0"/>
+    <option timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9" gravity = "0 0 0 "/>
 
     <visual>
         <quality shadowsize="2048" offsamples="16"/>
@@ -384,7 +384,7 @@ x
 
     <keyframe>
         <!-- Initial Position Setting 0.94783-->
-        <key name="front" time="0" qpos ="0 0 1.94783 0.7 0.5 0 0 
+        <key name="front" time="0" qpos ="0 0 1.94783 0.8 0.3 0 0 
 								0.0 0.0 -0.24 0.6 -0.36 0.0 
 								0.0 0.0 -0.24 0.6 -0.36 0.0
 								0 0 0 0 0
