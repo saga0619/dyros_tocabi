@@ -28,14 +28,15 @@ public:
 
     void walkingCompute(RobotData Robot);
     void inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);
-    void setInitPose();
+    void setInitPose(RobotData Robot, Eigen::Vector12d& leg_q);
     void getRobotState(RobotData Robot);
     void getRobotInitState(RobotData Robot);
+    void walkingInitialize(RobotData Robot);
     void setRobotStateInitialize();
     void updateNextStepTime();
-    void getUiWalkingParameter(int controller_Hz, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot);
+    void updateInitTime();
+    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot);
     void setWalkingParameter(RobotData Robot);
-    void walkingInitialize();
 
 private:
 

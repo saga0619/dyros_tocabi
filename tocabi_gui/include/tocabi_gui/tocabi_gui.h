@@ -105,6 +105,7 @@ protected slots:
     virtual void safetyresetbtncb();
     virtual void mtunebtn();
     virtual void walkinginitbtncb();
+    virtual void walkingstartbtncb();
     virtual void walkingbtn();
     virtual void sendtunebtn();
     virtual void resettunebtn();

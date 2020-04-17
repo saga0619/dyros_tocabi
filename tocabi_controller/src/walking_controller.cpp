@@ -1,7 +1,7 @@
 #include "tocabi_controller/walking_controller.h"
 void Walking_controller::walkingCompute(RobotData Robot)
 {
-    if(walking_enable == true)
+    if(walking_enable == 1.0)
     {   
         //////InitModel//////
         getRobotInitState(Robot);
@@ -40,6 +40,11 @@ void Walking_controller::walkingCompute(RobotData Robot)
       //  inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q);
         
         updateNextStepTime();
+    }
+    else if(walking_enable = 2.0)
+    {
+        setInitPose(Robot, desired_leg_q);
+        updateInitTime();
     }
 }
 
@@ -165,14 +170,26 @@ void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transfor
     leg_q(10) = leg_q(10)*(-1);
 }
 
-void Walking_controller::setInitPose()
+void Walking_controller::setInitPose(RobotData Robot, Eigen::Vector12d& leg_q)
 {
-    
+    if(walking_tick == 0)
+    {
+        Eigen::Vector12d q_temp;
+        q_temp << 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, -0.24, 0.6, -0.36, 0.0;
+        q_target = Robot.q_;
+        q_target.head(12) = q_temp;
+        walkingInitialize(Robot);        
+    }
+
+    for(int i = 0; i < 12; i++)
+    {
+        leg_q(i) = DyrosMath::cubic(walking_tick, 0.0, 3.0*Hz_, q_init(i), q_target(i), 0.0, 0.0);
+    }
 }
 
-void Walking_controller::walkingInitialize()
+void Walking_controller::walkingInitialize(RobotData Robot)
 {
-
+    q_init = Robot.q_;
 }
 
 void Walking_controller::getRobotState(RobotData Robot)
@@ -252,6 +269,8 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         RF_fisrt_init = RF_float_init;
         LF_fisrt_init = LF_float_init;
     
+        foot_distance = LF_fisrt_init.translation() - RF_fisrt_init.translation();
+
         if(foot_step_dir != 1)
         {   
             SUF_float_init = RF_float_init;
@@ -435,8 +454,6 @@ void Walking_controller::setRobotStateInitialize()
     target.setZero();
     
     current_step_num = 0.0;
-    walking_tick = 0;
-
 }
 
 void Walking_controller::updateNextStepTime()
@@ -459,10 +476,10 @@ void Walking_controller::updateNextStepTime()
     walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot)
 {
     ik_mode = ikmode;
-    walking_pattern = walking_pattern;
+    walking_pattern = walkingpattern;
     if(footstepdir == 0)
     {
         foot_step_dir = 1.0;
@@ -481,10 +498,11 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, in
     dob = dob_;
     Hz_ = controller_Hz;
     dt = 1/Hz_;
-    walking_enable = true;
+    walking_enable = walkingenable;
     foot_height = 0.000;
     com_control_mode = true;
     gyro_frame_flag = false;
+
     if(com_control_mode == true)
     {
         pelvis_pgain = 0.1;
@@ -503,11 +521,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int ikmode, in
 void Walking_controller::setWalkingParameter(RobotData Robot)
 {
     desired_foot_step_num = 6;
-    Eigen::Isometry3d foot;
-    foot.translation() = Robot.link_[Pelvis].xpos;
-    foot.linear() = Robot.link_[Pelvis].Rotm;
-    foot_distance = Robot.link_[Left_Foot].xpos -  foot.inverse()*Robot.link_[Right_Foot].xpos; 
-    foot_distance(1) = 0.2;
+    walking_tick = 0;
     /*t_rest_init = 0.05*Hz_;
     t_rest_last = 0.05*Hz_;
     t_double1 = 0.10*Hz_;
@@ -527,4 +541,9 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     t_start = t_temp + 1;
 
     t_start_real = t_start + t_rest_init;
+}
+
+void Walking_controller::updateInitTime()
+{
+    walking_tick++;
 }

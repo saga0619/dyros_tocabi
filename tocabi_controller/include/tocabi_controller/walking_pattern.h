@@ -4,6 +4,11 @@
 #include <fstream>
 #include "math_type_define.h"
 
+/* 
+ Walking controller algorithm is made by Junhyung Kim
+ PELVIS and FOOT traejctory is based on Pelvis Frame
+*/
+
 class WalkingPattern
 {
 public:
@@ -82,7 +87,6 @@ public:
     Eigen::Isometry3d COM_support_current;
     Eigen::Isometry3d COM_support_init;
     
-    //temp
     Eigen::Isometry3d RF_fisrt_init;
     Eigen::Isometry3d LF_fisrt_init;
     Eigen::Isometry3d PELV_first_init;
@@ -115,6 +119,7 @@ public:
     double lipm_w;
 
     Eigen::VectorQd q_init;
+    Eigen::VectorQd q_target;
 
     //Reference Frame Transform
     Eigen::Isometry3d LocaltoGlobal_current;
@@ -149,7 +154,7 @@ public:
     int ik_mode;
     int walking_pattern;
     int foot_step_dir;
-    bool walking_enable;
+    int walking_enable;
     double height;
     double step_length_x;
     double step_length_y;
