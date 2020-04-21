@@ -205,10 +205,12 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.step_length_y = msg->step_length_y;
     tc.step_length_x = msg->step_length_x;
     tc.dob = msg->dob;
-    if (msg->walking_enable == 1)
+    tc.walking_enable = msg->walking_enable;
+    if (tc.walking_enable == 1.0 || tc.walking_enable == 2.0)
     {
         tc.mode = 11;
     }
+
     data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
 }
 
@@ -845,11 +847,12 @@ void TocabiController::trajectoryplannar()
                 tc_command = false;
             }
             mycontroller.computePlanner();
+        //    mycontroller.file[0]<<mycontroller.wkc_.desired_leg_q(0) << "\t" <<tocabi_.q_(0)<<"\t"<<mycontroller.wkc_.desired_leg_q(1) << "\t"<<tocabi_.q_(1)<<"\t"<<mycontroller.wkc_.desired_leg_q(2) << "\t"<<tocabi_.q_(2)<<"\t"<<mycontroller.wkc_.desired_leg_q(3) << "\t"<<tocabi_.q_(3)<<"\t"<<mycontroller.wkc_.desired_leg_q(4) << "\t"<<tocabi_.q_(4)<<"\t"<<mycontroller.wkc_.desired_leg_q(5)<<"\t"<<tocabi_.q_(5) << std::endl;
             if (dc.positionControl)
             {
                 tocabi_.q_desired_ = mycontroller.getControl();
             }
-        }
+        } 
     }
 }
 
