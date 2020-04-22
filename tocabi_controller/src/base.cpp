@@ -29,9 +29,9 @@ int main(int argc, char **argv)
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
     dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
-    dc.nh.getParam("/tocabi_controller/Kp",dc.tocabi_.vector_kp);
-    dc.nh.getParam("/tocabi_controller/Kv",dc.tocabi_.vector_kv);
-    
+    dc.nh.getParam("/tocabi_controller/Kp", dc.tocabi_.vector_kp);
+    dc.nh.getParam("/tocabi_controller/Kv", dc.tocabi_.vector_kv);
+
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");
     dc.statusPubMsg.data = strr;
@@ -62,8 +62,8 @@ int main(int argc, char **argv)
 
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
-        TocabiController rc(dc, stm, dym); 
-        
+        TocabiController rc(dc, stm, dym);
+
         std::thread thread[5];
         thread[0] = std::thread(&TocabiController::stateThread, &rc);
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
@@ -76,12 +76,12 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
-    else if(dc.mode == "simulationposition")
+    else if (dc.mode == "simulationposition")
     {
         std::cout << "Simulation Mode position" << std::endl;
 
         dc.simulationMode = true;
-        
+
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController rc(dc, stm, dym);
@@ -229,15 +229,14 @@ int main(int argc, char **argv)
         DynamicsManager dym(dc);
         TocabiController tc(dc, stm, dym);
         std::cout << "testmode" << std::endl;
-
-        std::thread thread[2];
+        dc.connected = true;
+        std::thread thread[3];
+        
         thread[0] = std::thread(&StateManager::testThread, &stm);
+        thread[1] = std::thread(&TocabiController::testThread, &tc);
+        thread[2] = std::thread(&TocabiController::tuiThread, &tc);
 
-        //thread[1] = std::thread(&DynamicsManager::testThread, &dym);
-
-        thread[1] = std::thread(&TocabiController::tuiThread, &tc);
-
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
             thread[i].join();
         }

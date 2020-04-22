@@ -7,7 +7,10 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <Eigen/SVD>
-#include <iostream>   
+#include <iostream>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_linalg.h>
+#include <chrono>
 
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4
@@ -203,7 +206,7 @@ static Eigen::Vector3d getPhi(Eigen::Matrix3d current_rotation,
 
 static Eigen::Isometry3d multiplyIsometry3d(Eigen::Isometry3d A,
                                             Eigen::Isometry3d B)
-{ 
+{
   Eigen::Isometry3d AB;
 
   AB.linear() = A.linear() * B.linear();
@@ -294,10 +297,188 @@ static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
 
   return angle;
 }
+static Eigen::MatrixXd glsSVD_U(Eigen::MatrixXd A)
+{
+  int size_row, size_col;
+  size_row = A.rows();
+  size_col = A.cols();
+
+  if (size_col > size_row)
+  {
+    std::cout << "WARNING colsize error" << std::endl;
+  }
+
+  gsl_matrix_view matv = gsl_matrix_view_array(A.data(), size_row, size_col);
+  gsl_matrix *mat1 = &matv.matrix;
+  gsl_matrix *mat2 = gsl_matrix_alloc(size_col, size_col);
+  gsl_vector *vec1 = gsl_vector_alloc(size_col);
+  gsl_vector *vec2 = gsl_vector_alloc(size_col);
+
+  gsl_linalg_SV_decomp(mat1, mat2, vec1, vec2);
+
+  Eigen::MatrixXd svdU, svdV;
+  Eigen::VectorXd svdS;
+  svdS.resize(size_col);
+  svdU.resize(size_row, size_col);
+  svdV.resize(size_col, size_col);
+  for (int i = 0; i < size_row; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdU(i, j) = mat1->data[i * mat1->tda + j];
+    }
+  }
+
+  gsl_matrix_free(mat2);
+  gsl_vector_free(vec1);
+  gsl_vector_free(vec2);
+  return svdU;
+}
+
+static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, double epsilon = std::numeric_limits<double>::epsilon())
+{
+  int size_row, size_col;
+  size_row = A.rows();
+  size_col = A.cols();
+
+  if (size_col > size_row)
+  {
+    std::cout << "WARNING colsize error" << std::endl;
+  }
+
+  gsl_matrix_view matv = gsl_matrix_view_array(A.data(), size_row, size_col);
+  gsl_matrix *mat1 = &matv.matrix;
+  gsl_matrix *mat2 = gsl_matrix_alloc(size_col, size_col);
+  gsl_vector *vec1 = gsl_vector_alloc(size_col);
+  gsl_vector *vec2 = gsl_vector_alloc(size_col);
+
+  gsl_linalg_SV_decomp(mat1, mat2, vec1, vec2);
+
+  Eigen::MatrixXd svdU, svdV;
+  Eigen::VectorXd svdS;
+  svdS.resize(size_col);
+
+  svdU.resize(size_row, size_col);
+  svdV.resize(size_col, size_col);
+  for (int i = 0; i < size_row; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdU(i, j) = mat1->data[i * mat1->tda + j];
+    }
+  }
+  for (int i = 0; i < size_col; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdV(i, j) = mat2->data[i * mat2->tda + j];
+    }
+  }
+
+  for (int i = 0; i < size_col; i++)
+  {
+    svdS(i) = vec1->data[i];
+  }
+  double tolerance = epsilon * std::max(A.cols(), A.rows()) * svdS.array().abs()(0);
+  /*
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "Pinv GLS Result" << std::endl;
+
+  std::cout << "/////////svd U//////////////////////////" << std::endl;
+  std::cout << svdU << std::endl;
+  std::cout << "/////////svd S////////////" << std::endl;
+  std::cout << svdS << std::endl;
+  std::cout << "/////////svd V////////////////////////////" << std::endl;
+  std::cout << svdV << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;*/
+  gsl_matrix_free(mat2);
+  gsl_vector_free(vec1);
+  gsl_vector_free(vec2);
+  return svdV * (svdS.array().abs() > tolerance).select(svdS.array().inverse(), 0).matrix().asDiagonal() * svdU.adjoint();
+}
+
+static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double epsilon = std::numeric_limits<double>::epsilon())
+{
+  int size_row, size_col;
+  size_row = A.rows();
+  size_col = A.cols();
+
+  if (size_col > size_row)
+  {
+    std::cout << "WARNING colsize error" << std::endl;
+  }
+
+  gsl_matrix_view matv = gsl_matrix_view_array(A.data(), size_row, size_col);
+  gsl_matrix *mat1 = &matv.matrix;
+  gsl_matrix *mat2 = gsl_matrix_alloc(size_col, size_col);
+  gsl_vector *vec1 = gsl_vector_alloc(size_col);
+  gsl_vector *vec2 = gsl_vector_alloc(size_col);
+
+  gsl_linalg_SV_decomp(mat1, mat2, vec1, vec2);
+
+  Eigen::MatrixXd svdU, svdV;
+  Eigen::VectorXd svdS;
+  svdS.resize(size_col);
+
+  svdU.resize(size_row, size_col);
+  svdV.resize(size_col, size_col);
+  for (int i = 0; i < size_row; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdU(i, j) = mat1->data[i * mat1->tda + j];
+    }
+  }
+  for (int i = 0; i < size_col; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdV(i, j) = mat2->data[i * mat2->tda + j];
+    }
+  }
+
+  gsl_matrix_free(mat2);
+  gsl_vector_free(vec1);
+  gsl_vector_free(vec2);
+
+  for (int i = 0; i < size_col; i++)
+  {
+    svdS(i) = vec1->data[i];
+  }
+  double tolerance = epsilon * std::max(A.cols(), A.rows()) * svdS.array().abs()(0);
+  /*
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "Pinv GLS Result" << std::endl;
+
+  std::cout << "/////////svd U//////////////////////////" << std::endl;
+  std::cout << svdU << std::endl;
+  std::cout << "/////////svd S////////////" << std::endl;
+  std::cout << svdS << std::endl;
+  std::cout << "/////////svd V////////////////////////////" << std::endl;
+  std::cout << svdV << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;*/
+  U = svdU;
+  return svdV * (svdS.array().abs() > tolerance).select(svdS.array().inverse(), 0).matrix().asDiagonal() * svdU.adjoint();
+}
 
 static Eigen::MatrixXd pinv_SVD(const Eigen::MatrixXd &A, double epsilon = std::numeric_limits<double>::epsilon())
 {
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  /*
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "Pinv Eigen Result" << std::endl;
+
+  std::cout << "/////////svd U//////////////////////////" << std::endl;
+  std::cout << svd.matrixU() << std::endl;
+  std::cout << "/////////svd S////////////" << std::endl;
+  std::cout << svd.singularValues() << std::endl;
+  std::cout << "/////////svd V////////////////////////////" << std::endl;
+  std::cout << svd.matrixV() << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  */
   double tolerance = epsilon * std::max(A.cols(), A.rows()) * svd.singularValues().array().abs()(0);
   return svd.matrixV() * (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
 }
