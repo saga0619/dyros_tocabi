@@ -527,7 +527,7 @@ void TocabiController::dynamicsThreadLow()
 
         tp[4] = std::chrono::steady_clock::now();
         TorqueDesiredLocal = torque_grav + torque_task;
-
+        
         if (dc.torqueredis)
         {
             dc.torqueredis = false;

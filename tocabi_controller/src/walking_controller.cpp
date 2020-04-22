@@ -37,8 +37,8 @@ void Walking_controller::walkingCompute(RobotData Robot)
         /////InverseKinematics//////
 
         inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
-      //  inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q);
-        
+      //  inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q)
+
         updateNextStepTime();
     }
     else if(walking_enable = 2.0)
@@ -529,8 +529,8 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     t_total = 1.2*Hz_;*/
     t_temp = 4.0*Hz_;
 
-    t_double1 = 0.20*Hz_;
-    t_double2 = 0.20*Hz_;
+    t_double1 = 0.30*Hz_;
+    t_double2 = 0.30*Hz_;
     t_rest_init = .30*Hz_;
     t_rest_last = .30*Hz_;
     t_total= 3.0*Hz_;
@@ -547,3 +547,18 @@ void Walking_controller::updateInitTime()
 {
     walking_tick++;
 }
+
+/*
+Kp: [10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 
+     10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 
+     10000.0, 10000.0, 10000.0, 
+     1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 
+     1800.0, 1800.0, 
+     1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0] 
+Kv: [50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 
+     50.0, 50.0, 50.0, 50.0, 50.0, 50.0,
+     50.0, 50.0, 50.0, 
+     20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 
+     20.0, 20.0,
+     20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+*/
