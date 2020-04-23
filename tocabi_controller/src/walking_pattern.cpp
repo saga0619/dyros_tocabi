@@ -10,25 +10,25 @@ void WalkingPattern::footStepGenerator()
         {
             if(foot_step_dir != 1)          
             {
-                foot_step(2*i,0) = LF_fisrt_init.translation()(0);
-                foot_step(2*i,1) = LF_fisrt_init.translation()(1); 
+                foot_step(2*i,0) = (PELV_first_init*LF_fisrt_init).translation()(0);
+                foot_step(2*i,1) = (PELV_first_init*LF_fisrt_init).translation()(1); 
                 foot_step(2*i,2) = 0.0;    
                 foot_step(2*i,6) = 0.5+0.5*foot_step_dir;
 
-                foot_step(2*i+1,0) = RF_fisrt_init.translation()(0);
-                foot_step(2*i+1,1) = RF_fisrt_init.translation()(1); 
+                foot_step(2*i+1,0) = (PELV_first_init*RF_fisrt_init).translation()(0);
+                foot_step(2*i+1,1) = (PELV_first_init*RF_fisrt_init).translation()(1); 
                 foot_step(2*i+1,2) = 0.0;    
                 foot_step(2*i+1,6) = 0.5+0.5*(-1)*foot_step_dir;
             }
             else
             {
-                foot_step(2*i,0) = RF_fisrt_init.translation()(0);
-                foot_step(2*i,1) = RF_fisrt_init.translation()(1); 
+                foot_step(2*i,0) = (PELV_first_init*RF_fisrt_init).translation()(0);
+                foot_step(2*i,1) = (PELV_first_init*RF_fisrt_init).translation()(1); 
                 foot_step(2*i,2) = 0.0;    
                 foot_step(2*i,6) = 0.5+0.5*foot_step_dir;
 
-                foot_step(2*i+1,0) = LF_fisrt_init.translation()(0);
-                foot_step(2*i+1,1) = LF_fisrt_init.translation()(1); 
+                foot_step(2*i+1,0) = (PELV_first_init*LF_fisrt_init).translation()(0);
+                foot_step(2*i+1,1) = (PELV_first_init*LF_fisrt_init).translation()(1); 
                 foot_step(2*i+1,2) = 0.0;    
                 foot_step(2*i+1,6) = 0.5+0.5*(-1)*foot_step_dir;
             }
@@ -523,7 +523,7 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.02;
+        capturePoint_offsety(i) = 0.00;
     }
 
     capturePoint_ox(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);

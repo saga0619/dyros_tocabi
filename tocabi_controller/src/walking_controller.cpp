@@ -476,7 +476,7 @@ void Walking_controller::updateNextStepTime()
     walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, bool dob_, RobotData Robot)
 {
     ik_mode = ikmode;
     walking_pattern = walkingpattern;

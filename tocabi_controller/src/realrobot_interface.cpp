@@ -549,7 +549,7 @@ void RealRobotInterface::ethercatThread()
                         //          Status word                 16bit
                         //0x1a11 :  velocity actual value       32bit
                         //0x1a13 :  Torque actual value         16bit
-                        //0x1a1e :  Auxiliart position value    32bit
+                        //0x1a1e :  Auxiliary position value    32bit
                         uint16 map_1c13[5] = {0x0004, 0x1a00, 0x1a11, 0x1a13, 0x1a1e}; //, 0x1a12};
                         //uint16 map_1c13[6] = {0x0005, 0x1a04, 0x1a11, 0x1a12, 0x1a1e, 0X1a1c};
                         int os;
@@ -746,9 +746,10 @@ void RealRobotInterface::ethercatThread()
                                              ((int32_t)ec_slave[slave].inputs[17] << 8) +
                                              ((int32_t)ec_slave[slave].inputs[18] << 16) +
                                              ((int32_t)ec_slave[slave].inputs[19] << 24) - positionExternalModElmo[slave - 1]) *
-                                            CNT2RAD[slave - 1] * -100.0 * Dr[slave - 1];
+                                            EXTCNT2RAD[slave - 1] * EXTDr[slave - 1];
 
                                         ElmoConnected = true;
+
 
                                         if (slave == 1 || slave == 2 || slave == 19 || slave == 20)
                                         {
@@ -771,6 +772,10 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             rq_[i] = positionElmo[j] - positionZeroElmo[j];
                                             rq_dot_[i] = velocityElmo[j];
+                                            if(TOCABI::JOINT_NAME[i] == "L_HipYaw_Joint")
+                                            {
+                                            //    printf("position :%f \n", rq_[i]-positionExternalElmo(27));
+                                            }
                                         }
                                     }
                                 }

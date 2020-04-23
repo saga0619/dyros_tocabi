@@ -535,6 +535,84 @@ void TocabiController::dynamicsThreadLow()
                 wbc_.task_control_torque_QP(tocabi_, tocabi_.J_task, tocabi_.f_star, torque_task);
                 torque_grav.setZero();
             }
+            else if (tc.mode == 1) //Pelvis position control
+            {
+                /* 
+                For Task Control, NEVER USE tocabi_controller.cpp.
+                Use dyros_cc, CustomController for task control. 
+                */
+                wbc_.set_contact(tocabi_, 1, 1);
+
+                int task_number = 6;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task = tocabi_.link_[COM_id].Jac;
+
+                if (tc.custom_taskgain)
+                {
+                    tocabi_.link_[COM_id].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[COM_id].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[COM_id].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[COM_id].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                }
+
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_,tc.command_time,tc.command_time+tc.traj_time,true);
+
+                tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
+                cr_mode=2;
+                torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                torque_grav.setZero();
+            }
+            else if (tc.mode == 2) //Pelvis position control
+            {
+                /* 
+                For Task Control, NEVER USE tocabi_controller.cpp.
+                Use dyros_cc, CustomController for task control. */
+                wbc_.set_contact(tocabi_, 1, 1);
+
+                int task_number = 9;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task.block(0,0,6,MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                tocabi_.J_task.block(6,0,3,MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+
+                if (tc.custom_taskgain)
+                {
+                    tocabi_.link_[COM_id].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[COM_id].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[COM_id].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[COM_id].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                    tocabi_.link_[Upper_Body].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[Upper_Body].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[Upper_Body].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[Upper_Body].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                }
+
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_,tc.command_time,tc.command_time+tc.traj_time,true);
+
+                tocabi_.link_[Upper_Body].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_,tc.command_time,tc.command_time + tc.traj_time,true);
+                
+
+
+
+                tocabi_.f_star.segment(0,6) = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.f_star.segment(6,3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                cr_mode=2;
+                torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                torque_grav.setZero();
+                
+            }
             else if (tc.mode >= 10)
             {
                 cr_mode = 2;
@@ -837,6 +915,8 @@ void TocabiController::trajectoryplannar()
         cycle_count++;
         std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
         time_from_begin = (t_begin1 - t_begin);
+
+            
         if (tc.mode >= 10)
         {
             cr_mode = 2;
@@ -846,8 +926,11 @@ void TocabiController::trajectoryplannar()
                 mycontroller.taskCommandToCC(tc);
                 tc_command = false;
             }
+        
             mycontroller.computePlanner();
-        //    mycontroller.file[0]<<mycontroller.wkc_.desired_leg_q(0) << "\t" <<tocabi_.q_(0)<<"\t"<<mycontroller.wkc_.desired_leg_q(1) << "\t"<<tocabi_.q_(1)<<"\t"<<mycontroller.wkc_.desired_leg_q(2) << "\t"<<tocabi_.q_(2)<<"\t"<<mycontroller.wkc_.desired_leg_q(3) << "\t"<<tocabi_.q_(3)<<"\t"<<mycontroller.wkc_.desired_leg_q(4) << "\t"<<tocabi_.q_(4)<<"\t"<<mycontroller.wkc_.desired_leg_q(5)<<"\t"<<tocabi_.q_(5) << std::endl;
+
+            //mycontroller.file[0]<<mycontroller.wkc_.desired_leg_q(0) << "\t" <<tocabi_.q_(0)<<"\t"<<mycontroller.wkc_.desired_leg_q(1) << "\t"<<tocabi_.q_(1)<<"\t"<<mycontroller.wkc_.desired_leg_q(2) << "\t"<<tocabi_.q_(2)<<"\t"<<mycontroller.wkc_.desired_leg_q(3) << "\t"<<tocabi_.q_(3)<<"\t"<<mycontroller.wkc_.desired_leg_q(4) << "\t"<<tocabi_.q_(4)<<"\t"<<mycontroller.wkc_.desired_leg_q(5)<<"\t"<<tocabi_.q_(5) << std::endl;
+        
             if (dc.positionControl)
             {
                 tocabi_.q_desired_ = mycontroller.getControl();
