@@ -10,25 +10,25 @@ void WalkingPattern::footStepGenerator()
         {
             if(foot_step_dir != 1)          
             {
-                foot_step(2*i,0) = (PELV_first_init*LF_fisrt_init).translation()(0);
-                foot_step(2*i,1) = (PELV_first_init*LF_fisrt_init).translation()(1); 
+                foot_step(2*i,0) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(0);
+                foot_step(2*i,1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1); 
                 foot_step(2*i,2) = 0.0;    
                 foot_step(2*i,6) = 0.5+0.5*foot_step_dir;
 
-                foot_step(2*i+1,0) = (PELV_first_init*RF_fisrt_init).translation()(0);
-                foot_step(2*i+1,1) = (PELV_first_init*RF_fisrt_init).translation()(1); 
+                foot_step(2*i+1,0) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(0);
+                foot_step(2*i+1,1) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(1); 
                 foot_step(2*i+1,2) = 0.0;    
                 foot_step(2*i+1,6) = 0.5+0.5*(-1)*foot_step_dir;
             }
             else
             {
-                foot_step(2*i,0) = (PELV_first_init*RF_fisrt_init).translation()(0);
-                foot_step(2*i,1) = (PELV_first_init*RF_fisrt_init).translation()(1); 
+                foot_step(2*i,0) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(0);
+                foot_step(2*i,1) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(1); 
                 foot_step(2*i,2) = 0.0;    
                 foot_step(2*i,6) = 0.5+0.5*foot_step_dir;
 
-                foot_step(2*i+1,0) = (PELV_first_init*LF_fisrt_init).translation()(0);
-                foot_step(2*i+1,1) = (PELV_first_init*LF_fisrt_init).translation()(1); 
+                foot_step(2*i+1,0) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(0);
+                foot_step(2*i+1,1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1); 
                 foot_step(2*i+1,2) = 0.0;    
                 foot_step(2*i+1,6) = 0.5+0.5*(-1)*foot_step_dir;
             }
