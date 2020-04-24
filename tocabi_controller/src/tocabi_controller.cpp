@@ -654,11 +654,12 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 
-                cr_mode = 2;
 
                 torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
                 //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star);
-                //torque_grav.setZero();
+                
+                cr_mode = 2;
+                torque_grav.setZero();
             }
             else if (tc.mode >= 10)
             {
