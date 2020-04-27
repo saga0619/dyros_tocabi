@@ -40,7 +40,7 @@ void Walking_controller::walkingCompute(RobotData Robot)
 
         updateNextStepTime();
     }
-    else if(walking_enable = 2.0)
+    else if(walking_enable == 3.0)
     {
         setInitPose(Robot, desired_leg_q);
         updateInitTime();

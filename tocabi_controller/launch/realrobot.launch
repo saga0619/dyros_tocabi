@@ -22,6 +22,8 @@
     </node>
   </group>
 
+  <node name="auracontrol" pkg="auracontrol" type="auracontrol" output="screen"/>
+
   <group if="$(arg gui)">
     <node name="tocabi_gui" pkg="tocabi_gui" type="tocabi_gui"/>
   </group>

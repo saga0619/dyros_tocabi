@@ -36,6 +36,15 @@ int main(int argc, char **argv)
     std::string strr("hello guilog");
     dc.statusPubMsg.data = strr;
 
+    dc.rgbPub = dc.nh.advertise<std_msgs::Int32MultiArray>("/rgbled_topic", 1000);
+
+    dc.rgbPubMsg.data.resize(18);
+    for (int i = 0; i < 18; i++)
+    {
+        dc.rgbPubMsg.data[i] = 0;
+    }
+    std::cout << "pub" << std::endl;
+
     bool simulation = true;
     dc.dym_hz = 500;
     dc.stm_hz = 4000;
@@ -231,7 +240,7 @@ int main(int argc, char **argv)
         std::cout << "testmode" << std::endl;
         dc.connected = true;
         std::thread thread[3];
-        
+
         thread[0] = std::thread(&StateManager::testThread, &stm);
         thread[1] = std::thread(&TocabiController::testThread, &tc);
         thread[2] = std::thread(&TocabiController::tuiThread, &tc);
@@ -253,13 +262,16 @@ int main(int argc, char **argv)
 
         thread[0] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
-      //  thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
+        //  thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
 
         for (int i = 0; i < 2; i++)
         {
             thread[i].join();
         }
     }
+
+    dc.rgbPubMsg.data = {0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0};
+    dc.rgbPub.publish(dc.rgbPubMsg);
     std::cout << cgreen << "All threads are completely terminated !" << creset << std::endl;
     return 0;
 }
