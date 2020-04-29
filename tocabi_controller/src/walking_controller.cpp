@@ -37,10 +37,9 @@ void Walking_controller::walkingCompute(RobotData Robot)
         /////InverseKinematics//////
 
         inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
-
         updateNextStepTime();
     }
-    else if(walking_enable = 2.0)
+    else if(walking_enable == 3.0)
     {
         setInitPose(Robot, desired_leg_q);
         updateInitTime();
@@ -269,7 +268,7 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         LF_fisrt_init = LF_float_init;
         
         Eigen::Isometry3d temp;
-        temp.linear() = PELV_float_init.linear();
+        temp.linear() = PELV_first_init.linear();
         temp.translation().setZero();
         foot_distance = temp.inverse()*(LF_fisrt_init.translation() - RF_fisrt_init.translation());
 
@@ -475,7 +474,7 @@ void Walking_controller::updateNextStepTime()
     walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, bool dob_, RobotData Robot)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot)
 {
     ik_mode = ikmode;
     walking_pattern = walkingpattern;
@@ -546,3 +545,18 @@ void Walking_controller::updateInitTime()
 {
     walking_tick++;
 }
+
+/*
+Kp: [10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 
+     10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 
+     10000.0, 10000.0, 10000.0, 
+     1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 
+     1800.0, 1800.0, 
+     1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0, 1800.0] 
+Kv: [50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 
+     50.0, 50.0, 50.0, 50.0, 50.0, 50.0,
+     50.0, 50.0, 50.0, 
+     20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 
+     20.0, 20.0,
+     20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+*/

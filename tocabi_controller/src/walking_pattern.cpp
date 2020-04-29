@@ -308,7 +308,11 @@ void WalkingPattern::footStepTotal()
           index++;
       }
   }
-  
+
+    Eigen::Isometry3d temp_;
+    temp_.linear() = PELV_first_init.linear();
+    temp_.translation().setZero();
+
   for(int i = 0; i < numberOfFootstep; i++)
   {
       if(foot_step(i,6) == 1)
@@ -319,6 +323,7 @@ void WalkingPattern::footStepTotal()
       {
           foot_step(i,0) = foot_step(i,0) + (LF_fisrt_init).translation()(0);
       }
+      foot_step(i,1) = foot_step(i,1) + (temp_.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
   }
 }
 
@@ -523,17 +528,16 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.00;
+        capturePoint_offsety(i) = 0.02;
     }
 
     capturePoint_ox(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
     capturePoint_oy(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
-
-    capturePoint_ox(total_step_num + 1) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 1);
-    capturePoint_oy(total_step_num + 1) = 0.0;
-    capturePoint_ox(total_step_num + 2) = foot_step(total_step_num-1,0) + capturePoint_offsetx(total_step_num + 2);
-    capturePoint_oy(total_step_num + 2) = 0.0;
-
+    capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1);
+    capturePoint_oy(total_step_num + 1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;;
+    capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2);
+    capturePoint_oy(total_step_num + 2) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;;
+  
     for(int i = 0; i<total_step_num; i++)
     {
         if(foot_step(0,6)==0) //right support

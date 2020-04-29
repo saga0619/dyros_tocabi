@@ -517,7 +517,7 @@ void StateManager::testThread()
         }
         dur[0] = std::chrono::high_resolution_clock::now() - StartTime;
 
-        if(dur[0].count() > 5.0)
+        if (dur[0].count() > 5.0)
         {
             shutdown_tocabi = true;
             break;
@@ -870,6 +870,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         }
         else
         {
+
+            dc.rgbPubMsg.data = {255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0};
+            dc.rgbPub.publish(dc.rgbPubMsg);
             std::cout << "torque ON !" << std::endl;
             dc.torqueOnTime = control_time_;
             dc.torqueOn = true;
@@ -895,6 +898,8 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         if (dc.torqueOn)
         {
+            dc.rgbPubMsg.data = {0, 0, 0, 0, 0, 0, 64, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0};
+            dc.rgbPub.publish(dc.rgbPubMsg);
             std::cout << "Torque OFF ! " << std::endl;
             dc.torqueOffTime = control_time_;
             dc.torqueOn = false;

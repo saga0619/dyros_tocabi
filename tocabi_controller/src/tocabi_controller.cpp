@@ -206,7 +206,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.step_length_x = msg->step_length_x;
     tc.dob = msg->dob;
     tc.walking_enable = msg->walking_enable;
-    if (tc.walking_enable == 1.0 || tc.walking_enable == 2.0)
+    if (tc.walking_enable == 1.0 || tc.walking_enable == 3.0)
     {
         tc.mode = 11;
     }
@@ -732,7 +732,7 @@ void TocabiController::dynamicsThreadLow()
 
         tp[4] = std::chrono::steady_clock::now();
         TorqueDesiredLocal = torque_grav + torque_task;
-
+        
         if (dc.torqueredis)
         {
             dc.torqueredis = false;
@@ -1009,23 +1009,26 @@ void TocabiController::trajectoryplannar()
         std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
         time_from_begin = (t_begin1 - t_begin);
 
-        if (tc.mode >= 10)
+        if (task_switch)
         {
-            cr_mode = 2;
-
-            if (tc_command == true)
+            if (tc.mode >= 10)
             {
-                mycontroller.taskCommandToCC(tc);
-                tc_command = false;
-            }
+                cr_mode = 2;
 
-            mycontroller.computePlanner();
+                if (tc_command == true)
+                {
+                    mycontroller.taskCommandToCC(tc);
+                    tc_command = false;
+                }
 
-            if (dc.positionControl)
-            {
-                tocabi_.q_desired_ = mycontroller.getControl();
+                mycontroller.computePlanner();
+
+                if (dc.positionControl)
+                {
+                    tocabi_.q_desired_ = mycontroller.getControl();
+                }
             }
-        }
+        } 
     }
 }
 
