@@ -270,9 +270,9 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         LF_fisrt_init = LF_float_init;
         
         Eigen::Isometry3d temp;
-        //temp.linear() = PELV_float_init.linear();
-        //temp.translation().setZero();
-        foot_distance = PELV_float_init.inverse()*(LF_fisrt_init.translation() - RF_fisrt_init.translation());
+        temp.linear() = PELV_first_init.linear();
+        temp.translation().setZero();
+        foot_distance = temp.inverse()*(LF_fisrt_init.translation() - RF_fisrt_init.translation());
 
         if(foot_step_dir != 1)
         {   

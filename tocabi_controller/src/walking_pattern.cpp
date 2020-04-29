@@ -308,7 +308,11 @@ void WalkingPattern::footStepTotal()
           index++;
       }
   }
-  
+
+    Eigen::Isometry3d temp_;
+    temp_.linear() = PELV_first_init.linear();
+    temp_.translation().setZero();
+
   for(int i = 0; i < numberOfFootstep; i++)
   {
       if(foot_step(i,6) == 1)
@@ -319,7 +323,7 @@ void WalkingPattern::footStepTotal()
       {
           foot_step(i,0) = foot_step(i,0) + (LF_fisrt_init).translation()(0);
       }
-      foot_step(i,1) = foot_step(i,1) + (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
+      foot_step(i,1) = foot_step(i,1) + (temp_.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
   }
 }
 
