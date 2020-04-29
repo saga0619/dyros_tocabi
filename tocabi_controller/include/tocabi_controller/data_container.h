@@ -178,7 +178,7 @@ public:
 
   double commandTime = 0.0;
   double commandTimeLock = -1.0;
-
+  bool showdata = false;
   //Hardware switch
 
   bool torqueOn = false;

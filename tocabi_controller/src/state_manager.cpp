@@ -56,7 +56,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     yaw_init = 0.0;
 
     initialize();
-    bool verbose = false; //set verbose true for State Manager initialization info
+    bool verbose = true; //set verbose true for State Manager initialization info
     bool urdfmode;
     ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
     std::string urdf_path, desc_package_path;
@@ -1001,5 +1001,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "ftcalib")
     {
         dc.ftcalib = true;
+    }
+    else if(msg->data == "showdata")
+    {
+        dc.tocabi_.showdata = true;
     }
 }

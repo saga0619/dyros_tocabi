@@ -51,6 +51,7 @@ void WholebodyController::CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix)
 
 void WholebodyController::update(RobotData &Robot)
 {
+    /*
     for (int i = 0; i < 6; ++i)
     {
         Robot.Motor_inertia(i, i) = 10.0;
@@ -77,7 +78,7 @@ void WholebodyController::update(RobotData &Robot)
     Robot.Motor_inertia(19, 19) = 1.01;
     Robot.Motor_inertia(20, 20) = 1.27;
     Robot.Motor_inertia(29, 29) = 0.015;
-    Robot.Motor_inertia(30, 30) = 0.015;
+    Robot.Motor_inertia(30, 30) = 0.015;*/
 }
 /*
 void WholebodyController::contact_set(int contact_number, int link_id[])
@@ -149,7 +150,7 @@ void WholebodyController::set_contact(RobotData &Robot)
     Robot.Slc_k_T = Robot.Slc_k.transpose();
     //W = Slc_k * N_C.transpose() * A_matrix_inverse * N_C * Slc_k_T;
     Robot.W = Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; //2 types for w matrix
-    Robot.svd_W_U.setZero(MODEL_DOF,MODEL_DOF);
+    Robot.svd_W_U.setZero(MODEL_DOF, MODEL_DOF);
     Robot.W_inv = DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
     Robot.contact_force_predict.setZero();
     Robot.contact_calc = true;
@@ -235,7 +236,7 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
     Robot.Slc_k.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
     Robot.Slc_k_T = Robot.Slc_k.transpose();
     Robot.W = Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; //2 types for w matrix
-    Robot.svd_W_U.setZero(MODEL_DOF,MODEL_DOF);
+    Robot.svd_W_U.setZero(MODEL_DOF, MODEL_DOF);
     Robot.W_inv = DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
 
     //DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
@@ -972,6 +973,11 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     //fstar regulation ::
     H.block(MODEL_DOF + contact_dof, MODEL_DOF + contact_dof, task_dof, task_dof) = 100 * MatrixXd::Identity(task_dof, task_dof);
     g.segment(MODEL_DOF + contact_dof, task_dof) = -100 * f_star_;
+
+    if (Robot.showdata)
+    {
+        Robot.showdata = false;
+    }
 
     // contact force minimization
     MatrixXd Fsl;
@@ -2020,14 +2026,9 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
     Robot.Q_T_ = Robot.Q.transpose();
 
-    //std::cout<<"Q"<<Robot.Q<<std::endl;
     Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
 
-    //std::cout<<"W_inv"<<Robot.W_inv<<std::endl;
-
     Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
-
-    //std::cout<<"QtempInv"<<Robot.Q_temp_inv<<std::endl;
 
     //_F=lambda*(f_star);
     //Jtemp=J_task_inv_T*Slc_k_T;
@@ -2164,6 +2165,34 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     //W.svd(s,u,v);
     //V2.resize(28,6);
     //V2.zero();
+
+    if (Robot.showdata)
+    {
+        std::cout << "J_task" << std::endl
+                  << Robot.J_task << std::endl;
+        std::cout << "Q" << std::endl
+                  << Robot.Q << std::endl;
+        std::cout << "W_inv" << std::endl
+                  << Robot.W_inv << std::endl;
+        std::cout << "Qtemp, det :" << Robot.Q_temp.determinant() << std::endl
+                  << Robot.Q_temp << std::endl;
+        std::cout << "QtempInv" << std::endl
+                  << Robot.Q_temp_inv << std::endl;
+        std::cout << "torque task : " << std::endl
+                  << torque_task << std::endl;
+        std::cout << "A_matrix : " << Robot.A_matrix.determinant() << std::endl;
+        std::cout << Robot.A_matrix << std::endl;
+        std::cout << "A_matrix : " << Robot.A_matrix_inverse.determinant() << std::endl;
+        std::cout << Robot.A_matrix_inverse << std::endl;
+        std::cout << "lambda : " << Robot.lambda.determinant() << std::endl;
+        std::cout << Robot.lambda << std::endl;
+        std::cout << "lambda_inv : " << Robot.lambda_inv.determinant() << std::endl;
+        std::cout << Robot.lambda_inv << std::endl;
+        std::cout << "jtanc det  : " << std::endl;
+        std::cout << Robot.J_task * Robot.A_matrix_inverse * Robot.N_C << std::endl;
+
+        Robot.showdata = false;
+    }
 
     return torque_task;
 }

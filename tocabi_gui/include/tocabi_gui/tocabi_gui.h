@@ -121,6 +121,7 @@ protected slots:
     virtual void fixedgravcb();
     virtual void gravcompcb();
     virtual void posconcb();
+    virtual void dshowbtn();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
