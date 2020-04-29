@@ -9,6 +9,7 @@
 #include <future>
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Int32MultiArray.h>
 #include <mujoco_ros_msgs/SensorState.h>
 #include <mujoco_ros_msgs/JointSet.h>
 #include <sensor_msgs/JointState.h>
@@ -206,7 +207,7 @@ public:
   bool qp2nd = false;
 
   bool spalarm = false; // support polygon alarm bool
-  bool semode = true;  // state estimation running or not.
+  bool semode = false;  // state estimation running or not.
 
   bool initialize_request = false;
 
@@ -215,6 +216,8 @@ public:
 
   ros::Publisher statusPub;
   std_msgs::String statusPubMsg;
+  ros::Publisher rgbPub;
+  std_msgs::Int32MultiArray rgbPubMsg;
 };
 
 static volatile sig_atomic_t shutdown_tocabi = 0;

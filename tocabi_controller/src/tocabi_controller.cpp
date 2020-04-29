@@ -258,7 +258,6 @@ void TocabiController::dynamicsThreadHigh()
                 for (int i = 0; i < MODEL_DOF; i++)
                 {
                     torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
-
                 }
                 if (task_switch)
                 {
@@ -285,6 +284,42 @@ void TocabiController::dynamicsThreadHigh()
         }
     }
     std::cout << cyellow << "Dynamics High Thread : End !" << creset << std::endl;
+}
+void TocabiController::testThread()
+{
+    std::cout << "TC test thread " << std::endl;
+    wbc_.init(tocabi_);
+    dc.testmode = true;
+    int cnt = 0;
+    while ((!shutdown_tocabi_bool))
+    {
+        cnt++;
+        getState();
+
+        wbc_.set_contact(tocabi_, 1, 1);
+        std::chrono::steady_clock::time_point tp1 = std::chrono::steady_clock::now();
+
+        std::cout << "//////////////////////////////////////" << std::endl;
+        std::cout << "Original Matrix : " << std::endl;
+        std::cout << tocabi_.W << std::endl
+                  << std::endl;
+        DyrosMath::pinv_SVD(tocabi_.W);
+
+        std::chrono::duration<double> d1 = std::chrono::steady_clock::now() - tp1;
+        std::chrono::steady_clock::time_point tp2 = std::chrono::steady_clock::now();
+        DyrosMath::pinv_glsSVD(tocabi_.W);
+
+        std::chrono::duration<double> d2 = std::chrono::steady_clock::now() - tp2;
+
+        std::cout << "##### eigen pinv" << d1.count() * 1000000 << "#### gls svd" << d2.count() * 1000000 << std::endl;
+
+        if (cnt > 10)
+        {
+            break;
+        }
+    }
+
+    std::cout << "TC tes thread end " << std::endl;
 }
 
 void TocabiController::dynamicsThreadLow()
@@ -462,7 +497,7 @@ void TocabiController::dynamicsThreadLow()
 
         torque_task.setZero(MODEL_DOF);
         TorqueContact.setZero();
-        
+
         if (dc.gravityMode)
         {
             std::cout << "Task Turned Off,, gravity compensation only !" << std::endl;
@@ -471,7 +506,37 @@ void TocabiController::dynamicsThreadLow()
         }
         if (task_switch)
         {
-            if (tc.mode == 0) //Pelvis position control
+            if (tc.mode == 0) //Pelvis position control with jhpark wholebody control 
+            {
+                /* 
+                For Task Control, NEVER USE tocabi_controller.cpp.
+                Use dyros_cc, CustomController for task control. 
+                */
+                wbc_.set_contact(tocabi_, 1, 1);
+                torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+
+                int task_number = 6;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task = tocabi_.link_[COM_id].Jac;
+
+                if (tc.custom_taskgain)
+                {
+                    tocabi_.link_[COM_id].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[COM_id].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[COM_id].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[COM_id].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                }
+
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+
+                tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
+                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star);
+            }
+            else if (tc.mode == 1) //Pelvis position control
             {
                 /* 
                 For Task Control, NEVER USE tocabi_controller.cpp.
@@ -483,22 +548,117 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
-                tocabi_.J_task = tocabi_.link_[Pelvis].Jac;
+                tocabi_.J_task = tocabi_.link_[COM_id].Jac;
 
                 if (tc.custom_taskgain)
                 {
-                    tocabi_.link_[Pelvis].pos_p_gain = Vector3d::Ones() * tc.pos_p;
-                    tocabi_.link_[Pelvis].pos_d_gain = Vector3d::Ones() * tc.pos_d;
-                    tocabi_.link_[Pelvis].rot_p_gain = Vector3d::Ones() * tc.ang_p;
-                    tocabi_.link_[Pelvis].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                    tocabi_.link_[COM_id].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[COM_id].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[COM_id].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[COM_id].rot_d_gain = Vector3d::Ones() * tc.ang_d;
                 }
 
-                tocabi_.link_[Pelvis].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
-                tocabi_.link_[Pelvis].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
-                tocabi_.link_[Pelvis].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
-                tocabi_.f_star = wbc_.getfstar6d(tocabi_, Pelvis);
-                wbc_.task_control_torque_QP(tocabi_, tocabi_.J_task, tocabi_.f_star, torque_task);
+                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
+                cr_mode = 2;
+                torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                torque_grav.setZero();
+            }
+            else if (tc.mode == 2) //COM pos&rot control + upper rotation with jhpark
+            {
+                /* 
+                For Task Control, NEVER USE tocabi_controller.cpp.
+                Use dyros_cc, CustomController for task control. */
+                wbc_.set_contact(tocabi_, 1, 1);
+                torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+
+                int task_number = 9;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+
+                if (tc.custom_taskgain)
+                {
+                    tocabi_.link_[COM_id].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[COM_id].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[COM_id].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[COM_id].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                    tocabi_.link_[Upper_Body].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[Upper_Body].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[Upper_Body].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[Upper_Body].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                }
+
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[Upper_Body].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                
+                //cr_mode = 2;
+
+                //torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                //torque_grav.setZero();
+            }
+            else if (tc.mode == 3) //COM pos&rot control + upper rotation with qp
+            {
+                /* 
+                For Task Control, NEVER USE tocabi_controller.cpp.
+                Use dyros_cc, CustomController for task control. */
+                wbc_.set_contact(tocabi_, 1, 1);
+
+                int task_number = 9;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+
+                if (tc.custom_taskgain)
+                {
+                    tocabi_.link_[COM_id].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[COM_id].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[COM_id].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[COM_id].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                    tocabi_.link_[Upper_Body].pos_p_gain = Vector3d::Ones() * tc.pos_p;
+                    tocabi_.link_[Upper_Body].pos_d_gain = Vector3d::Ones() * tc.pos_d;
+                    tocabi_.link_[Upper_Body].rot_p_gain = Vector3d::Ones() * tc.ang_p;
+                    tocabi_.link_[Upper_Body].rot_d_gain = Vector3d::Ones() * tc.ang_d;
+                }
+
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired(2) = tc.height + tc.ratio * tocabi_.link_[Left_Foot].xpos(2) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(2);
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[Upper_Body].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                
+
+                torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                
+                cr_mode = 2;
                 torque_grav.setZero();
             }
             else if (tc.mode >= 10)
@@ -511,7 +671,7 @@ void TocabiController::dynamicsThreadLow()
                     tc_command = false;
                 }
                 mycontroller.computeSlow();
-           /*     if (dc.positionControl)
+                /*     if (dc.positionControl)
                 {
                     tocabi_.q_desired_ = mycontroller.getControl();
                 }*/
@@ -558,7 +718,7 @@ void TocabiController::dynamicsThreadLow()
         ///////////////////////////////////////////////////////////////////////////////////////
 
         mtx.lock();
-        if(dc.positionControl == false)
+        if (dc.positionControl == false)
         {
             torque_desired = TorqueDesiredLocal + TorqueContact;
         }
@@ -781,6 +941,8 @@ void TocabiController::getState()
     tocabi_.yaw = dc.yaw;
 
     tocabi_.A_ = dc.A_;
+    tocabi_.A_matrix = dc.A_;
+    tocabi_.A_matrix_inverse = dc.A_inv;
     tocabi_.com_ = dc.com_;
 
     mtx_dc.unlock();
@@ -800,21 +962,26 @@ void TocabiController::trajectoryplannar()
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
         std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
-        time_from_begin = (t_begin1 - t_begin);   
-        if (tc.mode >= 10)
-        {
-            cr_mode = 2;
+        time_from_begin = (t_begin1 - t_begin);
 
-            if (tc_command == true)
+        if (task_switch)
+        {
+            if (tc.mode >= 10)
             {
-                mycontroller.taskCommandToCC(tc);
-                tc_command = false;
-            }
-            mycontroller.computePlanner();
-        //    mycontroller.file[0]<<mycontroller.wkc_.desired_leg_q(0) << "\t" <<tocabi_.q_(0)<<"\t"<<mycontroller.wkc_.desired_leg_q(1) << "\t"<<tocabi_.q_(1)<<"\t"<<mycontroller.wkc_.desired_leg_q(2) << "\t"<<tocabi_.q_(2)<<"\t"<<mycontroller.wkc_.desired_leg_q(3) << "\t"<<tocabi_.q_(3)<<"\t"<<mycontroller.wkc_.desired_leg_q(4) << "\t"<<tocabi_.q_(4)<<"\t"<<mycontroller.wkc_.desired_leg_q(5)<<"\t"<<tocabi_.q_(5) << std::endl;
-            if (dc.positionControl)
-            {
-                tocabi_.q_desired_ = mycontroller.getControl();
+                cr_mode = 2;
+
+                if (tc_command == true)
+                {
+                    mycontroller.taskCommandToCC(tc);
+                    tc_command = false;
+                }
+
+                mycontroller.computePlanner();
+
+                if (dc.positionControl)
+                {
+                    tocabi_.q_desired_ = mycontroller.getControl();
+                }
             }
         } 
     }

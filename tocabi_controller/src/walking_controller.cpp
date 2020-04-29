@@ -37,8 +37,6 @@ void Walking_controller::walkingCompute(RobotData Robot)
         /////InverseKinematics//////
 
         inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
-      //  inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q)
-
         updateNextStepTime();
     }
     else if(walking_enable == 3.0)
@@ -471,7 +469,7 @@ void Walking_controller::updateNextStepTime()
     }
     if(current_step_num == total_step_num -1 && walking_tick >= t_total+t_last-3)
     {
-        walking_enable = 10.0;
+        walking_enable = 2.0;
     }
     walking_tick ++;
 }
@@ -499,7 +497,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = walkingenable;
-    foot_height = 0.030;
+    foot_height = 0.000;
     com_control_mode = true;
     gyro_frame_flag = false;
 

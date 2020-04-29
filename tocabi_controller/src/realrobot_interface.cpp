@@ -146,7 +146,7 @@ Eigen::VectorQd RealRobotInterface::getCommand()
     Eigen::VectorQd t1_, t2_;
 
     mtx_elmo_command.lock();
-    
+
     t1_ = torqueDesiredController;
     mtx_elmo_command.unlock();
 
@@ -549,7 +549,7 @@ void RealRobotInterface::ethercatThread()
                         //          Status word                 16bit
                         //0x1a11 :  velocity actual value       32bit
                         //0x1a13 :  Torque actual value         16bit
-                        //0x1a1e :  Auxiliart position value    32bit
+                        //0x1a1e :  Auxiliary position value    32bit
                         uint16 map_1c13[5] = {0x0004, 0x1a00, 0x1a11, 0x1a13, 0x1a1e}; //, 0x1a12};
                         //uint16 map_1c13[6] = {0x0005, 0x1a04, 0x1a11, 0x1a12, 0x1a1e, 0X1a1c};
                         int os;
@@ -593,6 +593,8 @@ void RealRobotInterface::ethercatThread()
                     {
                         //dc.connected = true;
                         //printf("Operational state reached for all slaves.\n");
+                        dc.rgbPubMsg.data = {0, 0, 0, 0, 0, 0, 64, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0};
+                        dc.rgbPub.publish(dc.rgbPubMsg);
                         pub_to_gui(dc, "All slaves Status GREEN");
                         pub_to_gui(dc, "STARTING IN 3 ... ");
                         printf("ELMO : Operational state reached for all slaves! Starting in ... 3... ");
@@ -746,7 +748,7 @@ void RealRobotInterface::ethercatThread()
                                              ((int32_t)ec_slave[slave].inputs[17] << 8) +
                                              ((int32_t)ec_slave[slave].inputs[18] << 16) +
                                              ((int32_t)ec_slave[slave].inputs[19] << 24) - positionExternalModElmo[slave - 1]) *
-                                            CNT2RAD[slave - 1] * -100.0 * Dr[slave - 1];
+                                            EXTCNT2RAD[slave - 1] * EXTDr[slave - 1];
 
                                         ElmoConnected = true;
 
@@ -771,6 +773,10 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             rq_[i] = positionElmo[j] - positionZeroElmo[j];
                                             rq_dot_[i] = velocityElmo[j];
+                                            if (TOCABI::JOINT_NAME[i] == "L_HipYaw_Joint")
+                                            {
+                                                //    printf("position :%f \n", rq_[i]-positionExternalElmo(27));
+                                            }
                                         }
                                     }
                                 }
@@ -1436,7 +1442,7 @@ void RealRobotInterface::handftsensorThread()
 
     int SAMPLE_RATE = 500;
 
-/*    optoforcecan ft_upper;
+    /*    optoforcecan ft_upper;
 
     //////OPTOFORCE//////
 
@@ -1490,7 +1496,7 @@ void RealRobotInterface::handftsensorThread()
             RH_FT(i) = ft_upper.rightArmAxisData[i];
             LH_FT(i) = ft_upper.leftArmAxisData[i];
         }*/
-   // }
+    // }
     std::cout << "HandFTsensor Thread End!" << std::endl;
 }
 
