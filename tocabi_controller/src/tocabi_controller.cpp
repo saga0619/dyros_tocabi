@@ -206,7 +206,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     tc.step_length_x = msg->step_length_x;
     tc.dob = msg->dob;
     tc.walking_enable = msg->walking_enable;
-    if (tc.walking_enable == 1.0 || tc.walking_enable == 2.0)
+    if (tc.walking_enable == 1.0 || tc.walking_enable == 3.0)
     {
         tc.mode = 11;
     }

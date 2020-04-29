@@ -678,7 +678,7 @@ void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
 
 void TocabiGui::walkinginitbtncb()
 {   
-    task_msg.walking_enable = 2.0;
+    task_msg.walking_enable = 3.0;
     task_msg.ik_mode = ui_.ik_mode->currentIndex();
     
     if(ui_.walking_pattern->currentIndex() == 0)

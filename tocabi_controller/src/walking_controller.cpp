@@ -41,7 +41,7 @@ void Walking_controller::walkingCompute(RobotData Robot)
 
         updateNextStepTime();
     }
-    else if(walking_enable = 2.0)
+    else if(walking_enable == 3.0)
     {
         setInitPose(Robot, desired_leg_q);
         updateInitTime();
@@ -270,9 +270,9 @@ void Walking_controller::getRobotInitState(RobotData Robot)
         LF_fisrt_init = LF_float_init;
         
         Eigen::Isometry3d temp;
-        temp.linear() = PELV_float_init.linear();
-        temp.translation().setZero();
-        foot_distance = temp.inverse()*(LF_fisrt_init.translation() - RF_fisrt_init.translation());
+        //temp.linear() = PELV_float_init.linear();
+        //temp.translation().setZero();
+        foot_distance = PELV_float_init.inverse()*(LF_fisrt_init.translation() - RF_fisrt_init.translation());
 
         if(foot_step_dir != 1)
         {   
@@ -471,7 +471,7 @@ void Walking_controller::updateNextStepTime()
     }
     if(current_step_num == total_step_num -1 && walking_tick >= t_total+t_last-3)
     {
-        walking_enable = false;
+        walking_enable = 10.0;
     }
     walking_tick ++;
 }
@@ -499,7 +499,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = walkingenable;
-    foot_height = 0.000;
+    foot_height = 0.030;
     com_control_mode = true;
     gyro_frame_flag = false;
 
