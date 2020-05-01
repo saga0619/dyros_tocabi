@@ -2,6 +2,16 @@
 
 # Building
 ## Prerequisites
+### 0. All-in-one Prerequisites installer 
+After clone dyros_tocabi to catkin_ws/src, 
+```sh
+cd dyros_tocabi
+./install_prereq.sh
+```
+And Everything except dyros_cc & mujoco_ros_sim are installed!
+After executing install_prereq.sh, git clone dyros_cc & mujoco_ros_sim to your catkin_ws/src
+
+
 ### 1. mscl installation
  * download [MSCL](https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb) 
 ```sh
@@ -59,6 +69,15 @@ make all
 sudo make install
 ```
 
+### 6. GSL installation
+```sh
+wget http://mirror.yongbok.net/gnu/gsl/gsl-2.6.tar.gz
+tar xvzf gsl-2.6.tar.gz
+cd gsl-2.6
+./configure
+make
+sudo make install
+```
 
 ## Tocabi Controller installation
 Git clone https://github.com/saga0619/dyros_cc , https://github.com/saga0619/mujoco_ros_sim

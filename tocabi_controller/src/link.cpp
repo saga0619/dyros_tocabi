@@ -192,6 +192,7 @@ void Link::Set_Trajectory_from_quintic(double current_time, double start_time, d
 
 void Link::Set_Trajectory_rotation(double current_time, double start_time, double end_time, bool local_)
 {
+    //if local_ is true, local based rotation control
     Eigen::Vector3d axis;
     double angle;
     if (local_)

@@ -37,13 +37,10 @@ void Walking_controller::walkingCompute(RobotData Robot)
         /////InverseKinematics//////
 
         inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
-      //  inverseKinematics(PELV_float_init, LF_float_init, RF_float_init, desired_leg_q)
-
         updateNextStepTime();
     }
     else if(walking_enable == 3.0)
     {
-        std::cout << "sss" << std::endl;
         setInitPose(Robot, desired_leg_q);
         updateInitTime();
     }
@@ -472,7 +469,7 @@ void Walking_controller::updateNextStepTime()
     }
     if(current_step_num == total_step_num -1 && walking_tick >= t_total+t_last-3)
     {
-        walking_enable = 10.0;
+        walking_enable = 2.0;
     }
     walking_tick ++;
 }
@@ -535,7 +532,6 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     t_rest_init = .15*Hz_;
     t_rest_last = .15*Hz_;
     t_total= 2.0*Hz_;
-
 
     t_imp = 0.0*Hz_;
     t_last = t_total + t_temp;

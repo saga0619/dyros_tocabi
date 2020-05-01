@@ -158,7 +158,7 @@ OFF</string>
      <widget class="QLabel" name="label_37">
       <property name="geometry">
        <rect>
-        <x>90</x>
+        <x>270</x>
         <y>70</y>
         <width>67</width>
         <height>17</height>
@@ -174,7 +174,7 @@ OFF</string>
      <widget class="QLabel" name="label_38">
       <property name="geometry">
        <rect>
-        <x>270</x>
+        <x>90</x>
         <y>70</y>
         <width>67</width>
         <height>17</height>
@@ -190,7 +190,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>89</x>
+        <x>269</x>
         <y>100</y>
         <width>71</width>
         <height>181</height>
@@ -201,7 +201,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>270</x>
+        <x>90</x>
         <y>100</y>
         <width>71</width>
         <height>181</height>
@@ -212,7 +212,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_11">
       <property name="geometry">
        <rect>
-        <x>140</x>
+        <x>220</x>
         <y>290</y>
         <width>71</width>
         <height>131</height>
@@ -223,7 +223,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_17">
       <property name="geometry">
        <rect>
-        <x>220</x>
+        <x>140</x>
         <y>290</y>
         <width>71</width>
         <height>131</height>
@@ -2771,8 +2771,8 @@ OFF</string>
     <widget class="QFrame" name="frame_11">
      <property name="geometry">
       <rect>
-       <x>340</x>
-       <y>150</y>
+       <x>310</x>
+       <y>80</y>
        <width>431</width>
        <height>491</height>
       </rect>
@@ -2786,8 +2786,8 @@ OFF</string>
      <widget class="QLabel" name="label_40">
       <property name="geometry">
        <rect>
-        <x>50</x>
-        <y>60</y>
+        <x>310</x>
+        <y>50</y>
         <width>67</width>
         <height>17</height>
        </rect>
@@ -2802,8 +2802,8 @@ OFF</string>
      <widget class="QLabel" name="label_41">
       <property name="geometry">
        <rect>
-        <x>310</x>
-        <y>60</y>
+        <x>50</x>
+        <y>50</y>
         <width>67</width>
         <height>17</height>
        </rect>
@@ -2818,8 +2818,8 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_20">
       <property name="geometry">
        <rect>
-        <x>50</x>
-        <y>90</y>
+        <x>310</x>
+        <y>80</y>
         <width>72</width>
         <height>221</height>
        </rect>
@@ -2829,8 +2829,8 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_21">
       <property name="geometry">
        <rect>
-        <x>310</x>
-        <y>90</y>
+        <x>50</x>
+        <y>80</y>
         <width>71</width>
         <height>221</height>
        </rect>
@@ -2840,7 +2840,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_22">
       <property name="geometry">
        <rect>
-        <x>140</x>
+        <x>230</x>
         <y>310</y>
         <width>71</width>
         <height>161</height>
@@ -2851,7 +2851,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_23">
       <property name="geometry">
        <rect>
-        <x>220</x>
+        <x>130</x>
         <y>310</y>
         <width>71</width>
         <height>161</height>

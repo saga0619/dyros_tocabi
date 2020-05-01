@@ -295,6 +295,7 @@ public:
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;
+  Eigen::MatrixXd svd_W_U;
 
   int task_dof;
 
@@ -308,6 +309,7 @@ public:
   bool task_force_control_feedback;
   bool zmp_control;
   bool mpc_init;
+  bool showdata;
   
   RigidBodyDynamics::Model model_virtual;
 };

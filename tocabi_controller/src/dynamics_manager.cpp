@@ -49,30 +49,9 @@ void DynamicsManager::testThread()
     while (ros::ok())
     {
 
-        ros::Time start = ros::Time::now();
-        MatrixXd mat1, mat2;
-        for (int i = 0; i < testval; i++)
-        {
-            mat1 = MatrixXd::Random(40, 40);
-            ret[i] = std::async(&mat_inv, mat1);
-        }
-        for (int i = 0; i < testval; i++)
-        {
-            mat2 = ret[i].get();
-        }
-        double d1, d2;
-        d1 = (ros::Time::now() - start).toNSec() / 1.0E+6;
 
-        start = ros::Time::now();
 
-        for (int i = 0; i < testval; i++)
-        {
-            mat1.Random(40, 40);
-            JacobiSVD<MatrixXd> svd(mat1, ComputeThinU | ComputeThinV);
-        }
-        d2 = (ros::Time::now() - start).toNSec() / 1.0E+6;
 
-        printf("single thread : %8.4f ms   multi thread : %8.4f ms              \n", d2, d1);
 
         if (shutdown_tocabi_bool)
         {

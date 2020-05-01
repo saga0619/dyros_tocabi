@@ -22,6 +22,7 @@ public:
   void dynamicsThreadHigh();
   void trajectoryplannar();
   void tuiThread();
+  void testThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();

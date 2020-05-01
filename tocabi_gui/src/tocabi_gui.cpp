@@ -76,6 +76,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.sendtunebtn, SIGNAL(pressed()), this, SLOT(sendtunebtn()));
     connect(ui_.resettunebtn, SIGNAL(pressed()), this, SLOT(resettunebtn()));
     connect(ui_.ftcalibbtn, SIGNAL(pressed()), this, SLOT(ftcalibbtn()));
+    connect(ui_.data_button_4, SIGNAL(pressed()),this, SLOT(dshowbtn()));
 
     connect(ui_.customtaskgain, SIGNAL(stateChanged(int)), this, SLOT(customtaskgaincb(int)));
 
@@ -364,6 +365,12 @@ void TocabiGui::torquerediscb()
 void TocabiGui::qp2ndcb()
 {
     com_msg.data = std::string("qp2nd");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::dshowbtn()
+{
+    com_msg.data=std::string("showdata");
     com_pub.publish(com_msg);
 }
 

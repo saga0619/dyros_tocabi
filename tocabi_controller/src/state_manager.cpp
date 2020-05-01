@@ -56,7 +56,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     yaw_init = 0.0;
 
     initialize();
-    bool verbose = false; //set verbose true for State Manager initialization info
+    bool verbose = true; //set verbose true for State Manager initialization info
     bool urdfmode;
     ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
     std::string urdf_path, desc_package_path;
@@ -152,7 +152,7 @@ void StateManager::adv2ROS(void)
     transformStamped.transform.rotation.w = q_virtual_(MODEL_DOF_VIRTUAL);
     transformStamped.transform.translation.x = q_virtual_(0);
     transformStamped.transform.translation.y = q_virtual_(1);
-    transformStamped.transform.translation.z = q_virtual_(2) - link_[Right_Foot].xpos(2)-link_[Right_Foot].contact_point(2);
+    transformStamped.transform.translation.z = q_virtual_(2) - link_[Right_Foot].xpos(2) - link_[Right_Foot].contact_point(2);
 
     br.sendTransform(transformStamped);
 
@@ -477,7 +477,7 @@ void StateManager::testThread()
     std::chrono::milliseconds ms(50);
 
     std::chrono::duration<double> e_s(0);
-    ROS_INFO("Test Thread START");
+    ROS_INFO("state Test Thread START");
     int ThreadCount = 0;
 
     std::chrono::high_resolution_clock::time_point t[4];
@@ -489,6 +489,12 @@ void StateManager::testThread()
     {
         t[0] = std::chrono::high_resolution_clock::now();
         updateState();
+
+        q_virtual_ = VectorXd::Random(MODEL_DOF_QVIRTUAL);
+        for (int i = 0; i < 6; i++)
+            q_virtual_(i) = 0.0;
+        q_virtual_(MODEL_DOF_VIRTUAL) = 1.0;
+        q_ = q_virtual_.segment(6, MODEL_DOF);
 
         t[1] = std::chrono::high_resolution_clock::now();
         updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
@@ -508,6 +514,13 @@ void StateManager::testThread()
         {
             printf("state thread calc, up.state %f up.kin. %f st.state %f \n", dur[0].count() * 1000, dur[1].count() * 1000, dur[2].count() * 1000);
             wait_t++;
+        }
+        dur[0] = std::chrono::high_resolution_clock::now() - StartTime;
+
+        if (dur[0].count() > 5.0)
+        {
+            shutdown_tocabi = true;
+            break;
         }
 
         if (shutdown_tocabi_bool)
@@ -837,7 +850,7 @@ void StateManager::stateEstimate()
 
 void StateManager::SetPositionPDGainMatrix()
 {
-    for(int i=0; i<MODEL_DOF; i++)
+    for (int i = 0; i < MODEL_DOF; i++)
     {
         dc.tocabi_.Kps[i] = dc.tocabi_.vector_kp[i];
         dc.tocabi_.Kvs[i] = dc.tocabi_.vector_kv[i];
@@ -857,6 +870,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         }
         else
         {
+
+            dc.rgbPubMsg.data = {255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0};
+            dc.rgbPub.publish(dc.rgbPubMsg);
             std::cout << "torque ON !" << std::endl;
             dc.torqueOnTime = control_time_;
             dc.torqueOn = true;
@@ -896,6 +912,8 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         if (dc.torqueOn)
         {
+            dc.rgbPubMsg.data = {0, 0, 0, 0, 0, 0, 64, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0};
+            dc.rgbPub.publish(dc.rgbPubMsg);
             std::cout << "Torque OFF ! " << std::endl;
             dc.torqueOffTime = control_time_;
             dc.torqueOn = false;
@@ -1002,5 +1020,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "ftcalib")
     {
         dc.ftcalib = true;
+    }
+    else if(msg->data == "showdata")
+    {
+        dc.tocabi_.showdata = true;
     }
 }

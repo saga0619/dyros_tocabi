@@ -29,12 +29,21 @@ int main(int argc, char **argv)
     dc.nh.param("/tocabi_controller/ctime", dc.ctime, 500);
     dc.nh.param("/tocabi_controller/pub_mode", dc.pubmode, true);
     dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
-    dc.nh.getParam("/tocabi_controller/Kp",dc.tocabi_.vector_kp);
-    dc.nh.getParam("/tocabi_controller/Kv",dc.tocabi_.vector_kv);
-    
+    dc.nh.getParam("/tocabi_controller/Kp", dc.tocabi_.vector_kp);
+    dc.nh.getParam("/tocabi_controller/Kv", dc.tocabi_.vector_kv);
+
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");
     dc.statusPubMsg.data = strr;
+
+    dc.rgbPub = dc.nh.advertise<std_msgs::Int32MultiArray>("/rgbled_topic", 1000);
+
+    dc.rgbPubMsg.data.resize(18);
+    for (int i = 0; i < 18; i++)
+    {
+        dc.rgbPubMsg.data[i] = 0;
+    }
+    std::cout << "pub" << std::endl;
 
     bool simulation = true;
     dc.dym_hz = 500;
@@ -62,8 +71,8 @@ int main(int argc, char **argv)
 
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
-        TocabiController rc(dc, stm, dym); 
-        
+        TocabiController rc(dc, stm, dym);
+
         std::thread thread[5];
         thread[0] = std::thread(&TocabiController::stateThread, &rc);
         thread[1] = std::thread(&TocabiController::dynamicsThreadHigh, &rc);
@@ -76,12 +85,12 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
-    else if(dc.mode == "simulationposition")
+    else if (dc.mode == "simulationposition")
     {
         std::cout << "Simulation Mode position" << std::endl;
 
         dc.simulationMode = true;
-        
+
         MujocoInterface stm(dc);
         DynamicsManager dym(dc);
         TocabiController rc(dc, stm, dym);
@@ -109,7 +118,7 @@ int main(int argc, char **argv)
         //dc.statusPub.publish(dc.statusPubMsg);
 
         //Total Number of Thread
-        int thread_num = 7;
+        int thread_num = 8;
 
         //Total Number of Real-Time Thread
         int rt_thread_num = 2;
@@ -132,7 +141,7 @@ int main(int argc, char **argv)
         //Robot Controller Threadx
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadHigh, &tc);
         thread[t_id++] = std::thread(&TocabiController::dynamicsThreadLow, &tc);
-        //thread[t_id++] = std::thread(&TocabiController::trajectoryplannar, &tc);
+        thread[t_id++] = std::thread(&TocabiController::trajectoryplannar, &tc);
 
         //For Additional functions ..
         thread[t_id++] = std::thread(&TocabiController::tuiThread, &tc);
@@ -229,15 +238,14 @@ int main(int argc, char **argv)
         DynamicsManager dym(dc);
         TocabiController tc(dc, stm, dym);
         std::cout << "testmode" << std::endl;
+        dc.connected = true;
+        std::thread thread[3];
 
-        std::thread thread[2];
         thread[0] = std::thread(&StateManager::testThread, &stm);
+        thread[1] = std::thread(&TocabiController::testThread, &tc);
+        thread[2] = std::thread(&TocabiController::tuiThread, &tc);
 
-        //thread[1] = std::thread(&DynamicsManager::testThread, &dym);
-
-        thread[1] = std::thread(&TocabiController::tuiThread, &tc);
-
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
             thread[i].join();
         }
@@ -254,13 +262,16 @@ int main(int argc, char **argv)
 
         thread[0] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
-      //  thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
+        //  thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
 
         for (int i = 0; i < 2; i++)
         {
             thread[i].join();
         }
     }
+
+    dc.rgbPubMsg.data = {0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0};
+    dc.rgbPub.publish(dc.rgbPubMsg);
     std::cout << cgreen << "All threads are completely terminated !" << creset << std::endl;
     return 0;
 }
