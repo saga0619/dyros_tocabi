@@ -2099,7 +2099,7 @@ OFF</string>
         <x>280</x>
         <y>50</y>
         <width>160</width>
-        <height>161</height>
+        <height>261</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -2128,7 +2128,27 @@ OFF</string>
          <item>
           <widget class="QLabel" name="label_87">
            <property name="text">
-            <string>Angle</string>
+            <string>roll</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_90">
+           <property name="text">
+            <string>pitch</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_89">
+           <property name="text">
+            <string>yaw</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -2154,7 +2174,21 @@ OFF</string>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="com_angle">
+          <widget class="QLineEdit" name="com_roll">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="com_pitch">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="com_yaw">
            <property name="text">
             <string>0</string>
            </property>

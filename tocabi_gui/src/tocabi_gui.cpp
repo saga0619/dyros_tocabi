@@ -613,7 +613,9 @@ void TocabiGui::ftcalibbtn()
 
 void TocabiGui::tasksendcb()
 {
-    task_msg.angle = ui_.com_angle->text().toFloat();
+    task_msg.roll = ui_.com_roll->text().toFloat();
+    task_msg.pitch = ui_.com_pitch->text().toFloat();
+    task_msg.yaw = ui_.com_yaw->text().toFloat();
     task_msg.ratio = ui_.com_pos->text().toFloat();
     task_msg.height = ui_.com_height->text().toFloat();
 

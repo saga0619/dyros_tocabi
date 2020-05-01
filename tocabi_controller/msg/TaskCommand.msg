@@ -1,7 +1,9 @@
 # CoM/Pelvis Control
 float64 ratio # left foot 0 ----- 1 right foot
 float64 height
-float64 angle
+float64 roll
+float64 pitch
+float64 yaw
 
 # Control Duration And Mode
 float64 time
