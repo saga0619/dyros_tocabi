@@ -199,6 +199,7 @@ public:
   //Controller switch
 
   bool positionControl = false;
+  bool positionGravControl = false;
   bool gravityMode = false;
   bool customGain = false;
   bool fixedgravity = false;

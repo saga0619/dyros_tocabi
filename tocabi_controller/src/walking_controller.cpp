@@ -43,6 +43,7 @@ void Walking_controller::walkingCompute(RobotData Robot)
     }
     else if(walking_enable == 3.0)
     {
+        std::cout << "sss" << std::endl;
         setInitPose(Robot, desired_leg_q);
         updateInitTime();
     }
@@ -499,7 +500,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = walkingenable;
-    foot_height = 0.030;
+    foot_height = 0.000;
     com_control_mode = true;
     gyro_frame_flag = false;
 
@@ -529,11 +530,11 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     t_total = 1.2*Hz_;*/
     t_temp = 4.0*Hz_;
 
-    t_double1 = 0.30*Hz_;
-    t_double2 = 0.30*Hz_;
-    t_rest_init = .30*Hz_;
-    t_rest_last = .30*Hz_;
-    t_total= 3.0*Hz_;
+    t_double1 = 0.15*Hz_;
+    t_double2 = 0.15*Hz_;
+    t_rest_init = .15*Hz_;
+    t_rest_last = .15*Hz_;
+    t_total= 2.0*Hz_;
 
 
     t_imp = 0.0*Hz_;

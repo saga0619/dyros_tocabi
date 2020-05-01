@@ -878,6 +878,20 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
 
         dc.positionControl = !dc.positionControl;
     }
+    else if(msg->data == "positiongravcontrol")
+    {
+        if(!dc.positionGravControl)
+        {
+            std::cout << "Joint Grav position control : on " << std::endl;
+            dc.commandTime = control_time_;
+            dc.positionDesired = q_;
+        }
+        else
+        {
+            std::cout << "Joint Grav position control : off " << std::endl;    
+        }
+        dc.positionGravControl =! dc.positionGravControl;
+    }
     else if (msg->data == "torqueoff")
     {
         if (dc.torqueOn)

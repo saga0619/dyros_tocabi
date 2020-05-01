@@ -105,7 +105,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -1575,7 +1575,7 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>690</x>
-       <y>210</y>
+       <y>170</y>
        <width>121</width>
        <height>27</height>
       </rect>
@@ -1588,9 +1588,9 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>650</x>
-       <y>330</y>
+       <y>290</y>
        <width>181</width>
-       <height>191</height>
+       <height>231</height>
       </rect>
      </property>
      <property name="frameShape">
@@ -1605,7 +1605,7 @@ OFF</string>
         <x>20</x>
         <y>10</y>
         <width>141</width>
-        <height>176</height>
+        <height>211</height>
        </rect>
       </property>
       <property name="windowTitle">
@@ -1623,6 +1623,13 @@ OFF</string>
         <widget class="QPushButton" name="task_button_4">
          <property name="text">
           <string>PositionControl</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="task_button_5">
+         <property name="text">
+          <string>Position(Grav)</string>
          </property>
         </widget>
        </item>
@@ -1654,7 +1661,7 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>690</x>
-       <y>250</y>
+       <y>210</y>
        <width>121</width>
        <height>27</height>
       </rect>
@@ -1667,7 +1674,7 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>690</x>
-       <y>290</y>
+       <y>250</y>
        <width>121</width>
        <height>27</height>
       </rect>
