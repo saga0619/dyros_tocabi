@@ -149,6 +149,7 @@ public:
 
     // Walking
     int walking_tick;
+    int contactMode; // 0 : double, 1 : RF SWING, 2 : LF SWING
 
     //Ui WalkingParameter
     int ik_mode;

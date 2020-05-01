@@ -527,12 +527,11 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     t_total = 1.2*Hz_;*/
     t_temp = 4.0*Hz_;
 
-    t_double1 = 0.30*Hz_;
-    t_double2 = 0.30*Hz_;
-    t_rest_init = .30*Hz_;
-    t_rest_last = .30*Hz_;
-    t_total= 3.0*Hz_;
-
+    t_double1 = 0.15*Hz_;
+    t_double2 = 0.15*Hz_;
+    t_rest_init = .15*Hz_;
+    t_rest_last = .15*Hz_;
+    t_total= 2.0*Hz_;
 
     t_imp = 0.0*Hz_;
     t_last = t_total + t_temp;

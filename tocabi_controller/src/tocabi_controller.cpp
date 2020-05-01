@@ -255,10 +255,20 @@ void TocabiController::dynamicsThreadHigh()
                     tocabi_.q_init_ = tocabi_.q_;
                     set_q_init = false;
                 }
-                for (int i = 0; i < MODEL_DOF; i++)
+                if(dc.positionGravControl)
                 {
-                    torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                    for (int i = 0; i < MODEL_DOF; i++)
+                    {
+                        torque_desired(i) = torque_grav(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                    }
                 }
+                else
+                {
+                    for (int i = 0; i < MODEL_DOF; i++)
+                    {
+                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                    }
+                }            
                 if (task_switch)
                 {
                     if (tc.mode >= 10)
@@ -355,7 +365,7 @@ void TocabiController::dynamicsThreadLow()
     Eigen::VectorXd G;
     Eigen::MatrixXd J_g;
     Eigen::MatrixXd aa;
-    Eigen::VectorQd torque_grav, torque_task;
+    Eigen::VectorQd torque_task;
     Eigen::MatrixXd ppinv;
     Eigen::MatrixXd tg_temp;
     Eigen::MatrixXd A_matrix_inverse;
@@ -508,7 +518,8 @@ void TocabiController::dynamicsThreadLow()
             if (tc.mode == 0) //Pelvis position control with jhpark wholebody control 
             {
                 /* 
-                For Task Control, NEVER USE tocabi_controller.cpp.
+                For Task Control, NEVER USE tocabi_
+                controller.cpp.
                 Use dyros_cc, CustomController for task control. 
                 */
                 wbc_.set_contact(tocabi_, 1, 1);
@@ -716,10 +727,6 @@ void TocabiController::dynamicsThreadLow()
                     tc_command = false;
                 }
                 mycontroller.computeSlow();
-                /*     if (dc.positionControl)
-                {
-                    tocabi_.q_desired_ = mycontroller.getControl();
-                }*/
             }
         }
         else
@@ -766,6 +773,11 @@ void TocabiController::dynamicsThreadLow()
         if (dc.positionControl == false)
         {
             torque_desired = TorqueDesiredLocal + TorqueContact;
+        }
+        if(dc.positionGravControl == true)
+        {
+            if(tc.mode >= 10)
+                torque_grav = mycontroller.getGravityControl();
         }
         mtx.unlock();
 

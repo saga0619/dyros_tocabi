@@ -130,6 +130,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     connect(ui_.gravity_button_4, SIGNAL(pressed()), this, SLOT(gravcompcb()));
     connect(ui_.task_button_4, SIGNAL(pressed()), this, SLOT(posconcb()));
+    connect(ui_.task_button_5, SIGNAL(pressed()), this, SLOT(posgravconcb()));
     connect(ui_.contact_button_4, SIGNAL(pressed()), this, SLOT(fixedgravcb()));
 
     //connect(ui_.)
@@ -785,6 +786,12 @@ void TocabiGui::gravcompcb()
 void TocabiGui::posconcb()
 {
     com_msg.data = std::string("positioncontrol");
+    com_pub.publish(com_msg);
+}
+
+void TocabiGui::posgravconcb()
+{
+    com_msg.data = std::string("positiongravcontrol");
     com_pub.publish(com_msg);
 }
 

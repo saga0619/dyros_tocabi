@@ -66,6 +66,7 @@ private:
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd torque_;
+  Eigen::VectorQd torque_grav;
 
   //Command Var
   Eigen::VectorQd torque_desired;
