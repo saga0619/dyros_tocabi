@@ -892,12 +892,22 @@ void WalkingPattern::setFootTrajectory()
             if(walking_tick < t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp)/2.0) // the period for lifting the right foot
             {
                 RF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2),(PELV_first_init.inverse()*RF_fisrt_init).translation()(2)+foot_height,0.0,0.0);
-                contactMode = 2.0;
+                if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(RF_trajectory_float.translation()(2)) - (PELV_first_init.inverse()*RF_fisrt_init).translation()(2) > 0.001)
+                {
+                    contactMode = 2.0;
+                }
             } // the period for lifting the right foot
             else
             {
                 RF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2)+foot_height,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2),0.0,0.0);
-                contactMode = 2.0;
+                if(walking_tick < t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp)
+                {
+                    contactMode = 2.0;
+                }
+                else
+                {
+                    contactMode = 1.0;  
+                }
             } // the period for putting the right foot
             if(current_step_num == 0)
             {
@@ -919,12 +929,22 @@ void WalkingPattern::setFootTrajectory()
             if(walking_tick < t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0)
             {
                 LF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2),(PELV_first_init.inverse()*LF_fisrt_init).translation()(2)+foot_height,0.0,0.0);
-                contactMode = 3.0;
+                if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(LF_trajectory_float.translation()(2)) - (PELV_first_init.inverse()*LF_fisrt_init).translation()(2) > 0.001)
+                {
+                    contactMode = 3.0;
+                }
             }
             else
             {
                 LF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2)+foot_height,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2),0.0,0.0);
-                contactMode = 3.0;
+                if(walking_tick < t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp)
+                {
+                    contactMode = 3.0;
+                }
+                else
+                {
+                    contactMode = 1.0;  
+                }
             }
             if(current_step_num == 0)
             {
