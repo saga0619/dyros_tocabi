@@ -471,6 +471,18 @@ void Walking_controller::updateNextStepTime()
     {
         walking_enable = 2.0;
     }
+
+    if(walking_tick >= t_start_real+t_double1+t_rest_temp - 300 && walking_tick<= t_start_real+t_double1+t_rest_temp)
+    {
+        phaseChange = true;
+        double2Single_pre = t_start_real+t_double1+t_rest_temp - 300;
+        double2Single = t_start_real+t_double1+t_rest_temp;
+    }
+    else
+    {
+        phaseChange = false;
+    }
+
     walking_tick ++;
 }
 
@@ -520,18 +532,19 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
 {
     desired_foot_step_num = 6;
     walking_tick = 0;
-    /*t_rest_init = 0.05*Hz_;
+   /* t_rest_init = 0.05*Hz_;
     t_rest_last = 0.05*Hz_;
     t_double1 = 0.10*Hz_;
     t_double2 = 0.10*Hz_;
-    t_total = 1.2*Hz_;*/
-    t_temp = 4.0*Hz_;
+    t_total = 1.2*Hz_;
+*/    t_temp = 4.0*Hz_;
 
     t_double1 = 0.15*Hz_;
     t_double2 = 0.15*Hz_;
     t_rest_init = .15*Hz_;
     t_rest_last = .15*Hz_;
     t_total= 2.0*Hz_;
+    t_rest_temp = 0.05*Hz_;
 
     t_imp = 0.0*Hz_;
     t_last = t_total + t_temp;

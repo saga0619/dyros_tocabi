@@ -47,6 +47,8 @@ public:
   //contact force redistribution by yisoolee method at 2 contact(both foot)
   VectorQd contact_force_redistribution_torque(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta);
 
+  VectorQd contact_force_redistribution_torque_walking(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta, double ratio, int supportFoot);
+
   //set contact force to desired contact force
   VectorQd contact_force_custom(RobotData &Robot, VectorQd command_torque, Eigen::VectorXd contact_force_now, Eigen::VectorXd contact_force_desired);
 

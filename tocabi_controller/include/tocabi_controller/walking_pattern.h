@@ -143,6 +143,7 @@ public:
     int t_last;
     int t_start;
     int t_start_real;
+    int t_rest_temp;
     double t_imp;
     double foot_height;
     int current_step_num; // temp
@@ -150,6 +151,14 @@ public:
     // Walking
     int walking_tick;
     int contactMode; // 0 : double, 1 : RF SWING, 2 : LF SWING
+    bool phaseChange; // true : double, false : single
+   
+    /////temp
+    bool phaseChange_prev;
+    double double2Single;
+    double double2Single_pre;
+    double current_time;
+    double rate;
 
     //Ui WalkingParameter
     int ik_mode;
@@ -167,7 +176,6 @@ public:
     double pelvis_pgain;
     double pelvis_dgain;
     double pelvis_offsetx;
-
 
     std::fstream file[1];
 };
