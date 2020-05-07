@@ -790,9 +790,6 @@ void TocabiController::dynamicsThreadLow()
         {
             if(tc.mode >= 10)
                 torque_grav = tocabi_.torque_grav_cc;
-
-//            mycontroller.file[0] << torque_grav(0) <<"\t"<< torque_grav(1) <<"\t"<< torque_grav(2) <<"\t"<< torque_grav(3) <<"\t"<< torque_grav(4) <<"\t"<< torque_grav(5) <<std::endl;
-       
         }
 
         mtx.unlock();
