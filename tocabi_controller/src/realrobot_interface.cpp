@@ -920,6 +920,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             getline(elmo_zp_log, tmp);
                                             last_boot_time = atof(tmp.c_str());
+                                            std::cout << "ec boot t : " << last_boot_time << std::endl;
                                         }
                                         elmo_zp.open(zp_path, ios_base::in);
 
@@ -927,11 +928,12 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             getline(elmo_zp, tmp);
                                             last_save_time = atof(tmp.c_str());
+                                            std::cout << "zp src t : " << last_save_time << std::endl;
                                         }
 
                                         if (last_save_time < last_boot_time)
                                         {
-                                            cout << "ELMO : ERROR WITH LOADING ZERO POINT! " << std::endl;
+                                            cout << "ELMO : ERROR WITH LOADING ZERO POINT! zp terr" << std::endl;
                                             pub_to_gui(dc, "ZP LOADING FAILURE");
                                             zp_load_ok = false;
                                             commutation_ok = true;
@@ -944,7 +946,7 @@ void RealRobotInterface::ethercatThread()
                                                 {
                                                     if (elmo_zp.eof())
                                                     {
-                                                        std::cout << "ELMO : ERROR WITH LOADING ZERO POINT" << std::endl;
+                                                        std::cout << "ELMO : ERROR WITH LOADING ZERO POINT zp eof" << std::endl;
                                                         pub_to_gui(dc, "ZP LOADING FAILURE : proceed initialize");
 
                                                         commutation_ok = true;
