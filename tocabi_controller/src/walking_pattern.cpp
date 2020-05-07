@@ -884,7 +884,6 @@ void WalkingPattern::setFootTrajectory()
     }
     else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
     {
-        double t_rest_temp = 0.05*Hz_;
         double ankle_temp = 0*DEG2RAD;
         
         if(foot_step(current_step_num,6) == 1)

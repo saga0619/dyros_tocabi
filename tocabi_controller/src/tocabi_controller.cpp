@@ -747,7 +747,7 @@ void TocabiController::dynamicsThreadLow()
             wbc_.set_contact(tocabi_, 1, 1);
             tp[3] = std::chrono::steady_clock::now();
             torque_grav = wbc_.gravity_compensation_torque(tocabi_);
-            //torque_grav = wbc_.task_control_torque_QP_gravity(red_);
+            //torque_grav = wbc_.task_control_torque_QP_gravity(red_);        
         }
 
         tp[4] = std::chrono::steady_clock::now();
@@ -788,8 +788,11 @@ void TocabiController::dynamicsThreadLow()
         }
         if (dc.positionGravControl == true)
         {
-            wbc_.set_contact(tocabi_);
-            torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+            if(tc.mode >= 10)
+                torque_grav = tocabi_.torque_grav_cc;
+
+//            mycontroller.file[0] << torque_grav(0) <<"\t"<< torque_grav(1) <<"\t"<< torque_grav(2) <<"\t"<< torque_grav(3) <<"\t"<< torque_grav(4) <<"\t"<< torque_grav(5) <<std::endl;
+       
         }
 
         mtx.unlock();
