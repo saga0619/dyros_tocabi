@@ -123,6 +123,8 @@ protected slots:
     virtual void posconcb();
     virtual void posgravconcb();
     virtual void dshowbtn();
+    virtual void ecatinitlow();
+    virtual void safety2btncb();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
@@ -131,6 +133,7 @@ private:
     QWidget *widget_;
 
     std::vector<QLabel *> ecatlabels;
+    std::vector<QLabel *> safetylabels;
     std::vector<QLineEdit *> ecattexts;
     MyQGraphicsScene *scene;
 

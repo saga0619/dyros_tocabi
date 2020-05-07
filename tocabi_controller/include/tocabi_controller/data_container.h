@@ -100,9 +100,14 @@ public:
   bool print_delay_info = false;
   bool print_elmo_info_tofile = false;
   bool start_initialize_sequence = false;
+  bool start_initialize_lower = false;
+  
+
 
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;
+
+  bool safetycheckdisable = false;
   bool ftcalib = false;
   std::string sim_mode;
   std::string mode;

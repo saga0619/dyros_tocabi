@@ -894,9 +894,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
 
         dc.positionControl = !dc.positionControl;
     }
-    else if(msg->data == "positiongravcontrol")
+    else if (msg->data == "positiongravcontrol")
     {
-        if(!dc.positionGravControl)
+        if (!dc.positionGravControl)
         {
             std::cout << "Joint Grav position control : on " << std::endl;
             dc.commandTime = control_time_;
@@ -904,9 +904,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         }
         else
         {
-            std::cout << "Joint Grav position control : off " << std::endl;    
+            std::cout << "Joint Grav position control : off " << std::endl;
         }
-        dc.positionGravControl =! dc.positionGravControl;
+        dc.positionGravControl = !dc.positionGravControl;
     }
     else if (msg->data == "torqueoff")
     {
@@ -1013,15 +1013,24 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         dc.start_initialize_sequence = true;
     }
+    else if (msg->data == "ecatinitlower")
+    {
+        dc.start_initialize_lower = true;
+    }
     else if (msg->data == "safetyreset")
     {
         dc.disableSafetyLock = true;
+        dc.safetycheckdisable = false;
+    }
+    else if(msg->data == "safetydisable")
+    {
+        dc.safetycheckdisable = true;
     }
     else if (msg->data == "ftcalib")
     {
         dc.ftcalib = true;
     }
-    else if(msg->data == "showdata")
+    else if (msg->data == "showdata")
     {
         dc.tocabi_.showdata = true;
     }
