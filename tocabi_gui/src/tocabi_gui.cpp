@@ -76,7 +76,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     connect(ui_.sendtunebtn, SIGNAL(pressed()), this, SLOT(sendtunebtn()));
     connect(ui_.resettunebtn, SIGNAL(pressed()), this, SLOT(resettunebtn()));
     connect(ui_.ftcalibbtn, SIGNAL(pressed()), this, SLOT(ftcalibbtn()));
-    connect(ui_.data_button_4, SIGNAL(pressed()),this, SLOT(dshowbtn()));
+    connect(ui_.data_button_4, SIGNAL(pressed()), this, SLOT(dshowbtn()));
 
     connect(ui_.customtaskgain, SIGNAL(stateChanged(int)), this, SLOT(customtaskgaincb(int)));
 
@@ -118,7 +118,9 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     //connect(ui_)
     connect(ui_.initializebtn, SIGNAL(pressed()), this, SLOT(initializebtncb()));
+    connect(ui_.initializebtn_2, SIGNAL(pressed()), this, SLOT(ecatinitlow()));
     connect(ui_.safetyresetbtn, SIGNAL(pressed()), this, SLOT(safetyresetbtncb()));
+    connect(ui_.safetyresetbtn_2, SIGNAL(pressed()), this, SLOT(safety2btncb()));
 
     connect(ui_.task_send_button, SIGNAL(pressed()), this, SLOT(tasksendcb()));
     connect(ui_.walkinginit_btn, SIGNAL(pressed()), this, SLOT(walkinginitbtncb()));
@@ -156,12 +158,18 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     }
 
     ecatlabels.resize(33);
+    safetylabels.resize(33);
+
     //head
     for (int i = 0; i < 2; i++)
     {
         ecatlabels[i] = new QLabel(ui_.head_layout->parentWidget());
         ui_.head_layout->addWidget(ecatlabels[i]);
         ecatlabels[i]->setFrameShape(QFrame::Panel);
+        
+        safetylabels[i] = new QLabel(ui_.head_safety->parentWidget());
+        ui_.head_safety->addWidget(safetylabels[i]);
+        safetylabels[i]->setFrameShape(QFrame::Panel);
     }
 
     for (int i = 2; i < 10; i++)
@@ -169,6 +177,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecatlabels[i] = new QLabel(ui_.leftarm_layout->parentWidget());
         ui_.leftarm_layout->addWidget(ecatlabels[i]);
         ecatlabels[i]->setFrameShape(QFrame::Panel);
+
+        safetylabels[i] = new QLabel(ui_.leftarm_safety->parentWidget());
+        ui_.leftarm_safety->addWidget(safetylabels[i]);
+        safetylabels[i]->setFrameShape(QFrame::Panel);
     }
 
     for (int i = 10; i < 18; i++)
@@ -176,6 +188,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecatlabels[i] = new QLabel(ui_.rightarm_layout->parentWidget());
         ui_.rightarm_layout->addWidget(ecatlabels[i]);
         ecatlabels[i]->setFrameShape(QFrame::Panel);
+
+        safetylabels[i] = new QLabel(ui_.rightarm_safety->parentWidget());
+        ui_.rightarm_safety->addWidget(safetylabels[i]);
+        safetylabels[i]->setFrameShape(QFrame::Panel);
     }
 
     for (int i = 18; i < 21; i++)
@@ -183,6 +199,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecatlabels[i] = new QLabel(ui_.waist_layout->parentWidget());
         ui_.waist_layout->addWidget(ecatlabels[i]);
         ecatlabels[i]->setFrameShape(QFrame::Panel);
+
+        safetylabels[i] = new QLabel(ui_.waist_safety->parentWidget());
+        ui_.waist_safety->addWidget(safetylabels[i]);
+        safetylabels[i]->setFrameShape(QFrame::Panel);
     }
 
     for (int i = 21; i < 27; i++)
@@ -190,6 +210,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecatlabels[i] = new QLabel(ui_.leftleg_layout->parentWidget());
         ui_.leftleg_layout->addWidget(ecatlabels[i]);
         ecatlabels[i]->setFrameShape(QFrame::Panel);
+
+        safetylabels[i] = new QLabel(ui_.leftleg_safety->parentWidget());
+        ui_.leftleg_safety->addWidget(safetylabels[i]);
+        safetylabels[i]->setFrameShape(QFrame::Panel);
     }
 
     for (int i = 27; i < 33; i++)
@@ -197,6 +221,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecatlabels[i] = new QLabel(ui_.rightleg_layout->parentWidget());
         ui_.rightleg_layout->addWidget(ecatlabels[i]);
         ecatlabels[i]->setFrameShape(QFrame::Panel);
+
+        safetylabels[i] = new QLabel(ui_.rightleg_safety->parentWidget());
+        ui_.rightleg_safety->addWidget(safetylabels[i]);
+        safetylabels[i]->setFrameShape(QFrame::Panel);
     }
 
     //ecat constant tune
@@ -237,8 +265,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecatlabels[i]->setAlignment(Qt::AlignCenter);
         ecattexts[i]->setText(QString::fromUtf8("0.0"));
         ecattexts[i]->setValidator(new QDoubleValidator(0, 1000, 3, this));
+
+        safetylabels[i]->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
     }
-    ui_.taskgain->setDisabled(true);  
+    ui_.taskgain->setDisabled(true);
 
     //for(int i=0;i<)
 
@@ -334,7 +364,11 @@ void TocabiGui::customtaskgaincb(int state)
         ui_.taskgain->setDisabled(true);
     }
 }
-
+void TocabiGui::ecatinitlow()
+{
+    com_msg.data = std::string("ecatinitlower");
+    com_pub.publish(com_msg);
+}
 void TocabiGui::torqueoncb()
 {
     com_msg.data = std::string("torqueon");
@@ -370,7 +404,7 @@ void TocabiGui::qp2ndcb()
 
 void TocabiGui::dshowbtn()
 {
-    com_msg.data=std::string("showdata");
+    com_msg.data = std::string("showdata");
     com_pub.publish(com_msg);
 }
 
@@ -449,6 +483,12 @@ void TocabiGui::plainTextEditcb(const std_msgs::StringConstPtr &msg)
             ecatlabels[num]->setText(QString::fromUtf8("fail"));
             ecatlabels[num]->setStyleSheet("QLabel { background-color : red ; color : white; }");
         }
+    }
+    else if(words[0] == "Lock")
+    {
+        int num = elng[atoi(words[1].c_str())];
+        safetylabels[num]->setStyleSheet("QLabel { background-color : red ; color : white; }");
+        
     }
     else if (msg->data == "imuvalid")
     {
@@ -535,7 +575,7 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
 
     ui_.label_22->setText(QString::number(msg->polygon.points[12].x, 'f', 5));
     ui_.label_23->setText(QString::number(msg->polygon.points[12].y, 'f', 5));
-    
+
     double com_x = msg->polygon.points[0].x;
     double com_y = msg->polygon.points[0].y;
 
@@ -558,7 +598,6 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     dis = msg->polygon.points[0].z;
     ui_.label_3->setText(QString::number(dis, 'f', 5));
 
-
     com_x = msg->polygon.points[12].x;
     com_y = msg->polygon.points[12].y;
 
@@ -567,9 +606,6 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     c = -(a * left_x + b * left_y);
 
     dis = ((a * com_x + b * com_y + c)) / sqrt(a * a + b * b);
-
-
-
 
     ui_.label_42->setText(QString::number(dis, 'f', 5));
 
@@ -584,9 +620,24 @@ void TocabiGui::initializebtncb()
 
 void TocabiGui::safetyresetbtncb()
 {
+    for(int i=0;i<33;i++)
+    {
+        safetylabels[i]->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
+    }
     com_msg.data = std::string("safetyreset");
     com_pub.publish(com_msg);
 }
+
+void TocabiGui::safety2btncb()
+{
+    for(int i=0;i<33;i++)
+    {
+        safetylabels[i]->setStyleSheet("QLabel { background-color : yellow ; color : black; }");
+    }
+    com_msg.data = std::string("safetydisable");
+    com_pub.publish(com_msg);
+}
+
 
 void TocabiGui::sendtunebtn()
 {
@@ -618,7 +669,6 @@ void TocabiGui::tasksendcb()
     task_msg.yaw = ui_.com_yaw->text().toFloat();
     task_msg.ratio = ui_.com_pos->text().toFloat();
     task_msg.height = ui_.com_height->text().toFloat();
-
 
     task_msg.l_x = ui_.text_l_x->text().toFloat();
     task_msg.l_y = ui_.text_l_y->text().toFloat();
@@ -663,7 +713,6 @@ void TocabiGui::tasksendcb()
     ui_.text_r_yaw->setText(QString::number(0.0, 'f', 1));
 }
 
-
 void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
 { /*
     //std::cout<<robot_time<<"msg->linacc"<<msg->linear_acceleration.x<<std::endl;
@@ -687,24 +736,24 @@ void TocabiGui::imucb(const sensor_msgs::ImuConstPtr &msg)
 }
 
 void TocabiGui::walkinginitbtncb()
-{   
+{
     task_msg.walking_enable = 3.0;
     task_msg.ik_mode = ui_.ik_mode->currentIndex();
-    
-    if(ui_.walking_pattern->currentIndex() == 0)
+
+    if (ui_.walking_pattern->currentIndex() == 0)
     {
         task_msg.pattern = 0;
     }
-    else if(ui_.walking_pattern->currentIndex() == 1)
+    else if (ui_.walking_pattern->currentIndex() == 1)
     {
         task_msg.pattern = 1;
     }
     else
-    {  
+    {
         task_msg.pattern = 2;
     }
 
-    if(ui_.checkBox_dob->isChecked() == true)
+    if (ui_.checkBox_dob->isChecked() == true)
     {
         task_msg.dob = true;
     }
@@ -712,39 +761,39 @@ void TocabiGui::walkinginitbtncb()
     {
         task_msg.dob = false;
     }
-    
+
     task_msg.first_foot_step = ui_.step_mode->currentIndex();
-    
+
     task_msg.x = ui_.text_walking_x->text().toFloat();
     task_msg.y = ui_.text_walking_y->text().toFloat();
     task_msg.z = ui_.text_walking_z->text().toFloat();
-    task_msg.walking_height=ui_.text_walking_height->text().toFloat();
-    task_msg.theta=ui_.text_walking_theta->text().toFloat();
-    task_msg.step_length_x=ui_.text_walking_steplengthx->text().toFloat();
-    task_msg.step_length_y=ui_.text_walking_steplengthy->text().toFloat();
+    task_msg.walking_height = ui_.text_walking_height->text().toFloat();
+    task_msg.theta = ui_.text_walking_theta->text().toFloat();
+    task_msg.step_length_x = ui_.text_walking_steplengthx->text().toFloat();
+    task_msg.step_length_y = ui_.text_walking_steplengthy->text().toFloat();
 
     task_pub.publish(task_msg);
 }
 
 void TocabiGui::walkingstartbtncb()
-{   
+{
     task_msg.walking_enable = 1.0;
     task_msg.ik_mode = ui_.ik_mode->currentIndex();
-    
-    if(ui_.walking_pattern->currentIndex() == 0)
+
+    if (ui_.walking_pattern->currentIndex() == 0)
     {
         task_msg.pattern = 0;
     }
-    else if(ui_.walking_pattern->currentIndex() == 1)
+    else if (ui_.walking_pattern->currentIndex() == 1)
     {
         task_msg.pattern = 1;
     }
     else
-    {  
+    {
         task_msg.pattern = 2;
     }
 
-    if(ui_.checkBox_dob->isChecked() == true)
+    if (ui_.checkBox_dob->isChecked() == true)
     {
         task_msg.dob = true;
     }
@@ -752,20 +801,19 @@ void TocabiGui::walkingstartbtncb()
     {
         task_msg.dob = false;
     }
-    
+
     task_msg.first_foot_step = ui_.step_mode->currentIndex();
-    
+
     task_msg.x = ui_.text_walking_x->text().toFloat();
     task_msg.y = ui_.text_walking_y->text().toFloat();
     task_msg.z = ui_.text_walking_z->text().toFloat();
-    task_msg.walking_height=ui_.text_walking_height->text().toFloat();
-    task_msg.theta=ui_.text_walking_theta->text().toFloat();
-    task_msg.step_length_x=ui_.text_walking_steplengthx->text().toFloat();
-    task_msg.step_length_y=ui_.text_walking_steplengthy->text().toFloat();
+    task_msg.walking_height = ui_.text_walking_height->text().toFloat();
+    task_msg.theta = ui_.text_walking_theta->text().toFloat();
+    task_msg.step_length_x = ui_.text_walking_steplengthx->text().toFloat();
+    task_msg.step_length_y = ui_.text_walking_steplengthy->text().toFloat();
 
     task_pub.publish(task_msg);
 }
-
 
 /*
 void TocabiGui::wheelEvent(QWheelEvent *event)

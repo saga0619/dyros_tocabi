@@ -354,6 +354,7 @@ public:
     void checkSafety(int slv_number, double max_vel, double max_dis);
     void findZeroPoint(int slv_number);
     void findZeroLeg();
+    void findZeroPointlow(int slv_number);
 
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
 
@@ -465,6 +466,33 @@ public:
     //int bootseq
     const int firstbootseq[5] = {0, 33, 35, 8, 64};
     const int secondbootseq[4] = {0, 33, 35, 39};
+
+
+    bool ecat_connection_ok = false;
+
+    bool ecat_number_ok = false;
+    bool ecat_WKC_ok = false;
+    bool commutation_check = true;
+    bool commutation_ok = false; 
+    bool commutation_fail = false;
+
+    
+
+    bool zp_waiting_low_switch = false;
+    bool zp_waiting_upper_switch = false;
+
+    bool zp_init_check = true;
+    bool zp_low_check = false;
+    bool zp_upper_check = false;
+    bool zp_ok = false;
+    bool zp_fail = false;
+
+    bool zp_load_ok = true;
+
+    bool operation_ready = false;
+
+
+
 
 private:
     DataContainer &dc;

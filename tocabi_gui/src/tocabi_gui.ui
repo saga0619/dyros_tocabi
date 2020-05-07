@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
+    <width>1600</width>
     <height>800</height>
    </rect>
   </property>
@@ -17,12 +17,6 @@
    </sizepolicy>
   </property>
   <property name="minimumSize">
-   <size>
-    <width>1280</width>
-    <height>800</height>
-   </size>
-  </property>
-  <property name="maximumSize">
    <size>
     <width>1280</width>
     <height>800</height>
@@ -105,7 +99,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -137,7 +131,7 @@ OFF</string>
       </rect>
      </property>
      <property name="text">
-      <string>INITIALIZE</string>
+      <string>INITIALIZE ALL</string>
      </property>
     </widget>
     <widget class="QFrame" name="frame_4">
@@ -190,7 +184,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>269</x>
+        <x>290</x>
         <y>100</y>
         <width>71</width>
         <height>181</height>
@@ -212,7 +206,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_11">
       <property name="geometry">
        <rect>
-        <x>220</x>
+        <x>250</x>
         <y>290</y>
         <width>71</width>
         <height>131</height>
@@ -234,7 +228,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_18">
       <property name="geometry">
        <rect>
-        <x>180</x>
+        <x>190</x>
         <y>70</y>
         <width>71</width>
         <height>41</height>
@@ -245,7 +239,7 @@ OFF</string>
      <widget class="QWidget" name="verticalLayoutWidget_19">
       <property name="geometry">
        <rect>
-        <x>180</x>
+        <x>190</x>
         <y>190</y>
         <width>71</width>
         <height>61</height>
@@ -253,8 +247,87 @@ OFF</string>
       </property>
       <layout class="QVBoxLayout" name="waist_layout"/>
      </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_36">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>100</y>
+        <width>21</width>
+        <height>181</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="rightarm_safety"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_37">
+      <property name="geometry">
+       <rect>
+        <x>270</x>
+        <y>100</y>
+        <width>21</width>
+        <height>181</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="leftarm_safety"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_38">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>70</y>
+        <width>21</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="head_safety"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_39">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>190</y>
+        <width>21</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="waist_safety"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_40">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>290</y>
+        <width>21</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="rightleg_safety"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_41">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>290</y>
+        <width>21</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="leftleg_safety"/>
+     </widget>
     </widget>
-    <widget class="QPushButton" name="safetyresetbtn">
+    <widget class="QPushButton" name="ftcalibbtn">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>300</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>FT CALIBRATION</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="initializebtn_2">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -264,10 +337,10 @@ OFF</string>
       </rect>
      </property>
      <property name="text">
-      <string>SAFETY RESET</string>
+      <string>INITIALIZE LOWER</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="ftcalibbtn">
+    <widget class="QPushButton" name="safetyresetbtn">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -277,7 +350,20 @@ OFF</string>
       </rect>
      </property>
      <property name="text">
-      <string>FT CALIBRATION</string>
+      <string>SAFETY RESET</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="safetyresetbtn_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>240</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>DISABLE SAFETY</string>
      </property>
     </widget>
    </widget>
@@ -286,7 +372,7 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>620</x>
-       <y>290</y>
+       <y>450</y>
        <width>151</width>
        <height>141</height>
       </rect>
@@ -592,9 +678,9 @@ OFF</string>
      <widget class="QLabel" name="label_20">
       <property name="geometry">
        <rect>
-        <x>30</x>
+        <x>10</x>
         <y>10</y>
-        <width>101</width>
+        <width>131</width>
         <height>21</height>
        </rect>
       </property>
@@ -714,7 +800,7 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>460</x>
-       <y>290</y>
+       <y>450</y>
        <width>151</width>
        <height>141</height>
       </rect>
@@ -1566,6 +1652,220 @@ OFF</string>
       </property>
       <property name="text">
        <string>CP position</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QFrame" name="frame_12">
+     <property name="geometry">
+      <rect>
+       <x>620</x>
+       <y>290</y>
+       <width>151</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget_26">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>40</y>
+        <width>91</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QLabel" name="label_13">
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_21">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_91">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_27">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>31</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_21">
+       <item>
+        <widget class="QLabel" name="label_92">
+         <property name="text">
+          <string>x :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_93">
+         <property name="text">
+          <string>y :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_94">
+         <property name="text">
+          <string>z :</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="label_95">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>10</y>
+        <width>91</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pelvis position</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QFrame" name="frame_15">
+     <property name="geometry">
+      <rect>
+       <x>460</x>
+       <y>290</y>
+       <width>151</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget_28">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>40</y>
+        <width>91</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_22">
+       <item>
+        <widget class="QLabel" name="label_96">
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_97">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_98">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_29">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>44</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_29">
+       <item>
+        <widget class="QLabel" name="label_99">
+         <property name="text">
+          <string>roll :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_100">
+         <property name="text">
+          <string>pitch :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_101">
+         <property name="text">
+          <string>yaw :</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="label_102">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>131</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Upper orientation</string>
       </property>
      </widget>
     </widget>
