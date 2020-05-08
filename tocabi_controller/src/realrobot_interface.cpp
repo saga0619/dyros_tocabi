@@ -1259,7 +1259,15 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     checkPosSafety[i] = false;
                                 }
-                                checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
+
+                                if(i == TOCABI::R_AnkleRoll_Joint || i == TOCABI::L_AnkleRoll_Joint)
+                                {
+
+                                }
+                                else
+                                {
+                                    checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
+                                }
                             }
 
                             //Torque off if emergency off received
