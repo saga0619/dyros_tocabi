@@ -35,6 +35,7 @@ struct TaskCommand
   // COM Related
   double ratio;
   double height;
+  double pelv_pitch;
   double roll;
   double pitch;
   double yaw;

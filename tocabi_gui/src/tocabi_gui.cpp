@@ -39,6 +39,7 @@ TocabiGui::TocabiGui()
     gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/gain_command", 100);
     imusub = nh_.subscribe("/tocabi/imu", 1, &TocabiGui::imuCallback, this);
     task_pub = nh_.advertise<tocabi_controller::TaskCommand>("/tocabi/taskcommand", 100);
+    task_que_pub = nh_.advertise<tocabi_controller::TaskCommandQue>("/tocabi/taskquecommand", 100);
 
     gain_msg.data.resize(33);
     //ecatlabels = {ui_.}
@@ -137,6 +138,13 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     //connect(ui_.)
 
+    connect(ui_.que_add, SIGNAL(pressed()), this, SLOT(que_addquebtn()));
+    connect(ui_.que_delete, SIGNAL(pressed()), this, SLOT(que_deletebtn()));
+    connect(ui_.que_down, SIGNAL(pressed()), this, SLOT(que_downbtn()));
+    connect(ui_.que_up, SIGNAL(pressed()), this, SLOT(que_upbtn()));
+    connect(ui_.que_reset, SIGNAL(pressed()), this, SLOT(que_resetbtn()));
+    connect(ui_.que_send, SIGNAL(pressed()), this, SLOT(que_sendbtn()));
+
     if (mode == "simulation")
     {
         ui_.label_zpstatus->setStyleSheet("QLabel { background-color : yellow; color : black; }");
@@ -166,7 +174,7 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
         ecatlabels[i] = new QLabel(ui_.head_layout->parentWidget());
         ui_.head_layout->addWidget(ecatlabels[i]);
         ecatlabels[i]->setFrameShape(QFrame::Panel);
-        
+
         safetylabels[i] = new QLabel(ui_.head_safety->parentWidget());
         ui_.head_safety->addWidget(safetylabels[i]);
         safetylabels[i]->setFrameShape(QFrame::Panel);
@@ -353,6 +361,89 @@ void TocabiGui::restoreSettings(const qt_gui_cpp::Settings &plugin_settings, con
 {
 }
 
+void TocabiGui::que_downbtn()
+{
+}
+void TocabiGui::que_upbtn()
+{
+}
+void TocabiGui::que_deletebtn()
+{
+    std::cout << ui_.que_listwidget->currentIndex().row() << std::endl;
+    QListWidgetItem *item = ui_.que_listwidget->takeItem(ui_.que_listwidget->currentIndex().row());
+
+    ui_.que_listwidget->removeItemWidget(item);
+}
+void TocabiGui::que_resetbtn()
+{
+    ui_.que_listwidget->clear();
+    tq_.clear();
+}
+
+void TocabiGui::que_sendbtn()
+{
+    task_que_msg.tque.resize(tq_.size());
+    for (int i = 0; i < tq_.size(); i++)
+    {
+        task_que_msg.tque[i] = tq_[i].tc_;
+    }
+    task_que_pub.publish(task_que_msg);
+}
+
+void TocabiGui::que_addquebtn()
+{
+    task_que tq_temp;
+    tq_temp.task_title = ui_.text_que->text().toStdString();
+
+    tq_temp.tc_.roll = ui_.com_roll->text().toFloat();
+    tq_temp.tc_.pitch = ui_.com_pitch->text().toFloat();
+
+    tq_temp.tc_.pelv_pitch = ui_.pelv_pitch->text().toFloat();
+    tq_temp.tc_.yaw = ui_.com_yaw->text().toFloat();
+    tq_temp.tc_.ratio = ui_.com_pos->text().toFloat();
+    tq_temp.tc_.height = ui_.com_height->text().toFloat();
+
+    tq_temp.tc_.l_x = ui_.text_l_x->text().toFloat();
+    tq_temp.tc_.l_y = ui_.text_l_y->text().toFloat();
+    tq_temp.tc_.l_z = ui_.text_l_z->text().toFloat();
+    tq_temp.tc_.l_roll = ui_.text_l_roll->text().toFloat();
+    tq_temp.tc_.l_pitch = ui_.text_l_pitch->text().toFloat();
+    tq_temp.tc_.l_yaw = ui_.text_l_yaw->text().toFloat();
+
+    tq_temp.tc_.r_x = ui_.text_r_x->text().toFloat();
+    tq_temp.tc_.r_y = ui_.text_r_y->text().toFloat();
+    tq_temp.tc_.r_z = ui_.text_r_z->text().toFloat();
+
+    tq_temp.tc_.r_roll = ui_.text_r_roll->text().toFloat();
+    tq_temp.tc_.r_pitch = ui_.text_r_pitch->text().toFloat();
+    tq_temp.tc_.r_yaw = ui_.text_r_yaw->text().toFloat();
+
+    tq_temp.tc_.time = ui_.text_traj_time->text().toFloat();
+    tq_temp.tc_.mode = ui_.task_mode->currentIndex();
+
+    tq_temp.tc_.customTaskGain = ui_.customtaskgain->isChecked();
+    if (tq_temp.tc_.customTaskGain)
+    {
+        tq_temp.tc_.pos_p = ui_.pospgain->text().toFloat();
+        tq_temp.tc_.pos_d = ui_.posdgain->text().toFloat();
+        tq_temp.tc_.ang_p = ui_.angpgain->text().toFloat();
+        tq_temp.tc_.ang_d = ui_.angdgain->text().toFloat();
+    }
+
+    //ui_.text_que->text().toStdString();
+
+    std::stringstream ss;
+    ss << "task " << tq_.size() + 1 << " : ";
+
+    ui_.que_listwidget->addItem(ss.str().c_str() + ui_.text_que->text());
+
+    tq_.push_back(tq_temp);
+
+    //list.append(ui_.text_que->text());
+
+    //ui_.que_list->set
+}
+
 void TocabiGui::customtaskgaincb(int state)
 {
     if (ui_.customtaskgain->isChecked())
@@ -484,11 +575,10 @@ void TocabiGui::plainTextEditcb(const std_msgs::StringConstPtr &msg)
             ecatlabels[num]->setStyleSheet("QLabel { background-color : red ; color : white; }");
         }
     }
-    else if(words[0] == "Lock")
+    else if (words[0] == "Lock")
     {
         int num = elng[atoi(words[1].c_str())];
         safetylabels[num]->setStyleSheet("QLabel { background-color : red ; color : white; }");
-        
     }
     else if (msg->data == "imuvalid")
     {
@@ -620,7 +710,7 @@ void TocabiGui::initializebtncb()
 
 void TocabiGui::safetyresetbtncb()
 {
-    for(int i=0;i<33;i++)
+    for (int i = 0; i < 33; i++)
     {
         safetylabels[i]->setStyleSheet("QLabel { background-color : rgb(138, 226, 52) ; color : black; }");
     }
@@ -630,14 +720,13 @@ void TocabiGui::safetyresetbtncb()
 
 void TocabiGui::safety2btncb()
 {
-    for(int i=0;i<33;i++)
+    for (int i = 0; i < 33; i++)
     {
         safetylabels[i]->setStyleSheet("QLabel { background-color : yellow ; color : black; }");
     }
     com_msg.data = std::string("safetydisable");
     com_pub.publish(com_msg);
 }
-
 
 void TocabiGui::sendtunebtn()
 {
@@ -664,6 +753,7 @@ void TocabiGui::ftcalibbtn()
 
 void TocabiGui::tasksendcb()
 {
+    task_msg.pelv_pitch = ui_.pelv_pitch->text().toFloat();
     task_msg.roll = ui_.com_roll->text().toFloat();
     task_msg.pitch = ui_.com_pitch->text().toFloat();
     task_msg.yaw = ui_.com_yaw->text().toFloat();

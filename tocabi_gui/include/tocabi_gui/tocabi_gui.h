@@ -26,7 +26,10 @@
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneWheelEvent>
 
+#include <QStringListModel>
+
 #include "tocabi_controller/TaskCommand.h"
+#include "tocabi_controller/TaskCommandQue.h"
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -63,6 +66,12 @@ const double NM2CNT[33] =
         3.46,
         3.52,
         12.33};
+
+struct task_que
+{
+    std::string task_title;
+    tocabi_controller::TaskCommand tc_;
+};
 
 namespace tocabi_gui
 {
@@ -125,12 +134,22 @@ protected slots:
     virtual void dshowbtn();
     virtual void ecatinitlow();
     virtual void safety2btncb();
+    virtual void que_downbtn();
+    virtual void que_upbtn();
+    virtual void que_deletebtn();
+    virtual void que_resetbtn();
+    virtual void que_sendbtn();
+    virtual void que_addquebtn();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>
+    std::vector<task_que> tq_;
 
     Ui::TocabiGuiWidget ui_;
     QWidget *widget_;
+
+    //QStringListModel *model;
+    //QStringList list;
 
     std::vector<QLabel *> ecatlabels;
     std::vector<QLabel *> safetylabels;
@@ -166,8 +185,10 @@ public:
     ros::Publisher task_pub;
     tocabi_controller::TaskCommand task_msg;
 
-    ros::Subscriber imusub;
+    ros::Publisher task_que_pub;
+    tocabi_controller::TaskCommandQue task_que_msg;
 
+    ros::Subscriber imusub;
 
     //void guiLogCallback(const std_msgs::StringConstPtr &msg);
     std::string logtext;

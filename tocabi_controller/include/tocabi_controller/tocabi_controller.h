@@ -24,11 +24,16 @@ public:
   void tuiThread();
   void testThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
+  void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
+  void gettaskcommand(tocabi_controller::TaskCommand &msg);
   void pubfromcontroller();
 
   ros::Subscriber task_command;
+  ros::Subscriber task_command_que;
+
+  tocabi_controller::TaskCommandQue tque_msg;
   std::ofstream data_out;
 
   ros::Publisher point_pub;
@@ -45,6 +50,8 @@ private:
 
   bool connected;
 
+  std::vector<TaskCommand> tc_que_;
+
   //sim variables
   double time;
   double sim_time;
@@ -54,7 +61,11 @@ private:
   bool safetymode;
 
   bool task_switch = false;
+  bool task_que_switch = false;
+  bool task_que_start = false;
   bool tc_command = false;
+
+  int task_que_left = 0;
 
   int dym_hz, stm_hz;
   /*
