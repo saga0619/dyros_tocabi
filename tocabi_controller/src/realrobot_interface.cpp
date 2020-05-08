@@ -193,6 +193,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
         if (abs(velocityElmo(slv_number)) > max_vel)
         {
             std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Velocity Over Limit" << creset << std::endl;
+            pub_to_gui(dc, "Lock %d %s , velocity err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
             ElmoSafteyMode[slv_number] = 1;
             positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
         }
@@ -263,9 +264,9 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
         if (positionExternalElmo[slv_number] * elmofz[slv_number].init_direction > 0)
         {
             positionZeroElmo[slv_number] = positionElmo[slv_number];
-            elmofz[slv_number].findZeroSequence == FZ_FINDHOMMINGEND;
+            elmofz[slv_number].findZeroSequence = FZ_FINDHOMMINGEND;
             pub_to_gui(dc, "jointzp %d %d", slv_number, 1);
-            elmofz[slv_number].result == ElmoHommingStatus::SUCCESS;
+            elmofz[slv_number].result = ElmoHommingStatus::SUCCESS;
         }
         if (control_time_ > elmofz[slv_number].initTime + fztime * 4.0)
         {
@@ -919,6 +920,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             getline(elmo_zp_log, tmp);
                                             last_boot_time = atof(tmp.c_str());
+                                            std::cout << "ec boot t : " << last_boot_time << std::endl;
                                         }
                                         elmo_zp.open(zp_path, ios_base::in);
 
@@ -926,13 +928,15 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             getline(elmo_zp, tmp);
                                             last_save_time = atof(tmp.c_str());
+                                            std::cout << "zp src t : " << last_save_time << std::endl;
                                         }
 
                                         if (last_save_time < last_boot_time)
                                         {
-                                            cout << "ELMO : ERROR WITH LOADING ZERO POINT! " << std::endl;
+                                            cout << "ELMO : ERROR WITH LOADING ZERO POINT! zp terr" << std::endl;
                                             pub_to_gui(dc, "ZP LOADING FAILURE");
                                             zp_load_ok = false;
+                                            commutation_ok = true;
                                         }
                                         else
                                         {
@@ -942,7 +946,7 @@ void RealRobotInterface::ethercatThread()
                                                 {
                                                     if (elmo_zp.eof())
                                                     {
-                                                        std::cout << "ELMO : ERROR WITH LOADING ZERO POINT" << std::endl;
+                                                        std::cout << "ELMO : ERROR WITH LOADING ZERO POINT zp eof" << std::endl;
                                                         pub_to_gui(dc, "ZP LOADING FAILURE : proceed initialize");
 
                                                         commutation_ok = true;
@@ -980,6 +984,7 @@ void RealRobotInterface::ethercatThread()
                                         pub_to_gui(dc, "ELMO : COMMUTATION INITIALIZING ! ");
                                         pub_to_gui(dc, "ecatcommutation");
                                         bootseq = 6;
+                                        zp_load_ok = false;
 
                                         elmo_zp_log.open(zplog_path, ios_base::out);
                                         if (elmo_zp_log.is_open())
@@ -1120,24 +1125,33 @@ void RealRobotInterface::ethercatThread()
                                     fz_group++;
                                     std::cout << cgreen << "ELMO : Waist Origin Check Complete" << creset << std::endl;
                                 }
-                            }
-
-                            if (fz_group2_check && fz_group1_check && fz_group3_check)
-                            {
-                                fz_group++;
-                                elmo_zp.open(zp_path, ios_base::out);
-                                elmo_zp << setprecision(12) << ros::Time::now().toSec() << "\n";
-                                for (int i = 0; i < ec_slavecount; i++)
+                                if (fz_group3_check)
                                 {
-                                    elmo_zp << positionZeroElmo[i] << "\n";
+                                    static bool once = true;
+                                    if (once)
+                                    {
+                                        std::cout << cgreen << "ELMO : Leg Origin Check Complete" << creset << std::endl;
+                                        once = false;
+                                    }
                                 }
-                                elmo_zp.close();
 
-                                std::cout << cgreen << "ELMO : Waist zero point check complete and zero point saved. " << creset << std::endl;
-                                pub_to_gui(dc, "ELMO : ZP SAVED");
-                                pub_to_gui(dc, "zpgood");
-                                dc.elmo_Ready = true;
-                                operation_ready = true;
+                                if (fz_group2_check && fz_group1_check && fz_group3_check)
+                                {
+                                    fz_group++;
+                                    elmo_zp.open(zp_path, ios_base::out);
+                                    elmo_zp << setprecision(12) << ros::Time::now().toSec() << "\n";
+                                    for (int i = 0; i < ec_slavecount; i++)
+                                    {
+                                        elmo_zp << positionZeroElmo[i] << "\n";
+                                    }
+                                    elmo_zp.close();
+
+                                    std::cout << cgreen << "ELMO : Waist zero point check complete and zero point saved. " << creset << std::endl;
+                                    pub_to_gui(dc, "ELMO : ZP SAVED");
+                                    pub_to_gui(dc, "zpgood");
+                                    dc.elmo_Ready = true;
+                                    operation_ready = true;
+                                }
                             }
 
                             //torqueDesiredController = getCommand();

@@ -292,6 +292,7 @@ public:
   Eigen::MatrixXd _F;
 
   Eigen::VectorXd G;
+  Eigen::VectorQd torque_grav_cc;
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;

@@ -2712,6 +2712,129 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
     return torque_contact_;
 }
 
+
+VectorQd WholebodyController::contact_force_redistribution_torque_walking(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta, double ratio, int supportFoot)
+{
+    //Contact Jacobian task : rightfoot to leftfoot
+
+    int contact_dof_ = Robot.J_C.rows();
+
+    VectorQd torque_contact_;
+
+    ForceRedistribution.setZero();
+
+    if (contact_dof_ == 12)
+    {
+
+        Vector12d ContactForce_ = Robot.J_C_INV_T * Robot.Slc_k_T * command_torque - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
+
+        Vector3d P1_, P2_;
+
+        P1_ = Robot.link_[Left_Foot].xpos_contact - Robot.link_[COM_id].xpos;
+        P2_ = Robot.link_[Right_Foot].xpos_contact - Robot.link_[COM_id].xpos;
+
+        Matrix3d Rotyaw = DyrosMath::rotateWithZ(-Robot.yaw);
+
+        Vector3d P1_local, P2_local;
+        P1_local = Rotyaw * P1_;
+        P2_local = Rotyaw * P2_;
+
+        MatrixXd force_rot_yaw;
+        force_rot_yaw.setZero(12, 12);
+        for (int i = 0; i < 4; i++)
+        {
+            force_rot_yaw.block(i * 3, i * 3, 3, 3) = Rotyaw;
+        }
+
+        Vector6d ResultantForce_;
+        ResultantForce_.setZero();
+
+        Vector12d ResultRedistribution_;
+        ResultRedistribution_.setZero();
+
+        torque_contact_.setZero();
+
+        double eta_cust = 0.99;
+        double foot_length = 0.26;
+        double foot_width = 0.1;
+
+        Vector12d ContactForce_Local_yaw;
+        ContactForce_Local_yaw = force_rot_yaw * ContactForce_; //Robot frame based contact force
+
+        //ZMP_pos = GetZMPpos(P1_local, P2_local, ContactForce_Local_yaw);
+
+        ForceRedistributionTwoContactMod2(0.99, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
+
+        //std::cout << "fres - calc" << std::endl
+        //          << ResultantForce_ << std::endl;
+
+        //J_task * Robot.A_matrix_inverse * Robot.N_C * Robot.J_task_T;
+        ForceRedistribution = force_rot_yaw.transpose() * ResultRedistribution_;
+
+        //JacobiSVD<MatrixXd> svd(Robot.W, ComputeThinU | ComputeThinV);
+
+        //Robot.svd_W_U = svd.matrixU();
+
+        MatrixXd V2;
+
+        int singular_dof = 6;
+        int contact_dof = Robot.J_C.rows();
+
+        V2.setZero(MODEL_DOF, singular_dof);
+        V2 = Robot.svd_W_U.block(0, MODEL_DOF - contact_dof + 6, MODEL_DOF, contact_dof - 6);
+
+        Vector12d desired_force;
+
+        desired_force.setZero();
+        MatrixXd Scf_;
+
+        bool right_master;
+
+        if(supportFoot == 0)
+        {
+            right_master = 1.0;
+        }
+        else
+        {
+            right_master = 0.0;
+        }
+
+        if (right_master)
+        {
+            Scf_.setZero(6, 12);
+            Scf_.block(0, 0, 6, 6).setIdentity();
+
+            for (int i = 0; i < 6; i++)
+            {
+                desired_force(i) = -ContactForce_(i) + ForceRedistribution(i) * ratio;
+            }
+        }
+        else
+        {
+
+            Scf_.setZero(6, 12);
+            Scf_.block(0, 6, 6, 6).setIdentity();
+
+            for (int i = 0; i < 6; i++)
+            {
+                desired_force(i + 6) = -ContactForce_(i + 6) + ForceRedistribution(i + 6) * ratio;
+            }
+        }
+        MatrixXd temp = Scf_ * Robot.J_C_INV_T * Robot.Slc_k_T * V2;
+        MatrixXd temp_inv = temp.inverse(); //DyrosMath::pinv_SVD(temp);
+        MatrixXd Vc_ = V2 * temp_inv;
+
+        Vector6d reduced_desired_force = Scf_ * desired_force;
+        torque_contact_ = Vc_ * reduced_desired_force;
+    }
+    else
+    {
+        torque_contact_.setZero();
+    }
+
+    return torque_contact_;
+}
+
 Vector3d WholebodyController::GetZMPpos(RobotData &Robot, bool Local)
 {
     Vector3d zmp_pos;
