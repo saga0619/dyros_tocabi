@@ -256,11 +256,18 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
             elmofz[slv_number].init_direction = 1;
         }
     }
-    else if (elmofz[slv_number].findZeroSequence == FZ_FINDHOMMINGSTART)
+
+    if (elmofz[slv_number].findZeroSequence == FZ_FINDHOMMINGSTART)
     {
 
         ElmoMode[slv_number] = EM_POSITION;
         positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, elmofz[slv_number].init_direction * 0.6, elmofz[slv_number].initTime, fztime * 4.0);
+
+        if (control_time_ == elmofz[slv_number].initTime)
+        {
+            std::cout << "joint " << slv_number << "  init pos : " << elmofz[slv_number].initPos << "   goto " << elmofz[slv_number].initPos + elmofz[slv_number].init_direction * 0.6 << std::endl;
+        }
+
         if (positionExternalElmo[slv_number] * elmofz[slv_number].init_direction > 0)
         {
             positionZeroElmo[slv_number] = positionElmo[slv_number];
@@ -1260,9 +1267,8 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = false;
                                 }
 
-                                if(i == TOCABI::R_AnkleRoll_Joint || i == TOCABI::L_AnkleRoll_Joint)
+                                if (i == TOCABI::R_AnkleRoll_Joint || i == TOCABI::L_AnkleRoll_Joint)
                                 {
-
                                 }
                                 else
                                 {
