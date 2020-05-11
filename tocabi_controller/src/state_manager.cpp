@@ -209,9 +209,9 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[2].z = ty - dc.tocabi_.yaw;
 
-    pointpub_msg.polygon.points[3].x = link_[Pelvis].xpos(0);
-    pointpub_msg.polygon.points[3].y = link_[Pelvis].xpos(1);
-    pointpub_msg.polygon.points[3].z = link_[Pelvis].xpos(2);
+    pointpub_msg.polygon.points[3].x = dc.tocabi_.link_[Pelvis].xpos(0);
+    pointpub_msg.polygon.points[3].y = dc.tocabi_.link_[Pelvis].xpos(1);
+    pointpub_msg.polygon.points[3].z = dc.tocabi_.link_[Pelvis].xpos(2);
 
     pointpub_msg.polygon.points[4].x = dc.tocabi_.roll;
     pointpub_msg.polygon.points[4].y = dc.tocabi_.pitch;
