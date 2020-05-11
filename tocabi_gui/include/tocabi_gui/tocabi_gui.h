@@ -140,6 +140,7 @@ protected slots:
     virtual void que_resetbtn();
     virtual void que_sendbtn();
     virtual void que_addquebtn();
+    virtual void shutdown_robot();
 
 private:
     //ROS_DEPRECATED virtual QList<QString>

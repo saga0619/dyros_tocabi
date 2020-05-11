@@ -821,7 +821,7 @@ void TocabiController::dynamicsThreadLow()
                 cr_mode = 2;
                 torque_grav.setZero();
             }
-            else if (tc.mode == 5)
+            else if (tc.mode == 6)
             {
                 //Remain current contact.
 

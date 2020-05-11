@@ -81,6 +81,8 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
 
     connect(ui_.customtaskgain, SIGNAL(stateChanged(int)), this, SLOT(customtaskgaincb(int)));
 
+    connect(ui_.emergencyoff_button_2, SIGNAL(pressed()), this, SLOT(shutdown_robot()));
+
     ui_.stackedWidget->setCurrentIndex(0);
 
     ui_.ecat_btn->setShortcut(QKeySequence(Qt::Key_1));
@@ -388,6 +390,13 @@ void TocabiGui::que_sendbtn()
         task_que_msg.tque[i] = tq_[i].tc_;
     }
     task_que_pub.publish(task_que_msg);
+}
+
+void TocabiGui::shutdown_robot()
+{
+    com_msg.data = std::string("terminate");
+    com_pub.publish(com_msg);
+
 }
 
 void TocabiGui::que_addquebtn()

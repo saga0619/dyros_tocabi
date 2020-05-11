@@ -152,7 +152,7 @@ void StateManager::adv2ROS(void)
     transformStamped.transform.rotation.w = q_virtual_(MODEL_DOF_VIRTUAL);
     transformStamped.transform.translation.x = q_virtual_(0);
     transformStamped.transform.translation.y = q_virtual_(1);
-    transformStamped.transform.translation.z = q_virtual_(2) - link_[Right_Foot].xpos(2) - link_[Right_Foot].contact_point(2);
+    transformStamped.transform.translation.z = q_virtual_(2);
 
     br.sendTransform(transformStamped);
 
@@ -368,7 +368,6 @@ void StateManager::stateThread2(void)
                 break;
             }
             updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-            //std::cout << " uk done, " << std::flush;
 
             if (dc.semode)
             {
@@ -376,8 +375,8 @@ void StateManager::stateThread2(void)
 
                 updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
             }
+
             storeState();
-            //std::cout << " ss done, " << std::flush;
 
             if ((cycle_count % 10) == 0)
             {
@@ -845,6 +844,8 @@ void StateManager::stateEstimate()
             q_virtual_(i) = -mod_base_pos(i);
             q_dot_virtual_(i) = -mod_base_vel(i);
         }
+
+        q_virtual_(2) = -mod_base_pos(2) - ((link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2)) * rf_s_ratio + (link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2)) * lf_s_ratio) / (rf_s_ratio + lf_s_ratio);
     }
 }
 
@@ -873,6 +874,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
 
             dc.rgbPubMsg.data = {255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0};
             dc.rgbPub.publish(dc.rgbPubMsg);
+            dc.semode = true;
             std::cout << "torque ON !" << std::endl;
             dc.torqueOnTime = control_time_;
             dc.torqueOn = true;
@@ -1022,7 +1024,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         dc.disableSafetyLock = true;
         dc.safetycheckdisable = false;
     }
-    else if(msg->data == "safetydisable")
+    else if (msg->data == "safetydisable")
     {
         dc.safetycheckdisable = true;
     }
@@ -1033,5 +1035,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "showdata")
     {
         dc.tocabi_.showdata = true;
+    }
+    else if (msg->data == "terminate")
+    {
+        shutdown_tocabi_bool = true;
     }
 }
