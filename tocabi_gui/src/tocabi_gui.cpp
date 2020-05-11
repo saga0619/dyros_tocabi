@@ -106,6 +106,10 @@ void TocabiGui::initPlugin(qt_gui_cpp::PluginContext &context)
     rfoot_c = scene->addEllipse(-5, -5, 10, 10, blackpen, redbrush);
     lfoot_c = scene->addEllipse(-5, -5, 10, 10, blackpen, redbrush);
 
+
+    
+    zmp = scene->addEllipse(-5, -5, 10, 10, blackpen, redbrush);
+
     scene->addLine(-20, 0, 40, 0, blackpen);
     scene->addLine(0, -20, 0, 40, blackpen);
 
@@ -396,7 +400,6 @@ void TocabiGui::shutdown_robot()
 {
     com_msg.data = std::string("terminate");
     com_pub.publish(com_msg);
-
 }
 
 void TocabiGui::que_addquebtn()
@@ -663,6 +666,8 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
     lfoot_d->setRotation(msg->polygon.points[2].z * -180.0 / 3.141592);
     lfoot_c->setPos(QPointF(msg->polygon.points[2].y * 250, msg->polygon.points[2].x * 250));
 
+    zmp->setPos(QPointF(msg->polygon.points[7].y * 250, msg->polygon.points[7].x * 250));
+
     ui_.label_64->setText(QString::number(msg->polygon.points[2].x, 'f', 5));
     ui_.label_65->setText(QString::number(msg->polygon.points[2].y, 'f', 5));
 
@@ -676,8 +681,18 @@ void TocabiGui::pointcb(const geometry_msgs::PolygonStampedConstPtr &msg)
 
     //zmp by ft
 
-    ui_.label_22->setText(QString::number(msg->polygon.points[12].x, 'f', 5));
-    ui_.label_23->setText(QString::number(msg->polygon.points[12].y, 'f', 5));
+    ui_.label_22->setText(QString::number(msg->polygon.points[7].x, 'f', 5));
+    ui_.label_23->setText(QString::number(msg->polygon.points[7].y, 'f', 5));
+
+    //Right hand
+    ui_.label_126->setText(QString::number(msg->polygon.points[5].x, 'f', 5));
+    ui_.label_127->setText(QString::number(msg->polygon.points[5].y, 'f', 5));
+    ui_.label_128->setText(QString::number(msg->polygon.points[5].z, 'f', 5));
+
+    //Left hand
+    ui_.label_119->setText(QString::number(msg->polygon.points[6].x, 'f', 5));
+    ui_.label_120->setText(QString::number(msg->polygon.points[6].y, 'f', 5));
+    ui_.label_121->setText(QString::number(msg->polygon.points[6].z, 'f', 5));
 
     double com_x = msg->polygon.points[0].x;
     double com_y = msg->polygon.points[0].y;

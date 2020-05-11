@@ -183,7 +183,7 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[0].x = temp(0); //com_pos(0);
     pointpub_msg.polygon.points[0].y = temp(1);
-    pointpub_msg.polygon.points[0].z = dc.tocabi_.com_.pos(2) - 0.5 * dc.tocabi_.link_[Right_Foot].xpos(2) - 0.5 * dc.tocabi_.link_[Left_Foot].xpos(2);
+    pointpub_msg.polygon.points[0].z = com_.pos(2);
 
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Right_Foot].xpos;
 
@@ -217,21 +217,37 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[4].y = dc.tocabi_.pitch;
     pointpub_msg.polygon.points[4].z = dc.tocabi_.yaw;
 
-    pointpub_msg.polygon.points[5].x = dc.tocabi_.link_[Pelvis].x_traj(0);
-    pointpub_msg.polygon.points[5].y = dc.tocabi_.link_[Pelvis].x_traj(1);
-    pointpub_msg.polygon.points[5].z = dc.tocabi_.link_[Pelvis].x_traj(2);
+    pointpub_msg.polygon.points[5].x = dc.tocabi_.link_[Right_Hand].xpos(0);
+    pointpub_msg.polygon.points[5].y = dc.tocabi_.link_[Right_Hand].xpos(1);
+    pointpub_msg.polygon.points[5].z = dc.tocabi_.link_[Right_Hand].xpos(2);
 
-    pointpub_msg.polygon.points[6].x = dc.tocabi_.link_[COM_id].v_traj(0);
-    pointpub_msg.polygon.points[6].y = dc.tocabi_.link_[COM_id].v_traj(1);
-    pointpub_msg.polygon.points[6].z = dc.tocabi_.link_[COM_id].v_traj(2);
+    pointpub_msg.polygon.points[6].x = dc.tocabi_.link_[Left_Hand].xpos(0);
+    pointpub_msg.polygon.points[6].y = dc.tocabi_.link_[Left_Hand].xpos(1);
+    pointpub_msg.polygon.points[6].z = dc.tocabi_.link_[Left_Hand].xpos(2);
 
-    pointpub_msg.polygon.points[7].x = dc.tocabi_.link_[COM_id].v(0);
-    pointpub_msg.polygon.points[7].y = dc.tocabi_.link_[COM_id].v(1);
-    pointpub_msg.polygon.points[7].z = dc.tocabi_.link_[COM_id].v(2);
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * dc.tocabi_.ZMP;
+    pointpub_msg.polygon.points[7].x = temp(0); //from task torque -> contact force -> zmp
+    pointpub_msg.polygon.points[7].y = temp(1);
+    pointpub_msg.polygon.points[7].z = temp(2);
 
-    pointpub_msg.polygon.points[8].x = dc.tocabi_.fstar(0);
-    pointpub_msg.polygon.points[8].y = dc.tocabi_.fstar(1);
-    pointpub_msg.polygon.points[8].z = dc.tocabi_.fstar(2);
+    pointpub_msg.polygon.points[8].x = dc.tocabi_.link_[COM_id].xpos(0);
+    pointpub_msg.polygon.points[8].y = dc.tocabi_.link_[COM_id].xpos(1);
+    pointpub_msg.polygon.points[8].z = dc.tocabi_.link_[COM_id].xpos(2);
+
+    pointpub_msg.polygon.points[9].x = dc.tocabi_.link_[COM_id].v(2);
+    pointpub_msg.polygon.points[9].y = dc.tocabi_.link_[COM_id].v(2);
+    pointpub_msg.polygon.points[9].z = dc.tocabi_.link_[COM_id].v(2);
+
+    pointpub_msg.polygon.points[10].x = dc.tocabi_.link_[COM_id].x_traj(0);
+    pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
+    pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].x_traj(2);
+
+    pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
+    pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].v_traj(2);
+
+    /*
+    temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
 
     pointpub_msg.polygon.points[9].x = dc.tocabi_.ZMP(0); //from task torque -> contact force -> zmp
     pointpub_msg.polygon.points[9].y = dc.tocabi_.ZMP(1);
@@ -245,11 +261,11 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[11].y = dc.tocabi_.ZMP_desired(1);
     pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired(2);
 
+*/
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * dc.tocabi_.ZMP_ft;
 
     pointpub_msg.polygon.points[12].x = temp(0); //calc from ft sensor
     pointpub_msg.polygon.points[12].y = temp(1);
-
     pointpub_msg.polygon.points[12].z = dc.tocabi_.ZMP_ft(2);
 
     pointpub_msg.polygon.points[13].x = dc.tocabi_.com_.ZMP(0);

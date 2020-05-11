@@ -164,6 +164,7 @@ private:
     QGraphicsRectItem *lfoot_d;
     QGraphicsLineItem *lfoot_l1;
     QGraphicsLineItem *lfoot_l2;
+    QGraphicsEllipseItem *zmp;
 
     QGraphicsEllipseItem *rfoot_c;
     QGraphicsEllipseItem *lfoot_c;
