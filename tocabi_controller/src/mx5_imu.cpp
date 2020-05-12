@@ -188,11 +188,13 @@ sensor_msgs::Imu MX5IMU::getIMU()
         {
             std::cout << cgreen << "IMU : running, solution valid" << creset << std::endl;
             pub_to_gui(dc, "imuvalid");
+            dc.imu_state = 2;
         }
         else if (ef_state == 3)
         {
             std::cout << cyellow << "IMU : running, solution error" << std::hex << ef_state_flag << std::dec << creset << std::endl;
             pub_to_gui(dc, "imunotvalid");
+            dc.imu_state = 1;
         }
         else
         {

@@ -52,7 +52,7 @@ struct TaskCommand
   double r_roll;
   double r_pitch;
   double r_yaw;
-  
+
   //Walking Related
   int walking_enable;
   int ik_mode;
@@ -73,9 +73,7 @@ struct TaskCommand
   double pos_d;
   double ang_p;
   double ang_d;
-  
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -102,8 +100,6 @@ public:
   bool print_elmo_info_tofile = false;
   bool start_initialize_sequence = false;
   bool start_initialize_lower = false;
-  
-
 
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;
@@ -117,7 +113,7 @@ public:
   bool state_end;
   bool dynamics_end;
   int t_que = 0;
-  
+
   std::chrono::steady_clock::time_point start_time_point;
 
   double time;
@@ -221,6 +217,11 @@ public:
 
   bool initialize_request = false;
 
+  int imu_state = 0; //0 not ok 1 not valid 2 valid
+  int zp_state = 0; //0 not ok 1 ready 2 ok
+  int ft_state = 0; //0 not ok 1 init req 2 ok
+  int ecat_state = 0; //0 not ok 1 ok 2 commutation
+
   //Simulation mode
   bool simulationMode;
 
@@ -233,6 +234,5 @@ public:
 static volatile sig_atomic_t shutdown_tocabi = 0;
 
 //static volatile bool shutdown_tocabi_bool = false;
-
 
 #endif

@@ -18,8 +18,9 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
     point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point2", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
+    gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     ft_viz_msg.markers.resize(4);
-
+    syspub_msg.data.resize(4);
     for (int i = 0; i < 4; i++)
     {
         ft_viz_msg.markers[i].header.frame_id = "base_link";
@@ -398,6 +399,16 @@ void StateManager::stateThread2(void)
             {
                 //ROS_INFO("publish start? \n");
                 adv2ROS();
+            }
+            if (dc.mode == "realrobot")
+            {
+                if ((cycle_count % 200) == 0)
+                {
+                    syspub_msg.data[0] = dc.imu_state;
+                    syspub_msg.data[1] = dc.zp_state;
+                    syspub_msg.data[2] = dc.ft_state;
+                    syspub_msg.data[3] = dc.ecat_state;
+                }
             }
             //std::cout << " pb done, " << std::endl;
 

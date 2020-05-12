@@ -18,11 +18,10 @@ extern std::mutex mtx_rbdl;
 extern std::mutex mtx_dc;
 extern volatile bool shutdown_tocabi_bool;
 
-
 enum MODE_OF_COMMAND
 {
-    Positionmode = 0,
-    Torquemode = 1
+  Positionmode = 0,
+  Torquemode = 1
 };
 
 class StateManager
@@ -32,7 +31,7 @@ public:
   virtual ~StateManager() {}
   DataContainer &dc;
   virtual void connect();
-  virtual void stateThread(); //main thread managing state
+  virtual void stateThread();  //main thread managing state
   virtual void stateThread2(); //main thread managing state
   virtual void updateState();
   //virtual void sendCommand(Eigen::VectorQd command);
@@ -46,17 +45,14 @@ public:
   void stateEstimate();
   //private functions
 
-
   //advertise informations to ROS
   void adv2ROS();
-
 
   //update kinematic information with RBDL
   void updateKinematics(const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
 
   //testThread to test multithread
   void testThread();
-
 
   void initYaw();
   //private variables
@@ -102,7 +98,6 @@ public:
 
   std::chrono::steady_clock::time_point st_start_time;
 
-
   //Communication Subscriber!
 
   ros::Subscriber gui_command;
@@ -113,13 +108,14 @@ public:
   ros::Publisher motor_acc_dif_info_pub;
   ros::Publisher point_pub;
   ros::Publisher point_pub2;
+  ros::Publisher gui_state_pub;
 
   ros::Publisher ft_viz_pub;
   visualization_msgs::MarkerArray ft_viz_msg;
 
   ros::Publisher tgainPublisher;
   std_msgs::Float32 tgain_p;
-
+  std_msgs::Int32MultiArray syspub_msg;
   sensor_msgs::JointState joint_state_msg;
   std_msgs::Float32 time_msg;
   tocabi_controller::MotorInfo motor_info_msg;
@@ -128,8 +124,6 @@ public:
 
   void CommandCallback(const std_msgs::StringConstPtr &msg);
   //void TaskCommandCallback(const dyros_red_msgs::TaskCommandConstPtr &msg);
-
-
 
   //Terminate Signal Handler
   //static void sigintHandler(int sig);
