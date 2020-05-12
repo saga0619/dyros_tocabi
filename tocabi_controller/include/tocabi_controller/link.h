@@ -210,6 +210,7 @@ public:
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
+  Eigen::VectorQd q_ext_;
 
   Eigen::VectorXd ContactForce;
   Eigen::Vector12d ContactForce_FT;

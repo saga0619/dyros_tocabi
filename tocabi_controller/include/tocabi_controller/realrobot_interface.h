@@ -432,6 +432,7 @@ public:
     Eigen::VectorQd positionSafteyHoldElmo;
 
     Eigen::VectorQd rq_;
+    Eigen::VectorQd rq_ext_;
     Eigen::VectorQd rq_dot_;
 
     Eigen::Vector4d imu_quat;

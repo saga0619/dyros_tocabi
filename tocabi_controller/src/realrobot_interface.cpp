@@ -124,6 +124,7 @@ void RealRobotInterface::updateState()
     {
         q_ = rq_;
         q_dot_ = rq_dot_;
+        q_ext_ = rq_ext_;
         mtx_q.unlock();
         q_virtual_.setZero();
         q_virtual_.segment(3, 3) = imu_quat.segment(0, 3);
@@ -854,6 +855,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             rq_[i] = positionElmo[j] - positionZeroElmo[j];
                                             rq_dot_[i] = velocityElmo[j];
+                                            rq_ext_[i] = positionExternalElmo[j];
                                             if (TOCABI::JOINT_NAME[i] == "L_HipYaw_Joint")
                                             {
                                                 //    printf("position :%f \n", rq_[i]-positionExternalElmo(27));

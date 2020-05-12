@@ -1109,6 +1109,7 @@ void TocabiController::getState()
     tocabi_.q_dot_ = dc.q_dot_;
     tocabi_.q_dot_virtual_ = dc.q_dot_virtual_;
     tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
+    
 
     static bool first_run = true;
     if (first_run)

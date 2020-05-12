@@ -79,6 +79,7 @@ public:
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd torque_;
+  Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;
   Eigen::VectorVQd tau_nonlinear_;
 

@@ -595,6 +595,8 @@ void StateManager::storeState()
     dc.q_dot_virtual_ = q_dot_virtual_;
     dc.q_virtual_ = q_virtual_;
     dc.q_ddot_virtual_ = q_ddot_virtual_;
+    dc.q_ext_ = q_ext_;
+
     dc.tau_nonlinear_ = tau_nonlinear_;
 
     dc.yaw = yaw;
