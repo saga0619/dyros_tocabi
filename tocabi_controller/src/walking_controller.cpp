@@ -528,6 +528,70 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     setWalkingParameter(Robot);
 }
 
+void Walking_controller::hipCompensator()
+{
+  double left_hip_angle = 4.0*DEG2RAD, right_hip_angle = 4.5*DEG2RAD, left_hip_angle_first_step = 4.0*DEG2RAD, right_hip_angle_first_step = 4.5*DEG2RAD,
+
+      left_hip_angle_temp = 0.0, right_hip_angle_temp = 0.0, temp_time = 0.1*Hz_, left_pitch_angle = 0.0*DEG2RAD;
+
+  if (current_step_num == 0)
+  {
+    if(foot_step(current_step_num, 6) == 1) //left support foot
+    {
+      if(walking_tick < t_start+t_total-t_rest_last-t_double2-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start_real+t_double1+temp_time,0.0*DEG2RAD, left_hip_angle_first_step, 0.0, 0.0);
+      else if(walking_tick >= t_start+t_total-t_rest_last-t_double2-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-temp_time,t_start+t_total-t_rest_last,left_hip_angle_first_step, 0.0, 0.0, 0.0);
+      else
+        left_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else if (foot_step(current_step_num, 6) == 0) // right support foot
+    {
+      if(walking_tick < t_start+t_total-t_rest_last-t_double2-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start_real+t_double1+temp_time,0.0*DEG2RAD, right_hip_angle_first_step, 0.0, 0.0);
+      else if(walking_tick >= t_start+t_total-t_rest_last-t_double2-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-temp_time,t_start+t_total-t_rest_last,right_hip_angle_first_step, 0.0, 0.0, 0.0);
+      else
+        right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else
+    {
+      left_hip_angle_temp = 0.0*DEG2RAD;
+      right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+  }
+  else
+  {
+    if(foot_step(current_step_num, 6) == 1)
+    {
+      if(walking_tick < t_start+t_total-t_rest_last-t_double2-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start_real+t_double1+temp_time,0.0*DEG2RAD,left_hip_angle,0.0,0.0);
+      else if (walking_tick >= t_start+t_total-t_rest_last-t_double2-temp_time)
+        left_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-temp_time,t_start+t_total-t_rest_last,left_hip_angle,0.0,0.0,0.0);
+      else
+        left_hip_angle_temp = 0.0*DEG2RAD;
+
+    }
+    else if(foot_step(current_step_num,6) == 0)
+    {
+      if(walking_tick < t_start+t_total-t_rest_last-t_double2-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start_real+t_double1,t_start_real+t_double1+temp_time,0.0*DEG2RAD,right_hip_angle,0.0,0.0);
+      else if(walking_tick >= t_start+t_total-t_rest_last-t_double2-temp_time)
+        right_hip_angle_temp = DyrosMath::cubic(walking_tick,t_start+t_total-t_rest_last-t_double2-temp_time,t_start+t_total-t_rest_last,left_hip_angle,0.0,0.0,0.0);
+      else
+        right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+    else
+    {
+      left_hip_angle_temp = 0.0*DEG2RAD;
+      right_hip_angle_temp = 0.0*DEG2RAD;
+    }
+  }
+  desired_leg_q(1) = desired_leg_q(1) + left_hip_angle_temp;
+  desired_leg_q(7) = desired_leg_q(7) - right_hip_angle_temp;
+}
+
+
 void Walking_controller::setWalkingParameter(RobotData Robot)
 {
     desired_foot_step_num = 6;
