@@ -197,15 +197,9 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
         Robot.link_[Robot.contact_part[i]].Set_Sensor_Position(Robot.q_virtual_, Robot.link_[Robot.contact_part[i]].sensor_point);
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
-    
 
-    std::cout << std::endl
-              << "/////////////////////////////////" << std::endl;
-    std::cout << "lf cp0 " << Robot.link_[Left_Foot].contact_point(0) << "cp1 " << Robot.link_[Left_Foot].contact_point(1) << " q_vir : " << Robot.q_virtual_(0) << "  " << Robot.q_virtual_(1) << "  " << Robot.q_virtual_(2) << std::endl;
 
     Robot.ee_[0].cp_ = Robot.link_[Left_Foot].xpos_contact;
-
-    std::cout << "xpos_contact : " << Robot.link_[Left_Foot].xpos_contact(0) << "  " << Robot.link_[Left_Foot].xpos_contact(0) << std::endl;
     Robot.ee_[1].cp_ = Robot.link_[Right_Foot].xpos_contact;
     Robot.ee_[2].cp_ = Robot.link_[Left_Hand].xpos_contact;
     Robot.ee_[3].cp_ = Robot.link_[Right_Hand].xpos_contact;
