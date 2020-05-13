@@ -160,10 +160,11 @@ public:
   Eigen::Vector3d rot_p_gain;
   Eigen::Vector3d rot_d_gain;
 
+  RigidBodyDynamics::Model *model;
+
 private:
   Eigen::MatrixXd j_temp;
   Eigen::MatrixXd j_temp2;
-  RigidBodyDynamics::Model *model;
 };
 
 class EndEffector

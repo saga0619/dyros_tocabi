@@ -18,8 +18,9 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
     point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point2", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
+    gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     ft_viz_msg.markers.resize(4);
-
+    syspub_msg.data.resize(4);
     for (int i = 0; i < 4; i++)
     {
         ft_viz_msg.markers[i].header.frame_id = "base_link";
@@ -133,6 +134,11 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         // RigidBodyDynamics::Joint J_temp;
         // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
         // model_.mJoints[2] = J_temp;
+        model_2 = model_;
+        for (int i = 0; i < LINK_NUMBER; i++)
+        {
+            //link_[i].model = &model_2;
+        }
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
@@ -383,13 +389,13 @@ void StateManager::stateThread2(void)
                 std::cout << "shutdown signal received" << std::endl;
                 break;
             }
-            updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+            updateKinematics(model_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
             if (dc.semode)
             {
                 stateEstimate();
 
-                updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+                updateKinematics(model_2, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
             }
 
             storeState();
@@ -398,6 +404,16 @@ void StateManager::stateThread2(void)
             {
                 //ROS_INFO("publish start? \n");
                 adv2ROS();
+            }
+            if (dc.mode == "realrobot")
+            {
+                if ((cycle_count % 200) == 0)
+                {
+                    syspub_msg.data[0] = dc.imu_state;
+                    syspub_msg.data[1] = dc.zp_state;
+                    syspub_msg.data[2] = dc.ft_state;
+                    syspub_msg.data[3] = dc.ecat_state;
+                }
             }
             //std::cout << " pb done, " << std::endl;
 
@@ -409,7 +425,7 @@ void StateManager::stateThread2(void)
 }
 
 void StateManager::stateThread(void)
-{
+{ /*
 
     std::chrono::high_resolution_clock::time_point StartTime = std::chrono::high_resolution_clock::now();
     //std::chrono::high_resolution_clock::time_point StartTime2 = std::chrono::high_resolution_clock::now();
@@ -483,7 +499,7 @@ void StateManager::stateThread(void)
         int_StartTime = std::chrono::high_resolution_clock::now();
     }
 
-    std::cout << cyellow << "Status Thread End !" << creset << std::endl;
+    std::cout << cyellow << "Status Thread End !" << creset << std::endl;*/
 }
 void StateManager::testThread()
 {
@@ -512,7 +528,7 @@ void StateManager::testThread()
         q_ = q_virtual_.segment(6, MODEL_DOF);
 
         t[1] = std::chrono::high_resolution_clock::now();
-        updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+        updateKinematics(model_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
         t[2] = std::chrono::high_resolution_clock::now();
 
         //stateEstimate();
@@ -625,7 +641,7 @@ void StateManager::storeState()
     mtx_dc.unlock();
 }
 
-void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual)
+void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual)
 {
     //ROS_INFO_ONCE("CONTROLLER : MODEL : updatekinematics enter ");
     /* q_virtual description
@@ -638,10 +654,10 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     //std::cout << control_time_ << " : q_v(0) : " << q_virtual(0) << " : q_v(1) : " << q_virtual(1) << " : q_v(2) : " << q_virtual(2) << std::endl;
 
     mtx_rbdl.lock();
-    RigidBodyDynamics::UpdateKinematicsCustom(model_, &q_virtual, &q_dot_virtual, &q_ddot_virtual);
+    RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual, &q_dot_virtual, &q_ddot_virtual);
 
     A_temp_.setZero();
-    RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_, q_virtual_, A_temp_, false);
+    RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_l, q_virtual_, A_temp_, false);
 
     //Eigen::VectorXd tau_coriolis;
     //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
@@ -653,28 +669,28 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
 
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
-        link_[i].pos_Update(model_, q_virtual_);
+        link_[i].pos_Update(model_l, q_virtual_);
     }
     Eigen::Vector3d zero;
     zero.setZero();
     dc.check = true;
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
-        link_[i].Set_Jacobian(model_, q_virtual_, zero);
+        link_[i].Set_Jacobian(model_l, q_virtual_, zero);
     }
     dc.check = false;
 
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
 
-        link_[i].COM_Jac_Update(model_, q_virtual_);
+        link_[i].COM_Jac_Update(model_l, q_virtual_);
     }
     //COM link information update ::
     double com_mass;
     RigidBodyDynamics::Math::Vector3d com_pos;
     RigidBodyDynamics::Math::Vector3d com_vel, com_accel, com_ang_momentum;
     mtx_rbdl.lock();
-    RigidBodyDynamics::Utils::CalcCenterOfMass(model_, q_virtual_, q_dot_virtual_, &q_ddot_virtual, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, NULL, false);
+    RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_, q_dot_virtual_, &q_ddot_virtual, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, NULL, false);
     mtx_rbdl.unlock();
 
     RigidBodyDynamics::ConstraintSet CS;
@@ -780,8 +796,8 @@ void StateManager::updateKinematics(const Eigen::VectorXd &q_virtual, const Eige
     }
 
     RigidBodyDynamics::Math::VectorNd tau_;
-    tau_.resize(model_.qdot_size);
-    RigidBodyDynamics::NonlinearEffects(model_, q_virtual_, q_dot_virtual_, tau_);
+    tau_.resize(model_l.qdot_size);
+    RigidBodyDynamics::NonlinearEffects(model_l, q_virtual_, q_dot_virtual_, tau_);
     tau_nonlinear_ = tau_;
 
     //contactJacUpdate
@@ -811,7 +827,8 @@ void StateManager::stateEstimate()
             if (dc.tocabi_.ee_[1].contact)
             {
                 std::cout << "right foot contact point initialized" << std::endl;
-                rf_cp = link_[Right_Foot].xpos;
+                rf_cp = dc.link_[Right_Foot].xpos;
+                lf_cp = dc.link_[Left_Foot].xpos;
             }
             else
             {
@@ -823,12 +840,20 @@ void StateManager::stateEstimate()
             if (dc.tocabi_.ee_[0].contact)
             {
                 std::cout << "left foot contact point initialized" << std::endl;
-                lf_cp = link_[Left_Foot].xpos;
+                rf_cp = dc.link_[Right_Foot].xpos;
+                lf_cp = dc.link_[Left_Foot].xpos;
             }
             else
             {
                 std::cout << "left foot contact disabled" << std::endl;
             }
+        }
+
+        if (dc.semode_init)
+        {
+            rf_cp(2) = 0.0;
+            lf_cp(2) = 0.0;
+            dc.semode_init = false;
         }
 
         contact_right = dc.tocabi_.ee_[1].contact;
@@ -844,17 +869,20 @@ void StateManager::stateEstimate()
         {
             //std::cout << control_time_ << " : base pos calc ! " << std::endl;
             mod_base_pos = (rf_cp_m * rf_s_ratio / (rf_s_ratio + lf_s_ratio) + lf_cp_m * lf_s_ratio / (rf_s_ratio + lf_s_ratio));
+            //mod_base_pos(2) = mod_base_pos(2) + ((link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2)) * rf_s_ratio/ (rf_s_ratio + lf_s_ratio) + (link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2)) * lf_s_ratio / (rf_s_ratio + lf_s_ratio));
             mod_base_vel = link_[Right_Foot].v * rf_s_ratio / (rf_s_ratio + lf_s_ratio) + link_[Left_Foot].v * lf_s_ratio / (rf_s_ratio + lf_s_ratio);
         }
         else if (contact_right)
         {
             mod_base_pos = rf_cp_m;
             mod_base_vel = link_[Right_Foot].v;
+            //mod_base_pos(2) = mod_base_pos(2) + link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2);
         }
         else if (contact_left)
         {
             mod_base_pos = lf_cp_m;
             mod_base_vel = link_[Left_Foot].v;
+            //mod_base_pos(2) = mod_base_pos(2) + link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2);
         }
 
         for (int i = 0; i < 3; i++)
@@ -862,8 +890,6 @@ void StateManager::stateEstimate()
             q_virtual_(i) = -mod_base_pos(i);
             q_dot_virtual_(i) = -mod_base_vel(i);
         }
-
-        q_virtual_(2) = -mod_base_pos(2) - ((link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2)) * rf_s_ratio + (link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2)) * lf_s_ratio) / (rf_s_ratio + lf_s_ratio);
     }
 }
 

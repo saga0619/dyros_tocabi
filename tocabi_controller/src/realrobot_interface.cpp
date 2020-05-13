@@ -96,7 +96,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     elmofz[TOCABI::R_Shoulder2_Joint].req_length = 0.08;
 
     elmofz[TOCABI::R_Shoulder3_Joint].req_length = 0.03;
-    elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.07;
+    elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.04;
 
     elmofz[TOCABI::Waist2_Joint].req_length = 0.07;
     elmofz[TOCABI::Waist2_Joint].init_direction = -1.0;
@@ -162,6 +162,11 @@ Eigen::VectorQd RealRobotInterface::getCommand()
 }
 int RealRobotInterface::checkTrajContinuity(int slv_number)
 {
+}
+
+void RealRobotInterface::checkJointLimit(int slv_number)
+{
+
 }
 
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
@@ -929,7 +934,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             getline(elmo_zp_log, tmp);
                                             last_boot_time = atof(tmp.c_str());
-                                            std::cout << "ec boot t : " << last_boot_time << std::endl;
+                                            //std::cout << "ec boot t : " << last_boot_time << std::endl;
                                         }
                                         elmo_zp.open(zp_path, ios_base::in);
 
@@ -937,7 +942,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             getline(elmo_zp, tmp);
                                             last_save_time = atof(tmp.c_str());
-                                            std::cout << "zp src t : " << last_save_time << std::endl;
+                                            //std::cout << "zp src t : " << last_save_time << std::endl;
                                         }
 
                                         if (last_save_time < last_boot_time)
@@ -992,20 +997,9 @@ void RealRobotInterface::ethercatThread()
                                         std::cout << cyellow << "ELMO : COMMUTATION INITIALIZING ! " << creset << std::endl;
                                         pub_to_gui(dc, "ELMO : COMMUTATION INITIALIZING ! ");
                                         pub_to_gui(dc, "ecatcommutation");
+                                        dc.ecat_state = 2;
                                         bootseq = 6;
                                         zp_load_ok = false;
-
-                                        elmo_zp_log.open(zplog_path, ios_base::out);
-                                        if (elmo_zp_log.is_open())
-                                        {
-                                            elmo_zp_log << setprecision(12) << ros::Time::now().toSec() << "\n";
-                                            elmo_zp_log.close();
-                                        }
-                                        else
-                                        {
-                                            std::cout << cred << "ELMO : COMMUTATION LOGGING ERROR " << creset << std::endl;
-                                            pub_to_gui(dc, "ELMO : COMMUTATION LOGGING ERROR ");
-                                        }
                                     }
                                 }
                                 if ((bootseq == 6))
@@ -1020,6 +1014,19 @@ void RealRobotInterface::ethercatThread()
                                         std::cout << cgreen << "ELMO : COMMUTATION INITIALIZE COMPLETE" << creset << std::endl;
                                         pub_to_gui(dc, "ELMO : COMMUTATION INITIALIZE COMPLETE");
                                         pub_to_gui(dc, "ecatgood");
+                                        dc.ecat_state = 1;
+
+                                        elmo_zp_log.open(zplog_path, ios_base::out);
+                                        if (elmo_zp_log.is_open())
+                                        {
+                                            elmo_zp_log << setprecision(12) << ros::Time::now().toSec() << "\n";
+                                            elmo_zp_log.close();
+                                        }
+                                        else
+                                        {
+                                            std::cout << cred << "ELMO : COMMUTATION LOGGING ERROR " << creset << std::endl;
+                                            pub_to_gui(dc, "ELMO : COMMUTATION LOGGING ERROR ");
+                                        }
 
                                         commutation_ok = true;
 
@@ -1030,8 +1037,9 @@ void RealRobotInterface::ethercatThread()
 
                             if (commutation_ok && (!zp_load_ok) && zp_init_check)
                             {
-                                std::cout << cyellow << "ELMO : origin searching required!" << creset << std::endl;
+                                std::cout << cred << "ELMO : origin searching required!" << creset << std::endl;
                                 pub_to_gui(dc, "ELMO : origin searching required!");
+                                dc.zp_state = 1;
                                 zp_waiting_low_switch = true;
                                 zp_waiting_upper_switch = true;
                                 commutation_check = false;
@@ -1158,6 +1166,7 @@ void RealRobotInterface::ethercatThread()
                                     std::cout << cgreen << "ELMO : Waist zero point check complete and zero point saved. " << creset << std::endl;
                                     pub_to_gui(dc, "ELMO : ZP SAVED");
                                     pub_to_gui(dc, "zpgood");
+                                    dc.zp_state = 2;
                                     dc.elmo_Ready = true;
                                     operation_ready = true;
                                 }
@@ -1269,13 +1278,11 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = false;
                                 }
 
-                                if (i == TOCABI::R_AnkleRoll_Joint || i == TOCABI::L_AnkleRoll_Joint)
-                                {
-                                }
-                                else
+                                if (operation_ready)
                                 {
                                     checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                                 }
+                                checkJointLimit(i);
                             }
 
                             //Torque off if emergency off received
@@ -1526,6 +1533,7 @@ void RealRobotInterface::ftsensorThread()
     if (is_ft_board_ok == 1)
     {
         pub_to_gui(dc, "initreq");
+        dc.ft_state = 1;
     }
 
     ft.analogSingleSamplePrepare(slotAttrs, 16);
@@ -1559,6 +1567,7 @@ void RealRobotInterface::ftsensorThread()
         else
         {
             pub_to_gui(dc, "initreq");
+            dc.ft_state = 1;
         }
 
         if (ft_calib_finish == true)
@@ -1567,6 +1576,8 @@ void RealRobotInterface::ftsensorThread()
             {
                 pub_to_gui(dc, "ft sensor : calibration finish ");
                 pub_to_gui(dc, "ftgood");
+
+                dc.ft_state = 2;
                 ft_calib_ui = true;
             }
         }

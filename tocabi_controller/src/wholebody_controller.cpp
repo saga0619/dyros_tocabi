@@ -197,8 +197,15 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
         Robot.link_[Robot.contact_part[i]].Set_Sensor_Position(Robot.q_virtual_, Robot.link_[Robot.contact_part[i]].sensor_point);
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
+    
+
+    std::cout << std::endl
+              << "/////////////////////////////////" << std::endl;
+    std::cout << "lf cp0 " << Robot.link_[Left_Foot].contact_point(0) << "cp1 " << Robot.link_[Left_Foot].contact_point(1) << " q_vir : " << Robot.q_virtual_(0) << "  " << Robot.q_virtual_(1) << "  " << Robot.q_virtual_(2) << std::endl;
 
     Robot.ee_[0].cp_ = Robot.link_[Left_Foot].xpos_contact;
+
+    std::cout << "xpos_contact : " << Robot.link_[Left_Foot].xpos_contact(0) << "  " << Robot.link_[Left_Foot].xpos_contact(0) << std::endl;
     Robot.ee_[1].cp_ = Robot.link_[Right_Foot].xpos_contact;
     Robot.ee_[2].cp_ = Robot.link_[Left_Hand].xpos_contact;
     Robot.ee_[3].cp_ = Robot.link_[Right_Hand].xpos_contact;
@@ -1132,6 +1139,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         ub(MODEL_DOF + contact_dof + i) = 1000;
     }
 
+    //std::cout << "calc done!" << std::endl;
     std::chrono::high_resolution_clock::time_point tic = std::chrono::high_resolution_clock::now();
     QP_torque.EnableEqualityCondition(0.0001);
     QP_torque.UpdateMinProblem(H, g);
@@ -1171,6 +1179,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         //std::cout << f_star_ << std::endl;
     }
 
+    //std::cout << "calc done!" << std::endl;
     if (false)
     {
         Fsl(0, 0) = Fsl(0, 0) * fc(8) / (fc(2) + fc(8));
@@ -1238,7 +1247,8 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         W_fr.block(3, 3, 3, 3) = Robot.link_[Right_Foot].Rotm;
         W_fr.block(3, 0, 3, 3) = Robot.link_[Right_Foot].Rotm * DyrosMath::skm(Robot.link_[Right_Foot].xpos_contact - Robot.com_.pos);
     }
-
+    //std::cout << "calc done!" << std::endl;
+    /*
     VectorXd fr = W_fr * fc;
 
     Vector3d r_zmp = GetZMPpos(Robot, fc);
@@ -1319,7 +1329,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         std::cout << QQ * Robot.Slc_k_T * task_torque << std::endl;
         std::cout << "com acc - grav induce " << std::endl
                   << QQ * (Robot.Slc_k_T * task_torque - Robot.G) << std::endl;
-    }
+    }*/
     return task_torque; // + gravity_torque;
 }
 
@@ -2712,7 +2722,6 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
     return torque_contact_;
 }
 
-
 VectorQd WholebodyController::contact_force_redistribution_torque_walking(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta, double ratio, int supportFoot)
 {
     //Contact Jacobian task : rightfoot to leftfoot
@@ -2790,7 +2799,7 @@ VectorQd WholebodyController::contact_force_redistribution_torque_walking(RobotD
 
         bool right_master;
 
-        if(supportFoot == 0)
+        if (supportFoot == 0)
         {
             right_master = 1.0;
         }
