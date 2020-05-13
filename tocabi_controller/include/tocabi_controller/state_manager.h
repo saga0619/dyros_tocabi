@@ -49,7 +49,7 @@ public:
   void adv2ROS();
 
   //update kinematic information with RBDL
-  void updateKinematics(const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
+  void updateKinematics(RigidBodyDynamics::Model &model_l, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
 
   //testThread to test multithread
   void testThread();
@@ -90,6 +90,7 @@ public:
   Eigen::Vector3d gravity_;
 
   RigidBodyDynamics::Model model_;
+  RigidBodyDynamics::Model model_2;
 
   Link link_[LINK_NUMBER + 1];
   Com com_;
@@ -112,6 +113,9 @@ public:
 
   ros::Publisher ft_viz_pub;
   visualization_msgs::MarkerArray ft_viz_msg;
+
+  Eigen::Vector3d rf_contactpoint;
+  Eigen::Vector3d lf_contactpoint;
 
   ros::Publisher tgainPublisher;
   std_msgs::Float32 tgain_p;

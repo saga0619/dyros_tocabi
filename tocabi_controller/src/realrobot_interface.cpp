@@ -164,6 +164,11 @@ int RealRobotInterface::checkTrajContinuity(int slv_number)
 {
 }
 
+void RealRobotInterface::checkJointLimit(int slv_number)
+{
+
+}
+
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
 {
     bool damping_mode = false;
@@ -1277,6 +1282,7 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                                 }
+                                checkJointLimit(i);
                             }
 
                             //Torque off if emergency off received

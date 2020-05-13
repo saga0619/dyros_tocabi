@@ -26,9 +26,8 @@
 
 #define NSEC_PER_SEC 1000000000
 
-#define CNT_TO_RAD_46 (3.141592 * 2 / (8192*100)) //819200
-#define CNT_TO_RAD_80 (3.141592 * 2 / (8000*100)) //819200
-
+#define CNT_TO_RAD_46 (3.141592 * 2 / (8192 * 100)) //819200
+#define CNT_TO_RAD_80 (3.141592 * 2 / (8000 * 100)) //819200
 
 #define EXT_CNT_TO_RAD_46 (3.141592 * 2 / 8192) //819200
 #define EXT_CNT_TO_RAD_80 (3.141592 * 2 / 8192) //819200
@@ -90,7 +89,7 @@ const double EXTCNT2RAD[ELMO_DOF] =
         EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
         EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
         EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
-        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46};        
+        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46};
 
 const double RAD2CNT[ELMO_DOF] =
     {
@@ -109,42 +108,6 @@ const double EXTRAD2CNT[ELMO_DOF] =
         EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
         EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
         EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46};
-
-const double CNT2NM[ELMO_DOF] =
-    {             //Elmo 순서
-        0.010526, //head
-        0.010526,
-        0.010526, //wrist
-        0.010526,
-        0.010526,
-        0.010526,
-        0.064516, //shoulder3
-        0.064516, //arm
-        0.064516, //arm
-        0.064516, //shoulder3
-        0.02381,  //Elbow
-        0.02381,  //Forearm
-        0.02381,  //Forearm
-        0.02381,  //Elbow
-        0.064516, //shoulder1
-        0.064516, //shoulder2
-        0.064516, //shoulder2
-        0.064516, //shoulder1
-        0.30303,  //Waist
-        0.30303,
-        0.1724, //rightLeg
-        0.2307,
-        0.2635,
-        0.2890,
-        0.2834,
-        0.0811,
-        0.30303, //upperbody
-        0.1724,  //leftLeg
-        0.2307,
-        0.2635,
-        0.2890,
-        0.2834,
-        0.0811};
 
 const double NM2CNT[ELMO_DOF] =
     {       //Elmo 순서
@@ -181,6 +144,20 @@ const double NM2CNT[ELMO_DOF] =
         3.46,
         4.5,
         12.33};
+
+const double jointLimitUp[ELMO_DOF] =
+    {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+const double jointLimitLow[ELMO_DOF] =
+    {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 const int positionExternalModElmo[ELMO_DOF] =
     {
@@ -349,9 +326,11 @@ public:
     void ethercatThreadUpper();
     void ethercatCheckLower();
     void ethercatCheckUpper();
-    
+
     int checkTrajContinuity(int slv_number);
     void checkSafety(int slv_number, double max_vel, double max_dis);
+
+    void checkJointLimit(int slv_number);
     void findZeroPoint(int slv_number);
     void findZeroLeg();
     void findZeroPointlow(int slv_number);
@@ -468,16 +447,13 @@ public:
     const int firstbootseq[5] = {0, 33, 35, 8, 64};
     const int secondbootseq[4] = {0, 33, 35, 39};
 
-
     bool ecat_connection_ok = false;
 
     bool ecat_number_ok = false;
     bool ecat_WKC_ok = false;
     bool commutation_check = true;
-    bool commutation_ok = false; 
+    bool commutation_ok = false;
     bool commutation_fail = false;
-
-    
 
     bool zp_waiting_low_switch = false;
     bool zp_waiting_upper_switch = false;
@@ -491,9 +467,6 @@ public:
     bool zp_load_ok = true;
 
     bool operation_ready = false;
-
-
-
 
 private:
     DataContainer &dc;

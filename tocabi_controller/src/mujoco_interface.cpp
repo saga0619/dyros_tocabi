@@ -207,6 +207,9 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             q_ddot_virtual_(i) = msg->effort[i];
         }
         q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
+        q_virtual_(0) = 0.0;
+        q_virtual_(1) = 0.0;
+        q_virtual_(2) = 0.0;
     }
     for (int i = 0; i < msg->sensor.size(); i++)
     {
