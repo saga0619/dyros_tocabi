@@ -113,8 +113,8 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         }
 
         Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
-        lf_c << 0.0317, 0, -0.1368;
-        rf_c << 0.0317, 0, -0.1368;
+        lf_c << 0.0317, 0, -0.154;
+        rf_c << 0.0317, 0, -0.154;
 
         link_[Right_Foot].contact_point = rf_c;
         link_[Right_Foot].sensor_point << 0.0, 0.0, -0.1098;
@@ -851,8 +851,8 @@ void StateManager::stateEstimate()
 
         if (dc.semode_init)
         {
-            rf_cp(2) = 0.0;
-            lf_cp(2) = 0.0;
+            rf_cp(2) = 0.0 - dc.link_[Right_Foot].contact_point(2);
+            lf_cp(2) = 0.0 - dc.link_[Left_Foot].contact_point(2);
             dc.semode_init = false;
         }
 

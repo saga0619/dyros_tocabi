@@ -821,17 +821,8 @@ void TocabiController::dynamicsThreadLow()
                 cr_mode = 2;
                 torque_grav.setZero();
             }
-            else if (tc.mode == 6) // foot up Right
+            else if (tc.mode == 6) // foot up Left
             {
-                //Remain current contact.
-
-                double dis_l, dis_r;
-
-                dis_r = (tocabi_.link_[COM_id].xpos.segment(0, 2) - tocabi_.link_[Right_Foot].xpos.segment(0, 2)).norm();
-                dis_l = (tocabi_.link_[COM_id].xpos.segment(0, 2) - tocabi_.link_[Left_Foot].xpos.segment(0, 2)).norm();
-
-                // std::cout <<"r : "<<dis_r<<" l : "<<dis_l<<std::endl;
-
                 int task_number = 9;
 
                 wbc_.set_contact(tocabi_, 1, 0);
@@ -866,22 +857,14 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
-                torque_grav.setZero();// = wbc_.gravity_compensation_torque(tocabi_);
+                torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
                 cr_mode = 2;
             }
-            else if (tc.mode == 7) //foot up Left 
+            else if (tc.mode == 7) //foot up Right
             {
-                //Remain current contact.
-
-                double dis_l, dis_r;
-
-                dis_r = (tocabi_.link_[COM_id].xpos.segment(0, 2) - tocabi_.link_[Right_Foot].xpos.segment(0, 2)).norm();
-                dis_l = (tocabi_.link_[COM_id].xpos.segment(0, 2) - tocabi_.link_[Left_Foot].xpos.segment(0, 2)).norm();
-
-                // std::cout <<"r : "<<dis_r<<" l : "<<dis_l<<std::endl;
-
                 int task_number = 9;
                 wbc_.set_contact(tocabi_, 0, 1);
+                torque_grav = wbc_.gravity_compensation_torque(tocabi_);
 
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
@@ -912,7 +895,9 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque_QP2(tocabi_, tocabi_.J_task, tocabi_.f_star);
-                torque_grav.setZero();// = wbc_.gravity_compensation_torque(tocabi_);
+                torque_task.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
+
+                
                 cr_mode = 2;
             }
             else if (tc.mode >= 10)
