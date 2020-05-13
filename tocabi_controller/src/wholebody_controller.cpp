@@ -198,7 +198,6 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
 
-
     Robot.ee_[0].cp_ = Robot.link_[Left_Foot].xpos_contact;
     Robot.ee_[1].cp_ = Robot.link_[Right_Foot].xpos_contact;
     Robot.ee_[2].cp_ = Robot.link_[Left_Hand].xpos_contact;
@@ -985,31 +984,33 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     Fsl.setZero(contact_dof, contact_dof);
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Fsl(6 * i + 0, 6 * i + 0) = 0.0001;
-        Fsl(6 * i + 1, 6 * i + 1) = 0.0001;
+        Fsl(6 * i + 0, 6 * i + 0) = 0.00001;
+        Fsl(6 * i + 1, 6 * i + 1) = 0.00001;
         //Fsl(6 * i + 2, 6 * i + 2) = 1E-6;
-        Fsl(6 * i + 3, 6 * i + 3) = 0.001;
-        Fsl(6 * i + 4, 6 * i + 4) = 0.001;
+        Fsl(6 * i + 3, 6 * i + 3) = 0.01;
+        Fsl(6 * i + 4, 6 * i + 4) = 0.01;
         Fsl(6 * i + 5, 6 * i + 5) = 0.00001;
     }
 
     double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
     double rl = DyrosMath::minmax_cut(ratio_l / ratio_r * 10, 1, 10);
     //std::cout << "left : " << rr << "\t right : " << rl << std::endl;
-
-    if (Robot.qp2nd)
+    if (Robot.ee_[0].contact && Robot.ee_[1].contact)
     {
-        Fsl(0, 0) = 0.0001 * rr;
-        Fsl(1, 1) = 0.0001 * rr;
+        if (Robot.qp2nd)
+        {
+            Fsl(0, 0) = 0.0001 * rr;
+            Fsl(1, 1) = 0.0001 * rr;
 
-        Fsl(3, 3) = 0.001 * rr;
-        Fsl(4, 4) = 0.001 * rr;
+            Fsl(3, 3) = 0.01 * rr;
+            Fsl(4, 4) = 0.01 * rr;
 
-        Fsl(6, 6) = 0.0001 * rl;
-        Fsl(7, 7) = 0.0001 * rl;
+            Fsl(6, 6) = 0.0001 * rl;
+            Fsl(7, 7) = 0.0001 * rl;
 
-        Fsl(9, 9) = 0.001 * rl;
-        Fsl(10, 10) = 0.001 * rl;
+            Fsl(9, 9) = 0.01 * rl;
+            Fsl(10, 10) = 0.01 * rl;
+        }
     }
 
     /*
@@ -1122,7 +1123,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -20.0;
+        ub(MODEL_DOF + 6 * i + 2) = -0.1;
         ub(MODEL_DOF + 6 * i + 5) = 0.05;
         lb(MODEL_DOF + 6 * i + 5) = -0.05;
     }
