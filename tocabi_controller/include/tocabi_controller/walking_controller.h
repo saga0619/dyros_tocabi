@@ -25,6 +25,7 @@ class Walking_controller : virtual public WalkingPattern
 public:
     WalkingCommand wtc;
     Eigen::Vector12d desired_leg_q;
+    Eigen::Vector12d leg_q_NC;
 
     void walkingCompute(RobotData Robot);
     void inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);

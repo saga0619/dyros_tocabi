@@ -528,7 +528,7 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.02;
+        capturePoint_offsety(i) = 0.00;
     }
     capturePoint_ox(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
     capturePoint_oy(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
@@ -805,7 +805,6 @@ void WalkingPattern::setFootTrajectory()
             RF_trajectory_float.linear().setIdentity();
         }
         
-        
         if(current_step_num == 0)
         {
             LF_trajectory_float.translation()(1) = (LF_fisrt_init).translation()(1);
@@ -962,6 +961,12 @@ void WalkingPattern::setFootTrajectory()
                 LF_trajectory_float.translation()(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),foot_step(current_step_num,0),0.0,0.0);   
             }
         }
+        if(current_step_num == 0)
+        {
+            RF_trajectory_float.translation()(2) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(2);
+            LF_trajectory_float.translation()(2) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(2);
+        }
+
         if(foot_height == 0.0)
         {
             contactMode = 1.0;
