@@ -57,7 +57,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     yaw_init = 0.0;
 
     initialize();
-    bool verbose = true; //set verbose true for State Manager initialization info
+    bool verbose = false; //set verbose true for State Manager initialization info
     bool urdfmode;
     ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
     std::string urdf_path, desc_package_path;
@@ -400,7 +400,7 @@ void StateManager::stateThread2(void)
             {
                 stateEstimate();
             }
-            
+
             updateKinematics(model_2, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
             storeState();
@@ -867,11 +867,10 @@ void StateManager::stateEstimate()
         rf_cp_m = link_[Right_Foot].xpos - rf_cp;
         lf_cp_m = link_[Left_Foot].xpos - lf_cp;
 
-        rf_s_ratio = 1.0;
-        lf_s_ratio = 1.0;
-
         if (contact_right && contact_left)
         {
+            rf_s_ratio = dc.tocabi_.ContactForce(2 + 6);
+            lf_s_ratio = dc.tocabi_.ContactForce(2);
             //std::cout << control_time_ << " : base pos calc ! " << std::endl;
             mod_base_pos = (rf_cp_m * rf_s_ratio / (rf_s_ratio + lf_s_ratio) + lf_cp_m * lf_s_ratio / (rf_s_ratio + lf_s_ratio));
             //mod_base_pos(2) = mod_base_pos(2) + ((link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2)) * rf_s_ratio/ (rf_s_ratio + lf_s_ratio) + (link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2)) * lf_s_ratio / (rf_s_ratio + lf_s_ratio));

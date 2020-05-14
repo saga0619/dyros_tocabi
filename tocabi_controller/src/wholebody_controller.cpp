@@ -2017,6 +2017,14 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
     Eigen::MatrixXd ppinv;
     ppinv = DyrosMath::pinv_glsSVD(aa);
 
+    if (Robot.showdata)
+    {
+        std::cout << "//////////////////////////////////////////////" << std::endl;
+        std::cout << "time : " << Robot.control_time_ << std::endl;
+        std::cout << "nc norm : " << Robot.N_C << std::endl;
+        Robot.showdata = false;
+    }
+
     // std::cout <<"Ddd" << std::endl;
     Eigen::MatrixXd tg_temp = ppinv * J_g * Robot.A_matrix_inverse * Robot.N_C;
     torque_grav = tg_temp * Robot.G;
@@ -2650,7 +2658,16 @@ VectorQd WholebodyController::contact_force_custom(RobotData &Robot, VectorQd co
 
 VectorXd WholebodyController::get_contact_force(RobotData &Robot, VectorQd command_torque)
 {
-    VectorXd contactforce = Robot.J_C_INV_T * Robot.Slc_k_T * command_torque - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
+    VectorXd contactforce;
+    contactforce.setZero(12);
+
+    if (Robot.ee_[0].contact && Robot.ee_[1].contact)
+        contactforce = Robot.J_C_INV_T * Robot.Slc_k_T * command_torque - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
+    else if (Robot.ee_[0].contact)
+        contactforce.segment(0, 6) = Robot.J_C_INV_T * Robot.Slc_k_T * command_torque - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
+    else if (Robot.ee_[1].contact)
+        contactforce.segment(6, 6) = Robot.J_C_INV_T * Robot.Slc_k_T * command_torque - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
+
     return contactforce;
 }
 
@@ -2924,8 +2941,8 @@ Vector3d WholebodyController::GetZMPpos(RobotData &Robot, bool Local)
         }
         else if (Robot.ee_[1].contact) //right contact
         {
-            zmp_pos(0) = -Robot.ContactForce(4) / Robot.ContactForce(2) + Robot.ee_[1].cp_(0);
-            zmp_pos(1) = -Robot.ContactForce(3) / Robot.ContactForce(2) + Robot.ee_[1].cp_(1);
+            zmp_pos(0) = -Robot.ContactForce(4 + 6) / Robot.ContactForce(2 + 6) + Robot.ee_[1].cp_(0);
+            zmp_pos(1) = -Robot.ContactForce(3 + 6) / Robot.ContactForce(2 + 6) + Robot.ee_[1].cp_(1);
         }
     }
 
