@@ -596,7 +596,7 @@ void Walking_controller::hipCompensator()
 
 void Walking_controller::setWalkingParameter(RobotData Robot)
 {
-    desired_foot_step_num = 4;
+    desired_foot_step_num = 10;
     walking_tick = 0;
     t_rest_init = 0.1*Hz_;
     t_rest_last = 0.1*Hz_;
