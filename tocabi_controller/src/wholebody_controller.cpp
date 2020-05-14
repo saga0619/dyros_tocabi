@@ -894,6 +894,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
 
     //VectorQd gravity_torque = gravity_compensation_torque(Robot, dc.fixedgravity);
     double friction_ratio = 0.3;
+    double friction_ratio_z = 0.1;
     //qptest
     double foot_x_length = 0.12;
     double foot_y_length = 0.04;
@@ -940,7 +941,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     ratio_l = dist_r / (dist_l + dist_r);
 
     static int task_dof, contact_dof;
-    int constraint_per_contact = 12;
+    int constraint_per_contact = 14;
     bool qpt_info = false;
 
     if ((task_dof != Robot.task_dof) || (contact_dof != 6 * Robot.contact_index))
@@ -1108,6 +1109,13 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         A(task_dof + contact_dof + i * constraint_per_contact + 10, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
         A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 4 + 6 * i) = -1.0;
         A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        
+        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 5 + 6 * i) = 1.0;
+        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
+        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 5 + 6 * i) = -1.0;
+        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
+        
+        
 
         //May cause error for hand contact!
         for (int j = 0; j < constraint_per_contact; j++)
