@@ -53,6 +53,9 @@ struct TaskCommand
   double r_pitch;
   double r_yaw;
 
+  int solver;
+  int contactredis;
+
   //Walking Related
   int walking_enable;
   int ik_mode;
@@ -73,6 +76,7 @@ struct TaskCommand
   double pos_d;
   double ang_p;
   double ang_d;
+  double acc_p;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

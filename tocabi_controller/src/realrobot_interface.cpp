@@ -166,7 +166,6 @@ int RealRobotInterface::checkTrajContinuity(int slv_number)
 
 void RealRobotInterface::checkJointLimit(int slv_number)
 {
-
 }
 
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
@@ -260,6 +259,11 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
         else
         {
             elmofz[slv_number].init_direction = 1;
+        }
+
+        if ((positionExternalElmo[slv_number] > 3.14) || (positionExternalElmo[slv_number < -3.14]))
+        {
+            std::cout << cred << "elmo reboot required. joint " << slv_number << "external encoder error" << std::endl;
         }
     }
 

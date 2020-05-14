@@ -103,6 +103,8 @@ void WalkingPattern::footStepTotal()
         else
             numberOfFootstep = numberOfFootstep + 1;   
     }
+
+    numberOfFootstep = numberOfFootstep + 1; 
     foot_step.resize(numberOfFootstep, 7);
     foot_step.setZero();
  
@@ -118,7 +120,8 @@ void WalkingPattern::footStepTotal()
 
     temp = -is_right; //right foot will be first swingfoot
     temp2 = -is_right;
-    temp3 = -is_right;
+    temp3 = is_right;
+
     if(init_totalstep_num!=0 || abs(init_residual_angle)>=0.0001)
     {
         for (int i =0 ; i<init_totalstep_num; i++)
@@ -193,6 +196,15 @@ void WalkingPattern::footStepTotal()
 
   if(middle_total_step_num!=0 || abs(middle_residual_length)>=0.0001)
   {
+          temp2 *= -1;
+
+          foot_step(index,0) = 0.0;
+          foot_step(index,1) = -temp2*(foot_distance(1)/2.0);
+          foot_step(index,5) = 0.0;
+          foot_step(index,6) = 0.5+0.5*temp2;
+
+          index++;
+
       for (int i =0 ; i<middle_total_step_num; i++)
       {
           temp2 *= -1;
@@ -204,7 +216,7 @@ void WalkingPattern::footStepTotal()
           index++;
       }
 
-      if(temp2==is_right)
+      if(temp2==-is_right)
       {
           if(abs(middle_residual_length) >= 0.0001)
           {
@@ -243,8 +255,8 @@ void WalkingPattern::footStepTotal()
               index++;
           }
       }
-      else if(temp2==-is_right)
-      {
+      else if(temp2==is_right)
+      {    
           temp2 *= -1;
 
           foot_step(index,0) = cos(initial_rot)*(dlength*(middle_total_step_num)+middle_residual_length)+temp2*sin(initial_rot)*(foot_distance(1)/2.0);
