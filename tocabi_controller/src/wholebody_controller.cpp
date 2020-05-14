@@ -457,11 +457,27 @@ Vector2d WholebodyController::getcpref(RobotData &Robot, double task_time, doubl
 //   return res_2;
 // }
 
-int WholebodyController::task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, Eigen::VectorQd &task_torque)
+VectorQd WholebodyController::task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int mode)
+{
+    if (mode == 0)
+    {
+        return task_control_torque_with_gravity(Robot, J_task, f_star_);
+    }
+    else if (mode == 1)
+    {
+        return task_control_torque_QP(Robot, J_task, f_star_);
+    }
+    else if (mode == 2)
+    {
+        return task_control_torque_QP2(Robot, J_task, f_star_);
+    }
+}
+
+VectorQd WholebodyController::task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
 {
     //QP1 : grav compensation performed in case of error from qp
     VectorXd f_star_qp_;
-
+    VectorQd task_torque;
     //VectorQd gravity_torque = gravity_compensation_torque(Robot, dc.fixedgravity);
     double friction_ratio = 0.3;
     //qptest
@@ -868,7 +884,7 @@ int WholebodyController::task_control_torque_QP(RobotData &Robot, Eigen::MatrixX
         std::cout << "com acc - grav induce " << std::endl
                   << QQ * (Robot.Slc_k_T * task_torque - Robot.G) << std::endl;
     }
-    return 0;
+    return task_torque;
 }
 
 VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
@@ -2202,6 +2218,49 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     return torque_task;
 }
 
+VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot, MatrixXd J_task, VectorXd f_star_)
+{
+    Robot.task_dof = J_task.rows();
+
+    //Task Control Torque;
+    Robot.J_task_T.resize(MODEL_DOF + 6, Robot.task_dof);
+    Robot.J_task_T.setZero();
+    Robot.lambda_inv.resize(Robot.task_dof, Robot.task_dof);
+    Robot.lambda_inv.setZero();
+    Robot.lambda.resize(Robot.task_dof, Robot.task_dof);
+    Robot.lambda.setZero();
+
+    Robot.J_task_T = J_task.transpose();
+
+    Robot.lambda_inv = J_task * Robot.A_matrix_inverse * Robot.N_C * Robot.J_task_T;
+
+    Robot.lambda = Robot.lambda_inv.inverse();
+    Robot.J_task_inv_T = Robot.lambda * J_task * Robot.A_matrix_inverse * Robot.N_C;
+
+    Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
+    Robot.Q_T_ = Robot.Q.transpose();
+
+    Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
+
+    Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
+
+    //_F=lambda*(f_star);
+    //Jtemp=J_task_inv_T*Slc_k_T;
+    //Jtemp_2 = DyrosMath::pinv_SVD(Jtemp);
+    //Q.svd(s2,u2,v2);
+
+    VectorQd torque_task;
+    torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * Robot.lambda * f_star_ + gravity_compensation_torque(Robot);
+
+    //W.svd(s,u,v);
+    //V2.resize(28,6);
+    //V2.zero();
+
+    //torque_task = torque_task +
+
+    return torque_task;
+}
+
 VectorQd WholebodyController::task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
 {
     Robot.task_dof = J_task.rows();
@@ -2462,15 +2521,8 @@ Vector3d WholebodyController::getfstar_tra(RobotData &Robot, int link_id)
 
     for (int i = 0; i < 3; i++)
     {
-        fstar_(i) = Robot.link_[link_id].a_traj(i) + Robot.link_[link_id].pos_p_gain(i) * (Robot.link_[link_id].x_traj(i) - Robot.link_[link_id].xpos(i)) + Robot.link_[link_id].pos_d_gain(i) * (Robot.link_[link_id].v_traj(i) - Robot.link_[link_id].v(i));
-
-        if (i == 1)
-        {
-            //std::cout<<"xtraj y : "<<rk_.link_[link_id].x_traj(i) <<"\t xpos y : "<<rk_.link_[link_id].xpos(i)<<"\t f_star : "<<fstar_(i)<<std::endl;
-        }
-        //fstar_(i) = rk_.link_[link_id].a_traj(i) + rk_.link_[link_id].pos_p_gain(i) * (rk_.link_[link_id].x_traj(i) - rk_.link_[link_id].xpos(i)) + rk_.link_[link_id].pos_d_gain(i) * (rk_.link_[link_id].v_traj(i) - rk_.link_[link_id].v(i));
+        fstar_(i) = Robot.link_[link_id].a_traj(i) * Robot.link_[link_id].acc_p_gain(i) + Robot.link_[link_id].pos_p_gain(i) * (Robot.link_[link_id].x_traj(i) - Robot.link_[link_id].xpos(i)) + Robot.link_[link_id].pos_d_gain(i) * (Robot.link_[link_id].v_traj(i) - Robot.link_[link_id].v(i));
     }
-    Robot.fstar = fstar_;
     return fstar_;
 }
 
@@ -2556,8 +2608,6 @@ Vector6d WholebodyController::getfstar6d(RobotData &Robot, int link_id)
     Vector6d f_star;
     f_star.segment(0, 3) = getfstar_tra(Robot, link_id);
     f_star.segment(3, 3) = getfstar_rot(Robot, link_id);
-
-    Robot.link_[link_id].fstar = f_star;
     return f_star;
 }
 

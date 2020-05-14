@@ -7,6 +7,9 @@ float64 roll
 float64 pitch
 float64 yaw
 
+uint32 solver
+uint32 contactredis
+
 # Contact 
 bool left
 bool right
@@ -46,6 +49,7 @@ float32 step_length_y
 
 # TaskGain
 bool customTaskGain
+float32 acc_p
 float32 pos_p
 float32 pos_d
 float32 ang_p

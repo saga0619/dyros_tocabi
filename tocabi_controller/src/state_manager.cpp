@@ -76,6 +76,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
 
     RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_, true, verbose);
+    RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_2, true, verbose);
 
     ROS_INFO_COND(verbose, "Successfully loaded.");
     ROS_INFO_COND(verbose, "MODEL DOF COUNT = %d and MODEL Q SIZE = %d ", model_.dof_count, model_.q_size);
@@ -109,7 +110,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
         for (int i = 0; i < LINK_NUMBER; i++)
         {
-            link_[i].initialize(model_, link_id_[i], TOCABI::LINK_NAME[i], model_.mBodies[link_id_[i]].mMass, model_.mBodies[link_id_[i]].mCenterOfMass);
+            link_[i].initialize(model_2, link_id_[i], TOCABI::LINK_NAME[i], model_2.mBodies[link_id_[i]].mMass, model_2.mBodies[link_id_[i]].mCenterOfMass);
         }
 
         Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
@@ -134,11 +135,6 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         // RigidBodyDynamics::Joint J_temp;
         // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
         // model_.mJoints[2] = J_temp;
-        model_2 = model_;
-        for (int i = 0; i < LINK_NUMBER; i++)
-        {
-            //link_[i].model = &model_2;
-        }
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
@@ -209,9 +205,17 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[2].x = temp(0);
     pointpub_msg.polygon.points[2].y = temp(1);
 
+    pointpub_msg.polygon.points[9].x = tr;
+    pointpub_msg.polygon.points[9].y = tp;
+    pointpub_msg.polygon.points[9].z = ty;
+
     tm = link_[Left_Foot].Rotm;
     tf2::Matrix3x3 m2(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
     m2.getRPY(tr, tp, ty);
+
+    pointpub_msg.polygon.points[8].x = tr;
+    pointpub_msg.polygon.points[8].y = tp;
+    pointpub_msg.polygon.points[8].z = ty;
 
     pointpub_msg.polygon.points[2].z = ty - dc.tocabi_.yaw;
 
@@ -235,6 +239,7 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[7].x = temp(0); //from task torque -> contact force -> zmp
     pointpub_msg.polygon.points[7].y = temp(1);
     pointpub_msg.polygon.points[7].z = temp(2);
+    /*
 
     pointpub_msg.polygon.points[8].x = dc.tocabi_.link_[COM_id].xpos(0);
     pointpub_msg.polygon.points[8].y = dc.tocabi_.link_[COM_id].xpos(1);
@@ -242,7 +247,7 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[9].x = dc.tocabi_.link_[COM_id].v(2);
     pointpub_msg.polygon.points[9].y = dc.tocabi_.link_[COM_id].v(2);
-    pointpub_msg.polygon.points[9].z = dc.tocabi_.link_[COM_id].v(2);
+    pointpub_msg.polygon.points[9].z = dc.tocabi_.link_[COM_id].v(2);*/
 
     pointpub_msg.polygon.points[10].x = dc.tocabi_.link_[COM_id].x_traj(0);
     pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
@@ -394,9 +399,9 @@ void StateManager::stateThread2(void)
             if (dc.semode)
             {
                 stateEstimate();
-
-                updateKinematics(model_2, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
             }
+            
+            updateKinematics(model_2, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
             storeState();
 

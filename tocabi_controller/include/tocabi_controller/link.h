@@ -159,6 +159,7 @@ public:
   Eigen::Vector3d pos_d_gain;
   Eigen::Vector3d rot_p_gain;
   Eigen::Vector3d rot_d_gain;
+  Eigen::Vector3d acc_p_gain;
 
   RigidBodyDynamics::Model *model;
 
