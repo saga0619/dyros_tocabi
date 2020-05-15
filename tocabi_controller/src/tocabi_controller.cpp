@@ -291,7 +291,7 @@ void TocabiController::dynamicsThreadHigh()
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = torque_grav(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
                     }
                 }
                 else
@@ -774,6 +774,7 @@ void TocabiController::dynamicsThreadLow()
                     mycontroller.taskCommandToCC(tc);
                     tc_command = false;
                 }
+                torque_grav.setZero();
                 mycontroller.computeSlow();
             }
         }
