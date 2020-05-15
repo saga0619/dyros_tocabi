@@ -471,6 +471,11 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, Eigen::Matri
     {
         return task_control_torque_QP2(Robot, J_task, f_star_);
     }
+    else if (mode == 3)
+    {
+        Robot.qp2nd = true;
+        return task_control_torque_QP2(Robot, J_task, f_star_);
+    }
 }
 
 VectorQd WholebodyController::task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
@@ -893,8 +898,8 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     VectorXd f_star_qp_;
 
     //VectorQd gravity_torque = gravity_compensation_torque(Robot, dc.fixedgravity);
-    double friction_ratio = 0.3;
-    double friction_ratio_z = 0.1;
+    double friction_ratio = 0.1;
+    double friction_ratio_z = 0.01;
     //qptest
     double foot_x_length = 0.12;
     double foot_y_length = 0.04;
@@ -988,8 +993,8 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     g.segment(0, MODEL_DOF) = -Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.G;
 
     //fstar regulation ::
-    H.block(MODEL_DOF + contact_dof, MODEL_DOF + contact_dof, task_dof, task_dof) = 100 * MatrixXd::Identity(task_dof, task_dof);
-    g.segment(MODEL_DOF + contact_dof, task_dof) = -100 * f_star_;
+    H.block(MODEL_DOF + contact_dof, MODEL_DOF + contact_dof, task_dof, task_dof) = 10 * MatrixXd::Identity(task_dof, task_dof);
+    g.segment(MODEL_DOF + contact_dof, task_dof) = -10 * f_star_;
 
     if (Robot.showdata)
     {
@@ -1001,12 +1006,12 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     Fsl.setZero(contact_dof, contact_dof);
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Fsl(6 * i + 0, 6 * i + 0) = 0.00001;
-        Fsl(6 * i + 1, 6 * i + 1) = 0.00001;
-        //Fsl(6 * i + 2, 6 * i + 2) = 1E-6;
+        Fsl(6 * i + 0, 6 * i + 0) = 0.0001;
+        Fsl(6 * i + 1, 6 * i + 1) = 0.0001;
+        Fsl(6 * i + 2, 6 * i + 2) = 0.0001;
         Fsl(6 * i + 3, 6 * i + 3) = 0.01;
         Fsl(6 * i + 4, 6 * i + 4) = 0.01;
-        Fsl(6 * i + 5, 6 * i + 5) = 0.00001;
+        Fsl(6 * i + 5, 6 * i + 5) = 0.01;
     }
 
     double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
@@ -1109,13 +1114,11 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         A(task_dof + contact_dof + i * constraint_per_contact + 10, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
         A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 4 + 6 * i) = -1.0;
         A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-        
-        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 5 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
-        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 5 + 6 * i) = -1.0;
+
+        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 5 + 6 * i) = 1.0;
         A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
-        
-        
+        A(task_dof + contact_dof + i * constraint_per_contact + 13, MODEL_DOF + 5 + 6 * i) = -1.0;
+        A(task_dof + contact_dof + i * constraint_per_contact + 13, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
 
         //May cause error for hand contact!
         for (int j = 0; j < constraint_per_contact; j++)
@@ -1130,7 +1133,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     for (int i = 0; i < constraint_per_contact * Robot.contact_index; i++)
     {
         lbA(task_dof + contact_dof + i) = 0.0;
-        ubA(task_dof + contact_dof + i) = 1000.0;
+        ubA(task_dof + contact_dof + i) = 100000.0;
     }
 
     //std::cout << "calc done!" << std::endl;
@@ -1142,20 +1145,20 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < contact_dof; i++)
     {
-        lb(MODEL_DOF + i) = -1000;
-        ub(MODEL_DOF + i) = 1000;
+        lb(MODEL_DOF + i) = -10000;
+        ub(MODEL_DOF + i) = 10000;
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -0.1;
-        ub(MODEL_DOF + 6 * i + 5) = 0.05;
-        lb(MODEL_DOF + 6 * i + 5) = -0.05;
+        ub(MODEL_DOF + 6 * i + 2) = -1;
+        ub(MODEL_DOF + 6 * i + 5) = 10000;
+        lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
 
     for (int i = 0; i < task_dof; i++)
     {
-        lb(MODEL_DOF + contact_dof + i) = -1000;
-        ub(MODEL_DOF + contact_dof + i) = 1000;
+        lb(MODEL_DOF + contact_dof + i) = -10000;
+        ub(MODEL_DOF + contact_dof + i) = 10000;
     }
 
     //std::cout << "calc done!" << std::endl;
@@ -1191,7 +1194,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         //std::cout << " torque result : " << std::endl;
         //std::cout << task_torque << std::endl;
         std::cout << "fc result " << std::endl;
-        std::cout << qpres.segment(MODEL_DOF, contact_dof) << std::endl;
+        std::cout << "\t " << qpres(0) << "\t " << qpres(1) << "\t " << qpres(2) << "\t " << qpres(3) << "\t " << qpres(4) << "\t " << qpres(5) << "\t " << qpres(6) << "\t " << qpres(7) << "\t " << qpres(8) << "\t " << qpres(9) << "\t " << qpres(10) << "\t " << qpres(11) << std::endl;
         //std::cout << "fstar result : " << std::endl;
         //std::cout << qpres.segment(MODEL_DOF + contact_dof, task_dof) << std::endl;
         //std::cout << "fstar desired : " << std::endl;

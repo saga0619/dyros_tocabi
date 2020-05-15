@@ -661,7 +661,8 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
-                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+
+                tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();
@@ -697,7 +698,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[Pelvis].rot_desired = Matrix3d::Identity();
                 tocabi_.link_[Pelvis].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
-                tocabi_.link_[Upper_Body].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, Pelvis);
@@ -723,9 +724,9 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
-                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-                tocabi_.link_[Upper_Body].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
@@ -750,9 +751,9 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
-                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-                tocabi_.link_[Upper_Body].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
