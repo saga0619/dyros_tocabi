@@ -875,8 +875,10 @@ void StateManager::stateEstimate()
 
         double dr, dl;
 
-        dr = (dc.tocabi_.ZMP_command.segment(0, 2) - dc.tocabi_.ee_[1].xpos.segment(0, 2)).norm();
-        dl = (dc.tocabi_.ZMP_command.segment(0, 2) - dc.tocabi_.ee_[0].xpos.segment(0, 2)).norm();
+        Vector2d zmpc = com_.pos.segment(0, 2) - com_.pos(2) / 9.81 * dc.tocabi_.link_[COM_id].a_traj.segment(0, 2);
+
+        dr = (zmpc - link_[Right_Foot].xpos.segment(0, 2)).norm();
+        dl = (zmpc - link_[Left_Foot].xpos.segment(0, 2)).norm();
 
         rf_s_ratio = dl / (dr + dl);
         lf_s_ratio = dr / (dr + dl);
