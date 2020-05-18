@@ -295,6 +295,8 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[15].y = dc.tocabi_.com_.accel(1);
     pointpub_msg.polygon.points[15].z = dc.tocabi_.com_.accel(2);
 
+    dc.tocabi_.ZMP_command = dc.tocabi_.com_.pos - dc.tocabi_.com_.pos(2) / 9.81 * dc.tocabi_.link_[COM_id].a_traj;
+
     pointpub_msg.polygon.points[16].x = dc.tocabi_.ZMP_command(0);
     pointpub_msg.polygon.points[16].y = dc.tocabi_.ZMP_command(1);
     pointpub_msg.polygon.points[16].z = dc.tocabi_.ZMP_command(2);
@@ -861,16 +863,26 @@ void StateManager::stateEstimate()
             dc.semode_init = false;
         }
 
+        //Vector3d es_zmp;
+
+        //es_zmp = dc.tocabi_.com_.pos - dc.tocabi_.com_.pos(2)/9.81*
+
         contact_right = dc.tocabi_.ee_[1].contact;
         contact_left = dc.tocabi_.ee_[0].contact;
 
         rf_cp_m = link_[Right_Foot].xpos - rf_cp;
         lf_cp_m = link_[Left_Foot].xpos - lf_cp;
 
+        double dr, dl;
+
+        dr = (dc.tocabi_.ZMP_command.segment(0, 2) - dc.tocabi_.ee_[1].xpos.segment(0, 2)).norm();
+        dl = (dc.tocabi_.ZMP_command.segment(0, 2) - dc.tocabi_.ee_[0].xpos.segment(0, 2)).norm();
+
+        rf_s_ratio = dl / (dr + dl);
+        lf_s_ratio = dr / (dr + dl);
+
         if (contact_right && contact_left)
         {
-            rf_s_ratio = dc.tocabi_.ContactForce(2 + 6);
-            lf_s_ratio = dc.tocabi_.ContactForce(2);
             //std::cout << control_time_ << " : base pos calc ! " << std::endl;
             mod_base_pos = (rf_cp_m * rf_s_ratio / (rf_s_ratio + lf_s_ratio) + lf_cp_m * lf_s_ratio / (rf_s_ratio + lf_s_ratio));
             //mod_base_pos(2) = mod_base_pos(2) + ((link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2)) * rf_s_ratio/ (rf_s_ratio + lf_s_ratio) + (link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2)) * lf_s_ratio / (rf_s_ratio + lf_s_ratio));

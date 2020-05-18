@@ -993,7 +993,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     g.segment(0, MODEL_DOF) = -Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.G;
 
     //fstar regulation ::
-    H.block(MODEL_DOF + contact_dof, MODEL_DOF + contact_dof, task_dof, task_dof) = 10 * MatrixXd::Identity(task_dof, task_dof);
+    H.block(MODEL_DOF + contact_dof, MODEL_DOF + contact_dof, task_dof, task_dof) = 1000 * MatrixXd::Identity(task_dof, task_dof);
     g.segment(MODEL_DOF + contact_dof, task_dof) = -10 * f_star_;
 
     if (Robot.showdata)
