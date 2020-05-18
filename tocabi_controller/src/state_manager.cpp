@@ -332,31 +332,28 @@ void StateManager::initYaw()
     tf2::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
 
-    if (dc.semode)
+    if (dc.tocabi_.yaw_init_swc)
     {
-        static bool yawinit = true;
-
-        if (yawinit)
-        {
-            yaw_init = yaw;
-            yawinit = false;
-        }
-
-        //const tf2Scalar& r_,p_,y_;
-
-        tf2::Quaternion q_mod;
-        yaw = yaw - yaw_init;
-
-        q_mod.setRPY(roll, pitch, yaw);
-        //tf2::Quaternion q_rot;
-        //q_rot.setRPY(0, 0, -yaw_init);
-        //q = q * q_rot;
-
-        q_virtual_(3) = q_mod.getX();
-        q_virtual_(4) = q_mod.getY();
-        q_virtual_(5) = q_mod.getZ();
-        q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
+        dc.tocabi_.yaw_init = yaw;
+        dc.tocabi_.yaw_init_swc = false;
     }
+
+    
+
+    //const tf2Scalar& r_,p_,y_;
+
+    tf2::Quaternion q_mod;
+    yaw = yaw - dc.tocabi_.yaw_init;
+
+    q_mod.setRPY(roll, pitch, yaw);
+    //tf2::Quaternion q_rot;
+    //q_rot.setRPY(0, 0, -yaw_init);
+    //q = q * q_rot;
+
+    q_virtual_(3) = q_mod.getX();
+    q_virtual_(4) = q_mod.getY();
+    q_virtual_(5) = q_mod.getZ();
+    q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
 }
 
 void StateManager::stateThread2(void)
@@ -1101,5 +1098,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "terminate")
     {
         shutdown_tocabi_bool = true;
+    }
+    else if (msg->data == "inityaw")
+    {
+        dc.tocabi_.yaw_init_swc = true;
     }
 }

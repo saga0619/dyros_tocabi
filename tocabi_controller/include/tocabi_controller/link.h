@@ -197,12 +197,12 @@ public:
   Link link_[LINK_NUMBER + 1];
   double orientation;
   double roll, pitch, yaw;
+  double yaw_init = 0.0;
 
   //PositionPDGain
   double Kps[MODEL_DOF];
   double Kvs[MODEL_DOF];
   std::vector<double> vector_kp, vector_kv;
- 
 
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
@@ -230,7 +230,7 @@ public:
   bool zmp_feedback_control = false;
   bool check = false;
   bool qp2nd = false;
-
+  bool yaw_init_swc = false;
   Eigen::Vector3d fstar;
 
   //bool contact_[ENDEFFECTOR_NUMBER] = {true, true};
@@ -254,7 +254,6 @@ public:
   int Right = 0;
   int Left = 1;
 
-
   Eigen::MatrixXd task_selection_matrix;
   Eigen::VectorXd task_desired_force;
   Eigen::VectorXd task_feedback_reference;
@@ -265,7 +264,7 @@ public:
   Eigen::MatrixVVd A_matrix;
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_matrix_inverse;
-  
+
   Eigen::MatrixVVd Motor_inertia;
   Eigen::MatrixVVd Motor_inertia_inverse;
   Eigen::MatrixXd Lambda_c_motor;
@@ -273,7 +272,7 @@ public:
   Eigen::MatrixXd lambda_motor_inv, lambda_motor;
   Eigen::MatrixXd W_motor, W_motor_inv;
   Eigen::MatrixXd N_C_motor;
-  Eigen::MatrixXd Q_motor, Q_motor_T_, Q_motor_temp, Q_motor_temp_inv;//, Jtemp, Jtemp_2;
+  Eigen::MatrixXd Q_motor, Q_motor_T_, Q_motor_temp, Q_motor_temp_inv; //, Jtemp, Jtemp_2;
 
   Eigen::MatrixXd J_C, J_C_INV_T;
   Eigen::MatrixXd J_COM;
@@ -314,7 +313,7 @@ public:
   bool zmp_control;
   bool mpc_init;
   bool showdata;
-  
+
   RigidBodyDynamics::Model model_virtual;
 };
 
