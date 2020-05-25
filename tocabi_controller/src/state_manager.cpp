@@ -339,7 +339,6 @@ void StateManager::initYaw()
     }
 
     
-
     //const tf2Scalar& r_,p_,y_;
 
     tf2::Quaternion q_mod;
@@ -417,6 +416,7 @@ void StateManager::stateThread2(void)
                     syspub_msg.data[1] = dc.zp_state;
                     syspub_msg.data[2] = dc.ft_state;
                     syspub_msg.data[3] = dc.ecat_state;
+                    gui_state_pub.publish(syspub_msg);
                 }
             }
             //std::cout << " pb done, " << std::endl;

@@ -923,6 +923,7 @@ void RealRobotInterface::ethercatThread()
                                         if (waitop)
                                         {
                                             pub_to_gui(dc, "ecatgood");
+                                            dc.ecat_state = 1;
                                             commutation_ok = true;
                                             bootseq++;
                                         }
@@ -991,6 +992,8 @@ void RealRobotInterface::ethercatThread()
                                                     commutation_ok = true;
                                                     zp_load_ok = true;
                                                     dc.elmo_Ready = true;
+                                                    dc.zp_state = 2;
+                                                    dc.ecat_state = 1;
                                                     operation_ready = true;
                                                 }
                                             }
