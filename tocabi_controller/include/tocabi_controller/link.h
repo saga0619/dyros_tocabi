@@ -64,6 +64,8 @@ public:
   // set realtime trajectory of link from quintic spline.
   void Set_Trajectory_from_quintic(double current_time, double start_time, double end_time, Eigen::Vector3d pos_init, Eigen::Vector3d vel_init, Eigen::Vector3d pos_desired, Eigen::Vector3d vel_desired);
 
+  void Set_Trajectory_from_quintic(double current_time, double start_time, double end_time, Eigen::Vector3d pos_init, Eigen::Vector3d vel_init, Eigen::Vector3d acc_init, Eigen::Vector3d pos_desired, Eigen::Vector3d vel_desired, Eigen::Vector3d acc_des);
+
   // set realtime trajectory of link from cubic spline.
   void Set_Trajectory_from_cubic(double current_time, double start_time, double end_time);
 

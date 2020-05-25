@@ -43,6 +43,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     positionZeroModElmo.setZero();
     initTimeElmo.setZero();
     positionSafteyHoldElmo.setZero();
+    q_dot_before_.setZero();
 
     rq_.setZero();
     rq_dot_.setZero();
@@ -126,6 +127,8 @@ void RealRobotInterface::updateState()
         q_dot_ = rq_dot_;
         q_ext_ = rq_ext_;
         mtx_q.unlock();
+        q_ddot_ = q_dot_ - q_dot_before_;
+        q_dot_before_ = q_dot_;
         q_virtual_.setZero();
         q_virtual_.segment(3, 3) = imu_quat.segment(0, 3);
         q_virtual_(MODEL_DOF_VIRTUAL) = imu_quat(3);

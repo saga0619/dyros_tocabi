@@ -190,6 +190,20 @@ void Link::Set_Trajectory_from_quintic(double current_time, double start_time, d
     w_traj = Eigen::Vector3d::Zero();
 }
 
+void Link::Set_Trajectory_from_quintic(double current_time, double start_time, double end_time, Eigen::Vector3d pos_init, Eigen::Vector3d vel_init, Eigen::Vector3d acc_init, Eigen::Vector3d pos_desired, Eigen::Vector3d vel_desired, Eigen::Vector3d acc_des)
+{
+    for (int j = 0; j < 3; j++)
+    {
+        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, pos_init(j), vel_init(j), acc_init(j), pos_desired(j), vel_desired(j), acc_des(j));
+        x_traj(j) = quintic(0);
+        v_traj(j) = quintic(1);
+        a_traj(j) = quintic(2);
+    }
+
+    r_traj = rot_init;
+    w_traj = Eigen::Vector3d::Zero();
+}
+
 void Link::Set_Trajectory_rotation(double current_time, double start_time, double end_time, bool local_)
 {
     //if local_ is true, local based rotation control
