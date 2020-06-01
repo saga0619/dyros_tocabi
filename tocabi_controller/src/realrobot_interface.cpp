@@ -992,6 +992,7 @@ void RealRobotInterface::ethercatThread()
                                                     }
                                                     positionInitialElmo = positionElmo;
 
+                                                    commutation_check = false;
                                                     commutation_ok = true;
                                                     zp_load_ok = true;
                                                     dc.elmo_Ready = true;
