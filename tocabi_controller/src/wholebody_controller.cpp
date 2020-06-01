@@ -140,6 +140,38 @@ void WholebodyController::set_contact(RobotData &Robot)
         Robot.link_[Robot.contact_part[i]].Set_Sensor_Position(Robot.q_virtual_, Robot.link_[Robot.contact_part[i]].sensor_point);
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
+
+
+    Robot.ee_[0].cp_ = Robot.link_[Left_Foot].xpos_contact;
+    Robot.ee_[1].cp_ = Robot.link_[Right_Foot].xpos_contact;
+    Robot.ee_[2].cp_ = Robot.link_[Left_Hand].xpos_contact;
+    Robot.ee_[3].cp_ = Robot.link_[Right_Hand].xpos_contact;
+
+    Robot.ee_[0].xpos = Robot.link_[Left_Foot].xpos;
+    Robot.ee_[1].xpos = Robot.link_[Right_Foot].xpos;
+    Robot.ee_[2].xpos = Robot.link_[Left_Hand].xpos;
+    Robot.ee_[3].xpos = Robot.link_[Right_Hand].xpos;
+
+    Robot.ee_[0].rotm = Robot.link_[Left_Foot].Rotm;
+    Robot.ee_[1].rotm = Robot.link_[Right_Foot].Rotm;
+    Robot.ee_[2].rotm = Robot.link_[Left_Hand].Rotm;
+    Robot.ee_[3].rotm = Robot.link_[Right_Hand].Rotm;
+
+    Robot.ee_[0].sensor_xpos = Robot.link_[Left_Foot].xpos_sensor;
+    Robot.ee_[1].sensor_xpos = Robot.link_[Right_Foot].xpos_sensor;
+    Robot.ee_[2].sensor_xpos = Robot.link_[Left_Hand].xpos_sensor;
+    Robot.ee_[3].sensor_xpos = Robot.link_[Right_Hand].xpos_sensor;
+
+    Robot.ee_[0].cs_x_length = 0.12;
+    Robot.ee_[0].cs_y_length = 0.04;
+    Robot.ee_[1].cs_x_length = 0.12;
+    Robot.ee_[1].cs_y_length = 0.04;
+    Robot.ee_[2].cs_x_length = 0.02;
+    Robot.ee_[2].cs_y_length = 0.02;
+    Robot.ee_[3].cs_x_length = 0.02;
+    Robot.ee_[3].cs_y_length = 0.02;
+
+    
     Robot.Lambda_c = (Robot.J_C * Robot.A_matrix_inverse * (Robot.J_C.transpose())).inverse();
     Robot.J_C_INV_T = Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse;
     Robot.N_C.setZero(MODEL_DOF + 6, MODEL_DOF + 6);
@@ -148,10 +180,13 @@ void WholebodyController::set_contact(RobotData &Robot)
     Robot.Slc_k.setZero(MODEL_DOF, MODEL_DOF + 6);
     Robot.Slc_k.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
     Robot.Slc_k_T = Robot.Slc_k.transpose();
-    //W = Slc_k * N_C.transpose() * A_matrix_inverse * N_C * Slc_k_T;
     Robot.W = Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; //2 types for w matrix
     Robot.svd_W_U.setZero(MODEL_DOF, MODEL_DOF);
     Robot.W_inv = DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
+
+    //DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
+    //std::cout<<"Robot.W"<<Robot.W<<std::endl;
+    //std::cout<<"Robot.W_inv"<<Robot.W_inv<<std::endl;
     Robot.contact_force_predict.setZero();
     Robot.contact_calc = true;
 }
