@@ -56,6 +56,8 @@ struct TaskCommand
   int solver;
   int contactredis;
 
+  double init_com_height;
+
   //Walking Related
   int walking_enable;
   int ik_mode;

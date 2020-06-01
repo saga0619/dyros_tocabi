@@ -122,6 +122,8 @@ public:
   Vector6d getfstar6d(RobotData &Robot, int link_id, Vector3d kpt, Vector3d kdt, Vector3d kpa, Vector3d kda);
   Vector6d getfstar6d(RobotData &Robot, int link_id);
 
+  VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
+
   Vector3d COM_traj_with_zmp(RobotData &Robot);
 
   //zmp controller

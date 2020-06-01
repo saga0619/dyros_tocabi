@@ -337,7 +337,7 @@ static Eigen::MatrixXd glsSVD_U(Eigen::MatrixXd A)
 
 static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, double epsilon = std::numeric_limits<double>::epsilon())
 {
-  
+
   int size_row, size_col;
   size_row = A.rows();
   size_col = A.cols();
@@ -401,7 +401,7 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, double epsilon = std::nume
 
 static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double epsilon = std::numeric_limits<double>::epsilon())
 {
-  
+
   int size_row, size_col;
   size_row = A.rows();
   size_col = A.cols();
@@ -722,24 +722,24 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
 // }
 
 const static Eigen::Matrix3d rotationCubic(double time,
-		double time_0,
-		double time_f,
-		const Eigen::Matrix3d &rotation_0,
-		const Eigen::Matrix3d &rotation_f)
-	{
-		if (time >= time_f)
-		{
-			return rotation_f;
-		}
-		else if (time < time_0)
-		{
-			return rotation_0;
-		}
-		double tau = cubic(time, time_0, time_f, 0, 1, 0, 0);
-		Eigen::Matrix3d rot_scaler_skew;
-		rot_scaler_skew = (rotation_0.transpose() * rotation_f).log();
-		//rot_scaler_skew = rot_scaler_skew.log();
-		/*
+                                           double time_0,
+                                           double time_f,
+                                           const Eigen::Matrix3d &rotation_0,
+                                           const Eigen::Matrix3d &rotation_f)
+{
+  if (time >= time_f)
+  {
+    return rotation_f;
+  }
+  else if (time < time_0)
+  {
+    return rotation_0;
+  }
+  double tau = cubic(time, time_0, time_f, 0, 1, 0, 0);
+  Eigen::Matrix3d rot_scaler_skew;
+  rot_scaler_skew = (rotation_0.transpose() * rotation_f).log();
+  //rot_scaler_skew = rot_scaler_skew.log();
+  /*
 		Eigen::Matrix3d rotation_exp;
 		Eigen::Vector3d a1, b1, c1, r1;
 		r1(0) = rotation_temp(2,1);
@@ -761,11 +761,11 @@ const static Eigen::Matrix3d rotationCubic(double time,
 		rotation_exp(2,0) = -exp_vector(1);
 		rotation_exp(2,1) =  exp_vector(0);
 		*/
-		//Eigen::Matrix3d result = rotation_0 * rotation_exp.exp();
-		Eigen::Matrix3d result = rotation_0 * (rot_scaler_skew * tau).exp();
+  //Eigen::Matrix3d result = rotation_0 * rotation_exp.exp();
+  Eigen::Matrix3d result = rotation_0 * (rot_scaler_skew * tau).exp();
 
-		return result;
-	}
+  return result;
+}
 
 static Eigen::Vector3d QuinticSpline(
     double time,     ///< Current time
@@ -842,10 +842,21 @@ static double check_border(double x, double y, double x0, double x1, double y0, 
 {
   return -sign * ((y1 - y0) * (x - x0) + (x1 - x0) * (y0 - y));
 }
+
+static inline double lpf(double input, double prev_res, double samping_preq, double cutoff_preq)
+{
+  double rc = 1.0 / (cutoff_preq * 2 * 3.141592);
+  double dt = 1.0 / samping_preq;
+  double a = dt / (rc + dt);
+
+  return (prev_res + a*(input- prev_res));
+}
+
 static inline double lowPassFilter(double input, double prev, double ts, double tau)
 {
   return (tau * prev + ts * input) / (tau + ts);
 }
+
 template <int N>
 static Eigen::Matrix<double, N, 1> lowPassFilter(Eigen::Matrix<double, N, 1> input, Eigen::Matrix<double, N, 1> prev, double ts, double tau)
 {
@@ -853,6 +864,18 @@ static Eigen::Matrix<double, N, 1> lowPassFilter(Eigen::Matrix<double, N, 1> inp
   for (int i = 0; i < N; i++)
   {
     res(i) = lowPassFilter(input(i), prev(i), ts, tau);
+  }
+  return res;
+}
+
+template <int N>
+static Eigen::Matrix<double, N, 1> lpf(Eigen::Matrix<double, N, 1> input, Eigen::Matrix<double, N, 1> prev, double samping_preq, double cutoff_preq)
+{
+  Eigen::Matrix<double, N, 1> res;
+
+  for (int i = 0; i < N; i++)
+  {
+    res(i) = lpf(input(i), prev(i), samping_preq, cutoff_preq);
   }
   return res;
 }

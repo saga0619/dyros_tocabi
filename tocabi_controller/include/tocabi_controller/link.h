@@ -87,6 +87,8 @@ public:
   // set link initial position and rotation. initial position for task control.
   void Set_initpos();
 
+  bool Check_name(RigidBodyDynamics::Model &model_);
+
   //constant variables
   int id;
   double Mass;
@@ -297,6 +299,7 @@ public:
 
   Eigen::VectorXd G;
   Eigen::VectorQd torque_grav_cc;
+  Eigen::VectorQd torque_grav;
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;

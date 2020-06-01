@@ -2050,6 +2050,8 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
     Eigen::MatrixXd tg_temp = ppinv * J_g * Robot.A_matrix_inverse * Robot.N_C;
     torque_grav = tg_temp * Robot.G;
 
+    Robot.torque_grav = torque_grav;
+
     Robot.contact_calc = false;
     return torque_grav;
 }
@@ -2690,6 +2692,15 @@ VectorXd WholebodyController::get_contact_force(RobotData &Robot, VectorQd comma
         contactforce.segment(6, 6) = Robot.J_C_INV_T * Robot.Slc_k_T * command_torque - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
 
     return contactforce;
+}
+
+VectorQd WholebodyController::get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque)
+{
+    VectorXd jointAcc;
+
+    jointAcc = Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T * commnad_torque - Robot.A_matrix_inverse * Robot.N_C * Robot.G;
+
+    return jointAcc;
 }
 
 VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta)
