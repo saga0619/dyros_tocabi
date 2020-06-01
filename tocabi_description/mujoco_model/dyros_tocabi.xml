@@ -3,7 +3,7 @@
     <size njmax="500" nconmax="100" />
 
     <default>
-        <joint damping="0.1" frictionloss="0.1"/>
+        <joint damping="0.5" frictionloss="0.1"/>
         <motor ctrllimited="true" ctrlrange="-300 300"/>
         <default class="viz">
             <geom contype="0" conaffinity="0" group="1" type="mesh" rgba=".6 .6 .7 1" />

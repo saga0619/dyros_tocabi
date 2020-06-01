@@ -37,7 +37,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         ft_viz_msg.markers[i].scale.z = 0;
     }
 
-    pointpub_msg.polygon.points.resize(17);
+    pointpub_msg.polygon.points.resize(18);
 
     if (dc.mode == "realrobot")
     {
@@ -163,7 +163,7 @@ void StateManager::adv2ROS(void)
     {
         joint_state_msg.position[i] = q_[i];
         joint_state_msg.velocity[i] = q_dot_[i];
-        joint_state_msg.effort[i] = torque_desired[i];
+        joint_state_msg.effort[i] = dc.torque_desired[i];
     }
     joint_states_pub.publish(joint_state_msg);
     time_msg.data = control_time_;
@@ -186,17 +186,13 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[0].y = com_.pos(1);
     pointpub_msg.polygon.points[0].z = com_.pos(2);
 
-
     pointpub_msg.polygon.points[1].x = link_[Right_Foot].xpos(0);
     pointpub_msg.polygon.points[1].y = link_[Right_Foot].xpos(1);
-    pointpub_msg.polygon.points[1].z = link_[Right_Foot].xpos(2);// - dc.tocabi_.yaw;
-
-
+    pointpub_msg.polygon.points[1].z = link_[Right_Foot].xpos(2); // - dc.tocabi_.yaw;
 
     pointpub_msg.polygon.points[2].x = link_[Left_Foot].xpos(0);
     pointpub_msg.polygon.points[2].y = link_[Left_Foot].xpos(1);
     pointpub_msg.polygon.points[2].z = link_[Left_Foot].xpos(2);
-
 
     pointpub_msg.polygon.points[3].x = dc.tocabi_.link_[Pelvis].xpos(0);
     pointpub_msg.polygon.points[3].y = dc.tocabi_.link_[Pelvis].xpos(1);
@@ -221,24 +217,29 @@ void StateManager::adv2ROS(void)
     Eigen::Matrix3d tm;
     tm = link_[Left_Foot].Rotm;
     tf2::Matrix3x3 m(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
-    double tr, tp, ty;
-    m.getRPY(tr, tp, ty);
-    
-    pointpub_msg.polygon.points[8].x = tr;
-    pointpub_msg.polygon.points[8].y = tp;
-    pointpub_msg.polygon.points[8].z = ty;
+    double ltr, ltp, lty;
+    m.getRPY(ltr, ltp, lty);
+
+    pointpub_msg.polygon.points[8].x = ltr;
+    pointpub_msg.polygon.points[8].y = ltp;
+    pointpub_msg.polygon.points[8].z = lty;
 
     tm = link_[Right_Foot].Rotm;
     tf2::Matrix3x3 m2(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
-    m2.getRPY(tr, tp, ty);
+    double rtr, rtp, rty;
+    m2.getRPY(rtr, rtp, rty);
 
-    pointpub_msg.polygon.points[9].x = tr;
-    pointpub_msg.polygon.points[9].y = tp;
-    pointpub_msg.polygon.points[9].z = ty;
+    pointpub_msg.polygon.points[9].x = rtr;
+    pointpub_msg.polygon.points[9].y = rtp;
+    pointpub_msg.polygon.points[9].z = rty;
 
+    pointpub_msg.polygon.points[10].x = ltr / dc.tocabi_.torque_grav[1];
+    pointpub_msg.polygon.points[10].y = rtr / dc.tocabi_.torque_grav[7];
+    pointpub_msg.polygon.points[10].z = 0.0;
 
-
-
+    //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
+    //pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
+    //pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].v_traj(2);
 
     /*
 
@@ -250,9 +251,9 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[9].y = dc.tocabi_.link_[COM_id].v(2);
     pointpub_msg.polygon.points[9].z = dc.tocabi_.link_[COM_id].v(2);*/
 
-    pointpub_msg.polygon.points[10].x = dc.tocabi_.link_[COM_id].x_traj(0);
-    pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
-    pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].x_traj(2);
+    //pointpub_msg.polygon.points[10].x = dc.tocabi_.link_[COM_id].x_traj(0);
+    //pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
+    //pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].x_traj(2);
 
     pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
     pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
@@ -302,6 +303,9 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[16].y = dc.tocabi_.ZMP_command(1);
     pointpub_msg.polygon.points[16].z = dc.tocabi_.ZMP_command(2);
 
+    pointpub_msg.polygon.points[17].x = dc.tocabi_.ContactForce(3) / dc.tocabi_.ContactForce(2);
+    pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce_FT(3) / dc.tocabi_.ContactForce_FT(2);
+    pointpub_msg.polygon.points[17].z = pointpub_msg.polygon.points[8].x * 180 / 3.141592;
     point_pub.publish(pointpub_msg);
 
     for (int i = 0; i < 2; i++)
@@ -406,8 +410,11 @@ void StateManager::stateThread2(void)
 
             if ((cycle_count % 10) == 0)
             {
+                if (control_time_ > 1.0)
+                {
+                    adv2ROS();
+                }
                 //ROS_INFO("publish start? \n");
-                adv2ROS();
             }
             if (dc.mode == "realrobot")
             {
@@ -539,7 +546,10 @@ void StateManager::testThread()
         //stateEstimate();
         //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
 
+        storeSync();
+
         storeState();
+
         t[3] = std::chrono::high_resolution_clock::now();
 
         dur[0] = t[1] - t[0];
@@ -593,6 +603,9 @@ void StateManager::initialize()
     q_dot_virtual_.setZero();
     q_ddot_virtual_.setZero();
 
+    q_dot_before_.setZero();
+    q_dot_virtual_before.setZero();
+
     torque_desired.setZero();
 
     dc.torqueElmo.setZero();
@@ -644,6 +657,10 @@ void StateManager::storeState()
     dc.tocabi_.com_ = com_;
 
     mtx_dc.unlock();
+}
+void StateManager::storeSync()
+{
+    //dc.tocabi_.
 }
 
 void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual)
@@ -776,17 +793,17 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eig
     com_.CP(1) = com_.pos(1) + com_.vel(1) / w_;
 
     Eigen::MatrixXd jacobian_com;
+
     jacobian_com.setZero(3, MODEL_DOF + 6);
 
     for (int i = 0; i < LINK_NUMBER; i++)
     {
         jacobian_com += link_[i].Jac_COM_p * link_[i].Mass;
     }
-    jacobian_com = jacobian_com / com_.mass;
 
     link_[COM_id].Jac.setZero(6, MODEL_DOF + 6);
 
-    link_[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6);
+    link_[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6) / com_.mass;
     link_[COM_id].Jac.block(2, 0, 4, MODEL_DOF + 6) = link_[Pelvis].Jac.block(2, 0, 4, MODEL_DOF + 6);
 
     link_[COM_id].Jac_COM_p = jacobian_com;
@@ -906,6 +923,9 @@ void StateManager::stateEstimate()
             q_virtual_(i) = -mod_base_pos(i);
             q_dot_virtual_(i) = -mod_base_vel(i);
         }
+
+        q_ddot_virtual_ = (q_dot_virtual_ - q_dot_virtual_before) / ((double)dc.ctime / 1000000.0);
+        q_dot_virtual_before = q_dot_virtual_;
     }
 }
 
