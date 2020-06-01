@@ -229,13 +229,15 @@ void StateManager::adv2ROS(void)
     double rtr, rtp, rty;
     m2.getRPY(rtr, rtp, rty);
 
-    pointpub_msg.polygon.points[9].x = rtr;
+    double mod = 180.0 * 100 / 3.141592;
+
+    pointpub_msg.polygon.points[9].x = rtr * mod;
     pointpub_msg.polygon.points[9].y = rtp;
     pointpub_msg.polygon.points[9].z = rty;
 
     pointpub_msg.polygon.points[10].x = ltr / dc.tocabi_.torque_grav[1];
-    pointpub_msg.polygon.points[10].y = rtr / dc.tocabi_.torque_grav[7];
-    pointpub_msg.polygon.points[10].z = 0.0;
+    pointpub_msg.polygon.points[10].y = rtr * mod / dc.tocabi_.torque_grav[7];
+    pointpub_msg.polygon.points[10].z = rtr * mod / dc.torque_desired[7];
 
     //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);

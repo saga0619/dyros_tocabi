@@ -1239,11 +1239,17 @@ void TocabiController::dynamicsThreadLow()
                 mycontroller.computeSlow();
             }
 
-            std::cout << "lambda y : " << tocabi_.lambda(1, 1) << "  task y fstar : " << tocabi_.f_star(1) << std::endl;
+            Eigen::Matrix3d tm;
+            tm = tocabi_.link_[Right_Foot].Rotm;
+            tf2::Matrix3x3 m(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
+            double ltr, ltp, lty;
+            m.getRPY(ltr, ltp, lty);
+
+            std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
         }
         else
         {
-            wbc_.set_contact(tocabi_, 1, 1);
+            wbc_.set_contact(tocabi_);
             tp[3] = std::chrono::steady_clock::now();
             torque_grav = wbc_.gravity_compensation_torque(tocabi_);
             cr_mode = 0;
