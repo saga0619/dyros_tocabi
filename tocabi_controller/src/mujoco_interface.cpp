@@ -171,7 +171,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
                 q_(i) = msg->position[j];
                 q_virtual_(i + 6) = msg->position[j];
                 q_dot_(i) = msg->velocity[j];
-                q_dot_virtual_(i + 6) = msg->velocity[j];
+                q_dot_virtual_raw_(i + 6) = msg->velocity[j];
                 q_ddot_virtual_(i + 6) = msg->effort[j];
                 torque_(i) = msg->effort[j];
             }
@@ -186,7 +186,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         for (int i = 3; i < 6; i++)
         {
             q_virtual_(i) = msg->position[i];
-            q_dot_virtual_(i) = msg->velocity[i];
+            q_dot_virtual_raw_(i) = msg->velocity[i];
             q_ddot_virtual_(i) = msg->effort[i];
         }
         q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
@@ -194,7 +194,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = 0.0;
-            q_dot_virtual_(i) = 0.0;
+            q_dot_virtual_raw_(i) = 0.0;
             q_ddot_virtual_(i) = 0.0;
         }
     }
@@ -203,7 +203,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         for (int i = 0; i < 6; i++)
         {
             q_virtual_(i) = msg->position[i];
-            q_dot_virtual_(i) = msg->velocity[i];
+            q_dot_virtual_raw_(i) = msg->velocity[i];
             q_ddot_virtual_(i) = msg->effort[i];
         }
         q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];

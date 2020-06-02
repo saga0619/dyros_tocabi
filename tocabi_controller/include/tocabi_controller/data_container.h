@@ -222,6 +222,8 @@ public:
   bool semode = false;  // state estimation running or not.
   bool semode_init = true;
 
+  bool safetyison = false;
+
   bool initialize_request = false;
 
   int imu_state = 0; //0 not ok 1 not valid 2 valid

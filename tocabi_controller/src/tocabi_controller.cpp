@@ -1245,7 +1245,8 @@ void TocabiController::dynamicsThreadLow()
             double ltr, ltp, lty;
             m.getRPY(ltr, ltp, lty);
 
-            std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
+            //std::cout << "q_ext - q_int of R_hip Roll : " << dc.q_(7) - dc.q_ext_(7) << std::endl;
+            //std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
         }
         else
         {
@@ -1282,6 +1283,7 @@ void TocabiController::dynamicsThreadLow()
         {
             TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
+        tocabi_.torque_contact = TorqueContact;
 
         tp[5] = std::chrono::steady_clock::now();
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -1501,23 +1503,45 @@ void TocabiController::tuiThread()
 
         //AURA CONTROL PART
 
-        static double tgain;
+        static bool safetymode_led = false;
 
-        if (tgain != dc.t_gain)
+        int tg1 = 255 * dc.t_gain;
+        int tg2 = (255 - 63) * dc.t_gain;
+
+        dc.rgbPubMsg.data = {tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1, 0, 0};
+        dc.rgbPub.publish(dc.rgbPubMsg);
+
+        if (dc.safetyison)
         {
-            int tg1, tg2;
-            tg1 = 255 * dc.t_gain;
-            tg2 = (255 - 63) * dc.t_gain;
+            if (((2 * control_time_ - floor(2 * control_time_)) - 0.5) >= 0)
+            {
+                dc.rgbPubMsg.data[0] = 255;
+                dc.rgbPubMsg.data[1] = 0;
+                dc.rgbPubMsg.data[2] = 0;
 
-            dc.rgbPubMsg.data = {tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1, 0, 0};
+                dc.rgbPubMsg.data[15] = 0;
+                dc.rgbPubMsg.data[16] = 0;
+                dc.rgbPubMsg.data[17] = 0;
+            }
+            else
+            {
+                dc.rgbPubMsg.data[0] = 0;
+                dc.rgbPubMsg.data[1] = 0;
+                dc.rgbPubMsg.data[2] = 0;
+
+                dc.rgbPubMsg.data[15] = 255;
+                dc.rgbPubMsg.data[16] = 0;
+                dc.rgbPubMsg.data[17] = 0;
+            }
             dc.rgbPub.publish(dc.rgbPubMsg);
-
-            tgain = dc.t_gain;
         }
+
         before_time = control_time_;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
         //std::cout<<control_time_<<"tui test"<<std::endl;
     }
+    dc.rgbPubMsg.data = {0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0};
+    dc.rgbPub.publish(dc.rgbPubMsg);
 
     std::cout << cyellow << "Terminal Thread End !" << creset << std::endl;
 }
