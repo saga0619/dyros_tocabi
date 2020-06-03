@@ -106,6 +106,7 @@ public:
   bool print_elmo_info_tofile = false;
   bool start_initialize_sequence = false;
   bool start_initialize_lower = false;
+  bool imu_reset_signal = false;
 
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;

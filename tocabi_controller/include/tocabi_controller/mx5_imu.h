@@ -31,6 +31,7 @@ public:
     tf2_ros::TransformBroadcaster br;
 
     void initIMU();
+    void resetEFIMU();
 
     void startIMU();
 

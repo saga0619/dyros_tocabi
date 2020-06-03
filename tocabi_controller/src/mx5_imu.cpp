@@ -28,13 +28,16 @@ void MX5IMU::initIMU()
     startSampling(node);
 
     //cout << "Sending Reset Command ... " << endl;
-    node.resetFilter();
-    node.setInitialHeading(0.0);
 
     //getCurrentConfig(node);
     //node.setAutoInitialization(false);
     //node.setInitialHeading(0.0);
     //node.setAutoInitialization(true);
+}
+
+void MX5IMU::resetEFIMU()
+{
+    node.resetFilter();
 }
 
 sensor_msgs::Imu MX5IMU::getIMU()
@@ -111,10 +114,10 @@ sensor_msgs::Imu MX5IMU::getIMU()
                     tf2::Quaternion q(dataPoint.as_Vector().as_floatAt(1), dataPoint.as_Vector().as_floatAt(2), dataPoint.as_Vector().as_floatAt(3), dataPoint.as_Vector().as_floatAt(0));
                     tf2::Quaternion q_rot, q_rot2;
 
-                    q_rot.setRPY(M_PI, 0, M_PI / 2);
+                    //q_rot.setRPY(M_PI, 0, M_PI / 2);
 
-                    q_rot2.setRPY(M_PI, M_PI, M_PI / 2);
-                    q = q_rot * q * q_rot2;
+                    //q_rot2.setRPY(M_PI, M_PI, M_PI / 2);
+                    //q = q_rot * q * q_rot2;
 
                     imu_pub_msg.orientation = tf2::toMsg(q);
                     imu_pub_msg.header.stamp = ros::Time::now();
@@ -123,11 +126,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estLinearAccelX")
                 {
-                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.x = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelY")
                 {
-                    imu_pub_msg.linear_acceleration.x = -dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.y = -dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelZ")
                 {
@@ -136,11 +139,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estAngularRateX")
                 {
-                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.x = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateY")
                 {
-                    imu_pub_msg.angular_velocity.x = -dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.y = -dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateZ")
                 {
@@ -204,8 +207,8 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
     ef_state_flag_before = ef_state_flag;
     ef_state_before = ef_state;
-    static int num=0;
-    if(num%20==0)
+    static int num = 0;
+    if (num % 20 == 0)
         imu_pub.publish(imu_pub_msg);
     num++;
     return imu_pub_msg;

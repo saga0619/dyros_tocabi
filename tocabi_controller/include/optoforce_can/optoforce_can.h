@@ -154,7 +154,7 @@ public:
 			{
 		printf("4444");
 				m_channelData.channel[i].hnd = hnd;
-				if ((stat = canIoCtl(hnd, canIOCTL_FLUSH_TX_BUFFER, NULL, NULL)) != canOK)
+				if ((stat = canIoCtl(hnd, canIOCTL_FLUSH_TX_BUFFER, NULL, (unsigned int)NULL)) != canOK)
 					PRINTF_ERR(("ERROR canIoCtl(canIOCTL_FLUSH_TX_BUFFER) FAILED, Err= %d <line: %d>\n",
 								stat, __LINE__));
 			}
