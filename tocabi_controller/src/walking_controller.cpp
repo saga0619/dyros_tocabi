@@ -33,7 +33,7 @@ void Walking_controller::walkingCompute(RobotData Robot)
 
         leg_q_NC = desired_leg_q;
         //hipCompensator();
-        //inverseKinematicsdob(Robot);
+        inverseKinematicsdob(Robot);
 
         updateNextStepTime();
     }
@@ -249,6 +249,8 @@ void Walking_controller::getRobotInitState(RobotData Robot)
 {
     if(walking_tick == 0)
     {   
+        contactMode = 1.0;
+
         RF_float_init.translation() = Robot.link_[Right_Foot].xpos;
         RF_float_init.linear() = Robot.link_[Right_Foot].Rotm;
         LF_float_init.translation() = Robot.link_[Left_Foot].xpos;
@@ -551,8 +553,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     foot_height = 0.020;
     com_control_mode = true;
     gyro_frame_flag = false;
-
-
+    
     if(com_control_mode == true)
     {
         pelvis_pgain = 0.1;
