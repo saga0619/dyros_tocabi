@@ -39,7 +39,9 @@ public:
     void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot);
     void setWalkingParameter(RobotData Robot);
 
+    void calcRobotState();
     void hipCompensator();
+    void inverseKinematicsdob(RobotData &Robot);
 
 private:
 
