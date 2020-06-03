@@ -177,6 +177,18 @@ public:
     double pelvis_dgain;
     double pelvis_offsetx;
 
-    std::fstream file[1];
+    Eigen::Vector3d COM;
+    Eigen::Vector3d CP;
+
+    Eigen::Vector3d com_support_temp;
+    Eigen::Vector3d com_support_temp_prev;
+    Eigen::Vector3d COM_prev;
+    
+    Eigen::Vector12d dob_hat;
+    Eigen::Vector12d dob_hat_prev;
+    double dobGain;
+
+
+    std::fstream file[2];
 };
 #endif
