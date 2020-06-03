@@ -133,9 +133,9 @@ void RealRobotInterface::updateState()
         q_virtual_.segment(3, 3) = imu_quat.segment(0, 3);
         q_virtual_(MODEL_DOF_VIRTUAL) = imu_quat(3);
         q_virtual_.segment(6, MODEL_DOF) = q_;
-        q_dot_virtual_.setZero();
-        q_dot_virtual_.segment(3, 3) = imu_ang_vel;
-        q_dot_virtual_.segment(6, MODEL_DOF) = q_dot_;
+        q_dot_virtual_raw_.setZero();
+        q_dot_virtual_raw_.segment(3, 3) = imu_ang_vel;
+        q_dot_virtual_raw_.segment(6, MODEL_DOF) = q_dot_;
 
         q_ddot_virtual_.setZero();
         q_ddot_virtual_.segment(0, 3) = imu_lin_acc;
@@ -183,6 +183,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
             {
                 std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " trajectory discontinuity : " << (positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) << creset << std::endl;
                 pub_to_gui(dc, "Lock %d %s , traj err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
+                dc.safetyison = true;
                 ElmoSafteyMode[slv_number] = 1;
                 positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
             }
@@ -191,6 +192,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
         {
             if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 10.0)
             {
+                dc.safetyison = true;
                 std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command discontinuity : " << (positionDesiredElmo(slv_number) - positionElmo(slv_number)) << creset << std::endl;
                 pub_to_gui(dc, "Lock %d %s , command err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
                 ElmoSafteyMode[slv_number] = 1;
@@ -200,6 +202,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
 
         if (abs(velocityElmo(slv_number)) > max_vel)
         {
+            dc.safetyison = true;
             std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Velocity Over Limit" << creset << std::endl;
             pub_to_gui(dc, "Lock %d %s , velocity err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
             ElmoSafteyMode[slv_number] = 1;
@@ -266,7 +269,12 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
 
         if ((positionExternalElmo[slv_number] > 3.14) || (positionExternalElmo[slv_number < -3.14]))
         {
-            std::cout << cred << "elmo reboot required. joint " << slv_number << "external encoder error" << std::endl;
+
+            std::cout << cred << "elmo reboot required. joint " << slv_number << "external encoder error" << positionExternalElmo[slv_number] << std::endl;
+        }
+        else if (slv_number == 24)
+        {
+            std::cout << "positionExternal OK " << positionExternalElmo[slv_number] << std::endl;
         }
     }
 
@@ -278,7 +286,7 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
 
         if (control_time_ == elmofz[slv_number].initTime)
         {
-            std::cout << "joint " << slv_number << "  init pos : " << elmofz[slv_number].initPos << "   goto " << elmofz[slv_number].initPos + elmofz[slv_number].init_direction * 0.6 << std::endl;
+            //std::cout << "joint " << slv_number << "  init pos : " << elmofz[slv_number].initPos << "   goto " << elmofz[slv_number].initPos + elmofz[slv_number].init_direction * 0.6 << std::endl;
         }
 
         if (positionExternalElmo[slv_number] * elmofz[slv_number].init_direction > 0)
@@ -332,6 +340,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             elmofz[slv_number].findZeroSequence = FZ_FINDHOMMINGEND;
             elmofz[slv_number].initTime = control_time_;
             elmofz[slv_number].posStart = positionElmo[slv_number];
+            elmofz[slv_number].initPos = positionElmo[slv_number];
         }
     }
     else if (elmofz[slv_number].findZeroSequence == FZ_FINDHOMMINGEND)
@@ -359,7 +368,8 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             if (elmofz[slv_number].endFound == 1)
             {
                 //std::cout << "motor " << slv_number << " seq 2 complete" << std::endl;
-                elmofz[slv_number].findZeroSequence = 4;
+                elmofz[slv_number].findZeroSequence = FZ_GOTOZEROPOINT;
+                elmofz[slv_number].initPos = positionElmo[slv_number];
                 positionZeroElmo[slv_number] = (elmofz[slv_number].posEnd + elmofz[slv_number].posStart) * 0.5 + positionZeroModElmo[slv_number];
                 elmofz[slv_number].initTime = control_time_;
                 //std::cout << "on : Motor " << slv_number << " zero point found : " << positionZeroElmo[slv_number] << std::endl;
@@ -381,7 +391,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, elmofz[slv_number].init_direction * 0.3, elmofz[slv_number].initTime, fztime);
         if (control_time_ > (elmofz[slv_number].initTime + fztime))
         {
-            positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos + 0.3 * elmofz[slv_number].init_direction, -0.6 * elmofz[slv_number].init_direction, elmofz[slv_number].initTime + 2.0, fztime * 2.0);
+            positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos + 0.3 * elmofz[slv_number].init_direction, -0.6 * elmofz[slv_number].init_direction, elmofz[slv_number].initTime + fztime, fztime * 2.0);
         }
 
         if (hommingElmo[slv_number] && hommingElmo_before[slv_number])
@@ -403,7 +413,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
     else if (elmofz[slv_number].findZeroSequence == FZ_GOTOZEROPOINT)
     {
         ElmoMode[slv_number] = EM_POSITION;
-        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].posEnd, positionZeroElmo(slv_number) - elmofz[slv_number].posEnd, elmofz[slv_number].initTime, fztime * (abs(positionZeroElmo(slv_number) - elmofz[slv_number].posEnd) / 0.3));
+        positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, positionZeroElmo(slv_number) - elmofz[slv_number].initPos, elmofz[slv_number].initTime, fztime * (abs(positionZeroElmo(slv_number) - elmofz[slv_number].initPos) / 0.3));
         //go to zero position
         if (control_time_ > (elmofz[slv_number].initTime + fztime / 2))
         {
@@ -926,6 +936,7 @@ void RealRobotInterface::ethercatThread()
                                         if (waitop)
                                         {
                                             pub_to_gui(dc, "ecatgood");
+                                            dc.ecat_state = 1;
                                             commutation_ok = true;
                                             bootseq++;
                                         }
@@ -991,9 +1002,12 @@ void RealRobotInterface::ethercatThread()
                                                     }
                                                     positionInitialElmo = positionElmo;
 
+                                                    commutation_check = false;
                                                     commutation_ok = true;
                                                     zp_load_ok = true;
                                                     dc.elmo_Ready = true;
+                                                    dc.zp_state = 2;
+                                                    dc.ecat_state = 1;
                                                     operation_ready = true;
                                                 }
                                             }
@@ -1285,15 +1299,12 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = false;
                                 }
 
-                                if (operation_ready)
+                                if (i == TOCABI::R_AnkleRoll_Joint || i == TOCABI::L_AnkleRoll_Joint)
                                 {
-                                    if (i == TOCABI::R_AnkleRoll_Joint || i == TOCABI::L_AnkleRoll_Joint)
-                                    {
-                                    }
-                                    else
-                                    {
-                                        checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
-                                    }
+                                }
+                                else
+                                {
+                                    checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                                 }
                                 checkJointLimit(i);
                             }

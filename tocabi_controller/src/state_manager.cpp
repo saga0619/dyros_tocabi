@@ -231,12 +231,12 @@ void StateManager::adv2ROS(void)
 
     double mod = 180.0 * 100 / 3.141592;
 
-    pointpub_msg.polygon.points[9].x = rtr * mod;
+    pointpub_msg.polygon.points[9].x = rtr;
     pointpub_msg.polygon.points[9].y = rtp;
     pointpub_msg.polygon.points[9].z = rty;
 
-    pointpub_msg.polygon.points[10].x = ltr / dc.tocabi_.torque_grav[1];
-    pointpub_msg.polygon.points[10].y = rtr * mod / dc.tocabi_.torque_grav[7];
+    pointpub_msg.polygon.points[10].x = rtr * mod / (dc.tocabi_.torque_grav[7] + dc.tocabi_.torque_contact[7]);
+    pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
     pointpub_msg.polygon.points[10].z = rtr * mod / dc.torque_desired[7];
 
     //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
@@ -392,6 +392,9 @@ void StateManager::stateThread2(void)
             updateState();
             //std::cout << " us done,  " << std::flush;
 
+            //DyrosMath::lpf()
+            q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_, 2000, 10);
+
             initYaw();
 
             if (shutdown_tocabi_bool)
@@ -426,6 +429,7 @@ void StateManager::stateThread2(void)
                     syspub_msg.data[1] = dc.zp_state;
                     syspub_msg.data[2] = dc.ft_state;
                     syspub_msg.data[3] = dc.ecat_state;
+                    gui_state_pub.publish(syspub_msg);
                 }
             }
             //std::cout << " pb done, " << std::endl;
@@ -603,7 +607,9 @@ void StateManager::initialize()
     q_virtual_.setZero();
     q_dot_virtual_.setZero();
     q_ddot_virtual_.setZero();
-
+    q_dot_virtual_lpf_.setZero();
+    q_dot_virtual_raw_.setZero();
+    q_ddot_virtual_lpf_.setZero();
     q_dot_before_.setZero();
     q_dot_virtual_before.setZero();
 
@@ -1100,6 +1106,8 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         dc.disableSafetyLock = true;
         dc.safetycheckdisable = false;
+        dc.safetyison = false;
+        std::cout << "Reset Safety mode" << std::endl;
     }
     else if (msg->data == "safetydisable")
     {

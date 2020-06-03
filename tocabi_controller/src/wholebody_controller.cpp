@@ -2788,7 +2788,7 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
 
         //ZMP_pos = GetZMPpos(P1_local, P2_local, ContactForce_Local_yaw);
 
-        ForceRedistributionTwoContactMod2(0.98, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
+        ForceRedistributionTwoContactMod2(0.99, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
 
         //std::cout << "fres - calc" << std::endl
         //          << ResultantForce_ << std::endl;
