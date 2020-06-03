@@ -550,7 +550,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = walkingenable;
-    foot_height = 0.020;
+    foot_height = 0.030;
     com_control_mode = true;
     gyro_frame_flag = false;
     
@@ -713,9 +713,9 @@ void Walking_controller::setWalkingParameter(RobotData Robot)
     walking_tick = 0;
     t_rest_init = 0.1*Hz_;
     t_rest_last = 0.1*Hz_;
-    t_double1 = 0.15*Hz_;
-    t_double2 = 0.15*Hz_;
-    t_total = 1.2*Hz_;
+    t_double1 = 0.1*Hz_;
+    t_double2 = 0.1*Hz_;
+    t_total = 1.0*Hz_;
     t_temp = 4.0*Hz_;
 
 /*    t_double1 = 0.35*Hz_;
