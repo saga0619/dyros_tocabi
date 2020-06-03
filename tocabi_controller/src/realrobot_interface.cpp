@@ -1500,6 +1500,12 @@ void RealRobotInterface::imuThread()
             cycle_count++;
             //Code here
             //
+            if(dc.imu_reset_signal)
+            {
+                dc.imu_reset_signal = false;
+                mx5.resetEFIMU();
+            }
+
             imu_msg = mx5.getIMU();
 
             imu_quat(0) = imu_msg.orientation.x;

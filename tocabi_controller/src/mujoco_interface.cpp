@@ -139,6 +139,8 @@ void MujocoInterface::connect()
         mujoco_ready = false;
         printf("Connected!\n");
         dc.connected = true;
+        dc.semode = true;
+        dc.tocabi_.yaw_init_swc = true;
     }
 }
 

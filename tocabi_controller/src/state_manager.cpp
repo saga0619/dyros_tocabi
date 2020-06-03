@@ -341,6 +341,7 @@ void StateManager::initYaw()
 
     if (dc.tocabi_.yaw_init_swc)
     {
+        std::cout<<"Yaw Initialized"<<std::endl;
         dc.tocabi_.yaw_init = yaw;
         dc.tocabi_.yaw_init_swc = false;
     }
@@ -951,10 +952,8 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         }
         else
         {
-
-            dc.rgbPubMsg.data = {255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0};
-            dc.rgbPub.publish(dc.rgbPubMsg);
             dc.semode = true;
+            dc.tocabi_.yaw_init_swc = true;
             std::cout << "torque ON !" << std::endl;
             dc.torqueOnTime = control_time_;
             dc.torqueOn = true;
@@ -994,8 +993,6 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         if (dc.torqueOn)
         {
-            dc.rgbPubMsg.data = {0, 0, 0, 0, 0, 0, 64, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0};
-            dc.rgbPub.publish(dc.rgbPubMsg);
             std::cout << "Torque OFF ! " << std::endl;
             dc.torqueOffTime = control_time_;
             dc.torqueOn = false;
@@ -1123,5 +1120,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "inityaw")
     {
         dc.tocabi_.yaw_init_swc = true;
+    }
+    else if(msg->data == "resetIMU")
+    {
+        dc.imu_reset_signal = true;
     }
 }
