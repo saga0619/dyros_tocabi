@@ -311,6 +311,8 @@ public:
   Eigen::Vector2d p_k_1;
   Eigen::Vector3d ZMP_pos;
 
+  Eigen::Vector3d imu_pos_;
+
   double fc_redis;
 
   bool contact_calc;

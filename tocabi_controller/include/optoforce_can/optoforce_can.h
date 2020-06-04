@@ -240,11 +240,11 @@ public:
 				{
 					if(stat == canOK)
 					{
-						printf("channel %i OK,  %i\n", m_channelData.channel[i].hnd, stat);
+						//printf("channel %i OK,  %i\n", m_channelData.channel[i].hnd, stat);
 					}
 					else
 					{
-						printf("channel %i Err", m_channelData.channel[i].hnd, stat);  
+						//printf("channel %i Err", m_channelData.channel[i].hnd, stat);  
 					}   
 				}
 			}

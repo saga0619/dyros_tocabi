@@ -227,6 +227,8 @@ public:
 
   bool initialize_request = false;
 
+  bool use_virtual_for_mujoco = false;
+
   int imu_state = 0; //0 not ok 1 not valid 2 valid
   int zp_state = 0; //0 not ok 1 ready 2 ok
   int ft_state = 0; //0 not ok 1 init req 2 ok
