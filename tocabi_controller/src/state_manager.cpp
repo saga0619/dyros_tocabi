@@ -341,7 +341,7 @@ void StateManager::initYaw()
 
     if (dc.tocabi_.yaw_init_swc)
     {
-        std::cout<<"Yaw Initialized"<<std::endl;
+        std::cout << "Yaw Initialized" << std::endl;
         dc.tocabi_.yaw_init = yaw;
         dc.tocabi_.yaw_init_swc = false;
     }
@@ -1129,8 +1129,12 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         dc.tocabi_.yaw_init_swc = true;
     }
-    else if(msg->data == "resetIMU")
+    else if (msg->data == "resetIMU")
     {
         dc.imu_reset_signal = true;
+    }
+    else if (msg->data == "simvirtualjoint")
+    {
+        dc.use_virtual_joint = !dc.use_virtual_joint;
     }
 }

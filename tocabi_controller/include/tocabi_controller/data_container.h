@@ -235,6 +235,8 @@ public:
   //Simulation mode
   bool simulationMode;
 
+  bool use_virtual_joint = false;
+
   ros::Publisher statusPub;
   std_msgs::String statusPubMsg;
   ros::Publisher rgbPub;

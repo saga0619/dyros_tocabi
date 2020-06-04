@@ -139,8 +139,6 @@ void MujocoInterface::connect()
         mujoco_ready = false;
         printf("Connected!\n");
         dc.connected = true;
-        dc.semode = true;
-        dc.tocabi_.yaw_init_swc = true;
     }
 }
 
@@ -212,7 +210,14 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         q_virtual_(0) = 0.0;
         q_virtual_(1) = 0.0;
         q_virtual_(2) = 0.0;
+
+        if (dc.use_virtual_joint)
+        {
+            for (int i = 0; i < 3; i++)
+                q_virtual_(i) = msg->position[i];
+        }
     }
+
     for (int i = 0; i < msg->sensor.size(); i++)
     {
         if (msg->sensor[i].name == "Gyro_Pelvis_IMU")

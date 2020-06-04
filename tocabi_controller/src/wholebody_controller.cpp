@@ -1029,7 +1029,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     N_task.setZero(MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL);
     N_task = MatrixXd::Identity(MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL) - Robot.J_task_inv * Robot.J_task;
 
-    double ea_weight = 10.0;
+    double ea_weight = 1.0;
     //W = Robot.Slc_k * Robot.N_C.transpose() * Robot.A_matrix_inverse * N_task.transpose() * Robot.A_matrix * N_task * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; // + 0.1*Robot.Slc_k * Robot.A_matrix_inverse * Robot.Slc_k_T;
     //g.segment(0, MODEL_DOF) = -ea_weight * Robot.Slc_k * Robot.N_C.transpose() * Robot.A_matrix_inverse * N_task.transpose() * Robot.A_matrix * N_task * Robot.A_matrix_inverse * Robot.N_C * Robot.G;
     W = Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; // + 0.1*Robot.Slc_k * Robot.A_matrix_inverse * Robot.Slc_k_T;
@@ -1037,7 +1037,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     H.block(0, 0, MODEL_DOF, MODEL_DOF) = ea_weight * W; // + 0.01 * MatrixXd::Identity(MODEL_DOF,MODEL_DOF);
 
     //fstar regulation ::
-    double fstar_weight = 10000.0;
+    double fstar_weight = 100.0;
     H.block(MODEL_DOF + contact_dof, MODEL_DOF + contact_dof, task_dof, task_dof) = fstar_weight * MatrixXd::Identity(task_dof, task_dof);
     g.segment(MODEL_DOF + contact_dof, task_dof) = -fstar_weight * f_star_;
 
@@ -2788,7 +2788,7 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
 
         //ZMP_pos = GetZMPpos(P1_local, P2_local, ContactForce_Local_yaw);
 
-        ForceRedistributionTwoContactMod2(0.99, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
+        ForceRedistributionTwoContactMod2(0.95, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
 
         //std::cout << "fres - calc" << std::endl
         //          << ResultantForce_ << std::endl;
