@@ -414,10 +414,6 @@ public:
     Eigen::VectorQd rq_ext_;
     Eigen::VectorQd rq_dot_;
 
-    Eigen::Vector4d imu_quat;
-    Eigen::Vector3d imu_ang_vel;
-    Eigen::Vector3d imu_lin_acc;
-
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];
 

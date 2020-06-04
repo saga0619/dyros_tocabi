@@ -21,6 +21,9 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     ft_viz_msg.markers.resize(4);
     syspub_msg.data.resize(4);
+    imu_lin_acc_lpf.setZero();
+    pelv_lin_acc.setZero();
+    imu_lin_acc_before.setZero();
     for (int i = 0; i < 4; i++)
     {
         ft_viz_msg.markers[i].header.frame_id = "base_link";
@@ -235,9 +238,13 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[9].y = rtp;
     pointpub_msg.polygon.points[9].z = rty;
 
-    pointpub_msg.polygon.points[10].x = rtr * mod / (dc.tocabi_.torque_grav[7] + dc.tocabi_.torque_contact[7]);
-    pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
-    pointpub_msg.polygon.points[10].z = rtr * mod / dc.torque_desired[7];
+    //pointpub_msg.polygon.points[10].x = rtr * mod / (dc.tocabi_.torque_grav[7] + dc.tocabi_.torque_contact[7]);
+    //pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
+    //pointpub_msg.polygon.points[10].z = rtr * mod / dc.torque_desired[7];
+
+    pointpub_msg.polygon.points[10].x = pelv_lin_acc(0);
+    pointpub_msg.polygon.points[10].y = pelv_lin_acc(1);
+    pointpub_msg.polygon.points[10].z = pelv_lin_acc(2);
 
     //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
@@ -257,9 +264,9 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
     //pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].x_traj(2);
 
-    pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
-    pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
-    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].v_traj(2);
+    pointpub_msg.polygon.points[11].x = dc.tocabi_.imu_pos_(0);
+    pointpub_msg.polygon.points[11].y = dc.tocabi_.imu_pos_(1);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.imu_pos_(2);
 
     /*
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
@@ -373,7 +380,7 @@ void StateManager::stateThread2(void)
         if (shutdown_tocabi_bool)
             break;
     }
-
+    q_dot_virtual_before.setZero();
     std::chrono::microseconds cycletime(dc.ctime);
     int cycle_count = 0;
     if (!shutdown_tocabi_bool)
@@ -393,8 +400,8 @@ void StateManager::stateThread2(void)
             //std::cout << " us done,  " << std::flush;
 
             //DyrosMath::lpf()
-            q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_, 2000, 10);
-
+            q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 60);
+            q_dot_virtual_before = q_dot_virtual_;
             initYaw();
 
             if (shutdown_tocabi_bool)
@@ -883,7 +890,15 @@ void StateManager::stateEstimate()
             rf_cp(2) = 0.0 - dc.link_[Right_Foot].contact_point(2);
             lf_cp(2) = 0.0 - dc.link_[Left_Foot].contact_point(2);
             dc.semode_init = false;
+
+            imu_lin_acc_before = imu_lin_acc;
         }
+
+        imu_lin_acc_lpf = DyrosMath::lpf(imu_lin_acc, imu_lin_acc_before, 2000, 20);
+        imu_lin_acc_before = imu_lin_acc_lpf;
+        pelv_lin_acc = dc.link_[Pelvis].Rotm.inverse() * imu_lin_acc_lpf;
+
+        dc.tocabi_.imu_pos_ = dc.tocabi_.imu_pos_ + (0.0005 * 0.0005 * 0.5) * pelv_lin_acc;
 
         //Vector3d es_zmp;
 
@@ -1129,12 +1144,12 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     {
         dc.tocabi_.yaw_init_swc = true;
     }
-    else if (msg->data == "resetIMU")
+    else if (msg->data == "imureset")
     {
         dc.imu_reset_signal = true;
     }
     else if (msg->data == "simvirtualjoint")
     {
-        dc.use_virtual_joint = !dc.use_virtual_joint;
+        dc.use_virtual_for_mujoco = true;
     }
 }

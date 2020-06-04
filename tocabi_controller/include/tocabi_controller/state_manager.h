@@ -107,6 +107,14 @@ public:
 
   std::chrono::steady_clock::time_point st_start_time;
 
+  Eigen::Vector4d imu_quat;
+  Eigen::Vector3d imu_ang_vel;
+  Eigen::Vector3d imu_lin_acc;
+  Eigen::Vector3d pelv_lin_acc;
+  Eigen::Vector3d imu_lin_acc_before;
+  Eigen::Vector3d imu_lin_acc_lpf;
+  
+
   //Communication Subscriber!
 
   ros::Subscriber gui_command;

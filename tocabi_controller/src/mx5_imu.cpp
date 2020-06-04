@@ -22,7 +22,7 @@ void MX5IMU::initIMU()
     cout << "Serial : " << node.serialNumber() << endl;
     cout << "Firmware : " << node.firmwareVersion().str() << endl
     << endl;*/
-    node.setAutoInitialization(false);
+    node.setAutoInitialization(true);
 
     //cout << "Starting Sampling ... " << endl;
     startSampling(node);
@@ -38,6 +38,7 @@ void MX5IMU::initIMU()
 void MX5IMU::resetEFIMU()
 {
     node.resetFilter();
+
 }
 
 sensor_msgs::Imu MX5IMU::getIMU()
@@ -114,10 +115,10 @@ sensor_msgs::Imu MX5IMU::getIMU()
                     tf2::Quaternion q(dataPoint.as_Vector().as_floatAt(1), dataPoint.as_Vector().as_floatAt(2), dataPoint.as_Vector().as_floatAt(3), dataPoint.as_Vector().as_floatAt(0));
                     tf2::Quaternion q_rot, q_rot2;
 
-                    //q_rot.setRPY(M_PI, 0, M_PI / 2);
+                    q_rot.setRPY(M_PI, 0, M_PI / 2);
 
                     //q_rot2.setRPY(M_PI, M_PI, M_PI / 2);
-                    //q = q_rot * q * q_rot2;
+                    q = q_rot * q;// * q_rot2;
 
                     imu_pub_msg.orientation = tf2::toMsg(q);
                     imu_pub_msg.header.stamp = ros::Time::now();
@@ -130,7 +131,7 @@ sensor_msgs::Imu MX5IMU::getIMU()
                 }
                 if (dataPoint.channelName() == "estLinearAccelY")
                 {
-                    imu_pub_msg.linear_acceleration.y = -dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelZ")
                 {
@@ -143,7 +144,7 @@ sensor_msgs::Imu MX5IMU::getIMU()
                 }
                 if (dataPoint.channelName() == "estAngularRateY")
                 {
-                    imu_pub_msg.angular_velocity.y = -dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateZ")
                 {
@@ -461,8 +462,8 @@ void MX5IMU::parseData_custum(mscl::InertialNode &node)
 
                     q_rot.setRPY(M_PI, 0, M_PI / 2);
 
-                    q_rot2.setRPY(0, M_PI, 0);
-                    q = q_rot * q * q_rot2;
+                    //q_rot2.setRPY(0, M_PI, 0);
+                    q = q_rot * q;// * q_rot2;
 
                     transform.setRotation(q);
 
