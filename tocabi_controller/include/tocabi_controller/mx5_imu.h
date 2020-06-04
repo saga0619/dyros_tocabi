@@ -14,14 +14,14 @@
 class MX5IMU
 {
 public:
-    MX5IMU(DataContainer &dc_global,mscl::InertialNode &node);
+    MX5IMU(DataContainer &dc_global, mscl::InertialNode &node);
     DataContainer &dc;
     mscl::InertialNode &node;
 
     ros::Publisher imu_pub;
     sensor_msgs::Imu imu_pub_msg;
 
-    mscl::InertialNode* np;
+    mscl::InertialNode *np;
 
     unsigned short int ef_state, ef_state_flag, ef_state_before, ef_state_flag_before;
 
@@ -31,6 +31,7 @@ public:
     tf2_ros::TransformBroadcaster br;
 
     void initIMU();
+    void resetEFIMU();
 
     void startIMU();
 

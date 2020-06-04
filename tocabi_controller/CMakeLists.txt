@@ -31,7 +31,7 @@ add_message_files(
   GainCommand.msg
   MotorInfo.msg
   TaskCommand.msg
-  ArmTaskCommand.msg
+  TaskCommandQue.msg
 )
 
 
@@ -72,6 +72,8 @@ add_library(tocabi_controller_lib
   src/state_manager.cpp
   src/mujoco_interface.cpp
   src/tocabi_controller.cpp
+  src/walking_controller.cpp
+  src/walking_pattern.cpp
   src/wholebody_controller.cpp
   ${CC_PATH}/custom_controller.cpp
   src/mx5_imu.cpp
@@ -87,6 +89,9 @@ target_link_libraries(tocabi_controller_lib
   -lrt
   -lqpOASES
   -lsoem
+  -lcanlib
+  -lgsl
+  -lgslcblas
   ${CMAKE_CURRENT_SOURCE_DIR}/include/sensoray826/lib/lib826_64.so
 )
 

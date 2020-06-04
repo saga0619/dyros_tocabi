@@ -22,19 +22,23 @@ void MX5IMU::initIMU()
     cout << "Serial : " << node.serialNumber() << endl;
     cout << "Firmware : " << node.firmwareVersion().str() << endl
     << endl;*/
-    node.setAutoInitialization(false);
+    node.setAutoInitialization(true);
 
     //cout << "Starting Sampling ... " << endl;
     startSampling(node);
 
     //cout << "Sending Reset Command ... " << endl;
-    node.resetFilter();
-    node.setInitialHeading(0.0);
 
     //getCurrentConfig(node);
     //node.setAutoInitialization(false);
     //node.setInitialHeading(0.0);
     //node.setAutoInitialization(true);
+}
+
+void MX5IMU::resetEFIMU()
+{
+    node.resetFilter();
+
 }
 
 sensor_msgs::Imu MX5IMU::getIMU()
@@ -113,8 +117,8 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                     q_rot.setRPY(M_PI, 0, M_PI / 2);
 
-                    q_rot2.setRPY(M_PI, M_PI, M_PI / 2);
-                    q = q_rot * q * q_rot2;
+                    //q_rot2.setRPY(M_PI, M_PI, M_PI / 2);
+                    q = q_rot * q;// * q_rot2;
 
                     imu_pub_msg.orientation = tf2::toMsg(q);
                     imu_pub_msg.header.stamp = ros::Time::now();
@@ -123,11 +127,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estLinearAccelX")
                 {
-                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.x = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelY")
                 {
-                    imu_pub_msg.linear_acceleration.x = -dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelZ")
                 {
@@ -136,11 +140,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estAngularRateX")
                 {
-                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.x = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateY")
                 {
-                    imu_pub_msg.angular_velocity.x = -dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateZ")
                 {
@@ -188,11 +192,13 @@ sensor_msgs::Imu MX5IMU::getIMU()
         {
             std::cout << cgreen << "IMU : running, solution valid" << creset << std::endl;
             pub_to_gui(dc, "imuvalid");
+            dc.imu_state = 2;
         }
         else if (ef_state == 3)
         {
             std::cout << cyellow << "IMU : running, solution error" << std::hex << ef_state_flag << std::dec << creset << std::endl;
             pub_to_gui(dc, "imunotvalid");
+            dc.imu_state = 1;
         }
         else
         {
@@ -202,8 +208,8 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
     ef_state_flag_before = ef_state_flag;
     ef_state_before = ef_state;
-    static int num=0;
-    if(num%20==0)
+    static int num = 0;
+    if (num % 20 == 0)
         imu_pub.publish(imu_pub_msg);
     num++;
     return imu_pub_msg;
@@ -456,8 +462,8 @@ void MX5IMU::parseData_custum(mscl::InertialNode &node)
 
                     q_rot.setRPY(M_PI, 0, M_PI / 2);
 
-                    q_rot2.setRPY(0, M_PI, 0);
-                    q = q_rot * q * q_rot2;
+                    //q_rot2.setRPY(0, M_PI, 0);
+                    q = q_rot * q;// * q_rot2;
 
                     transform.setRotation(q);
 

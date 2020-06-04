@@ -36,29 +36,28 @@ void Link::pos_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_vir
     // RigidBodyDynamics::CalcBaseToBodyCoordinates(model_,q_virtual_,link_[i])
 }
 
+bool Link::Check_name(RigidBodyDynamics::Model &model_)
+{
+    return (model_.GetBodyName(id) == name);
+}
+
 void Link::COM_Jac_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_)
 {
     Eigen::MatrixXd j_p_(3, MODEL_DOF + 6), j_r_(3, MODEL_DOF + 6);
-    Eigen::MatrixXd j_(6, MODEL_DOF + 6);
     Eigen::MatrixXd fj_(6, MODEL_DOF + 6);
 
     fj_.setZero();
 
     mtx_rbdl.lock();
-    RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, COM_position, fj_, false);
+    RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, model_.mBodies[id].mCenterOfMass, fj_, false);
 
     mtx_rbdl.unlock();
-    j_p_ = fj_.block<3, MODEL_DOF + 6>(3, 0);
-    j_r_ = fj_.block<3, MODEL_DOF + 6>(0, 0);
 
-    Jac_COM_p = j_p_; //*E_T_;
-    Jac_COM_r = j_r_; //*E_T_;
-    // Jac_COM_p.block<3,3>(0,3)=- DyrosMath::skm(xipos -
-    // link_[0].xpos);
-    j_.block<3, MODEL_DOF + 6>(0, 0) = Jac_COM_p;
-    j_.block<3, MODEL_DOF + 6>(3, 0) = Jac_COM_r;
+    Jac_COM_p = fj_.block(3, 0, 3, MODEL_DOF_VIRTUAL); //*E_T_;
+    Jac_COM_r = fj_.block(0, 0, 3, MODEL_DOF_VIRTUAL);
 
-    Jac_COM = j_;
+    Jac_COM.block(0, 0, 3, MODEL_DOF_VIRTUAL) = Jac_COM_p;
+    Jac_COM.block(3, 0, 3, MODEL_DOF_VIRTUAL) = Jac_COM_r;
 }
 
 void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position)
@@ -190,8 +189,23 @@ void Link::Set_Trajectory_from_quintic(double current_time, double start_time, d
     w_traj = Eigen::Vector3d::Zero();
 }
 
+void Link::Set_Trajectory_from_quintic(double current_time, double start_time, double end_time, Eigen::Vector3d pos_init, Eigen::Vector3d vel_init, Eigen::Vector3d acc_init, Eigen::Vector3d pos_desired, Eigen::Vector3d vel_desired, Eigen::Vector3d acc_des)
+{
+    for (int j = 0; j < 3; j++)
+    {
+        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, pos_init(j), vel_init(j), acc_init(j), pos_desired(j), vel_desired(j), acc_des(j));
+        x_traj(j) = quintic(0);
+        v_traj(j) = quintic(1);
+        a_traj(j) = quintic(2);
+    }
+
+    r_traj = rot_init;
+    w_traj = Eigen::Vector3d::Zero();
+}
+
 void Link::Set_Trajectory_rotation(double current_time, double start_time, double end_time, bool local_)
 {
+    //if local_ is true, local based rotation control
     Eigen::Vector3d axis;
     double angle;
     if (local_)
@@ -226,7 +240,7 @@ void Link::Set_Trajectory_rotation(double current_time, double start_time, doubl
 
     rmat = Eigen::AngleAxisd(c_a, axis);
     r_traj = rot_init * rmat;
-    w_traj =  quintic(1) * axis;
+    w_traj = quintic(1) * axis;
 }
 
 void Link::Set_Trajectory_rotation(double current_time, double start_time, double end_time, Eigen::Matrix3d rot_desired_, bool local_)

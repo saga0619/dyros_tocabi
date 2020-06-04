@@ -15,7 +15,7 @@ public:
 
   //Send command to Mujoco
   //virtual void sendCommand(Eigen::VectorQd command) override;
-  virtual void sendCommand(Eigen::VectorQd command, double sim_time) override;
+  virtual void sendCommand(Eigen::VectorQd command, double sim_time, int control_mode = Torquemode) override;
 
   //connect to Mujoco_ros
   virtual void connect() override;

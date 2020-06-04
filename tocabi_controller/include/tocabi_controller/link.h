@@ -4,6 +4,7 @@
 #include "Eigen/Dense"
 #include "math_type_define.h"
 #include <rbdl/rbdl.h>
+#include "tocabi_controller/tocabi.h"
 #include <rbdl/addons/urdfreader/urdfreader.h>
 #include <mutex>
 
@@ -63,6 +64,8 @@ public:
   // set realtime trajectory of link from quintic spline.
   void Set_Trajectory_from_quintic(double current_time, double start_time, double end_time, Eigen::Vector3d pos_init, Eigen::Vector3d vel_init, Eigen::Vector3d pos_desired, Eigen::Vector3d vel_desired);
 
+  void Set_Trajectory_from_quintic(double current_time, double start_time, double end_time, Eigen::Vector3d pos_init, Eigen::Vector3d vel_init, Eigen::Vector3d acc_init, Eigen::Vector3d pos_desired, Eigen::Vector3d vel_desired, Eigen::Vector3d acc_des);
+
   // set realtime trajectory of link from cubic spline.
   void Set_Trajectory_from_cubic(double current_time, double start_time, double end_time);
 
@@ -83,6 +86,8 @@ public:
 
   // set link initial position and rotation. initial position for task control.
   void Set_initpos();
+
+  bool Check_name(RigidBodyDynamics::Model &model_);
 
   //constant variables
   int id;
@@ -158,11 +163,13 @@ public:
   Eigen::Vector3d pos_d_gain;
   Eigen::Vector3d rot_p_gain;
   Eigen::Vector3d rot_d_gain;
+  Eigen::Vector3d acc_p_gain;
+
+  RigidBodyDynamics::Model *model;
 
 private:
   Eigen::MatrixXd j_temp;
   Eigen::MatrixXd j_temp2;
-  RigidBodyDynamics::Model *model;
 };
 
 class EndEffector
@@ -194,13 +201,22 @@ public:
   Link link_[LINK_NUMBER + 1];
   double orientation;
   double roll, pitch, yaw;
+  double yaw_init = 0.0;
+
+  //PositionPDGain
+  double Kps[MODEL_DOF];
+  double Kvs[MODEL_DOF];
+  std::vector<double> vector_kp, vector_kv;
 
   Eigen::VectorQd q_desired_;
+  Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd q_;
+  Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
+  Eigen::VectorQd q_ext_;
 
   Eigen::VectorXd ContactForce;
   Eigen::Vector12d ContactForce_FT;
@@ -217,7 +233,8 @@ public:
 
   bool zmp_feedback_control = false;
   bool check = false;
-
+  bool qp2nd = false;
+  bool yaw_init_swc = false;
   Eigen::Vector3d fstar;
 
   //bool contact_[ENDEFFECTOR_NUMBER] = {true, true};
@@ -230,6 +247,7 @@ public:
   int ee_idx[4];
 
   double control_time_; // updated by control_base
+  double control_time_pre_;
   double d_time_;
 
   double start_time_[4];
@@ -239,7 +257,6 @@ public:
 
   int Right = 0;
   int Left = 1;
-
 
   Eigen::MatrixXd task_selection_matrix;
   Eigen::VectorXd task_desired_force;
@@ -251,6 +268,15 @@ public:
   Eigen::MatrixVVd A_matrix;
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_matrix_inverse;
+
+  Eigen::MatrixVVd Motor_inertia;
+  Eigen::MatrixVVd Motor_inertia_inverse;
+  Eigen::MatrixXd Lambda_c_motor;
+  Eigen::MatrixXd J_task_inv_motor, J_task_inv_motor_T;
+  Eigen::MatrixXd lambda_motor_inv, lambda_motor;
+  Eigen::MatrixXd W_motor, W_motor_inv;
+  Eigen::MatrixXd N_C_motor;
+  Eigen::MatrixXd Q_motor, Q_motor_T_, Q_motor_temp, Q_motor_temp_inv; //, Jtemp, Jtemp_2;
 
   Eigen::MatrixXd J_C, J_C_INV_T;
   Eigen::MatrixXd J_COM;
@@ -272,14 +298,20 @@ public:
   Eigen::MatrixXd _F;
 
   Eigen::VectorXd G;
+  Eigen::VectorQd torque_grav_cc;
+  Eigen::VectorQd torque_grav;
+  Eigen::VectorQd torque_contact;
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;
+  Eigen::MatrixXd svd_W_U;
 
   int task_dof;
 
   Eigen::Vector2d p_k_1;
   Eigen::Vector3d ZMP_pos;
+
+  Eigen::Vector3d imu_pos_;
 
   double fc_redis;
 
@@ -288,6 +320,9 @@ public:
   bool task_force_control_feedback;
   bool zmp_control;
   bool mpc_init;
+  bool showdata;
+
+  RigidBodyDynamics::Model model_virtual;
 };
 
 std::ostream &

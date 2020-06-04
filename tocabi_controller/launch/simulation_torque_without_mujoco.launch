@@ -3,18 +3,24 @@
   <arg name="rviz" default="false"/>
   <arg name="controller" default="true" />
   <arg name="gui" default="true"/>
-  <arg name="run_mode" default="ethercattest"/>
+  <arg name="run_mode" default="simulation"/>
+  <arg name="pub_mode" default="true"/>
   <arg name="urdfDampingmodel" default="false"/>
-  
+
   <group if="$(arg controller)">
     <node name="tocabi_controller" pkg="tocabi_controller" type="tocabi_controller" output="screen">
+      <param name="sim_mode" value="torque"/>
       <param name="run_mode" value="$(arg run_mode)"/>
       <param name="debug" value="$(arg debug)" />
       <param name="rviz_pub" value="$(arg rviz)"/>
-      <param name="ctime" value="500"/>
-      <param name="ifname" value="enp2s0"/>
-      <param name="ifname2" value="eno2"/>
+      <param name="pub_mode" value="$(arg pub_mode)"/>
+      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_sim.urdf"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_simulation_positionPDgain.yaml" />
     </node>
   </group>
+
+  <node name="tocabi_gui" pkg ="tocabi_gui" type="tocabi_gui" output="screen">
+    <param name="run_mode" value="$(arg run_mode)"/>
+  </node>
 </launch>

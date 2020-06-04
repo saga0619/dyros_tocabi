@@ -2,11 +2,11 @@
 #include <ros/ros.h>
 #include <thread>
 
-#define PRINT_ERR(FUNC)  /* if ((errcode = FUNC) != S826_ERR_OK) { ROS_INFO("\nERROR: %d\n", errcode); }*/
+#define PRINT_ERR(FUNC)   if ((errcode = FUNC) != S826_ERR_OK) {/*ROS_INFO("\nERROR: %d\n", errcode);*/}
 
 const double SAMPLE_RATE = 1000; // Hz
 
-enum SLOT_TIME {NONE = 0, DEFAULT = 50};
+enum SLOT_TIME {NONE = 0, DEFAULT = 10};
 
 struct SLOTATTR
 {
@@ -14,11 +14,11 @@ struct SLOTATTR
     uint tsettle;   // settling time in microseconds
 };
 
-const SLOTATTR slotAttrs[16] = {
+const SLOTATTR slotAttrs[16] = { 
     {0, DEFAULT}, {1, DEFAULT}, {2, DEFAULT}, {3, DEFAULT},
-    {4, DEFAULT}, {5, DEFAULT}, {6, DEFAULT}, {7, NONE},
+    {4, DEFAULT}, {5, DEFAULT},
     {8, DEFAULT}, {9, DEFAULT}, {10, DEFAULT}, {11, DEFAULT},
-    {12, DEFAULT}, {13, DEFAULT}, {14, DEFAULT}, {15, NONE}
+    {12, DEFAULT}, {13, DEFAULT},
 };
 
 class sensoray826_dev
@@ -38,13 +38,14 @@ class sensoray826_dev
     uint _timeStamp[ADC_MAX_SLOT];
     int _adBuf[ADC_MAX_SLOT];
 
-    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 8};
+    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 6};
 
 
 public:
     // Analog Datas
     int adcDatas[ADC_MAX_SLOT];
     double adcVoltages[ADC_MAX_SLOT];
+    double adcVoltagesPrev[ADC_MAX_SLOT];
     int burstNum[ADC_MAX_SLOT];
 
     const double calibrationMatrixLFoot[6][6] = 
@@ -118,18 +119,18 @@ public:
 
         switch (errcode)
         {
-        case S826_ERR_OK:           break;
-        case S826_ERR_BOARD:        ROS_ERROR("Illegal board number"); break;
-        case S826_ERR_VALUE:        ROS_ERROR("Illegal argument"); break;
-        case S826_ERR_NOTREADY:     ROS_ERROR("Device not ready or timeout"); break;
-        case S826_ERR_CANCELLED:    ROS_ERROR("Wait cancelled"); break;
-        case S826_ERR_DRIVER:       ROS_ERROR("Driver call failed"); break;
-        case S826_ERR_MISSEDTRIG:   ROS_ERROR("Missed adc trigger"); break;
-        case S826_ERR_DUPADDR:      ROS_ERROR("Two boards have same number"); break;S826_SafeWrenWrite(board, 0x02);
-        case S826_ERR_BOARDCLOSED:  ROS_ERROR("Board not open"); break;
-        case S826_ERR_CREATEMUTEX:  ROS_ERROR("Can't create mutex"); break;
-        case S826_ERR_MEMORYMAP:    ROS_ERROR("Can't map board"); break;
-        default:                    ROS_ERROR("Unknown error"); break;
+            case S826_ERR_OK:           break;
+            case S826_ERR_BOARD:        ROS_ERROR("Illegal board number"); break;
+            case S826_ERR_VALUE:        ROS_ERROR("Illegal argument"); break;
+            case S826_ERR_NOTREADY:     ROS_ERROR("Device not ready or timeout"); break;
+            case S826_ERR_CANCELLED:    ROS_ERROR("Wait cancelled"); break;
+            case S826_ERR_DRIVER:       ROS_ERROR("Driver call failed"); break;
+            case S826_ERR_MISSEDTRIG:   ROS_ERROR("Missed adc trigger"); break;
+            case S826_ERR_DUPADDR:      ROS_ERROR("Two boards have same number"); break;S826_SafeWrenWrite(board, 0x02);
+            case S826_ERR_BOARDCLOSED:  ROS_ERROR("Board not open"); break;
+            case S826_ERR_CREATEMUTEX:  ROS_ERROR("Can't create mutex"); break;
+            case S826_ERR_MEMORYMAP:    ROS_ERROR("Can't map board"); break;
+            default:                    ROS_ERROR("Unknown error"); break;
         }
     }
 
@@ -168,8 +169,8 @@ public:
     void analogOversample()
     {
         uint slotList = 0xFFFF;
-        PRINT_ERR ( S826_AdcRead(board, _adBuf, _timeStamp, &slotList, 0));
-
+        PRINT_ERR ( S826_AdcRead(board, _adBuf, _timeStamp, &slotList, 0));         
+  
         for(int i=0; i<ADC_MAX_SLOT; i++)
         {
             if ((((slotList >> (int)i) & 1) != 0)) {
@@ -179,7 +180,6 @@ public:
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
         }
-        //ROS_INFO("%.3lf %.3lf %.3lf %.3lf %.3lf %.3lf ", adcVoltages[0], adcVoltages[1], adcVoltages[2], adcVoltages[3], adcVoltages[4], adcVoltages[5]);
     }
 
     double lowPassFilter(double input, double prev, double ts, double tau)
@@ -193,6 +193,8 @@ public:
         {
             _calibLFTData[i] = 0.0;
             _calibRFTData[i] = 0.0;
+            leftFootAxisData_prev[i] = 0.0;
+            rightFootAxisData_prev[i] = 0.0;
         }
         for(int i=0; i<6; i++)
         {
@@ -232,25 +234,45 @@ public:
         }
     }
 
-    void computeFTData()
+    void computeFTData(bool ft_calib_finish)
     {
-        for(int i=0; i<6; i++)
+        if(ft_calib_finish == false)
         {
-            double _lf = 0.0;
-            double _rf = 0.0;
-            for(int j=0; j<6; j++)
+            for(int i=0; i<6; i++)
             {
-                _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
-                _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+                double _lf = 0.0;
+                double _rf = 0.0;
+                for(int j=0; j<6; j++)
+                {
+                    _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
+                    _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+                }
+
+                leftFootAxisData[i] = _lf;
+                rightFootAxisData[i] = _rf;
             }
+        }
+        else
+        {
+            for(int i=0; i<6; i++)
+            {
+                double _lf = 0.0;
+                double _rf = 0.0;
+                for(int j=0; j<6; j++)
+                {
+                    _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
+                    _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+                }
 
-            _lf -= leftFootBias[i];
-            _rf -= rightFootBias[i];
+                _lf -= leftFootBias[i];
+                _rf -= rightFootBias[i];
 
-            leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
-            rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
-            leftFootAxisData_prev[i] = leftFootAxisData[i];
-            rightFootAxisData_prev[i] = rightFootAxisData[i];
+                leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
+                rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
+            
+                leftFootAxisData_prev[i] = leftFootAxisData[i];
+                rightFootAxisData_prev[i] = rightFootAxisData[i];
+            }
         }
     }
 };

@@ -1,26 +1,10 @@
 #include "tocabi_controller/dynamics_manager.h"
 #include "tocabi_controller/mujoco_interface.h"
 #include "tocabi_controller/realrobot_interface.h"
-#include "tocabi_controller/wholebody_controller.h"
-
 #include "custom_controller.h"
 
-
-#define Kp_Yaw1s 1500   //Hip
-#define Kp_Roll1s 5000  //Hip
-#define Kp_Pitch1s 5000 //Hip
-#define Kp_Pitch2s 5000 //Knee
-#define Kp_Pitch3s 5000 //Ankle
-#define Kp_Roll2s 6500  //Ankle
-
-#define Kv_Yaw1s 50   //Hip
-#define Kv_Roll1s 50  //Hip
-#define Kv_Pitch1s 50 //Hip
-#define Kv_Pitch2s 40 //Knee
-#define Kv_Pitch3s 30 //Ankle
-#define Kv_Roll2s 60  //Ankle
-
 extern volatile bool shutdown_tocabi_bool;
+<<<<<<< HEAD
 const double Kps[MODEL_DOF] =
     {
         Kp_Yaw1s,
@@ -80,6 +64,8 @@ struct ArmTaskCommand
   double r_yaw;
   int mode = -1;
 };
+=======
+>>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
 
 class TocabiController
 {
@@ -87,23 +73,30 @@ public:
   TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm);
 
   DataContainer &dc;
-
   CustomController &mycontroller;
   TaskCommand tc;
-  ArmTaskCommand atc;
+
+  WholebodyController wbc_;
+  Walking_controller wkc_;
 
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
+  void trajectoryplannar();
   void tuiThread();
+  void testThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
-  void ArmTaskCommandCallback(const tocabi_controller::ArmTaskCommandConstPtr &msg);
+  void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
+  void gettaskcommand(tocabi_controller::TaskCommand &msg);
   void pubfromcontroller();
-  
+  void customgainhandle();
+
   ros::Subscriber task_command;
-  ros::Subscriber arm_task_command;
+  ros::Subscriber task_command_que;
+
+  tocabi_controller::TaskCommandQue tque_msg;
   std::ofstream data_out;
 
   ros::Publisher point_pub;
@@ -120,6 +113,8 @@ private:
 
   bool connected;
 
+  std::vector<TaskCommand> tc_que_;
+
   //sim variables
   double time;
   double sim_time;
@@ -129,9 +124,14 @@ private:
   bool safetymode;
 
   bool task_switch = false;
+  bool task_que_switch = false;
+  bool task_que_start = false;
+  bool tc_command = false;
+
+  int task_que_left = 0;
 
   int dym_hz, stm_hz;
-/*
+  /*
   Eigen::VectorQd q_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
@@ -140,6 +140,8 @@ private:
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd torque_;
+  Eigen::VectorQd torque_grav;
+
   //Command Var
   Eigen::VectorQd torque_desired;
 
@@ -160,6 +162,7 @@ private:
   Com com_;
   int cr_mode;
 
+<<<<<<< HEAD
   //////////dg custom controller variables////////
   void setWalkingParameter(double walking_duration, double walking_speed, double step_width, double knee_target_angle);
 
@@ -342,4 +345,9 @@ private:
   Eigen::VectorQd torque_grav_;
   Eigen::VectorQd torque_task_pre_;
   Eigen::VectorQd torque_grav_pre_;
+=======
+  //Walking Information
+  bool walkingCallbackOn;
+  bool set_q_init;
+>>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
 };

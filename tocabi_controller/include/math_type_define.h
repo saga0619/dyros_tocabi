@@ -5,16 +5,18 @@
 // constexpr size_t MAX_DOF=50;
 
 #include <Eigen/Dense>
-//#include <Eigen/SVD>
+#include <unsupported/Eigen/MatrixFunctions>
+#include <Eigen/SVD>
 #include <iostream>
-
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_linalg.h>
+#include <chrono>
 
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4
 #define LINK_NUMBER 34
 #define MODEL_DOF_VIRTUAL 39
 #define MODEL_DOF_QVIRTUAL 40
-
 
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
@@ -38,7 +40,7 @@ EIGEN_MAKE_TYPEDEFS(rScalar, d, 8, 8)
 //EIGEN_MAKE_TYPEDEFS(rScalar, d, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL)
 //EIGEN_MAKE_TYPEDEFS(rScalar, d, MODEL_DOF_QVIRTUAL, MODEL_DOF_QVIRTUAL)
 
-// typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;  // typedef Transform< double, 3, Isometry > 	Eigen::Isometry3d
+// typedef Transform<rScalar, 3, Eigen::Isometry> HTransform;  // typedef Transform< double, 3,  > 	Eigen::3d
 
 typedef Matrix<rScalar, 1, 3> Matrix1x3d;
 typedef Matrix<rScalar, 1, 4> Matrix1x4d;
@@ -296,10 +298,246 @@ static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
 
   return angle;
 }
+static Eigen::MatrixXd glsSVD_U(Eigen::MatrixXd A)
+{
+  int size_row, size_col;
+  size_row = A.rows();
+  size_col = A.cols();
+
+  if (size_col > size_row)
+  {
+    std::cout << "WARNING colsize error" << std::endl;
+  }
+
+  gsl_matrix_view matv = gsl_matrix_view_array(A.data(), size_row, size_col);
+  gsl_matrix *mat1 = &matv.matrix;
+  gsl_matrix *mat2 = gsl_matrix_alloc(size_col, size_col);
+  gsl_vector *vec1 = gsl_vector_alloc(size_col);
+  gsl_vector *vec2 = gsl_vector_alloc(size_col);
+
+  gsl_linalg_SV_decomp(mat1, mat2, vec1, vec2);
+
+  Eigen::MatrixXd svdU, svdV;
+  Eigen::VectorXd svdS;
+  svdS.resize(size_col);
+  svdU.resize(size_row, size_col);
+  svdV.resize(size_col, size_col);
+  for (int i = 0; i < size_row; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdU(i, j) = mat1->data[i * mat1->tda + j];
+    }
+  }
+
+  gsl_matrix_free(mat2);
+  gsl_vector_free(vec1);
+  gsl_vector_free(vec2);
+  return svdU;
+}
+
+static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, double epsilon = std::numeric_limits<double>::epsilon())
+{
+
+  int size_row, size_col;
+  size_row = A.rows();
+  size_col = A.cols();
+
+  if (size_col > size_row)
+  {
+    std::cout << "WARNING colsize error" << std::endl;
+  }
+
+  gsl_matrix_view matv = gsl_matrix_view_array(A.data(), size_row, size_col);
+  gsl_matrix *mat1 = &matv.matrix;
+  gsl_matrix *mat2 = gsl_matrix_alloc(size_col, size_col);
+  gsl_vector *vec1 = gsl_vector_alloc(size_col);
+  gsl_vector *vec2 = gsl_vector_alloc(size_col);
+
+  gsl_linalg_SV_decomp(mat1, mat2, vec1, vec2);
+
+  Eigen::MatrixXd svdU, svdV;
+  Eigen::VectorXd svdS;
+  svdS.resize(size_col);
+
+  svdU.resize(size_row, size_col);
+  svdV.resize(size_col, size_col);
+  for (int i = 0; i < size_row; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdU(i, j) = mat1->data[i * mat1->tda + j];
+    }
+  }
+  for (int i = 0; i < size_col; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdV(i, j) = mat2->data[i * mat2->tda + j];
+    }
+  }
+
+  for (int i = 0; i < size_col; i++)
+  {
+    svdS(i) = vec1->data[i];
+  }
+  double tolerance = epsilon * std::max(A.cols(), A.rows()) * svdS.array().abs()(0);
+  /*
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "Pinv GLS Result" << std::endl;
+
+  std::cout << "/////////svd U//////////////////////////" << std::endl;
+  std::cout << svdU << std::endl;
+  std::cout << "/////////svd S////////////" << std::endl;
+  std::cout << svdS << std::endl;
+  std::cout << "/////////svd V////////////////////////////" << std::endl;
+  std::cout << svdV << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;*/
+  gsl_matrix_free(mat2);
+  gsl_vector_free(vec1);
+  gsl_vector_free(vec2);
+  return svdV * (svdS.array().abs() > tolerance).select(svdS.array().inverse(), 0).matrix().asDiagonal() * svdU.adjoint();
+}
+
+static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double epsilon = std::numeric_limits<double>::epsilon())
+{
+
+  int size_row, size_col;
+  size_row = A.rows();
+  size_col = A.cols();
+
+  if (size_col > size_row)
+  {
+    std::cout << "WARNING colsize error" << std::endl;
+  }
+
+  gsl_matrix_view matv = gsl_matrix_view_array(A.data(), size_row, size_col);
+  gsl_matrix *mat1 = &matv.matrix;
+  gsl_matrix *mat2 = gsl_matrix_alloc(size_col, size_col);
+  gsl_vector *vec1 = gsl_vector_alloc(size_col);
+  gsl_vector *vec2 = gsl_vector_alloc(size_col);
+
+  gsl_linalg_SV_decomp(mat1, mat2, vec1, vec2);
+
+  Eigen::MatrixXd svdU, svdV;
+  Eigen::VectorXd svdS;
+  svdS.resize(size_col);
+
+  svdU.resize(size_row, size_col);
+  svdV.resize(size_col, size_col);
+  for (int i = 0; i < size_row; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdU(i, j) = mat1->data[i * mat1->tda + j];
+    }
+  }
+  for (int i = 0; i < size_col; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdV(i, j) = mat2->data[i * mat2->tda + j];
+    }
+  }
+
+  for (int i = 0; i < size_col; i++)
+  {
+    svdS(i) = vec1->data[i];
+  }
+  double tolerance = epsilon * std::max(A.cols(), A.rows()) * svdS.array().abs()(0);
+  //U.setZero();
+  /*
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "Pinv GLS Result" << std::endl;
+
+  std::cout << "/////////svd U//////////////////////////" << std::endl;
+  std::cout << svdU << std::endl;
+  std::cout << "/////////svd S////////////" << std::endl;
+  std::cout << svdS << std::endl;
+  std::cout << "/////////svd V////////////////////////////" << std::endl;
+  std::cout << svdV << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;*/
+  gsl_matrix_free(mat2);
+  gsl_vector_free(vec1);
+  gsl_vector_free(vec2);
+
+  U = svdU;
+
+  return svdV * (svdS.array().abs() > tolerance).select(svdS.array().inverse(), 0).matrix().asDiagonal() * svdU.adjoint();
+}
+
+/*
+static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double epsilon = std::numeric_limits<double>::epsilon())
+{
+  int size_row, size_col;
+  size_row = A.rows();
+  size_col = A.cols();
+
+  if (size_col > size_row)
+  {
+    std::cout << "WARNING colsize error" << std::endl;
+  }
+
+  gsl_matrix_view matv = gsl_matrix_view_array(A.data(), size_row, size_col);
+  gsl_matrix *mat1 = &matv.matrix;
+  gsl_matrix *mat2 = gsl_matrix_alloc(size_col, size_col);
+  gsl_vector *vec1 = gsl_vector_alloc(size_col);
+  gsl_vector *vec2 = gsl_vector_alloc(size_col);
+
+  gsl_linalg_SV_decomp(mat1, mat2, vec1, vec2);
+
+  Eigen::MatrixXd svdU, svdV;
+  Eigen::VectorXd svdS;
+  svdS.resize(size_col);
+
+  svdU.resize(size_row, size_col);
+  svdV.resize(size_col, size_col);
+  for (int i = 0; i < size_row; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdU(i, j) = mat1->data[i * mat1->tda + j];
+    }
+  }
+  for (int i = 0; i < size_col; i++)
+  {
+    for (int j = 0; j < size_col; j++)
+    {
+      svdV(i, j) = mat2->data[i * mat2->tda + j];
+    }
+  }
+
+  gsl_matrix_free(mat2);
+  gsl_vector_free(vec1);
+  gsl_vector_free(vec2);
+
+  for (int i = 0; i < size_col; i++)
+  {
+    svdS(i) = vec1->data[i];
+  }
+  double tolerance = epsilon * std::max(A.cols(), A.rows()) * svdS.array().abs()(0);
+  U = svdU;
+  return svdV * (svdS.array().abs() > tolerance).select(svdS.array().inverse(), 0).matrix().asDiagonal() * svdU.adjoint();
+}*/
 
 static Eigen::MatrixXd pinv_SVD(const Eigen::MatrixXd &A, double epsilon = std::numeric_limits<double>::epsilon())
 {
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  /*
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  std::cout << "Pinv Eigen Result" << std::endl;
+
+  std::cout << "/////////svd U//////////////////////////" << std::endl;
+  std::cout << svd.matrixU() << std::endl;
+  std::cout << "/////////svd S////////////" << std::endl;
+  std::cout << svd.singularValues() << std::endl;
+  std::cout << "/////////svd V////////////////////////////" << std::endl;
+  std::cout << svd.matrixV() << std::endl;
+  std::cout << "///////////////////////////////////////////" << std::endl;
+  */
   double tolerance = epsilon * std::max(A.cols(), A.rows()) * svd.singularValues().array().abs()(0);
   return svd.matrixV() * (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
 }
@@ -484,6 +722,52 @@ static void floatGyroframe(Eigen::Isometry3d trunk, Eigen::Isometry3d reference,
 //   return X_sol;
 // }
 
+const static Eigen::Matrix3d rotationCubic(double time,
+                                           double time_0,
+                                           double time_f,
+                                           const Eigen::Matrix3d &rotation_0,
+                                           const Eigen::Matrix3d &rotation_f)
+{
+  if (time >= time_f)
+  {
+    return rotation_f;
+  }
+  else if (time < time_0)
+  {
+    return rotation_0;
+  }
+  double tau = cubic(time, time_0, time_f, 0, 1, 0, 0);
+  Eigen::Matrix3d rot_scaler_skew;
+  rot_scaler_skew = (rotation_0.transpose() * rotation_f).log();
+  //rot_scaler_skew = rot_scaler_skew.log();
+  /*
+		Eigen::Matrix3d rotation_exp;
+		Eigen::Vector3d a1, b1, c1, r1;
+		r1(0) = rotation_temp(2,1);
+		r1(1) = rotation_temp(0,2);
+		r1(2) = rotation_temp(1,0);
+		c1.setZero(); // angular velocity at t0 --> Zero
+		b1.setZero(); // angular acceleration at t0 --> Zero
+		a1 = r1 - b1 - c1;
+		//double tau = (time - time_0) / (time_f-time_0);
+		double tau2 = tau*tau;
+		double tau3 = tau2*tau;
+		//Eigen::Vector3d exp_vector = (a1*tau3+b1*tau2+c1*tau);
+		Eigen::Vector3d exp_vector = (a1*tau);
+		rotation_exp.setZero();
+		rotation_exp(0,1) = -exp_vector(2);
+		rotation_exp(0,2) =  exp_vector(1);
+		rotation_exp(1,0) =  exp_vector(2);
+		rotation_exp(1,2) = -exp_vector(0);
+		rotation_exp(2,0) = -exp_vector(1);
+		rotation_exp(2,1) =  exp_vector(0);
+		*/
+  //Eigen::Matrix3d result = rotation_0 * rotation_exp.exp();
+  Eigen::Matrix3d result = rotation_0 * (rot_scaler_skew * tau).exp();
+
+  return result;
+}
+
 static Eigen::Vector3d QuinticSpline(
     double time,     ///< Current time
     double time_0,   ///< Start time
@@ -559,10 +843,21 @@ static double check_border(double x, double y, double x0, double x1, double y0, 
 {
   return -sign * ((y1 - y0) * (x - x0) + (x1 - x0) * (y0 - y));
 }
+
+static inline double lpf(double input, double prev_res, double samping_preq, double cutoff_preq)
+{
+  double rc = 1.0 / (cutoff_preq * 2 * 3.141592);
+  double dt = 1.0 / samping_preq;
+  double a = dt / (rc + dt);
+
+  return (prev_res + a*(input- prev_res));
+}
+
 static inline double lowPassFilter(double input, double prev, double ts, double tau)
 {
   return (tau * prev + ts * input) / (tau + ts);
 }
+
 template <int N>
 static Eigen::Matrix<double, N, 1> lowPassFilter(Eigen::Matrix<double, N, 1> input, Eigen::Matrix<double, N, 1> prev, double ts, double tau)
 {
@@ -570,6 +865,18 @@ static Eigen::Matrix<double, N, 1> lowPassFilter(Eigen::Matrix<double, N, 1> inp
   for (int i = 0; i < N; i++)
   {
     res(i) = lowPassFilter(input(i), prev(i), ts, tau);
+  }
+  return res;
+}
+
+template <int N>
+static Eigen::Matrix<double, N, 1> lpf(Eigen::Matrix<double, N, 1> input, Eigen::Matrix<double, N, 1> prev, double samping_preq, double cutoff_preq)
+{
+  Eigen::Matrix<double, N, 1> res;
+
+  for (int i = 0; i < N; i++)
+  {
+    res(i) = lpf(input(i), prev(i), samping_preq, cutoff_preq);
   }
   return res;
 }
