@@ -211,7 +211,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         q_virtual_(1) = 0.0;
         q_virtual_(2) = 0.0;
 
-        if (dc.use_virtual_joint)
+        if (dc.use_virtual_for_mujoco)
         {
             for (int i = 0; i < 3; i++)
                 q_virtual_(i) = msg->position[i];
