@@ -323,19 +323,52 @@ void WalkingPattern::footStepTotal()
 
     Eigen::Isometry3d temp_;
     temp_.linear() = PELV_first_init.linear();
-    temp_.translation().setZero();
+    temp_.translation() = PELV_first_init.translation();//.setZero();
 
   for(int i = 0; i < numberOfFootstep; i++)
   {
       if(foot_step(i,6) == 1)
       {
-          foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
+          if(i != 0)
+          {
+            Eigen::Isometry3d temp1;
+            temp1.linear().Identity(); 
+            temp1.translation() = RF_fisrt_init.translation();
+            
+            foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*temp1).translation()(0);
+            foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
+          }
+          else
+          {
+
+            Eigen::Isometry3d temp1;
+            temp1.linear().Identity(); 
+            temp1.translation() = RF_fisrt_init.translation();              
+            foot_step(i,0) = (temp_.inverse()*temp1).translation()(0);
+            foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
+          }
+          
       }
       else
       {
-          foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*LF_fisrt_init).translation()(0);
+          if(i != 0)
+          {
+              Eigen::Isometry3d temp1;
+            temp1.linear().Identity(); 
+            temp1.translation() = LF_fisrt_init.translation();
+             foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*temp1).translation()(0);
+             foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
+          }
+          else
+          {
+              Eigen::Isometry3d temp1;
+            temp1.linear().Identity(); 
+            temp1.translation() = LF_fisrt_init.translation();
+            foot_step(i,0) = (temp_.inverse()*temp1).translation()(0);
+            foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
+          }
+          
       }
-      foot_step(i,1) = foot_step(i,1) + (temp_.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
   }
 }
 
