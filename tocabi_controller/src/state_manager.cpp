@@ -372,6 +372,26 @@ void StateManager::initYaw()
     q_virtual_(5) = q_mod.getZ();
     q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
 }
+void StateManager::imuCompenstation()
+{
+    if (dc.tocabi_.ee_[0].contact && (!dc.tocabi_.ee_[1].contact)) //dc.tocabi_.cont)
+    {
+    }
+    else if (dc.tocabi_.ee_[1].contact && (!dc.tocabi_.ee_[0].contact))
+    {
+        tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF_VIRTUAL));
+        tf2::Matrix3x3 m(q);
+        m.getRPY(roll, pitch, yaw);
+
+        tf2::Quaternion q_mod;
+        q_mod.setRPY(roll + 1.0 / 180.0 * 3.141592, pitch, yaw);
+
+        q_virtual_(3) = q_mod.getX();
+        q_virtual_(4) = q_mod.getY();
+        q_virtual_(5) = q_mod.getZ();
+        q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
+    }
+}
 
 void StateManager::stateThread2(void)
 {
@@ -402,6 +422,8 @@ void StateManager::stateThread2(void)
             //
             updateState();
             //std::cout << " us done,  " << std::flush;
+
+            imuCompenstation();
 
             //DyrosMath::lpf()
             q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 60);
