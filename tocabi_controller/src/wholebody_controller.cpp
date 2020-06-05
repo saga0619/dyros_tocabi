@@ -2318,6 +2318,8 @@ VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot,
     VectorQd torque_task;
     torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * Robot.lambda * f_star_ + gravity_compensation_torque(Robot);
 
+
+
     //W.svd(s,u,v);
     //V2.resize(28,6);
     //V2.zero();
@@ -2788,7 +2790,7 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
 
         //ZMP_pos = GetZMPpos(P1_local, P2_local, ContactForce_Local_yaw);
 
-        ForceRedistributionTwoContactMod2(0.95, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
+        ForceRedistributionTwoContactMod2(0.99, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
 
         //std::cout << "fres - calc" << std::endl
         //          << ResultantForce_ << std::endl;

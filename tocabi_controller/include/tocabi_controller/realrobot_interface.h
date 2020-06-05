@@ -131,14 +131,14 @@ const double NM2CNT[ELMO_DOF] =
         15.5, //shoulder1
         3.3,  //Waist
         3.3,
-        5.8, //rightLeg
+        4.0, //rightLeg
         4.3,
         3.8,
         3.46,
         4.5,
         12.33,
         3.3, //upperbody
-        5.8, //leftLeg
+        4.0, //leftLeg
         4.3,
         3.8,
         3.46,

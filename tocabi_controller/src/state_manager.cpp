@@ -246,6 +246,10 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[10].y = pelv_lin_acc(1);
     pointpub_msg.polygon.points[10].z = pelv_lin_acc(2);
 
+    pointpub_msg.polygon.points[10].x = dc.torque_desired[7];
+    pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
+    pointpub_msg.polygon.points[10].z = (dc.q_(7) - dc.q_ext_(7)) / dc.torque_desired[7];
+
     //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].v_traj(2);
@@ -264,8 +268,8 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
     //pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].x_traj(2);
 
-    pointpub_msg.polygon.points[11].x = dc.tocabi_.imu_pos_(0);
-    pointpub_msg.polygon.points[11].y = dc.tocabi_.imu_pos_(1);
+    pointpub_msg.polygon.points[11].x = dc.q_(7);
+    pointpub_msg.polygon.points[11].y = dc.q_ext_(7);
     pointpub_msg.polygon.points[11].z = dc.tocabi_.imu_pos_(2);
 
     /*
@@ -898,7 +902,17 @@ void StateManager::stateEstimate()
         imu_lin_acc_before = imu_lin_acc_lpf;
         pelv_lin_acc = dc.link_[Pelvis].Rotm.inverse() * imu_lin_acc_lpf;
 
-        dc.tocabi_.imu_pos_ = dc.tocabi_.imu_pos_ + (0.0005 * 0.0005 * 0.5) * pelv_lin_acc;
+        double dt_i = 1.0 / 2000.0;
+
+        Vector3d temp;
+
+        temp = dc.tocabi_.imu_vel_ + dt_i * pelv_lin_acc;
+
+        dc.tocabi_.imu_vel_ = temp;
+
+        temp = dc.tocabi_.imu_pos_ + (dt_i * dt_i / 0.5) * pelv_lin_acc + dc.tocabi_.imu_vel_ * dt_i;
+
+        dc.tocabi_.imu_pos_ = temp;
 
         //Vector3d es_zmp;
 

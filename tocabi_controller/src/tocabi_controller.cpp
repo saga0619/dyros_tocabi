@@ -228,7 +228,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tocabi_.link_[Right_Hand].x_desired = tocabi_.link_[Right_Hand].x_init + TargetDelta_r;
     tocabi_.link_[Right_Hand].rot_desired = DyrosMath::rotateWithX(tc.r_roll) * DyrosMath::rotateWithY(tc.r_pitch) * DyrosMath::rotateWithZ(tc.r_yaw) * tocabi_.link_[Right_Hand].rot_init;
     tocabi_.imu_pos_.setZero();
-    std::cout << "init set - COM x : " << tocabi_.link_[COM_id].x_init(0) << "\t y : " << tocabi_.link_[COM_id].x_init(1) << std::endl;
+    std::cout << control_time_ << "init set - COM x : " << tocabi_.link_[COM_id].x_init(0) << "\t y : " << tocabi_.link_[COM_id].x_init(1) << std::endl;
 
     //walking
     tc.walking_enable = msg.walking_enable;
@@ -249,7 +249,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
         tc.mode = 11;
     }
 
-    data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
+    data_out << "###############  COMMAND RECEIVED  ###############" << control_time_ << std::endl;
 }
 
 void TocabiController::stateThread()
@@ -467,7 +467,7 @@ void TocabiController::dynamicsThreadLow()
 
     //const char *file_name = "/home/saga/sim_data.txt";
 
-    std::string path = dc.homedir + "/red_sim_data/";
+    std::string path = dc.homedir;
     std::string current_time;
 
     time_t now = std::time(0);
@@ -476,8 +476,17 @@ void TocabiController::dynamicsThreadLow()
     tstruct = *localtime(&now);
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     current_time = buf;
-    std::string file_name = path + "sim_data" + current_time + ".txt";
+    std::string file_name = path + "/tocabi_data" + current_time + ".txt";
     data_out = std::ofstream(file_name.c_str());
+    if (data_out.is_open())
+    {
+        std::cout << "Start Logging Data ....to " << file_name << std::endl;
+        data_out << "Start Data Print" << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to open tocabi_data.txt" << std::endl;
+    }
 
     std::stringstream ss;
 
@@ -730,6 +739,8 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[COM_id].x_traj(1) = tocabi_.link_[Left_Foot].xpos(1);
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
@@ -750,12 +761,14 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
                 tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
 
-                tocabi_.link_[COM_id].x_desired = tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired = tocabi_.link_[Right_Foot].x_init;
 
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                //tocabi_.link_[COM_id].x_traj(1) = tocabi_.link_[Right_Foot].xpos(1);
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
@@ -1247,6 +1260,11 @@ void TocabiController::dynamicsThreadLow()
 
             //std::cout << "q_ext - q_int of R_hip Roll : " << dc.q_(7) - dc.q_ext_(7) << std::endl;
             //std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
+
+            data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
+
+            VectorXd Fs = tocabi_.lambda * tocabi_.f_star;
+            //std::cout << control_time_ << " COM Fy : " << Fs(1) << std::endl;
         }
         else
         {
