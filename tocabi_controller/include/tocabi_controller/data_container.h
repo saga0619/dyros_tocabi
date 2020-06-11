@@ -108,6 +108,8 @@ public:
   bool start_initialize_lower = false;
   bool imu_reset_signal = false;
 
+
+
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;
 
@@ -115,6 +117,15 @@ public:
   bool ftcalib = false;
   std::string sim_mode;
   std::string mode;
+
+
+
+  bool print_data_to_file = false;
+  bool open_file_for_print = false;
+  bool print_data_ready = false;
+  std::string print_file_name;
+  std::ofstream data_out;
+
 
   //Tui Var..
   bool state_end;
@@ -229,9 +240,9 @@ public:
 
   bool use_virtual_for_mujoco = false;
 
-  int imu_state = 0; //0 not ok 1 not valid 2 valid
-  int zp_state = 0; //0 not ok 1 ready 2 ok
-  int ft_state = 0; //0 not ok 1 init req 2 ok
+  int imu_state = 0;  //0 not ok 1 not valid 2 valid
+  int zp_state = 0;   //0 not ok 1 ready 2 ok
+  int ft_state = 0;   //0 not ok 1 init req 2 ok
   int ecat_state = 0; //0 not ok 1 ok 2 commutation
 
   //Simulation mode

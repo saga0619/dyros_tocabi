@@ -111,9 +111,12 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
             // //joint_name_map_[JOINT_NAME[i]] = i;
         }
 
+        double total_mass = 0;
+
         for (int i = 0; i < LINK_NUMBER; i++)
         {
             link_[i].initialize(model_2, link_id_[i], TOCABI::LINK_NAME[i], model_2.mBodies[link_id_[i]].mMass, model_2.mBodies[link_id_[i]].mCenterOfMass);
+            total_mass += link_[i].Mass;
         }
 
         Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
@@ -138,6 +141,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         // RigidBodyDynamics::Joint J_temp;
         // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
         // model_.mJoints[2] = J_temp;
+        std::cout << "Total Mass : " << total_mass << std::endl; // mass without head -> 83.6 kg
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
@@ -423,7 +427,7 @@ void StateManager::stateThread2(void)
             updateState();
             //std::cout << " us done,  " << std::flush;
 
-            imuCompenstation();
+            //`imuCompenstation();
 
             //DyrosMath::lpf()
             q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 60);
@@ -1187,5 +1191,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "simvirtualjoint")
     {
         dc.use_virtual_for_mujoco = true;
+    }
+    else if (msg->data == "printdata")
+    {
+        dc.open_file_for_print = true;
     }
 }

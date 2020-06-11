@@ -248,8 +248,10 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     {
         tc.mode = 11;
     }
-
-    data_out << "###############  COMMAND RECEIVED  ###############" << control_time_ << std::endl;
+    if (dc.print_data_ready)
+    {
+        dc.data_out << "###############  COMMAND RECEIVED  ###############" << control_time_ << std::endl;
+    }
 }
 
 void TocabiController::stateThread()
@@ -476,17 +478,7 @@ void TocabiController::dynamicsThreadLow()
     tstruct = *localtime(&now);
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     current_time = buf;
-    std::string file_name = path + "/tocabi_data" + current_time + ".txt";
-    data_out = std::ofstream(file_name.c_str());
-    if (data_out.is_open())
-    {
-        std::cout << "Start Logging Data ....to " << file_name << std::endl;
-        data_out << "Start Data Print" << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed to open tocabi_data.txt" << std::endl;
-    }
+    dc.print_file_name = path + "/tocabi_data" + current_time + ".txt";
 
     std::stringstream ss;
 
@@ -1260,10 +1252,20 @@ void TocabiController::dynamicsThreadLow()
 
             //std::cout << "q_ext - q_int of R_hip Roll : " << dc.q_(7) - dc.q_ext_(7) << std::endl;
             //std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
-
-            data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
+            if (dc.print_data_ready)
+            {
+                dc.data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
+            }
 
             VectorXd Fs = tocabi_.lambda * tocabi_.f_star;
+
+            for (int i = 0; i < Fs.size(); i++)
+            {
+                if (Fs(i) > 100)
+                {
+                    std::cout << cred << control_time_ << " : task force limit detected. at " << i << creset << std::endl;
+                }
+            }
             //std::cout << control_time_ << " COM Fy : " << Fs(1) << std::endl;
         }
         else
@@ -1517,6 +1519,22 @@ void TocabiController::tuiThread()
             {
                 std::cout << dc.tocabi_.ContactForce_FT << std::endl;
             }
+        }
+
+        if (dc.open_file_for_print && !dc.print_data_ready)
+        {
+            dc.data_out = std::ofstream(dc.print_file_name.c_str());
+            if (dc.data_out.is_open())
+            {
+                std::cout << "Start Logging Data .... to " << dc.print_file_name << std::endl;
+                dc.data_out << "Start Data Print" << std::endl;
+                dc.print_data_ready = true;
+            }
+            else
+            {
+                std::cout << "Failed to open tocabi_data.txt" << std::endl;
+            }
+            dc.open_file_for_print = false;
         }
 
         //AURA CONTROL PART
