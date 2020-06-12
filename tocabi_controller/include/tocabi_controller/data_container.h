@@ -108,7 +108,7 @@ public:
   bool start_initialize_lower = false;
   bool imu_reset_signal = false;
 
-
+  bool operation_ready = false;
 
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;

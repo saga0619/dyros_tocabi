@@ -1544,7 +1544,7 @@ void TocabiController::tuiThread()
         int tg1 = 255 * dc.t_gain;
         int tg2 = (255 - 63) * dc.t_gain;
 
-        dc.rgbPubMsg.data = {tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1, 0, 0};
+        dc.rgbPubMsg.data = {0, 0, tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1};
         dc.rgbPub.publish(dc.rgbPubMsg);
 
         if (dc.safetyison)
