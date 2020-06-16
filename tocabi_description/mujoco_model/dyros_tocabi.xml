@@ -3,13 +3,8 @@
     <size njmax="500" nconmax="100" />
     <!-- <option gravity= "0 0 0"/> -->
 
-<<<<<<< HEAD
    <default>
-        <joint damping="5.0" frictionloss="1.0"/>
-=======
-    <default>
-        <joint damping="0.5" frictionloss="4"/>
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
+        <joint damping="5.0" frictionloss="4"/>
         <motor ctrllimited="true" ctrlrange="-300 300"/>
         <default class="viz">
             <geom contype="0" conaffinity="0" group="1" type="mesh" rgba=".6 .6 .7 1" />
@@ -408,29 +403,12 @@
 
 
     <keyframe>
-<<<<<<< HEAD
         <!--Initial Position Setting -->
         <key name="front" time="0" qpos ="0 0 1 1 0 0 0 
 								0 0 0.02 0.1 -0.12 0 
 								0 0 0.02 0.1 -0.12 0 
-=======
-        <!-- Initial Position Setting 0.94783-->
-        <key name="front" time="0" qpos ="0 0 0.94783 1 0 0 0 
-								0.0 0.0 -0.24 0.6 -0.36 0.0 
-								0.0 0.0 -0.24 0.6 -0.36 0.0
-								0 0 0 0 0
-								0.3 0.3 1.5 -1.27 -1 0 -1 0
-								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>
-        <key name="side" time="0" qpos ="0 0 0.94783 0.8660254 0 0 0.5 
-								0.0 0.0 -0.24 0.6 -0.36 0.0 
-								0.0 0.0 -0.24 0.6 -0.36 0.0
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
 								0 0 0 0 0
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
 								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>
     </keyframe>
-<<<<<<< HEAD
-
-=======
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
 </mujoco>

@@ -400,7 +400,8 @@ void StateManager::stateThread2(void)
             //std::cout << " us done,  " << std::flush;
 
             //DyrosMath::lpf()
-            q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 60);
+            // q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 60);
+            q_dot_virtual_ = q_dot_virtual_raw_;
             q_dot_virtual_before = q_dot_virtual_;
             initYaw();
 
@@ -413,7 +414,7 @@ void StateManager::stateThread2(void)
 
             if (dc.semode)
             {
-                stateEstimate();
+                // stateEstimate();
             }
 
             updateKinematics(model_2, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
@@ -718,12 +719,7 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eig
 
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
-<<<<<<< HEAD
-        link_[i].COM_Jac_Update(model_, q_virtual_);
-=======
-
         link_[i].COM_Jac_Update(model_l, q_virtual_);
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
     }
     //COM link information update ::
     double com_mass;
@@ -824,7 +820,7 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eig
     link_[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6) / com_.mass;
     link_[COM_id].Jac.block(2, 0, 4, MODEL_DOF + 6) = link_[Pelvis].Jac.block(2, 0, 4, MODEL_DOF + 6);
 
-    link_[COM_id].Jac_COM_p = jacobian_com;
+    link_[COM_id].Jac_COM_p = jacobian_com/com_.mass;
 
     link_[COM_id].xpos = com_.pos;
     // link_[COM_id].xpos(2) = link_[Pelvis].xpos(2);
@@ -977,7 +973,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         }
         else
         {
-            dc.semode = true;
+            dc.semode = false;
             dc.tocabi_.yaw_init_swc = true;
             std::cout << "torque ON !" << std::endl;
             dc.torqueOnTime = control_time_;

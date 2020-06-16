@@ -221,12 +221,10 @@ public:
 
   bool spalarm = false; // support polygon alarm bool
   bool semode = false;  // state estimation running or not.
-<<<<<<< HEAD
-=======
+
   bool semode_init = true;
 
   bool safetyison = false;
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
 
   bool initialize_request = false;
 

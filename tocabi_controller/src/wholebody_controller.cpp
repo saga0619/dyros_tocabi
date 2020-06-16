@@ -1395,8 +1395,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     return task_torque; // + gravity_torque;
 }
 
-<<<<<<< HEAD
-VectorQd Wholebody_controller::task_control_torque_QP_dg(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int contact_dist_ratio)
+VectorQd WholebodyController::task_control_torque_QP_dg(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int contact_dist_ratio)
 {
     //contact_dist_ratio : contact force distribution ratio. ratio 1 means that left foot contact force is dominated. -1 is opposite.
 
@@ -1739,10 +1738,7 @@ VectorQd Wholebody_controller::task_control_torque_QP_dg(RobotData &Robot, Eigen
     return task_torque; // + gravity_torque;
 }
 
-VectorQd Wholebody_controller::task_control_torque_QP_gravity(RobotData &Robot)
-=======
 VectorQd WholebodyController::task_control_torque_QP_gravity(RobotData &Robot)
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
 {
     VectorQd task_torque;
     VectorXd f_star_qp_;

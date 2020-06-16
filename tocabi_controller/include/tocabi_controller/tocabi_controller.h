@@ -4,69 +4,6 @@
 #include "custom_controller.h"
 
 extern volatile bool shutdown_tocabi_bool;
-<<<<<<< HEAD
-const double Kps[MODEL_DOF] =
-    {
-        Kp_Yaw1s,
-        Kp_Roll1s,
-        Kp_Pitch1s,
-        Kp_Pitch2s,
-        Kp_Pitch3s,
-        Kp_Roll2s,
-        Kp_Yaw1s,
-        Kp_Roll1s,
-        Kp_Pitch1s,
-        Kp_Pitch2s,
-        Kp_Pitch3s,
-        Kp_Roll2s};
-
-const double Kvs[MODEL_DOF] =
-    {
-        Kv_Yaw1s,
-        Kv_Roll1s,
-        Kv_Pitch1s,
-        Kv_Pitch2s,
-        Kv_Pitch3s,
-        Kv_Roll2s,
-        Kv_Yaw1s,
-        Kv_Roll1s,
-        Kv_Pitch1s,
-        Kv_Pitch2s,
-        Kv_Pitch3s,
-        Kv_Roll2s};
-
-struct TaskCommand
-{
-  double command_time;
-  double traj_time;
-  double ratio;
-  double height;
-  double angle;
-  bool task_init;
-  int mode;
-};
-
-struct ArmTaskCommand
-{
-  double command_time;
-  double traj_time;
-  double l_x;
-  double l_y;
-  double l_z;
-  double l_roll;
-  double l_pitch;
-  double l_yaw;
-  double r_x;
-  double r_y;
-  double r_z;
-  double r_roll;
-  double r_pitch;
-  double r_yaw;
-  int mode = -1;
-};
-=======
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
-
 class TocabiController
 {
 public:
@@ -162,21 +99,20 @@ private:
   Com com_;
   int cr_mode;
 
-<<<<<<< HEAD
   //////////dg custom controller variables////////
   void setWalkingParameter(double walking_duration, double walking_speed, double step_width, double knee_target_angle);
 
   void initWalkingParameter();
-  void getRobotData(Wholebody_controller &wc);
-  void getProcessedRobotData(Wholebody_controller &wc);
+  void getRobotData(WholebodyController &wc);
+  void getProcessedRobotData(WholebodyController &wc);
   void walkingStateManager();
   void motionGenerator();
   void getCOMTrajectory();
   void getSwingFootXYTrajectory(double phase, Eigen::Vector3d com_pos_current, Eigen::Vector3d com_vel_current, Eigen::Vector3d com_vel_desired);
   void computeIk(Eigen::Isometry3d float_trunk_transform, Eigen::Isometry3d float_lleg_transform, Eigen::Isometry3d float_rleg_transform, Eigen::Vector12d& q_des);
-  Eigen::VectorQd comVelocityControlCompute(Wholebody_controller &wc);
-  Eigen::VectorQd comVelocityControlCompute2(Wholebody_controller &wc);
-  Eigen::VectorQd jointTrajectoryPDControlCompute(Wholebody_controller &wc);
+  Eigen::VectorQd comVelocityControlCompute(WholebodyController &wc);
+  Eigen::VectorQd comVelocityControlCompute2(WholebodyController &wc);
+  Eigen::VectorQd jointTrajectoryPDControlCompute(WholebodyController &wc);
   bool balanceTrigger(Eigen::Vector2d com_pos_2d, Eigen::Vector2d com_vel_2d);
   int checkZMPinWhichFoot(Eigen::Vector2d zmp_measured); // check where the zmp is
   Eigen::VectorQd tuneTorqueForZMPSafety(Eigen::VectorQd task_torque); // check where the zmp is
@@ -345,9 +281,8 @@ private:
   Eigen::VectorQd torque_grav_;
   Eigen::VectorQd torque_task_pre_;
   Eigen::VectorQd torque_grav_pre_;
-=======
+
   //Walking Information
   bool walkingCallbackOn;
   bool set_q_init;
->>>>>>> cf1e0c06371d5fd867b6f7a635bce68b0538f631
 };

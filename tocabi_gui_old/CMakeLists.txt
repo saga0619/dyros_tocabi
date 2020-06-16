@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.5.1)
 project(tocabi_gui)
 
 ## Compile as C++11, supported in ROS Kinetic and newer

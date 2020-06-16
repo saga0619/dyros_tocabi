@@ -86,6 +86,7 @@ void MujocoInterface::sendCommand(Eigen::VectorQd command, double simt, int cont
         }
     }
 
+
     mujoco_joint_set_msg_.header.stamp = ros::Time::now();
     mujoco_joint_set_msg_.time = simt;
     mujoco_joint_set_pub_.publish(mujoco_joint_set_msg_);
@@ -139,7 +140,7 @@ void MujocoInterface::connect()
         mujoco_ready = false;
         printf("Connected!\n");
         dc.connected = true;
-        dc.semode = true;
+        dc.semode = false;  // dgdg
         dc.tocabi_.yaw_init_swc = true;
     }
 }
@@ -191,7 +192,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             q_dot_virtual_raw_(i) = msg->velocity[i];
             q_ddot_virtual_(i) = msg->effort[i];
         }
-        q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
+        q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6]; //quat w
 
         for (int i = 0; i < 3; i++)
         {
@@ -208,8 +209,9 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             q_dot_virtual_raw_(i) = msg->velocity[i];
             q_ddot_virtual_(i) = msg->effort[i];
         }
-        q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
-        q_virtual_(0) = 0.0;
+        q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6]; //quat w
+
+        q_virtual_(0) = 0.0; //dg
         q_virtual_(1) = 0.0;
         q_virtual_(2) = 0.0;
     }
@@ -220,7 +222,17 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         {
             for (int j = 0; j < 3; j++)
             {
-                //q_dot_virtual_(j+3)=msg->sensor[i].data[j];
+                q_dot_virtual_(j+3)=msg->sensor[i].data[j];
+            }
+        }
+    }
+    for (int i = 0; i < msg->sensor.size(); i++)
+    {
+        if (msg->sensor[i].name == "Acc_Pelvis_IMU")
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                q_ddot_virtual_(j)=msg->sensor[i].data[j];
             }
         }
     }
