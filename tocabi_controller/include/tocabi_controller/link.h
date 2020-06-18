@@ -312,6 +312,8 @@ public:
   Eigen::Vector3d ZMP_pos;
 
   Eigen::Vector3d imu_pos_;
+  Eigen::Vector3d imu_vel_;
+
 
   double fc_redis;
 

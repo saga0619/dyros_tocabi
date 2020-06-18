@@ -329,7 +329,7 @@ void WalkingPattern::footStepTotal()
   {
       if(foot_step(i,6) == 1)
       {
-          foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
+         foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
           foot_step(i,1) = (temp_.inverse()*RF_fisrt_init).translation()(1);
       }
       else

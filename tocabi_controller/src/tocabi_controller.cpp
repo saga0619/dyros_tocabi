@@ -228,7 +228,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tocabi_.link_[Right_Hand].x_desired = tocabi_.link_[Right_Hand].x_init + TargetDelta_r;
     tocabi_.link_[Right_Hand].rot_desired = DyrosMath::rotateWithX(tc.r_roll) * DyrosMath::rotateWithY(tc.r_pitch) * DyrosMath::rotateWithZ(tc.r_yaw) * tocabi_.link_[Right_Hand].rot_init;
     tocabi_.imu_pos_.setZero();
-    std::cout << "init set - COM x : " << tocabi_.link_[COM_id].x_init(0) << "\t y : " << tocabi_.link_[COM_id].x_init(1) << std::endl;
+    std::cout << control_time_ << "init set - COM x : " << tocabi_.link_[COM_id].x_init(0) << "\t y : " << tocabi_.link_[COM_id].x_init(1) << std::endl;
 
     //walking
     tc.walking_enable = msg.walking_enable;
@@ -248,8 +248,10 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     {
         tc.mode = 11;
     }
-
-    data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
+    if (dc.print_data_ready)
+    {
+        dc.data_out << "###############  COMMAND RECEIVED  ###############" << control_time_ << std::endl;
+    }
 }
 
 void TocabiController::stateThread()
@@ -467,7 +469,7 @@ void TocabiController::dynamicsThreadLow()
 
     //const char *file_name = "/home/saga/sim_data.txt";
 
-    std::string path = dc.homedir + "/red_sim_data/";
+    std::string path = dc.homedir;
     std::string current_time;
 
     time_t now = std::time(0);
@@ -476,8 +478,7 @@ void TocabiController::dynamicsThreadLow()
     tstruct = *localtime(&now);
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     current_time = buf;
-    std::string file_name = path + "sim_data" + current_time + ".txt";
-    data_out = std::ofstream(file_name.c_str());
+    dc.print_file_name = path + "/tocabi_data" + current_time + ".txt";
 
     std::stringstream ss;
 
@@ -730,6 +731,8 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[COM_id].x_traj(1) = tocabi_.link_[Left_Foot].xpos(1);
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
@@ -741,26 +744,28 @@ void TocabiController::dynamicsThreadLow()
             }
             else if (tc.mode == 5) //right single
             {
-                int task_number = 9;
+                int task_number = 6;
                 wbc_.set_contact(tocabi_, 0, 1);
 
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
                 tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
-                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                //tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
 
-                tocabi_.link_[COM_id].x_desired = tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired = tocabi_.link_[Right_Foot].x_init;
 
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
-                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[COM_id].x_traj(1) = tocabi_.link_[Right_Foot].xpos(1);
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX((tc.roll) * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
+                //tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
-                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                //tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
                 cr_mode = tc.contactredis;
@@ -1247,6 +1252,21 @@ void TocabiController::dynamicsThreadLow()
 
             //std::cout << "q_ext - q_int of R_hip Roll : " << dc.q_(7) - dc.q_ext_(7) << std::endl;
             //std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
+            if (dc.print_data_ready)
+            {
+                dc.data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
+            }
+
+            VectorXd Fs = tocabi_.lambda * tocabi_.f_star;
+
+            for (int i = 0; i < Fs.size(); i++)
+            {
+                if (Fs(i) > 100)
+                {
+                    std::cout << cred << control_time_ << " : task force limit detected. at " << i << creset << std::endl;
+                }
+            }
+            //std::cout << control_time_ << " COM Fy : " << Fs(1) << std::endl;
         }
         else
         {
@@ -1501,6 +1521,22 @@ void TocabiController::tuiThread()
             }
         }
 
+        if (dc.open_file_for_print && !dc.print_data_ready)
+        {
+            dc.data_out = std::ofstream(dc.print_file_name.c_str());
+            if (dc.data_out.is_open())
+            {
+                std::cout << "Start Logging Data .... to " << dc.print_file_name << std::endl;
+                dc.data_out << "Start Data Print" << std::endl;
+                dc.print_data_ready = true;
+            }
+            else
+            {
+                std::cout << "Failed to open tocabi_data.txt" << std::endl;
+            }
+            dc.open_file_for_print = false;
+        }
+
         //AURA CONTROL PART
 
         static bool safetymode_led = false;
@@ -1508,7 +1544,7 @@ void TocabiController::tuiThread()
         int tg1 = 255 * dc.t_gain;
         int tg2 = (255 - 63) * dc.t_gain;
 
-        dc.rgbPubMsg.data = {tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1, 0, 0};
+        dc.rgbPubMsg.data = {0, 0, tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1};
         dc.rgbPub.publish(dc.rgbPubMsg);
 
         if (dc.safetyison)

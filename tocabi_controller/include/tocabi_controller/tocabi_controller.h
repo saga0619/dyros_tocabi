@@ -35,7 +35,6 @@ public:
   ros::Subscriber task_command_que;
 
   tocabi_controller::TaskCommandQue tque_msg;
-  std::ofstream data_out;
 
   ros::Publisher point_pub;
   ros::Publisher point_pub2;

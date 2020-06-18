@@ -59,6 +59,8 @@ public:
   void initYaw();
   //private variables
 
+  void imuCompenstation();
+
   //Set Position Joint PD Gain
   void SetPositionPDGainMatrix();
 
@@ -113,7 +115,6 @@ public:
   Eigen::Vector3d pelv_lin_acc;
   Eigen::Vector3d imu_lin_acc_before;
   Eigen::Vector3d imu_lin_acc_lpf;
-  
 
   //Communication Subscriber!
 

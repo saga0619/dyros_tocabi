@@ -111,9 +111,12 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
             // //joint_name_map_[JOINT_NAME[i]] = i;
         }
 
+        double total_mass = 0;
+
         for (int i = 0; i < LINK_NUMBER; i++)
         {
             link_[i].initialize(model_2, link_id_[i], TOCABI::LINK_NAME[i], model_2.mBodies[link_id_[i]].mMass, model_2.mBodies[link_id_[i]].mCenterOfMass);
+            total_mass += link_[i].Mass;
         }
 
         Eigen::Vector3d lf_c, rf_c, lh_c, rh_c;
@@ -138,6 +141,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         // RigidBodyDynamics::Joint J_temp;
         // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
         // model_.mJoints[2] = J_temp;
+        std::cout << "Total Mass : " << total_mass << std::endl; // mass without head -> 83.6 kg
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
@@ -246,6 +250,10 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[10].y = pelv_lin_acc(1);
     pointpub_msg.polygon.points[10].z = pelv_lin_acc(2);
 
+    pointpub_msg.polygon.points[10].x = dc.torque_desired[7];
+    pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
+    pointpub_msg.polygon.points[10].z = (dc.q_(7) - dc.q_ext_(7)) / dc.torque_desired[7];
+
     //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].v_traj(2);
@@ -264,8 +272,8 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
     //pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].x_traj(2);
 
-    pointpub_msg.polygon.points[11].x = dc.tocabi_.imu_pos_(0);
-    pointpub_msg.polygon.points[11].y = dc.tocabi_.imu_pos_(1);
+    pointpub_msg.polygon.points[11].x = dc.q_(7);
+    pointpub_msg.polygon.points[11].y = dc.q_ext_(7);
     pointpub_msg.polygon.points[11].z = dc.tocabi_.imu_pos_(2);
 
     /*
@@ -368,6 +376,26 @@ void StateManager::initYaw()
     q_virtual_(5) = q_mod.getZ();
     q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
 }
+void StateManager::imuCompenstation()
+{
+    if (dc.tocabi_.ee_[0].contact && (!dc.tocabi_.ee_[1].contact)) //dc.tocabi_.cont)
+    {
+    }
+    else if (dc.tocabi_.ee_[1].contact && (!dc.tocabi_.ee_[0].contact))
+    {
+        tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF_VIRTUAL));
+        tf2::Matrix3x3 m(q);
+        m.getRPY(roll, pitch, yaw);
+
+        tf2::Quaternion q_mod;
+        q_mod.setRPY(roll + 1.0 / 180.0 * 3.141592, pitch, yaw);
+
+        q_virtual_(3) = q_mod.getX();
+        q_virtual_(4) = q_mod.getY();
+        q_virtual_(5) = q_mod.getZ();
+        q_virtual_(MODEL_DOF_VIRTUAL) = q_mod.getW();
+    }
+}
 
 void StateManager::stateThread2(void)
 {
@@ -398,6 +426,8 @@ void StateManager::stateThread2(void)
             //
             updateState();
             //std::cout << " us done,  " << std::flush;
+
+            //`imuCompenstation();
 
             //DyrosMath::lpf()
             q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 60);
@@ -898,7 +928,17 @@ void StateManager::stateEstimate()
         imu_lin_acc_before = imu_lin_acc_lpf;
         pelv_lin_acc = dc.link_[Pelvis].Rotm.inverse() * imu_lin_acc_lpf;
 
-        dc.tocabi_.imu_pos_ = dc.tocabi_.imu_pos_ + (0.0005 * 0.0005 * 0.5) * pelv_lin_acc;
+        double dt_i = 1.0 / 2000.0;
+
+        Vector3d temp;
+
+        temp = dc.tocabi_.imu_vel_ + dt_i * pelv_lin_acc;
+
+        dc.tocabi_.imu_vel_ = temp;
+
+        temp = dc.tocabi_.imu_pos_ + (dt_i * dt_i / 0.5) * pelv_lin_acc + dc.tocabi_.imu_vel_ * dt_i;
+
+        dc.tocabi_.imu_pos_ = temp;
 
         //Vector3d es_zmp;
 
@@ -1151,5 +1191,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "simvirtualjoint")
     {
         dc.use_virtual_for_mujoco = true;
+    }
+    else if (msg->data == "printdata")
+    {
+        dc.open_file_for_print = true;
     }
 }
