@@ -40,6 +40,9 @@ public:
   // Set Contact point, Contact jacobian
   void Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position);
 
+  // Set Contact point, Contact jacobian
+  void Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &Contact_position);
+
   // Set Sensor Position
   void Set_Sensor_Position(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Sensor_position);
 
@@ -124,6 +127,12 @@ public:
 
   //cartesian velocity of body
   Eigen::Vector3d v;
+
+  //cartesian velocity of contact point at body
+  Eigen::Vector3d v_contact;
+
+  //cartesian velocity of contact point at body
+  Eigen::Vector3d w_contact;
 
   //rotational velocity of body
   Eigen::Vector3d w;
@@ -283,6 +292,7 @@ public:
 
   Eigen::MatrixXd J_task;
   Eigen::VectorXd f_star;
+  Eigen::VectorXd f_star_a_;
 
   Eigen::MatrixXd Lambda_c;
   Eigen::MatrixXd N_C;
@@ -313,7 +323,6 @@ public:
 
   Eigen::Vector3d imu_pos_;
   Eigen::Vector3d imu_vel_;
-
 
   double fc_redis;
 

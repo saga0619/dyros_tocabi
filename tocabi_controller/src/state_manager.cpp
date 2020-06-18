@@ -250,9 +250,25 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[10].y = pelv_lin_acc(1);
     pointpub_msg.polygon.points[10].z = pelv_lin_acc(2);
 
+    Matrix6d adt;
+
+    adt.setIdentity();
+    adt.block(3, 0, 3, 3) = DyrosMath::skm(-dc.tocabi_.link_[Right_Foot].contact_point) * Matrix3d::Identity();
+
+    Vector6d cf_t;
+    cf_t = dc.tocabi_.ContactForce_FT.segment(6, 6);
+
+    Matrix6d rotrf;
+    rotrf.setZero();
+    rotrf.block(0, 0, 3, 3) = dc.tocabi_.link_[Right_Foot].Rotm;
+    rotrf.block(3, 3, 3, 3) = dc.tocabi_.link_[Right_Foot].Rotm;
+
+    Vector6d cf_t_res;
+    cf_t_res = rotrf * adt * cf_t;
+
     pointpub_msg.polygon.points[10].x = dc.torque_desired[7];
-    pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
-    pointpub_msg.polygon.points[10].z = (dc.q_(7) - dc.q_ext_(7)) / dc.torque_desired[7];
+    pointpub_msg.polygon.points[10].y = -dc.tocabi_.ContactForce[9] / dc.tocabi_.ContactForce[8];
+    pointpub_msg.polygon.points[10].z = -cf_t_res(3) / (cf_t_res(2) - 2.36 * 9.81);
 
     //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);
@@ -272,9 +288,13 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].x_traj(1);
     //pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].x_traj(2);
 
-    pointpub_msg.polygon.points[11].x = dc.q_(7);
-    pointpub_msg.polygon.points[11].y = dc.q_ext_(7);
-    pointpub_msg.polygon.points[11].z = dc.tocabi_.imu_pos_(2);
+    //pointpub_msg.polygon.points[11].x = dc.q_(7);
+    //pointpub_msg.polygon.points[11].y = dc.q_ext_(7);
+    //pointpub_msg.polygon.points[11].z = dc.tocabi_.imu_pos_(2);
+
+    pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].x_traj(0);
+    pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].x_traj(1);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].x_traj(2);
 
     /*
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
@@ -321,7 +341,7 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[16].z = dc.tocabi_.ZMP_command(2);
 
     pointpub_msg.polygon.points[17].x = dc.tocabi_.ContactForce(3) / dc.tocabi_.ContactForce(2);
-    pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce_FT(3) / dc.tocabi_.ContactForce_FT(2);
+    pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce_FT(3) / (dc.tocabi_.ContactForce_FT(2) - 2.36 * 9.81);
     pointpub_msg.polygon.points[17].z = pointpub_msg.polygon.points[8].x * 180 / 3.141592;
     point_pub.publish(pointpub_msg);
 
@@ -847,10 +867,10 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eig
 
     link_[COM_id].Jac.setZero(6, MODEL_DOF + 6);
 
-    link_[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6) / com_.mass;
-    link_[COM_id].Jac.block(2, 0, 4, MODEL_DOF + 6) = link_[Pelvis].Jac.block(2, 0, 4, MODEL_DOF + 6);
+    link_[COM_id].Jac.block(0, 0, 3, MODEL_DOF + 6) = jacobian_com.block(0, 0, 3, MODEL_DOF + 6) / com_.mass;
+    link_[COM_id].Jac.block(3, 0, 3, MODEL_DOF + 6) = link_[Pelvis].Jac.block(3, 0, 3, MODEL_DOF + 6);
 
-    link_[COM_id].Jac_COM_p = jacobian_com;
+    link_[COM_id].Jac_COM_p = jacobian_com / com_.mass;
 
     link_[COM_id].xpos = com_.pos;
     link_[COM_id].xpos(2) = link_[Pelvis].xpos(2);
@@ -872,6 +892,16 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eig
     //link_[Right_Hand].Set_Contact(model_, q_virtual_, link_[Right_Hand].contact_point);
     //link_[Left_Hand].Set_Contact(model_, q_virtual_, link_[Left_Hand].contact_point);
     //ROS_INFO_ONCE("CONTROLLER : MODEL : updatekinematics end ");
+}
+
+void StateManager::contactEstimate()
+{
+    //See zmp for each foot by ft sensor. 
+
+    //with ft, contact force Z means, 
+    //Oh my fucking Goddddddd
+
+
 }
 
 void StateManager::stateEstimate()
@@ -962,21 +992,25 @@ void StateManager::stateEstimate()
 
         if (contact_right && contact_left)
         {
+            link_[Right_Foot].Set_Contact(q_virtual_, q_dot_virtual_, link_[Right_Foot].contact_point);
+            link_[Left_Foot].Set_Contact(q_virtual_, q_dot_virtual_, link_[Left_Foot].contact_point);
             //std::cout << control_time_ << " : base pos calc ! " << std::endl;
             mod_base_pos = (rf_cp_m * rf_s_ratio / (rf_s_ratio + lf_s_ratio) + lf_cp_m * lf_s_ratio / (rf_s_ratio + lf_s_ratio));
             //mod_base_pos(2) = mod_base_pos(2) + ((link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2)) * rf_s_ratio/ (rf_s_ratio + lf_s_ratio) + (link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2)) * lf_s_ratio / (rf_s_ratio + lf_s_ratio));
-            mod_base_vel = link_[Right_Foot].v * rf_s_ratio / (rf_s_ratio + lf_s_ratio) + link_[Left_Foot].v * lf_s_ratio / (rf_s_ratio + lf_s_ratio);
+            mod_base_vel = link_[Right_Foot].v_contact * rf_s_ratio / (rf_s_ratio + lf_s_ratio) + link_[Left_Foot].v_contact * lf_s_ratio / (rf_s_ratio + lf_s_ratio);
         }
         else if (contact_right)
         {
+            link_[Right_Foot].Set_Contact(q_virtual_, q_dot_virtual_, link_[Right_Foot].contact_point);
             mod_base_pos = rf_cp_m;
-            mod_base_vel = link_[Right_Foot].v;
+            mod_base_vel = link_[Right_Foot].v_contact;
             //mod_base_pos(2) = mod_base_pos(2) + link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2);
         }
         else if (contact_left)
         {
+            link_[Left_Foot].Set_Contact(q_virtual_, q_dot_virtual_, link_[Left_Foot].contact_point);
             mod_base_pos = lf_cp_m;
-            mod_base_vel = link_[Left_Foot].v;
+            mod_base_vel = link_[Left_Foot].v_contact;
             //mod_base_pos(2) = mod_base_pos(2) + link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2);
         }
 

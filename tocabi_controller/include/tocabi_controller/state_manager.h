@@ -44,6 +44,8 @@ public:
 
   void storeSync();
 
+  void contactEstimate();
+
   void stateEstimate();
   //private functions
 

@@ -117,6 +117,28 @@ void Link::Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_p
     // - link_[0].xpos);
 }
 
+void Link::Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &Contact_position)
+{
+    j_temp.setZero(6, MODEL_DOF_VIRTUAL);
+    mtx_rbdl.lock();
+    RigidBodyDynamics::CalcPointJacobian6D(*model, q_virtual_, id, Contact_position, j_temp, false);
+    xpos_contact = RigidBodyDynamics::CalcBodyToBaseCoordinates(*model, q_virtual_, id, Contact_position, false);
+
+    mtx_rbdl.unlock();
+    // Jac_Contact.block<3,MODEL_DOF+6>(0,0)=fj_.block<3,MODEL_DOF+6>(3,0)*E_T_;
+    // Jac_Contact.block<3,MODEL_DOF+6>(3,0)=fj_.block<3,MODEL_DOF+6>(0,0)*E_T_;
+    Jac_Contact.block<3, MODEL_DOF + 6>(0, 0) = j_temp.block<3, MODEL_DOF + 6>(3, 0);
+    Jac_Contact.block<3, MODEL_DOF + 6>(3, 0) = j_temp.block<3, MODEL_DOF + 6>(0, 0);
+
+    v_contact = Jac_Contact.block(0, 0, 3, MODEL_DOF_VIRTUAL) * q_dot_virtual;
+
+    w_contact = Jac_Contact.block(3, 0, 3, MODEL_DOF_VIRTUAL) * q_dot_virtual;
+
+    // Jac_Contact.block<3,3>(0,3)= -
+    // DyrosMath::skm(RigidBodyDynamics::CalcBodyToBaseCoordinates(model_,q_virtual_,id,Contact_position,false)
+    // - link_[0].xpos);
+}
+
 void Link::vw_Update(Eigen::VectorVQd &q_dot_virtual)
 {
     Eigen::Vector6d vw;

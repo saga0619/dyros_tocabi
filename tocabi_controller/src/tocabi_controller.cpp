@@ -505,6 +505,9 @@ void TocabiController::dynamicsThreadLow()
         {
             first = true;
             task_switch = false;
+            tocabi_.ee_[0].contact = true;
+            tocabi_.ee_[1].contact = true;
+
         }
         if ((dyn_loop_start - start_time2) > sec1)
         {
@@ -632,11 +635,12 @@ void TocabiController::dynamicsThreadLow()
                 */
                 wbc_.set_contact(tocabi_, 1, 1);
 
-                int task_number = 6;
+                int task_number = 9;
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
-                tocabi_.J_task = tocabi_.link_[COM_id].Jac;
+                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Pelvis].Jac;
+                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
 
                 tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
@@ -646,7 +650,11 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
-                tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero();
                 cr_mode = tc.contactredis;
@@ -680,6 +688,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+
                 cr_mode = tc.contactredis;
                 torque_grav.setZero();
             }
@@ -810,7 +819,8 @@ void TocabiController::dynamicsThreadLow()
                 double step_length = 0.0;
                 int step_number = 10;
                 double step_time = tc.traj_time;
-                double w = sqrt(9.81 / tc.init_com_height);
+                double gc = 9.81 * 0.8;
+                double w = sqrt(gc / tc.init_com_height);
                 double b = exp(w * step_time);
 
                 Vector2d footstep[step_number];
@@ -864,7 +874,7 @@ void TocabiController::dynamicsThreadLow()
                 Vector2d v_ds2[step_number];
                 Vector2d a_ds2[step_number];
 
-                bool ds_enable = true;
+                bool ds_enable = false;
 
                 double ds_r1, ds_r2;
 
@@ -1261,9 +1271,14 @@ void TocabiController::dynamicsThreadLow()
 
             for (int i = 0; i < Fs.size(); i++)
             {
-                if (Fs(i) > 100)
+                if (Fs(i) > 140)
                 {
-                    std::cout << cred << control_time_ << " : task force limit detected. at " << i << creset << std::endl;
+                    std::cout << cyellow << control_time_ << " : task force warning detected. at " << i << ", " << Fs(i) << creset << std::endl;
+                    if (Fs(i) > 500)
+                    {
+                        std::cout << cred << " task force limit approach. task control disabled. " << creset << std::endl;
+                        dc.gravityMode = true;
+                    }
                 }
             }
             //std::cout << control_time_ << " COM Fy : " << Fs(1) << std::endl;
