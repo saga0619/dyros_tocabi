@@ -323,51 +323,19 @@ void WalkingPattern::footStepTotal()
 
     Eigen::Isometry3d temp_;
     temp_.linear() = PELV_first_init.linear();
-    temp_.translation() = PELV_first_init.translation();//.setZero();
+    temp_.translation() = PELV_first_init.translation();
 
   for(int i = 0; i < numberOfFootstep; i++)
   {
       if(foot_step(i,6) == 1)
       {
-          if(i != 0)
-          {
-            Eigen::Isometry3d temp1;
-            temp1.linear().Identity(); 
-            temp1.translation() = RF_fisrt_init.translation();
-            
-            foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*temp1).translation()(0);
-            foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
-          }
-          else
-          {
-
-            Eigen::Isometry3d temp1;
-            temp1.linear().Identity(); 
-            temp1.translation() = RF_fisrt_init.translation();              
-            foot_step(i,0) = (temp_.inverse()*temp1).translation()(0);
-            foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
-          }
-          
+         foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
+          foot_step(i,1) = (temp_.inverse()*RF_fisrt_init).translation()(1);
       }
       else
       {
-          if(i != 0)
-          {
-              Eigen::Isometry3d temp1;
-            temp1.linear().Identity(); 
-            temp1.translation() = LF_fisrt_init.translation();
-             foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*temp1).translation()(0);
-             foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
-          }
-          else
-          {
-              Eigen::Isometry3d temp1;
-            temp1.linear().Identity(); 
-            temp1.translation() = LF_fisrt_init.translation();
-            foot_step(i,0) = (temp_.inverse()*temp1).translation()(0);
-            foot_step(i,1) = (temp_.inverse()*temp1).translation()(1);
-          }
-          
+          foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*LF_fisrt_init).translation()(0);
+          foot_step(i,1) = (temp_.inverse()*LF_fisrt_init).translation()(1);
       }
   }
 }
@@ -573,7 +541,8 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.03;
+      //  capturePoint_offsety(i) = 0.03;
+        capturePoint_offsety(i) = 0.01;
         capturePoint_offsetx(i) = 0.00;
     }
     capturePoint_ox(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
