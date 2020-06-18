@@ -186,8 +186,11 @@ public:
     
     Eigen::Vector12d dob_hat;
     Eigen::Vector12d dob_hat_prev;
-    double dobGain;
+    Eigen::Vector12d leg_q;//temp
 
+    Eigen::Matrix2d rot_vel;//temp
+    Eigen::Matrix2d rot_prev;
+    double dobGain;
 
     std::fstream file[2];
 };
