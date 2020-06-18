@@ -25,22 +25,24 @@ class Walking_controller : virtual public WalkingPattern
 public:
     WalkingCommand wtc;
     Eigen::Vector12d desired_leg_q;
+    Eigen::VectorQd desired_init_leg_q;
     Eigen::Vector12d leg_q_NC;
 
-    void walkingCompute(RobotData Robot);
+    void walkingCompute(RobotData &Robot);
     void inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);
-    void setInitPose(RobotData Robot, Eigen::Vector12d& leg_q);
-    void getRobotState(RobotData Robot);
-    void getRobotInitState(RobotData Robot);
-    void walkingInitialize(RobotData Robot);
+    void setInitPose(RobotData &Robot, Eigen::VectorQd& leg_q);
+    void getRobotState(RobotData &Robot);
+    void getRobotInitState(RobotData &Robot);
+    void walkingInitialize(RobotData &Robot);
     void setRobotStateInitialize();
     void updateNextStepTime();
     void updateInitTime();
-    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot);
-    void setWalkingParameter(RobotData Robot);
+    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData &Robot);
+    void setWalkingParameter(RobotData &Robot);
 
     void calcRobotState();
     void hipCompensator();
+    void ankleOriControl(RobotData &Robot);
     void inverseKinematicsdob(RobotData &Robot);
 
 private:

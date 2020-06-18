@@ -571,7 +571,7 @@ void TocabiController::dynamicsThreadLow()
 
         torque_task.setZero(MODEL_DOF);
         TorqueContact.setZero();
-
+        //dc.positionControl = true;//temp
         if (dc.gravityMode)
         {
             std::cout << "Task Turned Off,, gravity compensation only !" << std::endl;
