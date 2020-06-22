@@ -843,10 +843,10 @@ static double check_border(double x, double y, double x0, double x1, double y0, 
   return -sign * ((y1 - y0) * (x - x0) + (x1 - x0) * (y0 - y));
 }
 
-static inline double lpf(double input, double prev_res, double samping_preq, double cutoff_preq)
+static inline double lpf(double input, double prev_res, double samping_freq, double cutoff_freq)
 {
-  double rc = 1.0 / (cutoff_preq * 2 * 3.141592);
-  double dt = 1.0 / samping_preq;
+  double rc = 1.0 / (cutoff_freq * 2 * 3.141592);
+  double dt = 1.0 / samping_freq;
   double a = dt / (rc + dt);
 
   return (prev_res + a*(input- prev_res));
@@ -869,13 +869,13 @@ static Eigen::Matrix<double, N, 1> lowPassFilter(Eigen::Matrix<double, N, 1> inp
 }
 
 template <int N>
-static Eigen::Matrix<double, N, 1> lpf(Eigen::Matrix<double, N, 1> input, Eigen::Matrix<double, N, 1> prev, double samping_preq, double cutoff_preq)
+static Eigen::Matrix<double, N, 1> lpf(Eigen::Matrix<double, N, 1> input, Eigen::Matrix<double, N, 1> prev, double samping_freq, double cutoff_freq)
 {
   Eigen::Matrix<double, N, 1> res;
 
   for (int i = 0; i < N; i++)
   {
-    res(i) = lpf(input(i), prev(i), samping_preq, cutoff_preq);
+    res(i) = lpf(input(i), prev(i), samping_freq, cutoff_freq);
   }
   return res;
 }

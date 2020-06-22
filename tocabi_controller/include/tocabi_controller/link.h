@@ -240,6 +240,8 @@ public:
   Eigen::Vector3d ZMP_command;
   Eigen::Vector3d ZMP_mod;
 
+  Eigen::VectorXd TaskForce;
+
   bool zmp_feedback_control = false;
   bool check = false;
   bool qp2nd = false;

@@ -193,6 +193,7 @@ public:
   Eigen::VectorQd accel_obsrvd;
   Eigen::VectorQd currentGain;
 
+  
   int elmo_cnt;
 
   std::ofstream f_out;
@@ -229,6 +230,8 @@ public:
   bool fixedgravity = false;
   bool torqueredis = false;
   bool qp2nd = false;
+  bool enable_lpf = false;
+  bool switch_lpf = false;
 
   bool spalarm = false; // support polygon alarm bool
   bool semode = false;  // state estimation running or not.
@@ -244,6 +247,8 @@ public:
   int zp_state = 0;   //0 not ok 1 ready 2 ok
   int ft_state = 0;   //0 not ok 1 init req 2 ok
   int ecat_state = 0; //0 not ok 1 ok 2 commutation
+  int se_state = 0; //se state. 0: off 1: on
+  int tc_state = 3; //task control state 0 : on 1 : warn 2: error 3: off
 
   //Simulation mode
   bool simulationMode;

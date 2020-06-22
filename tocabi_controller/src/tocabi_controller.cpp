@@ -166,7 +166,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
 
 void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
 {
-
+    dc.tc_state = 0;
     tocabi_.control_time_pre_ = control_time_;
 
     tc.command_time = control_time_;
@@ -257,7 +257,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
 void TocabiController::stateThread()
 {
     s_.connect();
-    s_.stateThread2();
+    s_.stateThread();
 }
 
 void TocabiController::dynamicsThreadHigh()
@@ -484,6 +484,7 @@ void TocabiController::dynamicsThreadLow()
 
     ///////////////////////
     wbc_.init(tocabi_);
+    tocabi_.TaskForce.setZero(6);
 
     std::chrono::steady_clock::time_point tp[6];
     std::chrono::duration<double> td[7];
@@ -507,7 +508,6 @@ void TocabiController::dynamicsThreadLow()
             task_switch = false;
             tocabi_.ee_[0].contact = true;
             tocabi_.ee_[1].contact = true;
-
         }
         if ((dyn_loop_start - start_time2) > sec1)
         {
@@ -626,6 +626,8 @@ void TocabiController::dynamicsThreadLow()
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero();
                 cr_mode = tc.contactredis;
+
+                
             }
             else if (tc.mode == 1) //COM with rotation
             {
@@ -806,7 +808,7 @@ void TocabiController::dynamicsThreadLow()
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
                 cr_mode = tc.contactredis;
             }
-            else if (tc.mode == 7) //wawlking test
+            else if (tc.mode == 7) //walking test
             {
                 int task_number = 9;
                 wbc_.set_contact(tocabi_, 1, 1);
@@ -1266,18 +1268,20 @@ void TocabiController::dynamicsThreadLow()
             {
                 dc.data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
             }
+            tocabi_.TaskForce = tocabi_.lambda * tocabi_.f_star;
 
-            VectorXd Fs = tocabi_.lambda * tocabi_.f_star;
-
-            for (int i = 0; i < Fs.size(); i++)
+            for (int i = 0; i < tocabi_.TaskForce.size(); i++)
             {
-                if (Fs(i) > 140)
+                if (tocabi_.TaskForce(i) > 140)
                 {
-                    std::cout << cyellow << control_time_ << " : task force warning detected. at " << i << ", " << Fs(i) << creset << std::endl;
-                    if (Fs(i) > 500)
+                    std::cout << cyellow << control_time_ << " : task force warning detected. at " << i << ", " << tocabi_.TaskForce(i) << creset << std::endl;
+
+                    dc.tc_state = 1;
+                    if (tocabi_.TaskForce(i) > 500)
                     {
                         std::cout << cred << " task force limit approach. task control disabled. " << creset << std::endl;
                         dc.gravityMode = true;
+                        dc.tc_state = 2;
                     }
                 }
             }

@@ -1067,7 +1067,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     {
         if (Robot.qp2nd)
         {
-            std::cout << "left : " << rr << "\t right : " << rl << std::endl;
+            //std::cout << "left : " << rr << "\t right : " << rl << std::endl;
             Fsl(0, 0) = 0.0001 * rr;
             Fsl(1, 1) = 0.0001 * rr;
 

@@ -32,13 +32,15 @@ public:
   DataContainer &dc;
   virtual void connect();
   virtual void stateThread();  //main thread managing state
-  virtual void stateThread2(); //main thread managing state
   virtual void updateState();
   //virtual void sendCommand(Eigen::VectorQd command);
   virtual void sendCommand(Eigen::VectorQd command, double sim_time, int control_mode = Torquemode);
 
   //initialize variables
   virtual void initialize();
+
+  void handleFT();
+
   //store data at container
   void storeState();
 
@@ -108,7 +110,8 @@ public:
   Com com_;
 
   Eigen::Vector6d RF_FT, LF_FT, LH_FT, RH_FT;
-
+  Eigen::Vector6d RF_CF_FT, LF_CF_FT;
+  double rf_s_ratio, lf_s_ratio;
   std::chrono::steady_clock::time_point st_start_time;
 
   Eigen::Vector4d imu_quat;
