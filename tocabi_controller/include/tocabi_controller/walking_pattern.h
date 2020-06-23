@@ -190,6 +190,9 @@ public:
 
     Eigen::Matrix2d rot_vel;//temp
     Eigen::Matrix2d rot_prev;
+
+    Eigen::Vector3d rf_e, lf_e, rf_e_vel, lf_e_vel;
+
     double dobGain;
 
     std::fstream file[2];

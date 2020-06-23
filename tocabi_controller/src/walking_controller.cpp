@@ -179,7 +179,7 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd& leg_q)
     if(walking_tick == 0)
     {
         Eigen::VectorQd q_temp;
-        q_temp << 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1, 0, 1, 0;
+        q_temp << 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1.0, 0, 1.0, 0;
         //q_target = Robot.q_;
         q_target = q_temp;
         walkingInitialize(Robot);        
@@ -187,7 +187,7 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd& leg_q)
 
     for(int i = 0; i < MODEL_DOF; i++)
     {
-        leg_q(i) = DyrosMath::cubic(walking_tick, 0.0, 3.0*Hz_, q_init(i), q_target(i), 0.0, 0.0);
+        leg_q(i) = DyrosMath::cubic(walking_tick, 0.0, 6.0*Hz_, q_init(i), q_target(i), 0.0, 0.0);
     }
 }
 
@@ -756,12 +756,10 @@ void Walking_controller::ankleOriControl(RobotData &Robot)
 {
     Eigen::Vector2d k, kv;
     //2.5
-    k(0) = -4.5;
-    kv(0) = -0.003;
-    k(1) = -2.5;
-    kv(1) = -0.004;
-
-    Eigen::Vector3d rf_e, lf_e, rf_e_vel, lf_e_vel;
+    k(0) = -0.5;
+    kv(0) = -0.01;
+    k(1) = -0.5;
+    kv(1) = -0.01;
 
     /*  if(walking_tick < t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp)/2.0) // the period for lifting the right foot
     {

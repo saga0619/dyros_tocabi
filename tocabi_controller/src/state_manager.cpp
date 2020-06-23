@@ -191,7 +191,7 @@ void StateManager::stateThread(void)
 
             if (dc.switch_lpf)
             {
-                q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 60);
+                q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_raw_, q_dot_virtual_before, 2000, 15);
                 q_dot_virtual_.segment(0, 6) = q_dot_virtual_raw_.segment(0, 6);
                 q_dot_virtual_before = q_dot_virtual_;
             }
