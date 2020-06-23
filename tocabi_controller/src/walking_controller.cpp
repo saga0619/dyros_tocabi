@@ -40,7 +40,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         leg_q_NC = desired_leg_q;
         
         //hipCompensator();
-        //ankleOriControl(Robot);
+        ankleOriControl(Robot);
         inverseKinematicsdob(Robot);
 
         updateNextStepTime();
@@ -792,7 +792,31 @@ void Walking_controller::ankleOriControl(RobotData &Robot)
         {
             rf_e(i) = k(i) * rf_e(i) + kv(i)*rf_e_vel(i); 
         }
-        
+
+        if(abs(rf_e(0)) > 25*DEG2RAD)
+        {
+            if(rf_e(0) < 0)
+            {
+                rf_e(0) = -25*DEG2RAD;
+            }
+            else
+            {
+                rf_e(0) = 25*DEG2RAD;
+            }
+        }
+
+        if(abs(rf_e(1)) > 25*DEG2RAD)
+        {
+            if(rf_e(1) < 0)
+            {
+                rf_e(1) = -25*DEG2RAD;
+            }
+            else
+            {
+                rf_e(1) = 25*DEG2RAD;
+            }
+        }
+
         RF_trajectory_float.linear() = DyrosMath::rotateWithY(rf_e(1))*DyrosMath::rotateWithX(rf_e(0));
     }
     else
@@ -806,6 +830,30 @@ void Walking_controller::ankleOriControl(RobotData &Robot)
         for(int i = 0; i<2; i++)
         {
             lf_e(i) = k(i) * lf_e(i) + kv(i)*lf_e_vel(i); 
+        }
+
+        if(abs(lf_e(0)) > 25*DEG2RAD)
+        {
+            if(lf_e(0) < 0)
+            {
+                lf_e(0) = -25*DEG2RAD;
+            }
+            else
+            {
+                lf_e(0) = 25*DEG2RAD;
+            }
+        }
+
+        if(abs(lf_e(1)) > 25*DEG2RAD)
+        {
+            if(lf_e(1) < 0)
+            {
+                lf_e(1) = -25*DEG2RAD;
+            }
+            else
+            {
+                lf_e(1) = 25*DEG2RAD;
+            }
         }
 
         LF_trajectory_float.linear() = DyrosMath::rotateWithY(lf_e(1))*DyrosMath::rotateWithX(lf_e(0));
