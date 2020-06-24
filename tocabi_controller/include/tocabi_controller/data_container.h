@@ -106,26 +106,23 @@ public:
   bool print_elmo_info_tofile = false;
   bool start_initialize_sequence = false;
   bool start_initialize_lower = false;
-  bool imu_reset_signal = false;
-
+  bool signal_imu_reset = false;
   bool operation_ready = false;
-
   bool torquezeroByTerminal = false;
   bool disableSafetyLock = false;
-
   bool safetycheckdisable = false;
   bool ftcalib = false;
-  std::string sim_mode;
-  std::string mode;
+
 
 
 
   bool print_data_to_file = false;
   bool open_file_for_print = false;
   bool print_data_ready = false;
+  std::string sim_mode;
+  std::string mode;
   std::string print_file_name;
   std::ofstream data_out;
-
 
   //Tui Var..
   bool state_end;
@@ -225,10 +222,10 @@ public:
 
   bool positionControl = false;
   bool positionGravControl = false;
-  bool gravityMode = false;
+  bool signal_gravityCompensation = false;
   bool customGain = false;
   bool fixedgravity = false;
-  bool torqueredis = false;
+  bool signal_contactTorqueRedistribution = false;
   bool qp2nd = false;
   bool enable_lpf = false;
   bool switch_lpf = false;

@@ -8,6 +8,7 @@
 #include "visualization_msgs/MarkerArray.h"
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/TaskCommandQue.h"
+#include "tocabi_controller/TaskGainCommand.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
@@ -130,7 +131,6 @@ public:
   ros::Publisher motor_info_pub;
   ros::Publisher motor_acc_dif_info_pub;
   ros::Publisher point_pub;
-  ros::Publisher point_pub2;
   ros::Publisher gui_state_pub;
 
   ros::Publisher ft_viz_pub;

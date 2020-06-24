@@ -19,7 +19,7 @@ struct Com
   Eigen::Vector3d angular_momentum;
   Eigen::Vector2d ZMP;
   Eigen::Vector2d CP;
-  Eigen::MatrixXd Jac;
+  Eigen::Matrix6Vd Jac;
 };
 
 class Link
@@ -178,7 +178,6 @@ public:
 
 private:
   Eigen::MatrixXd j_temp;
-  Eigen::MatrixXd j_temp2;
 };
 
 class EndEffector
@@ -245,7 +244,7 @@ public:
   bool zmp_feedback_control = false;
   bool check = false;
   bool qp2nd = false;
-  bool yaw_init_swc = false;
+  bool signal_yaw_init = false;
   Eigen::Vector3d fstar;
 
   //bool contact_[ENDEFFECTOR_NUMBER] = {true, true};
@@ -325,6 +324,9 @@ public:
 
   Eigen::Vector3d imu_pos_;
   Eigen::Vector3d imu_vel_;
+
+  //contact redistribution mode selector. 0 : yslee 1: qp 2: off
+  int contact_redistribution_mode = 0;
 
   double fc_redis;
 

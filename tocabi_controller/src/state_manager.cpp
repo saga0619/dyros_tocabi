@@ -16,7 +16,6 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 1);
     tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi/torquegain", 100);
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
-    point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point2", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     ft_viz_msg.markers.resize(4);
@@ -247,9 +246,9 @@ void StateManager::stateThread(void)
                 gui_state_pub.publish(syspub_msg);
             }
 
-            if (dc.tocabi_.yaw_init_swc)
+            if (dc.tocabi_.signal_yaw_init)
             {
-                dc.tocabi_.yaw_init_swc = false;
+                dc.tocabi_.signal_yaw_init = false;
             }
 
             dc.firstcalcdone = true;
@@ -563,7 +562,7 @@ void StateManager::initYaw()
     tf2::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
 
-    if (dc.tocabi_.yaw_init_swc)
+    if (dc.tocabi_.signal_yaw_init)
     {
         std::cout << "Yaw Initialized" << std::endl;
         dc.tocabi_.yaw_init = yaw;
@@ -823,9 +822,9 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, const Eig
     com_.CP(0) = com_.pos(0) + com_.vel(0) / w_;
     com_.CP(1) = com_.pos(1) + com_.vel(1) / w_;
 
-    Eigen::MatrixXd jacobian_com;
+    Eigen::Matrix3Vd jacobian_com;
 
-    jacobian_com.setZero(3, MODEL_DOF + 6);
+    jacobian_com.setZero();
 
     for (int i = 0; i < LINK_NUMBER; i++)
     {
@@ -916,7 +915,7 @@ void StateManager::contactEstimate()
 
 void StateManager::stateEstimate()
 {
-    if (dc.semode && (!dc.tocabi_.yaw_init_swc))
+    if (dc.semode && (!dc.tocabi_.signal_yaw_init))
     {
         static bool contact_right, contact_left;
         static Eigen::Vector3d rf_cp, lf_cp;
@@ -1057,11 +1056,13 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         else
         {
             dc.semode = true;
-            dc.tocabi_.yaw_init_swc = true;
+            dc.tocabi_.signal_yaw_init = true;
             std::cout << "torque ON !" << std::endl;
             dc.torqueOnTime = control_time_;
             dc.torqueOn = true;
             dc.torqueOff = false;
+            dc.tocabi_.ee_[0].contact = true;
+            dc.tocabi_.ee_[1].contact = true;
         }
     }
     else if (msg->data == "positioncontrol")
@@ -1109,19 +1110,13 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "gravity")
     {
-        if (dc.gravityMode)
-        {
-            std::cout << "gravity compensation mode : off " << std::endl;
-            dc.gravityMode = false;
-        }
-        else
-        {
-            std::cout << "gravity compensation mode is on! " << std::endl;
-            dc.commandTime = control_time_;
-            dc.gravityMode = true;
+        std::cout << "gravity compensation mode is on! " << std::endl;
+        dc.commandTime = control_time_;
+        dc.signal_gravityCompensation = true;
 
-            dc.tc_state = 3;
-        }
+        dc.tocabi_.contact_redistribution_mode = 0;
+
+        dc.tc_state = 3;
     }
     else if (msg->data == "emergencyoff")
     {
@@ -1160,15 +1155,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "torqueredis")
     {
-        if (dc.torqueredis)
-        {
-            std::cout << "Torque contact redistribution off " << std::endl;
-        }
-        else
-        {
-            std::cout << "Torque contact redistribution on " << std::endl;
-        }
-        dc.torqueredis = !dc.torqueredis;
+        dc.signal_contactTorqueRedistribution = true;
     }
     else if (msg->data == "stateestimation")
     {
@@ -1227,11 +1214,11 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "inityaw")
     {
-        dc.tocabi_.yaw_init_swc = true;
+        dc.tocabi_.signal_yaw_init = true;
     }
     else if (msg->data == "imureset")
     {
-        dc.imu_reset_signal = true;
+        dc.signal_imu_reset = true;
     }
     else if (msg->data == "simvirtualjoint")
     {

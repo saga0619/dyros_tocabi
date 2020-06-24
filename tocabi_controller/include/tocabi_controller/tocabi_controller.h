@@ -25,21 +25,18 @@ public:
   void testThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
+  void TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void gettaskcommand(tocabi_controller::TaskCommand &msg);
-  void pubfromcontroller();
   void customgainhandle();
 
   ros::Subscriber task_command;
   ros::Subscriber task_command_que;
+  ros::Subscriber taskgain_sub;
 
   tocabi_controller::TaskCommandQue tque_msg;
 
-  ros::Publisher point_pub;
-  ros::Publisher point_pub2;
-  geometry_msgs::PolygonStamped pointpub_msg;
-  geometry_msgs::PolygonStamped pointpub2_msg;
 
 private:
   void getState();
@@ -97,7 +94,6 @@ private:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv_;
   Com com_;
-  int cr_mode;
 
   //Walking Information
   bool walkingCallbackOn;

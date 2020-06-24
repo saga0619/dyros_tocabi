@@ -1550,9 +1550,9 @@ void RealRobotInterface::imuThread()
             cycle_count++;
             //Code here
             //
-            if (dc.imu_reset_signal)
+            if (dc.signal_imu_reset)
             {
-                dc.imu_reset_signal = false;
+                dc.signal_imu_reset = false;
                 mx5.resetEFIMU();
             }
 

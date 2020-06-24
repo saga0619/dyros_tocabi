@@ -32,6 +32,7 @@ add_message_files(
   MotorInfo.msg
   TaskCommand.msg
   TaskCommandQue.msg
+  TaskGainCommand.msg
 )
 
 
