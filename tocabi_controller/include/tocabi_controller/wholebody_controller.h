@@ -111,6 +111,8 @@ public:
   Vector3d GetZMPpos_fromFT(RobotData &Robot, bool Local = false);
   Vector3d GetZMPpos(RobotData &Robot, VectorXd ContactForce, bool Local = false);
 
+  VectorQd footRotateAssist(RobotData &Robot);
+
   //Eigen::Vector6d Getfstar( );
   Vector3d getfstar(RobotData &Robot, Vector3d kp, Vector3d kd, Vector3d p_desired, Vector3d p_now, Vector3d d_desired, Vector3d d_now);
   Vector3d getfstar(RobotData &Robot, Vector3d kp, Vector3d kd, Matrix3d r_desired, Matrix3d r_now, Vector3d w_desired, Vector3d w_now);

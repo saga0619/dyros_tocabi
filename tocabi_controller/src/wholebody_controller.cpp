@@ -1948,6 +1948,20 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
     }
     return VectorXd::Zero(MODEL_DOF);
 }
+
+VectorQd WholebodyController::footRotateAssist(RobotData& Robot)
+{
+    //get foot orientation
+
+    //get foot angular velocity
+
+    //simply, orientation, foot angular velocity controller. 
+
+
+}
+
+
+
 /*
 VectorQd WholebodyController::contact_torque_calc_from_QP_wall(VectorQd command_torque, double wall_friction_ratio)
 {

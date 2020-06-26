@@ -445,10 +445,29 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[10].x = dc.torque_desired[7];
     pointpub_msg.polygon.points[10].y = -dc.tocabi_.ContactForce[9] / dc.tocabi_.ContactForce[8];
-    pointpub_msg.polygon.points[10].z = -cf_t_res(3) / (cf_t_res(2) - 2.36 * 9.81);
+
+    Vector3d p1, p2;
+
+    p1 = dc.tocabi_.link_[Left_Foot].xpos;//_contact;// - dc.tocabi_.link_[Pelvis].xpos;
+    p2 = dc.tocabi_.link_[Right_Foot].xpos;//_contact;// - dc.tocabi_.link_[Pelvis].xpos;
+
+    MatrixXd Rs_;
+
+    Rs_.setZero(6, 12);
+
+    Rs_.block(0, 0, 6, 6) = Matrix6d::Identity();
+    Rs_.block(0, 6, 6, 6) = Matrix6d::Identity();
+    Rs_.block(3, 0, 3, 3) = DyrosMath::skm(p1);
+    Rs_.block(3, 6, 3, 3) = DyrosMath::skm(p2);
+
+    Vector6d RsForce;
+
+    RsForce = Rs_ * dc.tocabi_.ContactForce;
+
+    pointpub_msg.polygon.points[10].z = RsForce(3) / RsForce(2);// + dc.tocabi_.link_[Pelvis].xpos(1);
     pointpub_msg.polygon.points[10].x = 0;
     pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].xpos(1);
-    pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].v(1);
+    //pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].v(1);
 
     //pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[COM_id].v_traj(2);
     //pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[COM_id].v_traj(2);

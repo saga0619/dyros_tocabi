@@ -899,7 +899,6 @@ void TocabiController::dynamicsThreadLow()
             else if (tc.mode == 7) //walking test
             {
                 int task_number = 9;
-                wbc_.set_contact(tocabi_, 1, 1);
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
                 tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
@@ -909,7 +908,7 @@ void TocabiController::dynamicsThreadLow()
                 double step_length = 0.0;
                 int step_number = 10;
                 double step_time = tc.traj_time;
-                double gc = 9.81 * 0.8;
+                double gc = 9.81;
                 double w = sqrt(gc / tc.init_com_height);
                 double b = exp(w * step_time);
 
@@ -997,6 +996,37 @@ void TocabiController::dynamicsThreadLow()
                     tocabi_.link_[COM_id].x_traj.segment(0, 2) = cosh(w * currnet_time_w) * pos_init_state[current_step] + 1 / w * sinh(w * currnet_time_w) * vel_init_state[current_step] + (1 - cosh(w * currnet_time_w)) * zmp[current_step];
                     tocabi_.link_[COM_id].v_traj.segment(0, 2) = w * sinh(w * currnet_time_w) * pos_init_state[current_step] + cosh(w * currnet_time_w) * vel_init_state[current_step] - w * sinh(w * currnet_time_w) * zmp[current_step];
                     tocabi_.link_[COM_id].a_traj.segment(0, 2) = w * w * cosh(w * currnet_time_w) * pos_init_state[current_step] + w * sinh(w * currnet_time_w) * vel_init_state[current_step] - w * w * cosh(w * currnet_time_w) * zmp[current_step];
+
+                    if ((current_step > 0) && (current_step < (step_number - 1)))
+                    {
+                        if (current_step % 2 == 0)
+                        {
+                            int task_number = 15;
+                            wbc_.set_contact(tocabi_, 1, 0);
+                            tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                            tocabi_.f_star.setZero(task_number);
+                            tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                            tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                            tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Foot].Jac_COM;
+                            tocabi_.link_[Right_Foot].x_traj = tocabi_.link_[Right_Foot].x_init;
+                        }
+                        else
+                        {
+                            int task_number = 15;
+                            wbc_.set_contact(tocabi_, 0, 1);
+                            tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                            tocabi_.f_star.setZero(task_number);
+                            tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                            tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                            tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Foot].Jac_COM;
+                            tocabi_.link_[Left_Foot].x_traj = tocabi_.link_[Left_Foot].x_init;
+                        }
+                    }
+                    else
+                    {
+
+                        wbc_.set_contact(tocabi_, 1, 1);
+                    }
 
                     if (ds_enable)
                     {
@@ -1111,6 +1141,22 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 //std::cout << "R_ fstar 0 :" << tocabi_.f_star(0) << " \t1: " << tocabi_.f_star(1) << " \t2: " << tocabi_.f_star(2) << " \ta: " << tocabi_.link_[COM_id].a_traj(1) << " \tx: " << tocabi_.link_[COM_id].x_traj(1) << " \tv: " << tocabi_.link_[COM_id].v_traj(1) <<" \tv: " << tocabi_.link_[COM_id].xpos(1) << std::endl;
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                if (current_step < (step_number - 1))
+                {
+
+                    if (current_step > 0)
+                    {
+                        if (current_step % 2 == 0)
+                        {
+                            tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Right_Foot);
+                        }
+                        else
+                        {
+                            tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Left_Foot);
+                        }
+                    }
+                }
+
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
             }
@@ -1358,12 +1404,12 @@ void TocabiController::dynamicsThreadLow()
 
             for (int i = 0; i < tocabi_.TaskForce.size(); i++)
             {
-                if (tocabi_.TaskForce(i) > 140)
+                if (tocabi_.TaskForce(i) > 500)
                 {
                     std::cout << cyellow << control_time_ << " : task force warning detected. at " << i << ", " << tocabi_.TaskForce(i) << creset << std::endl;
 
                     dc.tc_state = 1;
-                    if (tocabi_.TaskForce(i) > 500)
+                    if (tocabi_.TaskForce(i) > 1000)
                     {
                         std::cout << cred << " task force limit approach. task control disabled. " << creset << std::endl;
                         dc.signal_gravityCompensation = true;
