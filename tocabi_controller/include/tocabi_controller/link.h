@@ -214,7 +214,7 @@ public:
   //PositionPDGain
   double Kps[MODEL_DOF];
   double Kvs[MODEL_DOF];
-  std::vector<double> vector_kp, vector_kv;
+  std::vector<double> vector_kp, vector_kv, vector_NM2CNT;
 
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;

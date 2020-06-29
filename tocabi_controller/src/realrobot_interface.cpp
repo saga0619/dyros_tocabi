@@ -87,6 +87,8 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     elmofz[TOCABI::R_Elbow_Joint].init_direction = -1.0;
     elmofz[TOCABI::Upperbody_Joint].init_direction = -1.0;
 
+    elmofz[TOCABI::Waist2_Joint].init_direction = -1.0;
+
     elmofz[TOCABI::R_Elbow_Joint].req_length = 0.06;
     elmofz[TOCABI::L_Elbow_Joint].req_length = 0.09;
     elmofz[TOCABI::L_Forearm_Joint].req_length = 0.09;
@@ -767,9 +769,15 @@ void RealRobotInterface::ethercatThread()
                             ElmoSafteyMode[i] = 0;
                         }
 
+                        for (int i = 0; i < MODEL_DOF; i++)
+                        {
+                            ELMO_NM2CNT[i] = dc.tocabi_.vector_NM2CNT[i];
+                        }
+
                         dc.connected = true;
                         st_start_time = std::chrono::steady_clock::now();
                         dc.start_time_point = st_start_time;
+
                         while (!shutdown_tocabi_bool)
                         {
                             //std::cout<<"firstrealrobot"<<std::endl;
@@ -1316,7 +1324,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                     else
                                     {
-                                        txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * NM2CNT[i] * Dr[i]);
+                                        txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
                                     }
                                 }
                                 else if (ElmoMode[i] == EM_COMMUTATION)
