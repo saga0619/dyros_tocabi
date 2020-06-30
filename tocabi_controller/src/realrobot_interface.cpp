@@ -1617,8 +1617,6 @@ void RealRobotInterface::ftsensorThread()
     ft.analogSingleSamplePrepare(slotAttrs, 16);
     ft.initCalibration();
 
-    dc.ftcalib = true;
-
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
@@ -1672,7 +1670,7 @@ void RealRobotInterface::ftsensorThread()
 
         if (dc.print_ft_info_tofile)
         {
-            ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
+        //    ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
         }
     }
     std::cout << "FTsensor Thread End!" << std::endl;
