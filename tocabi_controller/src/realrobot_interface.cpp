@@ -59,6 +59,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     }
 
     file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
+    ft_sensor.open(dc.homedir + "/Ftsensorcheck.txt", ios_base::out);
     file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
     fz_group1.resize(16);
@@ -1616,6 +1617,8 @@ void RealRobotInterface::ftsensorThread()
     ft.analogSingleSamplePrepare(slotAttrs, 16);
     ft.initCalibration();
 
+    dc.ftcalib = true;
+
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
@@ -1651,9 +1654,10 @@ void RealRobotInterface::ftsensorThread()
         {
             if (ft_calib_ui == false)
             {
+                dc.print_ft_info_tofile = true;
                 pub_to_gui(dc, "ft sensor : calibration finish ");
                 pub_to_gui(dc, "ftgood");
-
+                ROS_INFO("calibration finish");
                 dc.ft_state = 2;
                 ft_calib_ui = true;
             }
@@ -1664,6 +1668,11 @@ void RealRobotInterface::ftsensorThread()
         {
             RF_FT(i) = ft.rightFootAxisData[i];
             LF_FT(i) = ft.leftFootAxisData[i];
+        }
+
+        if (dc.print_ft_info_tofile)
+        {
+            ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
         }
     }
     std::cout << "FTsensor Thread End!" << std::endl;

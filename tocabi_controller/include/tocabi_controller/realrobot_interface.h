@@ -378,6 +378,7 @@ public:
     //int ElmoState[ELMO_DOF];
     //int ElmoState_before[ELMO_DOF];
     fstream file_homming;
+    fstream ft_sensor;
     fstream elmo_zp;
     fstream elmo_zp_log;
     std::string zp_path, zplog_path, pack_path;
