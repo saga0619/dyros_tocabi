@@ -1213,9 +1213,20 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     QP_torque.UpdateMinProblem(H, g);
     QP_torque.UpdateSubjectToAx(A, lbA, ubA);
     QP_torque.UpdateSubjectToX(lb, ub);
-    VectorXd qpres = QP_torque.SolveQPoases(100);
+    VectorXd qpres;
+    //if()
+    if (QP_torque.SolveQPoases(100, qpres))
+    {
+        task_torque = qpres.segment(0, MODEL_DOF);
+    }
+    else
+    {
+        Robot.task_control_switch = false;
+        Robot.contact_redistribution_mode = 0;
+        task_torque = gravity_compensation_torque(Robot);
+    }
 
-    task_torque = qpres.segment(0, MODEL_DOF);
+    /*
     VectorXd fc = qpres.segment(MODEL_DOF, contact_dof);
 
     //std::cout << "calc done!" << std::endl;
@@ -1243,7 +1254,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         task_torque = qpres.segment(0, MODEL_DOF);
         fc = qpres.segment(MODEL_DOF, contact_dof);
     }
-
+    
     MatrixXd W_fr;
 
     if (Robot.ee_[0].contact && Robot.ee_[1].contact)
@@ -1272,7 +1283,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         W_fr.block(3, 0, 3, 3) = Robot.link_[Right_Foot].Rotm * DyrosMath::skm(Robot.link_[Right_Foot].xpos_contact - Robot.com_.pos);
     }
     //std::cout << "calc done!" << std::endl;
-    /*
+    
     VectorXd fr = W_fr * fc;
 
     Vector3d r_zmp = GetZMPpos(Robot, fc);
@@ -1602,14 +1613,23 @@ VectorQd WholebodyController::task_control_torque_QP2_with_contactforce_feedback
         ub(MODEL_DOF + contact_dof + i) = 10000;
     }
 
-    QP_torque.EnableEqualityCondition(0.0001);
+    QP_torque.EnableEqualityCondition(1E-6);
     QP_torque.UpdateMinProblem(H, g);
     QP_torque.UpdateSubjectToAx(A, lbA, ubA);
     QP_torque.UpdateSubjectToX(lb, ub);
-    VectorXd qpres = QP_torque.SolveQPoases(100);
+    VectorXd qpres;
+    if (QP_torque.SolveQPoases(1000, qpres))
+    {
+        task_torque = qpres.segment(0, MODEL_DOF);
+    }
+    else
+    {
+        task_torque = gravity_compensation_torque(Robot);
+        Robot.task_control_switch = false;
+        Robot.contact_redistribution_mode = 0;
+    }
 
-    task_torque = qpres.segment(0, MODEL_DOF);
-    VectorXd fc = qpres.segment(MODEL_DOF, contact_dof);
+    //VectorXd fc = qpres.segment(MODEL_DOF, contact_dof);
 
     return task_torque;
 }
@@ -1949,18 +1969,14 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
     return VectorXd::Zero(MODEL_DOF);
 }
 
-VectorQd WholebodyController::footRotateAssist(RobotData& Robot)
+VectorQd WholebodyController::footRotateAssist(RobotData &Robot)
 {
     //get foot orientation
 
     //get foot angular velocity
 
-    //simply, orientation, foot angular velocity controller. 
-
-
+    //simply, orientation, foot angular velocity controller.
 }
-
-
 
 /*
 VectorQd WholebodyController::contact_torque_calc_from_QP_wall(VectorQd command_torque, double wall_friction_ratio)

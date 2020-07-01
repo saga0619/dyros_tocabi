@@ -336,6 +336,7 @@ public:
   bool zmp_control;
   bool mpc_init;
   bool showdata;
+  bool task_control_switch = false;
 
   RigidBodyDynamics::Model model_virtual;
 };
