@@ -448,8 +448,8 @@ void StateManager::adv2ROS(void)
 
     Vector3d p1, p2;
 
-    p1 = dc.tocabi_.link_[Left_Foot].xpos;//_contact;// - dc.tocabi_.link_[Pelvis].xpos;
-    p2 = dc.tocabi_.link_[Right_Foot].xpos;//_contact;// - dc.tocabi_.link_[Pelvis].xpos;
+    p1 = dc.tocabi_.link_[Left_Foot].xpos;  //_contact;// - dc.tocabi_.link_[Pelvis].xpos;
+    p2 = dc.tocabi_.link_[Right_Foot].xpos; //_contact;// - dc.tocabi_.link_[Pelvis].xpos;
 
     MatrixXd Rs_;
 
@@ -464,8 +464,8 @@ void StateManager::adv2ROS(void)
 
     RsForce = Rs_ * dc.tocabi_.ContactForce;
 
-    pointpub_msg.polygon.points[10].z = RsForce(3) / RsForce(2);// + dc.tocabi_.link_[Pelvis].xpos(1);
-    pointpub_msg.polygon.points[10].x = 0;
+    pointpub_msg.polygon.points[10].z = RsForce(3) / RsForce(2); // + dc.tocabi_.link_[Pelvis].xpos(1);
+    pointpub_msg.polygon.points[10].x = -RsForce(1) / dc.tocabi_.com_.mass;
     pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[COM_id].xpos(1);
     //pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[COM_id].v(1);
 
@@ -943,31 +943,35 @@ void StateManager::stateEstimate()
         static Eigen::Vector3d mod_base_vel;
 
         static Eigen::Vector3d rf_cp_m, lf_cp_m;
-
+        bool left_change, right_change;
+        left_change = false;
+        right_change = false;
         if (contact_right != dc.tocabi_.ee_[1].contact)
         {
+            right_change = true;
             if (dc.tocabi_.ee_[1].contact)
             {
-                std::cout << "right foot contact point initialized" << std::endl;
+                std::cout << control_time_ << "  right foot contact initialized" << std::endl;
                 rf_cp = dc.link_[Right_Foot].xpos;
                 lf_cp = dc.link_[Left_Foot].xpos;
             }
             else
             {
-                std::cout << "right foot contact disabled" << std::endl;
+                std::cout << control_time_ << "  right foot contact disabled" << std::endl;
             }
         }
         if (contact_left != dc.tocabi_.ee_[0].contact)
         {
+            left_change = true;
             if (dc.tocabi_.ee_[0].contact)
             {
-                std::cout << "left foot contact point initialized" << std::endl;
+                std::cout << control_time_ << "  left foot contact initialized" << std::endl;
                 rf_cp = dc.link_[Right_Foot].xpos;
                 lf_cp = dc.link_[Left_Foot].xpos;
             }
             else
             {
-                std::cout << "left foot contact disabled" << std::endl;
+                std::cout << control_time_ << "  left foot contact disabled" << std::endl;
             }
         }
 
