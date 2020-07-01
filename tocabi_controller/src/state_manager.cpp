@@ -689,8 +689,8 @@ void StateManager::storeState()
     dc.A_ = A_;
     dc.A_inv = A_inv;
 
-    dc.tocabi_.ContactForce_FT.segment(0, 6) = LF_FT;
-    dc.tocabi_.ContactForce_FT.segment(6, 6) = RF_FT;
+    dc.tocabi_.ContactForce_FT.segment(0, 6) = LF_CF_FT;
+    dc.tocabi_.ContactForce_FT.segment(6, 6) = RF_CF_FT;
 
     Eigen::Matrix6d Rotm;
     Rotm.setZero();
