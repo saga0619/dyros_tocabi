@@ -1668,6 +1668,22 @@ void RealRobotInterface::ftsensorThread()
             LF_FT(i) = ft.leftFootAxisData[i];
         }
 
+        if(ft_calib_finish == false)
+        {
+            dc.ft_state = 1.0;
+        }
+        else
+        {
+            if(RF_FT(2) > 100 || LF_FT(2) > 100)
+            {
+                dc.ft_state = 0.0;
+            }
+            else
+            {
+                dc.ft_state = 2.0;
+            }
+        }
+
         if (dc.print_ft_info_tofile)
         {
         //    ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
