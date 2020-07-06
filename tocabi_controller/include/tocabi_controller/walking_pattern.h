@@ -169,6 +169,7 @@ public:
     double step_length_x;
     double step_length_y;
     bool dob;
+    bool imu;
     Eigen::Vector4d target;
     bool com_control_mode;
     bool gyro_frame_flag;

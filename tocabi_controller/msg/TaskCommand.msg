@@ -38,6 +38,7 @@ uint32 walking_enable
 uint32 pattern
 uint32 ik_mode
 bool dob
+bool imu
 uint32 first_foot_step
 float32 x
 float32 y

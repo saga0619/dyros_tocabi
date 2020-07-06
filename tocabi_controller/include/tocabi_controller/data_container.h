@@ -71,6 +71,7 @@ struct TaskCommand
   double step_length_x;
   double step_length_y;
   bool dob;
+  bool imu_walk;
 
   //taskgain
   bool custom_taskgain;
