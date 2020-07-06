@@ -40,8 +40,15 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         leg_q_NC = desired_leg_q;
         
         //hipCompensator();
-        ankleOriControl(Robot);
-        inverseKinematicsdob(Robot);
+        if(imu == 1)
+        {
+            ankleOriControl(Robot);
+        }
+
+        if(dob == 1)
+        {
+            inverseKinematicsdob(Robot);
+        }
 
         updateNextStepTime();
     }
@@ -509,7 +516,9 @@ void Walking_controller::updateNextStepTime()
     {
         if(current_step_num != total_step_num-1)
         {
-            t_start = t_last +1;
+            t_start = t_last +1;    {
+        foot_step_dir = 1.0;
+    }
             t_start_real = t_start + t_rest_init;
             t_last = t_start + t_total -1;
 
@@ -535,7 +544,7 @@ void Walking_controller::updateNextStepTime()
     walking_tick ++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData &Robot)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, RobotData &Robot)
 {
     ik_mode = ikmode;
     walking_pattern = walkingpattern;
@@ -554,14 +563,17 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     height = targetheight;
     step_length_y = steplength_y;
     step_length_x = steplength_x;
-    dob = dob_;
+    dob = dob_walk;
+    imu = imu_walk;
     Hz_ = controller_Hz;
     dt = 1/Hz_;
     walking_enable = walkingenable;
     foot_height = 0.030;
     com_control_mode = true;
     gyro_frame_flag = false;
-    
+
+    std::cout << "imu " << imu <<std::endl;
+
     if(com_control_mode == true)
     {
         pelvis_pgain = 0.1;
