@@ -71,6 +71,7 @@ struct TaskCommand
   double step_length_x;
   double step_length_y;
   bool dob;
+  bool imu_walk;
 
   //taskgain
   bool custom_taskgain;
@@ -104,6 +105,7 @@ public:
   bool statemanager_ready = false;
   bool print_delay_info = false;
   bool print_elmo_info_tofile = false;
+  bool print_ft_info_tofile = false;
   bool start_initialize_sequence = false;
   bool start_initialize_lower = false;
   bool signal_imu_reset = false;

@@ -18,6 +18,7 @@ struct WalkingCommand
   double step_length_x;
   double step_length_y;
   bool dob;
+  bool imu;
 };
 
 class Walking_controller : virtual public WalkingPattern
@@ -37,7 +38,7 @@ public:
     void setRobotStateInitialize();
     void updateNextStepTime();
     void updateInitTime();
-    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData &Robot);
+    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, RobotData &Robot);
     void setWalkingParameter(RobotData &Robot);
 
     void calcRobotState();

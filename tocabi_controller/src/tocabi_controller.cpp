@@ -295,6 +295,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.step_length_y = msg.step_length_y;
     tc.step_length_x = msg.step_length_x;
     tc.dob = msg.dob;
+    tc.imu_walk = msg.imu;
     tc.walking_enable = msg.walking_enable;
     if (tc.walking_enable == 1.0 || tc.walking_enable == 3.0)
     {
