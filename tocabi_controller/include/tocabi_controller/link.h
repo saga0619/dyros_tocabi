@@ -29,10 +29,10 @@ public:
   void initialize(RigidBodyDynamics::Model &model_, int id_, std::string name_, double mass, Eigen::Vector3d &local_com_position);
 
   // Update COM jacobian
-  void COM_Jac_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_);
+  void COM_Jac_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_);
 
   // Update xpos, xipos, rotm.
-  void pos_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_);
+  void pos_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_);
 
   // Set Contact point, Contact jacobian
   void Set_Contact(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position);
@@ -47,10 +47,10 @@ public:
   void Set_Sensor_Position(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Sensor_position);
 
   // update Jacobian matrix of local position at link.
-  void Set_Jacobian(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
+  void Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
 
   // update link velocity(6D, translation and rotation) from jacobian matrix Jac.
-  void vw_Update(Eigen::VectorVQd &q_dot_virtual);
+  void vw_Update(const Eigen::VectorVQd &q_dot_virtual);
 
   // set link Trajectory of id i.
   void Set_Trajectory(Eigen::Vector3d position_desired, Eigen::Vector3d velocity_desired, Eigen::Matrix3d rotation_desired, Eigen::Vector3d rotational_velocity_desired);
@@ -91,6 +91,8 @@ public:
   void Set_initpos();
 
   bool Check_name(RigidBodyDynamics::Model &model_);
+
+  void Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D);
 
   //constant variables
   int id;

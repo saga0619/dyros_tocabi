@@ -30,6 +30,7 @@ public:
   void ZMPmonitor();
   void gettaskcommand(tocabi_controller::TaskCommand &msg);
   void customgainhandle();
+  void CPpatternGen();
 
   ros::Subscriber task_command;
   ros::Subscriber task_command_que;

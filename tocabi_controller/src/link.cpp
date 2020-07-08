@@ -23,7 +23,7 @@ void Link::initialize(RigidBodyDynamics::Model &model_, int id_, std::string nam
     j_temp.setZero(6, MODEL_DOF_VIRTUAL);
 }
 
-void Link::pos_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_)
+void Link::pos_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_)
 {
     mtx_rbdl.lock();
     xpos = RigidBodyDynamics::CalcBodyToBaseCoordinates(model_, q_virtual_, id, Eigen::Vector3d::Zero(), false);
@@ -40,7 +40,7 @@ bool Link::Check_name(RigidBodyDynamics::Model &model_)
     return (model_.GetBodyName(id) == name);
 }
 
-void Link::COM_Jac_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_)
+void Link::COM_Jac_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_)
 {
     j_temp.setZero();
 
@@ -56,7 +56,7 @@ void Link::COM_Jac_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q
     Jac_COM.block(3, 0, 3, MODEL_DOF_VIRTUAL) = Jac_COM_r;
 }
 
-void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position)
+void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position)
 {
     j_temp.setZero();
 
@@ -135,7 +135,16 @@ void Link::Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_vi
     // - link_[0].xpos);
 }
 
-void Link::vw_Update(Eigen::VectorVQd &q_dot_virtual)
+void Link::Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D)
+{
+    mtx_rbdl.lock();
+    global_pos = RigidBodyDynamics::CalcBodyToBaseCoordinates(*model, q_virtual_, id, local_pos, false);
+    global_velocity6D = RigidBodyDynamics::CalcPointVelocity6D(*model, q_virtual_, q_dot_virtual, id, local_pos, false);
+
+    mtx_rbdl.unlock();
+}
+
+void Link::vw_Update(const Eigen::VectorVQd &q_dot_virtual)
 {
     Eigen::Vector6d vw;
     vw = Jac * q_dot_virtual;

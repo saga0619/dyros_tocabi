@@ -128,6 +128,7 @@ public:
   Vector3d COM_traj_with_zmp(RobotData &Robot);
 
   //zmp controller
+  void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
   VectorQd CP_controller();
   Vector6d zmp_controller(RobotData &Robot, Vector2d ZMP, double height);
@@ -222,6 +223,13 @@ private:
   //void contact_set(int contact_number, int link_id[]);
   void ForceRedistributionTwoContactMod2(double eta_cust, double footlength, double footwidth, double staticFrictionCoeff, double ratio_x, double ratio_y, Eigen::Vector3d P1, Eigen::Vector3d P2, Eigen::Vector12d &F12, Eigen::Vector6d &ResultantForce, Eigen::Vector12d &ForceRedistribution, double &eta);
   void ForceRedistributionTwoContactMod(double eta_cust, double footlength, double footwidth, double staticFrictionCoeff, double ratio_x, double ratio_y, Eigen::Vector3d P1, Eigen::Vector3d P2, Eigen::Vector12d &F12, Eigen::Vector6d &ResultantForce, Eigen::Vector12d &ForceRedistribution, double &eta);
+};
+
+class CapturePointPattern
+{
+public:
+  void init(RobotData &Robot, int StepNumber, double foot_x_dis, double stepTime);
+
 };
 
 #endif // WALKING_CONTROLLER_H

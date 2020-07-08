@@ -169,10 +169,9 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
             {
                 q_(i) = msg->position[j];
-                q_virtual_(i + 6) = msg->position[j];
-                q_dot_(i) = msg->velocity[j];
-                q_dot_virtual_raw_(i + 6) = msg->velocity[j];
-                q_ddot_virtual_(i + 6) = msg->effort[j];
+                q_virtual_local_(i + 6) = msg->position[j];
+                q_dot_virtual_local_(i + 6) = msg->velocity[j];
+                q_ddot_virtual_local_(i + 6) = msg->effort[j];
                 torque_(i) = msg->effort[j];
             }
         }
@@ -180,41 +179,60 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         joint_name_mj[i] = msg->name[i + 6].data();
     }
 
+    Real_Pos(0) = msg->position[0];
+    Real_Pos(1) = msg->position[1];
+    Real_Pos(2) = msg->position[2];
+
+    Real_Vel(0) = msg->velocity[0];
+    Real_Vel(1) = msg->velocity[1];
+    Real_Vel(2) = msg->velocity[2];
+    
     //virtual joint
     if (dc.semode)
     {
         for (int i = 3; i < 6; i++)
         {
-            q_virtual_(i) = msg->position[i];
-            q_dot_virtual_raw_(i) = msg->velocity[i];
-            q_ddot_virtual_(i) = msg->effort[i];
+            q_virtual_local_(i) = msg->position[i];
+            q_dot_virtual_local_(i) = msg->velocity[i];
+            q_ddot_virtual_local_(i) = msg->effort[i];
         }
-        q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
+        q_virtual_local_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
 
         for (int i = 0; i < 3; i++)
         {
-            q_virtual_(i) = 0.0;
-            q_dot_virtual_raw_(i) = 0.0;
-            q_ddot_virtual_(i) = 0.0;
+            q_virtual_local_(i) = 0.0;
+            q_dot_virtual_local_(i) = 0.0;
+            q_ddot_virtual_local_(i) = 0.0;
         }
     }
     else
     {
         for (int i = 0; i < 6; i++)
         {
-            q_virtual_(i) = msg->position[i];
-            q_dot_virtual_raw_(i) = msg->velocity[i];
-            q_ddot_virtual_(i) = msg->effort[i];
+            q_virtual_local_(i) = msg->position[i];
+            q_dot_virtual_local_(i) = msg->velocity[i];
+            q_ddot_virtual_local_(i) = msg->effort[i];
         }
-        q_virtual_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
-        q_virtual_(0) = 0.0;
-        q_virtual_(1) = 0.0;
-        q_virtual_(2) = 0.0;
+        q_virtual_local_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
+        q_virtual_local_(0) = 0.0;
+        q_virtual_local_(1) = 0.0;
+        q_virtual_local_(2) = 0.0;
 
         if (dc.use_virtual_for_mujoco)
         {
             for (int i = 0; i < 3; i++)
-                q_virtual_(i) = msg->position[i];
+                q_virtual_local_(i) = msg->position[i];
+        }
+    }
+
+    for (int i = 0; i < msg->sensor.size(); i++)
+    {
+        if (msg->sensor[i].name == "Acc_Pelvis_IMU")
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                imu_lin_acc(j) = msg->sensor[i].data[j];
+            }
         }
     }
 
@@ -338,6 +356,7 @@ void MujocoInterface::simCommandCallback(const std_msgs::StringConstPtr &msg)
         mujoco_sim_command_pub_.publish(rst_msg_);
         mujoco_sim_time = 0.0;
         control_time_ = 0.0;
+        dc.semode_init = true;
         mujoco_reset = true;
     }
 

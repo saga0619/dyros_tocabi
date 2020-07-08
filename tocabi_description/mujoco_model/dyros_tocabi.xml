@@ -17,7 +17,7 @@
             <site type="cylinder" size="0.005 0.005" group="4" rgba=".1 .1 .9 1"/>
         </default>
         <default class="Leg">
-            <joint damping="4" frictionloss="4"/>
+            <joint damping="1" frictionloss="1"/>
         </default>
         <default class="Waist">
             <joint damping="1" frictionloss="1"/>
@@ -136,7 +136,7 @@
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
                                         <geom class="cls" size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box"/>
                                         <geom class="cls" size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder"/>
-                                        <site class="FTsensor" name="LF_FT" pos="0 0 -0.075"/>
+                                        <site class="FTsensor" name="LF_FT" pos="0 0 -0.09"/>
                                     </body>
                                 </body>
                             </body>
@@ -186,7 +186,7 @@
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
                                         <geom class="cls" size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box"/>
                                         <geom class="cls" size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" />
-                                        <site class="FTsensor" name="RF_FT" pos="0 0 -0.0725"/>
+                                        <site class="FTsensor" name="RF_FT" pos="0 0 -0.09"/>
                                     </body>
                                 </body>
                             </body>

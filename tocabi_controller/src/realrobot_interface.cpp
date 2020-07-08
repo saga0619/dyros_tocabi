@@ -131,16 +131,18 @@ void RealRobotInterface::updateState()
         mtx_q.unlock();
         q_ddot_ = q_dot_ - q_dot_before_;
         q_dot_before_ = q_dot_;
-        q_virtual_.setZero();
-        q_virtual_.segment(3, 3) = imu_quat.segment(0, 3);
-        q_virtual_(MODEL_DOF_VIRTUAL) = imu_quat(3);
-        q_virtual_.segment(6, MODEL_DOF) = q_;
-        q_dot_virtual_raw_.setZero();
-        q_dot_virtual_raw_.segment(3, 3) = imu_ang_vel;
-        q_dot_virtual_raw_.segment(6, MODEL_DOF) = q_dot_;
 
-        q_ddot_virtual_.setZero();
-        q_ddot_virtual_.segment(0, 3) = imu_lin_acc;
+        
+        q_virtual_local_.setZero();
+        q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
+        q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
+        q_virtual_local_.segment(6, MODEL_DOF) = q_;
+        q_dot_virtual_local_.setZero();
+        q_dot_virtual_local_.segment(3, 3) = imu_ang_vel;
+        q_dot_virtual_local_.segment(6, MODEL_DOF) = q_dot_;
+
+        q_ddot_virtual_local_.setZero();
+        q_ddot_virtual_local_.segment(0, 3) = imu_lin_acc;
     }
 }
 

@@ -32,7 +32,7 @@ public:
   virtual ~StateManager() {}
   DataContainer &dc;
   virtual void connect();
-  virtual void stateThread();  //main thread managing state
+  virtual void stateThread(); //main thread managing state
   virtual void updateState();
   //virtual void sendCommand(Eigen::VectorQd command);
   virtual void sendCommand(Eigen::VectorQd command, double sim_time, int control_mode = Torquemode);
@@ -56,7 +56,7 @@ public:
   void adv2ROS();
 
   //update kinematic information with RBDL
-  void updateKinematics(RigidBodyDynamics::Model &model_l, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
+  void updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
 
   //testThread to test multithread
   void testThread();
@@ -65,6 +65,10 @@ public:
   //private variables
 
   void imuCompenstation();
+
+  void qdotLPF();
+
+  void sendStateToGui();
 
   //Set Position Joint PD Gain
   void SetPositionPDGainMatrix();
@@ -94,6 +98,10 @@ public:
   Eigen::VectorQd torque_desired;
   Eigen::VectorVQd tau_nonlinear_;
 
+  Eigen::VectorQVQd q_virtual_local_;
+  Eigen::VectorVQd q_dot_virtual_local_;
+  Eigen::VectorVQd q_ddot_virtual_local_;
+
   double roll, pitch, yaw;
   double yaw_radian;
   double yaw_init;
@@ -108,10 +116,19 @@ public:
   RigidBodyDynamics::Model model_2;
 
   Link link_[LINK_NUMBER + 1];
+  Link link_local[LINK_NUMBER + 1];
   Com com_;
 
   Eigen::Vector6d RF_FT, LF_FT, LH_FT, RH_FT;
   Eigen::Vector6d RF_CF_FT, LF_CF_FT;
+  Eigen::Vector6d RF_CF_FT_local, LF_CF_FT_local;
+
+  Eigen::Vector2d RF_FT_ZMP_local, LF_FT_ZMP_local;
+  Eigen::Vector3d RF_CP_est, LF_CP_est;
+
+  bool RF_Contact, LF_Contact;
+  
+
   double rf_s_ratio, lf_s_ratio;
   std::chrono::steady_clock::time_point st_start_time;
 
@@ -121,6 +138,9 @@ public:
   Eigen::Vector3d pelv_lin_acc;
   Eigen::Vector3d imu_lin_acc_before;
   Eigen::Vector3d imu_lin_acc_lpf;
+
+  Eigen::Vector3d Real_Vel;
+  Eigen::Vector3d Real_Pos;
 
   //Communication Subscriber!
 
