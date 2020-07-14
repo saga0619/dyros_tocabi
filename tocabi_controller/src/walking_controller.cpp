@@ -51,6 +51,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         }
         
         //hipCompensator();
+
         if(dob == 1)
         {
             inverseKinematicsdob(Robot);
@@ -483,7 +484,6 @@ void Walking_controller::updateNextStepTime()
         {
             t_start = t_last +1;    
             foot_step_dir = 1.0;
-    
             t_start_real = t_start + t_rest_init;
             t_last = t_start + t_total -1;
 
@@ -661,7 +661,8 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
                     dobGain = DyrosMath::cubic(walking_tick, t_start+t_total-t_rest_last, t_start+t_total, compliantGain, defaultGain, 0.0, 0.0);
                 }
                 
-            }            else
+            }            
+            else
             {
                 dobGain = defaultGain;   
             }  
