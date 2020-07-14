@@ -197,6 +197,12 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             q_dot_virtual_raw_(i) = 0.0;
             q_ddot_virtual_(i) = 0.0;
         }
+
+               //TEMP
+   /*     q_virtual_(3) = 0.0;
+        q_virtual_(4) = 0.0;
+        q_virtual_(5) = 0.0;
+        q_virtual_(MODEL_DOF + 6) = 1.0;*/
     }
     else
     {
@@ -210,6 +216,13 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         q_virtual_(0) = 0.0;
         q_virtual_(1) = 0.0;
         q_virtual_(2) = 0.0;
+       
+       //TEMP
+   /*     q_virtual_(3) = 0.0;
+        q_virtual_(4) = 0.0;
+        q_virtual_(5) = 0.0;
+        q_virtual_(MODEL_DOF + 6) = 1.0;
+*/
 
         if (dc.use_virtual_for_mujoco)
         {
