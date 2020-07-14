@@ -914,7 +914,7 @@ void StateManager::contactEstimate()
     {
         if (!RF_Contact)
         {
-            std::cout << "RF Contact On" << std::endl;
+            //std::cout << "RF Contact On" << std::endl;
             RF_Contact = true;
         }
     }
@@ -922,7 +922,7 @@ void StateManager::contactEstimate()
     {
         if (RF_Contact)
         {
-            std::cout << "RF Contact Off" << std::endl;
+            //std::cout << "RF Contact Off" << std::endl;
             RF_Contact = false;
         }
     }
@@ -931,7 +931,7 @@ void StateManager::contactEstimate()
     {
         if (!LF_Contact)
         {
-            std::cout << "LF Contact On" << std::endl;
+            //std::cout << "LF Contact On" << std::endl;
             LF_Contact = true;
         }
     }
@@ -939,14 +939,14 @@ void StateManager::contactEstimate()
     {
         if (LF_Contact)
         {
-            std::cout << "LF Contact Off" << std::endl;
+            //std::cout << "LF Contact Off" << std::endl;
         }
         LF_Contact = false;
     }
 
     if ((!LF_Contact) && (!RF_Contact))
     {
-        std::cout << "both Contact Disabled " << std::endl;
+        //std::cout << "both Contact Disabled " << std::endl;
     }
 
     //RF_CF_FT
