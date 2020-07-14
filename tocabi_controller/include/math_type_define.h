@@ -297,6 +297,31 @@ static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
 
   return angle;
 }
+
+static Eigen::Vector4d rot2Axis(Eigen::Matrix3d Rot)
+{
+  double theta;
+  Eigen::Vector4d result;
+  Eigen::Vector3d omega;
+
+  theta=acos((Rot(0,0)+Rot(1,1)+Rot(2,2)-1)/2);
+  if(theta == 0)
+  {
+    omega.setZero();
+  }
+  else
+  {
+    omega(0) = (Rot(2,1)-Rot(1,2))/(2*sin(theta));
+    omega(1) = (Rot(0,2)-Rot(2,0))/(2*sin(theta));
+    omega(2) = (Rot(1,0)-Rot(0,1))/(2*sin(theta));
+
+  }
+  result.segment<3>(0) = omega;
+  result(3) = theta;
+
+  return result;
+}
+
 static Eigen::MatrixXd glsSVD_U(Eigen::MatrixXd A)
 {
   int size_row, size_col;
@@ -878,6 +903,19 @@ static Eigen::Matrix<double, N, 1> lpf(Eigen::Matrix<double, N, 1> input, Eigen:
     res(i) = lpf(input(i), prev(i), samping_freq, cutoff_freq);
   }
   return res;
+}
+static const Eigen::Matrix3d skew(const Eigen::Vector3d &src)
+{
+    Eigen::Matrix3d skew;
+    skew.setZero();
+    skew(0, 1) = -src[2];
+    skew(0, 2) = src[1];
+    skew(1, 0) = src[2];
+    skew(1, 2) = -src[0];
+    skew(2, 0) = -src[1];
+    skew(2, 1) = src[0];
+
+    return skew;
 }
 } // namespace DyrosMath
 #endif

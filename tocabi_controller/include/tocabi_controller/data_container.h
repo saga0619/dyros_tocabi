@@ -62,6 +62,7 @@ struct TaskCommand
   int walking_enable;
   int ik_mode;
   int walking_pattern;
+  int walking_pattern2;
   int foot_step_dir;
   double target_x;
   double target_y;
@@ -114,13 +115,10 @@ public:
   bool disableSafetyLock = false;
   bool safetycheckdisable = false;
   bool ftcalib = false;
-
-
-
-
   bool print_data_to_file = false;
   bool open_file_for_print = false;
   bool print_data_ready = false;
+  bool imu_ignore = false;
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;
