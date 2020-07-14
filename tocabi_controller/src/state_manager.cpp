@@ -179,6 +179,18 @@ void StateManager::stateThread(void)
                 std::cout << "shutdown signal received" << std::endl;
                 break;
             }
+
+            if (dc.imu_ignore == true)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    q_virtual_local_(i) = 0.0;
+                    q_dot_virtual_local_(i) = 0.0;
+                    q_ddot_virtual_local_(i) = 0.0;
+                }
+                q_virtual_local_(MODEL_DOF + 6) = 1.0;
+            }
+
             updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
             handleFT();
             contactEstimate();
@@ -1406,5 +1418,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     else if (msg->data == "enablelpf")
     {
         dc.enable_lpf = true;
+    }
+    else if (msg->data == "imuignore")
+    {
+        dc.imu_ignore = true;
     }
 }

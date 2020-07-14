@@ -52,10 +52,10 @@ public:
   bool disableSafetyLock = false;
   bool safetycheckdisable = false;
   bool ftcalib = false;
-
   bool print_data_to_file = false;
   bool open_file_for_print = false;
   bool print_data_ready = false;
+  bool imu_ignore = false;
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;

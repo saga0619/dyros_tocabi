@@ -54,6 +54,8 @@ public:
     Eigen::VectorXd zmp_dy;
     Eigen::VectorXd com_refx;
     Eigen::VectorXd com_refy;
+    Eigen::VectorXd com_refdx;
+    Eigen::VectorXd com_refdy;
     Eigen::VectorXd zmp_refx;
     Eigen::VectorXd zmp_refy;
     Eigen::VectorXd b;
@@ -132,6 +134,24 @@ public:
     Eigen::Isometry3d Framereference;
     Eigen::Isometry3d Debug_Iso;
 
+    //Com Jacobian
+    Eigen::Vector3d r_c1;
+    Eigen::Matrix3d r_c1_skew;
+    Eigen::Matrix6d J_l;
+    Eigen::Matrix6d J_r;
+    Eigen::Matrix6d J_lc;
+    Eigen::Matrix6d J_rc;
+    Eigen::Matrix6d X21;
+    Eigen::Vector6d Xdot;
+    Eigen::Vector6d LFDotTraj;
+    Eigen::Vector6d LFDotPrevTraj;
+    Eigen::Vector6d RFDotTraj;
+    Eigen::Vector6d RFDotPrevTraj;
+    Eigen::Vector6d COMDotTraj;
+    Eigen::Vector6d SFerr;
+    Eigen::Vector3d Cfsemd;
+    Eigen::Matrix<double, 3, 6> Jfsem;
+
     //User WalkingParameter
     int desired_foot_step_num;
     int t_rest_init;
@@ -144,6 +164,7 @@ public:
     int t_start;
     int t_start_real;
     int t_rest_temp;
+    int com_control;
     double t_imp;
     double foot_height;
     int current_step_num; // temp
@@ -195,6 +216,7 @@ public:
     Eigen::Vector3d rf_e, lf_e, rf_e_vel, lf_e_vel;
 
     double dobGain;
+    double debug;
 
     std::fstream file[2];
 };

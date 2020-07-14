@@ -36,6 +36,7 @@ float64 r_yaw
 # Walking
 uint32 walking_enable
 uint32 pattern
+uint32 pattern2
 uint32 ik_mode
 bool dob
 bool imu

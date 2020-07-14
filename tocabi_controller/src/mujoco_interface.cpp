@@ -204,6 +204,12 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             q_dot_virtual_local_(i) = 0.0;
             q_ddot_virtual_local_(i) = 0.0;
         }
+
+               //TEMP
+   /*     q_virtual_(3) = 0.0;
+        q_virtual_(4) = 0.0;
+        q_virtual_(5) = 0.0;
+        q_virtual_(MODEL_DOF + 6) = 1.0;*/
     }
     else
     {
