@@ -66,10 +66,6 @@ void Walking_controller::walkingCompute(RobotData &Robot)
     }
 }
 
-void Walking_controller::getUiWalkingParameter(RobotData &Robot)
-{
-}
-
 void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d &leg_q)
 {
     Eigen::Vector3d lp, rp;
