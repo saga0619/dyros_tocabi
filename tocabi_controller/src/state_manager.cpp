@@ -1056,13 +1056,26 @@ void StateManager::stateEstimate()
         link_local[Right_Foot].Get_PointPos(q_virtual_local_, q_dot_virtual_local_, RF_contactpoint_internal_pos, RF_fixed_contact_pos, RF_fixed_contact_vel);
         link_local[Left_Foot].Get_PointPos(q_virtual_local_, q_dot_virtual_local_, LF_contactpoint_internal_pos, LF_fixed_contact_pos, LF_fixed_contact_vel);
 
+        bool local_RF_Contact, local_LF_contact;
+
+        if (dc.sebyft)
+        {
+            local_LF_contact = LF_Contact;
+            local_RF_Contact = RF_Contact;
+        }
+        else
+        {
+            local_LF_contact = dc.tocabi_.ee_[0].contact;
+            local_RF_Contact = dc.tocabi_.ee_[1].contact;
+        }
+
         bool left_change, right_change;
         left_change = false;
         right_change = false;
-        if (contact_right != RF_Contact)
+        if (contact_right != local_RF_Contact)
         {
             right_change = true;
-            if (RF_Contact)
+            if (local_RF_Contact)
             {
                 std::cout << control_time_ << "  right foot contact initialized" << std::endl;
                 RF_contact_pos_holder = RF_global_contact_pos;
@@ -1074,10 +1087,10 @@ void StateManager::stateEstimate()
                 std::cout << control_time_ << "  right foot contact disabled" << std::endl;
             }
         }
-        if (contact_left != LF_Contact)
+        if (contact_left != local_LF_contact)
         {
             left_change = true;
-            if (LF_Contact)
+            if (local_LF_contact)
             {
                 std::cout << control_time_ << "  left foot contact initialized" << std::endl;
                 LF_contact_pos_holder = LF_global_contact_pos;
@@ -1129,8 +1142,8 @@ void StateManager::stateEstimate()
 
         //es_zmp = dc.tocabi_.com_.pos - dc.tocabi_.com_.pos(2)/9.81*
 
-        contact_right = RF_Contact;
-        contact_left = LF_Contact;
+        contact_right = local_RF_Contact;
+        contact_left = local_LF_contact;
 
         rf_cp_m = RF_fixed_contact_pos - RF_contact_pos_holder;
         lf_cp_m = LF_fixed_contact_pos - LF_contact_pos_holder;
@@ -1409,7 +1422,15 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "simvirtualjoint")
     {
-        dc.use_virtual_for_mujoco = true;
+        dc.use_virtual_for_mujoco = !dc.use_virtual_for_mujoco;
+        if (dc.use_virtual_for_mujoco)
+        {
+            std::cout << "Use mujoco virtual info : On " << std::endl;
+        }
+        else
+        {
+            std::cout << "Use mujoco virtual info : Off " << std::endl;
+        }
     }
     else if (msg->data == "printdata")
     {
@@ -1417,10 +1438,38 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "enablelpf")
     {
-        dc.enable_lpf = true;
+        dc.enable_lpf = !dc.enable_lpf;
+        if (dc.enable_lpf)
+        {
+            std::cout << "qdot Lowpass : On" << std::endl;
+        }
+        else
+        {
+            std::cout << "qdot lowpass : Off" << std::endl;
+        }
     }
     else if (msg->data == "imuignore")
     {
-        dc.imu_ignore = true;
+        dc.imu_ignore = !dc.imu_ignore;
+        if (dc.imu_ignore)
+        {
+            std::cout << "imu ignore : on" << std::endl;
+        }
+        else
+        {
+            std::cout << "Imu Ignore : Off" << std::endl;
+        }
+    }
+    else if (msg->data == "sebyft")
+    {
+        dc.sebyft = !dc.sebyft;
+        if (dc.sebyft)
+        {
+            std::cout << "State Estimate by FT : ON" << std::endl;
+        }
+        else
+        {
+            std::cout << "State Estimate by Ft : OFF" << std::endl;
+        }
     }
 }
