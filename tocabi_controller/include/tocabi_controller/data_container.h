@@ -26,72 +26,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //robot definition variables here
 
-struct TaskCommand
-{
-  double command_time;
-  double traj_time;
-  bool task_init;
-  int mode;
-  // COM Related
-  double ratio;
-  double height;
-  double pelv_pitch;
-  double roll;
-  double pitch;
-  double yaw;
-  // Arm Related
-  double l_x;
-  double l_y;
-  double l_z;
-  double l_roll;
-  double l_pitch;
-  double l_yaw;
-  double r_x;
-  double r_y;
-  double r_z;
-  double r_roll;
-  double r_pitch;
-  double r_yaw;
-
-  int solver;
-  int contactredis;
-
-  double init_com_height;
-
-  //Walking Related
-  int walking_enable;
-  int ik_mode;
-  int walking_pattern;
-  int foot_step_dir;
-  double target_x;
-  double target_y;
-  double target_z;
-  double theta;
-  double walking_height;
-  double step_length_x;
-  double step_length_y;
-  bool dob;
-  bool imu_walk;
-
-  //taskgain
-  bool custom_taskgain;
-  double pos_p;
-  double pos_d;
-  double ang_p;
-  double ang_d;
-  double acc_p;
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //Terminal Data Que
-class TQue
-{
-public:
-  bool update;
-  //std::string text;
-  char text[256];
-};
 
 //Robot data Storage
 class DataContainer
@@ -114,9 +52,6 @@ public:
   bool disableSafetyLock = false;
   bool safetycheckdisable = false;
   bool ftcalib = false;
-
-
-
 
   bool print_data_to_file = false;
   bool open_file_for_print = false;

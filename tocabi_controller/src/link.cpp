@@ -164,7 +164,7 @@ void Link::Set_Trajectory_from_quintic(double current_time, double start_time, d
 {
     for (int j = 0; j < 3; j++)
     {
-        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), 0, 0, x_desired(j), 0, 0);
+        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), v_init(j), 0, x_desired(j), 0, 0);
         x_traj(j) = quintic(0);
         v_traj(j) = quintic(1);
         a_traj(j) = quintic(2);
@@ -178,7 +178,7 @@ void Link::Set_Trajectory_from_quintic(double current_time, double start_time, d
 {
     for (int j = 0; j < 3; j++)
     {
-        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), 0, 0, pos_desired(j), 0, 0);
+        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), v_init(j), 0, pos_desired(j), 0, 0);
         x_traj(j) = quintic(0);
         v_traj(j) = quintic(1);
         a_traj(j) = quintic(2);
@@ -305,7 +305,17 @@ void Link::Set_Trajectory_rotation(double current_time, double start_time, doubl
 void Link::Set_initpos()
 {
     x_init = xpos;
+    v_init = v;
     rot_init = Rotm;
+    w_init = w;
+}
+
+void Link::Set_initTask()
+{
+    x_init = x_traj;
+    v_init = v_traj;
+    rot_init = r_traj;
+    w_init = w_traj;
 }
 
 std::ostream &operator<<(std::ostream &os, const Link &lk)

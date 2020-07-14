@@ -80,6 +80,7 @@ public:
   */
   VectorQd task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP2(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  VectorQd task_control_torque_QP3(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP2_with_contactforce_feedback(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP_gravity(RobotData &Robot);
   VectorXd check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
@@ -102,6 +103,7 @@ public:
   void zmp_feedback_control(Vector3d desired_zmp);
 
   //Utility functions
+
 
   //Get contact force from command torque
   VectorXd get_contact_force(RobotData &Robot, VectorQd command_torque);

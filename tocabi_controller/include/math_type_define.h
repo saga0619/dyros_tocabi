@@ -11,6 +11,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_linalg.h>
 #include <chrono>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4
@@ -297,6 +298,15 @@ static Eigen::Vector3d rot2Euler(Eigen::Matrix3d Rot)
 
   return angle;
 }
+
+static Eigen::Vector3d rot2Euler_tf(Eigen::Matrix3d Rot)
+{
+  Eigen::Vector3d angle;  
+  tf2::Matrix3x3 m(Rot(0, 0), Rot(0, 1), Rot(0, 2), Rot(1, 0), Rot(1, 1), Rot(1, 2), Rot(2, 0), Rot(2, 1), Rot(2, 2));
+  m.getRPY(angle(0), angle(1), angle(2));
+  return angle;
+}
+
 static Eigen::MatrixXd glsSVD_U(Eigen::MatrixXd A)
 {
   int size_row, size_col;

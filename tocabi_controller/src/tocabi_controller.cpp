@@ -260,10 +260,23 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tocabi_.link_[Right_Foot].Set_initpos();
     tocabi_.link_[Left_Foot].Set_initpos();
     tocabi_.link_[Right_Hand].Set_initpos();
-    tocabi_.link_[Left_Hand].Set_initpos();
+    tocabi_.link_[Left_Hand].Set_initpos()
+    ;
     tocabi_.link_[Pelvis].Set_initpos();
     tocabi_.link_[Upper_Body].Set_initpos();
     tocabi_.link_[COM_id].Set_initpos();
+
+    if (false)
+    {
+        std::cout << "Set init by TaskCommand" << std::endl;
+        tocabi_.link_[Right_Foot].Set_initTask();
+        tocabi_.link_[Left_Foot].Set_initTask();
+        tocabi_.link_[Right_Hand].Set_initTask();
+        tocabi_.link_[Left_Hand].Set_initTask();
+        tocabi_.link_[Pelvis].Set_initTask();
+        tocabi_.link_[Upper_Body].Set_initTask();
+        tocabi_.link_[COM_id].Set_initTask();
+    }
 
     tc.init_com_height = tocabi_.com_.pos(2);
 
@@ -899,9 +912,7 @@ void TocabiController::dynamicsThreadLow()
             }
             else if (tc.mode == 7) //walking test
             {
-
                 //Pre parameter settings
-
                 double foot_distance = 0.2;
                 double step_length = 0.0;
                 int step_number = 10;
@@ -917,7 +928,7 @@ void TocabiController::dynamicsThreadLow()
 
                 Vector3d footdown;
                 footdown.setZero();
-                footdown(2) = -0.01;
+                footdown(2) = -0.00;
 
                 //Footstep settings
                 Vector2d footstep[step_number];
