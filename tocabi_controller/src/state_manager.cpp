@@ -637,8 +637,8 @@ void StateManager::storeState()
     dc.time = control_time_;
     dc.sim_time = sim_time_;
 
-    dc.q_ = q_;
-    dc.q_dot_ = q_dot_;
+    dc.q_ = q_virtual_.segment(6,MODEL_DOF);
+    dc.q_dot_ = q_dot_virtual_.segment(6,MODEL_DOF);
     dc.q_dot_virtual_ = q_dot_virtual_;
     dc.q_virtual_ = q_virtual_;
     dc.q_ddot_virtual_ = q_ddot_virtual_;
