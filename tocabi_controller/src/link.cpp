@@ -13,6 +13,8 @@ void Link::initialize(RigidBodyDynamics::Model &model_, int id_, std::string nam
 
     model = &model_;
 
+    inertia = model->mBodies[id_].mInertia;
+
     Jac.setZero();
     Jac_COM.setZero();
     Jac_COM_p.setZero();
