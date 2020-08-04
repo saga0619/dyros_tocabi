@@ -13,7 +13,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
     joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 1);
     time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 1);
-    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 1);
+    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 100);
     tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi/torquegain", 100);
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
@@ -311,10 +311,13 @@ void StateManager::adv2ROS(void)
     joint_state_msg.header.stamp = ros::Time::now();
     for (int i = 0; i < MODEL_DOF; i++)
     {
-        joint_state_msg.position[i] = q_[i];
-        joint_state_msg.velocity[i] = q_dot_[i];
-        joint_state_msg.effort[i] = dc.torque_desired[i];
+        joint_state_msg.position[i] = q_virtual_local_[i + 6];
+        joint_state_msg.velocity[i] = q_dot_virtual_local_[i + 6];
+        joint_state_msg.effort[i] = q_ddot_virtual_lpf_[i + 6];
+        acc_dif_info_msg.motorinfo1[i] = dc.tocabi_.q_ddot_estimate_[i];
     }
+
+    motor_acc_dif_info_pub.publish(acc_dif_info_msg);
     joint_states_pub.publish(joint_state_msg);
     time_msg.data = control_time_;
     time_pub.publish(time_msg);
@@ -329,6 +332,8 @@ void StateManager::adv2ROS(void)
     }
     tgain_p.data = dc.t_gain;
     tgainPublisher.publish(tgain_p);
+
+
 
     pointpub_msg.header.stamp = ros::Time::now();
     Eigen::Vector3d temp;
@@ -637,8 +642,8 @@ void StateManager::storeState()
     dc.time = control_time_;
     dc.sim_time = sim_time_;
 
-    dc.q_ = q_virtual_.segment(6,MODEL_DOF);
-    dc.q_dot_ = q_dot_virtual_.segment(6,MODEL_DOF);
+    dc.q_ = q_virtual_.segment(6, MODEL_DOF);
+    dc.q_dot_ = q_dot_virtual_.segment(6, MODEL_DOF);
     dc.q_dot_virtual_ = q_dot_virtual_;
     dc.q_virtual_ = q_virtual_;
     dc.q_ddot_virtual_ = q_ddot_virtual_;
@@ -980,9 +985,17 @@ void StateManager::qdotLPF()
 
     if (dc.switch_lpf)
     {
-        q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_before, 2000, 15);
+        q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_before, 2000, 8);
         q_dot_virtual_.segment(0, 6) = q_dot_virtual_local_.segment(0, 6);
+
+        q_ddot_virtual_local_ = (q_dot_virtual_ - q_dot_virtual_before) * 2000;
+
+        q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 8);
+        
+        q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
         q_dot_virtual_before = q_dot_virtual_;
+
+        q_dot_virtual_local_ = q_dot_virtual_;
     }
     else
     {

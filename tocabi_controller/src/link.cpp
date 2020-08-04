@@ -10,18 +10,14 @@ void Link::initialize(RigidBodyDynamics::Model &model_, int id_, std::string nam
     Rotm.setZero();
     inertia.setZero();
     contact_point.setZero();
-
     model = &model_;
-
     inertia = model->mBodies[id_].mInertia;
-
     Jac.setZero();
     Jac_COM.setZero();
     Jac_COM_p.setZero();
     Jac_COM_r.setZero();
     Jac_Contact.setZero();
     Jac_point.setZero();
-
     j_temp.setZero(6, MODEL_DOF_VIRTUAL);
 }
 

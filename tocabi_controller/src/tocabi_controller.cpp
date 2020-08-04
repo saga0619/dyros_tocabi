@@ -260,8 +260,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tocabi_.link_[Right_Foot].Set_initpos();
     tocabi_.link_[Left_Foot].Set_initpos();
     tocabi_.link_[Right_Hand].Set_initpos();
-    tocabi_.link_[Left_Hand].Set_initpos()
-    ;
+    tocabi_.link_[Left_Hand].Set_initpos();
     tocabi_.link_[Pelvis].Set_initpos();
     tocabi_.link_[Upper_Body].Set_initpos();
     tocabi_.link_[COM_id].Set_initpos();
@@ -978,7 +977,7 @@ void TocabiController::dynamicsThreadLow()
                 Vector2d v_ds2[step_number];
                 Vector2d a_ds2[step_number];
 
-                bool ds_enable = false;
+                bool ds_enable = true;
 
                 double ds_r1, ds_r2;
                 double ds_ratio = 0.1;
@@ -1220,6 +1219,53 @@ void TocabiController::dynamicsThreadLow()
             }
             else if (tc.mode == 8) //wawlking test
             {
+                //New walking Code!!!
+                //COM control mode.
+                //With Desired Endpoint Capture Point, ZMP position is calculated with frequency of 10hz.
+                //10hz refresh rate of PI ZMP pos control --> Force Feedback Control.
+                //-->0.1second?
+                //Gyro pos...?
+
+                //1. Calculate Initial Status.
+                //2. Calculate Desired CP position with Initial Information.
+                //3. With Current CP position
+
+                double comHeight;
+                double stepLength;
+                double stepTime;
+
+                //Imprecise COM Height Control.
+                //Force Feedback GainControl. --> feed forward term + additional torque from feedback control of force control for each joint. --> needs tuning...?
+                //Meaning ? Each joint's damping and frequency is not exact same. Current Control strategy is projecting operational space control error to joint space.
+                //But
+
+                Vector2d CurrentCP;
+
+                //Modes for control
+                //Control mode. ZMP control with foot momentum.
+                //현재 상태에 따른 적정 발 접촉 위치 확인
+
+                if (tc.command_time == control_time_)
+                {
+                    //If first
+                    //Desired Capture point is made with desired end capture point. 
+                    
+                    std::cout<<"Calculting Trajectory."<<std::endl;
+                }
+
+                if (tocabi_.ee_[0].contact && tocabi_.ee_[1].contact)
+                {
+                }
+                else if (tocabi_.ee_[0].contact && (!tocabi_.ee_[1].contact))
+                {
+                    //Right foot swing. -> force control at touch down.
+                }
+                else if ((!tocabi_.ee_[0].contact) && tocabi_.ee_[1].contact)
+                {
+                    //Left foot swing. -> force control at touch down.
+                }
+
+                /*
                 int task_number = 9;
                 wbc_.set_contact(tocabi_, 1, 1);
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
@@ -1431,7 +1477,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].a_traj = tocabi_.link_[Pelvis].a_traj;
 
                 Vector12d cf_ = wbc_.get_contact_force(tocabi_, torque_task);
-                std::cout << " l : " << cf_(3) / cf_(2) << " r : " << cf_(9) / cf_(8) << std::endl;
+                std::cout << " l : " << cf_(3) / cf_(2) << " r : " << cf_(9) / cf_(8) << std::endl;*/
             }
             else if (tc.mode >= 10)
             {
@@ -1539,6 +1585,12 @@ void TocabiController::dynamicsThreadLow()
         //VectorXd contactforce_custom = Robot.J_C_INV_T * Robot.Slc_k_T * torque_desired - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
 
         tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
+
+        tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
+
+        double qddot_err_size = (tocabi_.q_ddot_estimate_ - tocabi_.q_ddot_virtual_.segment(6, MODEL_DOF)).norm();
+
+        //std::cout << control_time_ << "qddot error : " << tocabi_.q_dot_diff_(5) / 0.0005 << " q_ddot from sim : " << tocabi_.q_ddot_virtual_(5) << " qddotes size : " << tocabi_.q_ddot_estimate_(5) << std::endl;
 
         tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
         tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);
@@ -1815,6 +1867,8 @@ void TocabiController::getState()
     tocabi_.q_dot_ = dc.q_dot_;
     tocabi_.q_dot_virtual_ = dc.q_dot_virtual_;
     tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
+    tocabi_.q_dot_diff_ = tocabi_.q_dot_ - tocabi_.q_dot_before_;
+    tocabi_.q_dot_ = tocabi_.q_dot_before_;
 
     static bool first_run = true;
     if (first_run)

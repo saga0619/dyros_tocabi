@@ -391,7 +391,6 @@ namespace DyrosMath
     Eigen::MatrixXd svdU, svdV;
     Eigen::VectorXd svdS;
     svdS.resize(size_col);
-
     svdU.resize(size_row, size_col);
     svdV.resize(size_col, size_col);
     for (int i = 0; i < size_row; i++)

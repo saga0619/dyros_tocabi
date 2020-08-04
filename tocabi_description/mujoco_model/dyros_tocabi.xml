@@ -17,7 +17,7 @@
             <site type="cylinder" size="0.005 0.005" group="4" rgba=".1 .1 .9 1"/>
         </default>
         <default class="Leg">
-            <joint damping="1" frictionloss="4"/>
+            <joint damping="1" frictionloss="0.1"/>
         </default>
         <default class="Waist">
             <joint damping="1" frictionloss="1"/>

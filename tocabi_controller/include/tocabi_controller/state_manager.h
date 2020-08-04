@@ -93,6 +93,7 @@ public:
   Eigen::VectorVQd q_dot_virtual_before;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_lpf_;
+  Eigen::VectorVQd q_ddot_virtual_before_;
   Eigen::VectorQd torque_;
   Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;

@@ -302,6 +302,11 @@ public:
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd q_ext_;
 
+  Eigen::VectorQd q_dot_before_;
+  Eigen::VectorQd q_dot_diff_;
+  
+  Eigen::VectorQd q_ddot_estimate_;
+
   Eigen::VectorXd ContactForce;
   Eigen::Vector12d ContactForce_FT;
   Eigen::Vector6d LH_FT, RH_FT;

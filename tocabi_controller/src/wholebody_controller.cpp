@@ -941,7 +941,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     double friction_ratio_z = 0.01;
     //qptest
     double foot_x_length = 0.12;
-    double foot_y_length = 0.04;
+    double foot_y_length = 0.05;
 
     Robot.task_dof = J_task.rows();
 
@@ -988,6 +988,10 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     static int task_dof, contact_dof;
     int constraint_per_contact = 14;
     bool qpt_info = false;
+        if(Robot.qp2nd)
+        {
+            std::cout<<"qp2nd enabled"<<std::endl;
+        }
 
     if ((task_dof != Robot.task_dof) || (contact_dof != 6 * Robot.contact_index))
     {
@@ -1058,9 +1062,9 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         Fsl(6 * i + 0, 6 * i + 0) = 0.0001;
         Fsl(6 * i + 1, 6 * i + 1) = 0.0001;
         Fsl(6 * i + 2, 6 * i + 2) = 0.0001;
-        Fsl(6 * i + 3, 6 * i + 3) = 0.01;
-        Fsl(6 * i + 4, 6 * i + 4) = 0.01;
-        Fsl(6 * i + 5, 6 * i + 5) = 0.01;
+        Fsl(6 * i + 3, 6 * i + 3) = 0.001;
+        Fsl(6 * i + 4, 6 * i + 4) = 0.001;
+        Fsl(6 * i + 5, 6 * i + 5) = 0.00001;
     }
 
     double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
@@ -1076,14 +1080,14 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
             Fsl(0, 0) = 0.0001 * rr;
             Fsl(1, 1) = 0.0001 * rr;
 
-            Fsl(3, 3) = 0.01 * rr;
-            Fsl(4, 4) = 0.01 * rr;
+            Fsl(3, 3) = 0.001 * rr;
+            Fsl(4, 4) = 0.001 * rr;
 
             Fsl(6, 6) = 0.0001 * rl;
             Fsl(7, 7) = 0.0001 * rl;
 
-            Fsl(9, 9) = 0.01 * rl;
-            Fsl(10, 10) = 0.01 * rl;
+            Fsl(9, 9) = 0.001 * rl;
+            Fsl(10, 10) = 0.001 * rl;
         }
     }
 
@@ -1202,7 +1206,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -25;
+        ub(MODEL_DOF + 6 * i + 2) = -20;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
@@ -1375,6 +1379,8 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
 
 VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
 {
+    //Without fstar regulation.
+
     //Desired ZMP!
     //ZMP is the most important thing of walking.
     //If desired ZMP exists...
@@ -1552,6 +1558,12 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = Fsl.transpose() * Fsl;
 
     //Rigid Body Dynamcis Equality Constraint
+    Robot.Slc_k.setZero(MODEL_DOF, MODEL_DOF + 6);
+    Robot.Slc_k.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
+    Robot.Slc_k_T = Robot.Slc_k.transpose();
+
+    
+
     A.block(0, 0, task_dof, MODEL_DOF) = Robot.J_task_inv_T * Robot.Slc_k_T;
     //A.block(0, MODEL_DOF + contact_dof, task_dof, task_dof) = -Robot.lambda;
     lbA.segment(0, task_dof) = Robot.lambda * f_star_ + Robot.J_task_inv_T * Robot.G;
@@ -1646,7 +1658,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }
 
     //std::cout << "calc done!" << std::endl;
-    QP_torque.EnableEqualityCondition(0.0001);
+    QP_torque.EnableEqualityCondition(0.000001);
     QP_torque.UpdateMinProblem(H, g);
     QP_torque.UpdateSubjectToAx(A, lbA, ubA);
     QP_torque.UpdateSubjectToX(lb, ub);
@@ -3284,10 +3296,8 @@ VectorXd WholebodyController::get_contact_force(RobotData &Robot, VectorQd comma
 VectorQd WholebodyController::get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque)
 {
     VectorXd jointAcc;
-
-    jointAcc = Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T * commnad_torque - Robot.A_matrix_inverse * Robot.N_C * Robot.G;
-
-    return jointAcc;
+    jointAcc = Robot.A_matrix_inverse * ((Robot.I37 - Robot.J_C.transpose() * Robot.J_C_INV_T) * Robot.Slc_k_T * commnad_torque + Robot.J_C.transpose() * Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G - Robot.G);
+    return jointAcc.segment(6, MODEL_DOF);
 }
 
 VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta)
