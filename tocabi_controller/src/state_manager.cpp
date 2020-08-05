@@ -1224,7 +1224,7 @@ void StateManager::stateEstimate()
         pelv_v = alpha * (imu_acc_dat * dt + pelv_v_before) + (1 - alpha) * mod_base_vel;
         pelv_v_before = pelv_v;
         q_virtual_ = q_virtual_local_;
-        q_dot_virtual_ = q_dot_virtual_local_;
+        //q_dot_virtual_ = q_dot_virtual_local_;
 
         pelv_x = alpha * (pelv_v * dt + imu_acc_dat * dt * dt * 0.5 + pelv_x_before) + (1 - alpha) * (-mod_base_pos);
         pelv_x_before = pelv_x;
@@ -1235,8 +1235,8 @@ void StateManager::stateEstimate()
         }
 
         //acceleration calculation!
-        q_ddot_virtual_ = (q_dot_virtual_ - q_dot_virtual_before) / ((double)dc.ctime / 1000000.0);
-        q_dot_virtual_before = q_dot_virtual_;
+        //q_ddot_virtual_ = (q_dot_virtual_ - q_dot_virtual_before) / ((double)dc.ctime / 1000000.0);
+        //q_dot_virtual_before = q_dot_virtual_;
     }
     else
     {
