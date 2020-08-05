@@ -300,6 +300,7 @@ public:
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
+  Eigen::VectorVQd q_dot_virtual_lpf_;
   Eigen::VectorQd q_ext_;
 
   Eigen::VectorQd q_dot_before_;

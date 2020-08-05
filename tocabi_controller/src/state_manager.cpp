@@ -159,7 +159,6 @@ void StateManager::stateThread(void)
         if (shutdown_tocabi_bool)
             break;
     }
-    q_dot_virtual_before.setZero();
     std::chrono::microseconds cycletime(dc.ctime);
     int cycle_count = 0;
     if (!shutdown_tocabi_bool)
@@ -615,6 +614,7 @@ void StateManager::initialize()
     q_dot_virtual_.setZero();
     q_ddot_virtual_.setZero();
     q_dot_virtual_lpf_.setZero();
+    q_dot_virtual_lpf_before.setZero();
     q_dot_virtual_raw_.setZero();
     q_ddot_virtual_lpf_.setZero();
     q_dot_before_.setZero();
@@ -645,6 +645,7 @@ void StateManager::storeState()
     dc.q_ = q_virtual_.segment(6, MODEL_DOF);
     dc.q_dot_ = q_dot_virtual_.segment(6, MODEL_DOF);
     dc.q_dot_virtual_ = q_dot_virtual_;
+    dc.q_dot_virtual_lpf = q_dot_virtual_lpf_;
     dc.q_virtual_ = q_virtual_;
     dc.q_ddot_virtual_ = q_ddot_virtual_;
     dc.q_ext_ = q_ext_;
@@ -981,21 +982,23 @@ void StateManager::qdotLPF()
             std::cout << "q_dot lowpassfilter On" << std::endl;
         }
         dc.enable_lpf = false;
+        q_dot_virtual_lpf_before = q_dot_virtual_local_;
     }
 
     if (dc.switch_lpf)
     {
-        q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_before, 2000, 8);
-        q_dot_virtual_.segment(0, 6) = q_dot_virtual_local_.segment(0, 6);
+        q_dot_virtual_lpf_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_lpf_before, 2000, 200);
+        q_dot_virtual_lpf_.segment(0, 3).setZero();
+        q_dot_virtual_lpf_before = q_dot_virtual_lpf_;
 
         q_ddot_virtual_local_ = (q_dot_virtual_ - q_dot_virtual_before) * 2000;
 
-        q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 8);
+        q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 200);
         
         q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
-        q_dot_virtual_before = q_dot_virtual_;
 
-        q_dot_virtual_local_ = q_dot_virtual_;
+        //q_dot_virtual_local_ = q_dot_virtual_lpf_;
+        q_dot_virtual_ = q_dot_virtual_local_;
     }
     else
     {

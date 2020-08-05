@@ -85,6 +85,7 @@ public:
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;
+  Eigen::VectorVQd q_dot_virtual_lpf;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd q_ext_;
 
