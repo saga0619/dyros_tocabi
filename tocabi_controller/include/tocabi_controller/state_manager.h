@@ -90,6 +90,7 @@ public:
   Eigen::VectorQd q_ddot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
+  Eigen::VectorVQd q_dot_virtual_lpf_before;
   Eigen::VectorVQd q_dot_virtual_raw_;
   Eigen::VectorVQd q_dot_virtual_before;
   Eigen::VectorVQd q_ddot_virtual_;

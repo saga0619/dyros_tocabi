@@ -36,7 +36,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
 
         if(imu == 1)
         {
-            ankleOriControl(Robot);
+          //  ankleOriControl(Robot);
         }
 
         /////InverseKinematics//////
@@ -639,7 +639,7 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
     double compliantGain = 1.5;
     double compliantTick = 0.1 * Hz_;
 
-    for (int i = 0; i < 12; i++)
+   for (int i = 0; i < 12; i++)
     {
         if (i < 6)
         {

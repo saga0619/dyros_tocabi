@@ -377,14 +377,14 @@ void TocabiController::dynamicsThreadHigh()
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
+                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_lpf_(i+6));
                     }
                 }
                 else
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
+                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_lpf_(i+6));
                     }
                 }
 
@@ -1919,6 +1919,7 @@ void TocabiController::getState()
     tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
     tocabi_.q_dot_diff_ = tocabi_.q_dot_ - tocabi_.q_dot_before_;
     tocabi_.q_dot_ = tocabi_.q_dot_before_;
+    tocabi_.q_dot_virtual_lpf_ = dc.q_dot_virtual_lpf;
 
     static bool first_run = true;
     if (first_run)
