@@ -159,7 +159,6 @@ void StateManager::stateThread(void)
         if (shutdown_tocabi_bool)
             break;
     }
-    q_dot_virtual_before.setZero();
     std::chrono::microseconds cycletime(dc.ctime);
     int cycle_count = 0;
     if (!shutdown_tocabi_bool)
@@ -192,6 +191,7 @@ void StateManager::stateThread(void)
             }
 
             updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
+        
             handleFT();
             contactEstimate();
             stateEstimate();
@@ -502,15 +502,15 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = dc.tocabi_.link_[COM_id].x_traj(0);
-    pointpub_msg.polygon.points[15].y = dc.tocabi_.link_[COM_id].x_traj(1);
-    pointpub_msg.polygon.points[15].z = dc.tocabi_.link_[COM_id].x_traj(2);
+    pointpub_msg.polygon.points[15].x = link_local[Right_Foot].v(0);
+    pointpub_msg.polygon.points[15].y = link_local[Right_Foot].v(1);
+    pointpub_msg.polygon.points[15].z = link_local[Right_Foot].v(2);
 
     dc.tocabi_.ZMP_command = dc.tocabi_.com_.pos - dc.tocabi_.com_.pos(2) / 9.81 * dc.tocabi_.link_[COM_id].a_traj;
 
-    pointpub_msg.polygon.points[16].x = dc.tocabi_.link_[COM_id].v_traj(0);
-    pointpub_msg.polygon.points[16].y = dc.tocabi_.link_[COM_id].v_traj(1);
-    pointpub_msg.polygon.points[16].z = dc.tocabi_.link_[COM_id].v_traj(2);
+    pointpub_msg.polygon.points[16].x = link_local[Right_Foot].xpos(0);
+    pointpub_msg.polygon.points[16].y = link_local[Right_Foot].xpos(1);
+    pointpub_msg.polygon.points[16].z = link_local[Right_Foot].xpos(2);
 
     pointpub_msg.polygon.points[17].x = dc.tocabi_.ContactForce(3) / dc.tocabi_.ContactForce(2);
     pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce(3 + 6) / dc.tocabi_.ContactForce(2 + 6);
@@ -985,21 +985,21 @@ void StateManager::qdotLPF()
 
     if (dc.switch_lpf)
     {
-        q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_before, 2000, 8);
-        q_dot_virtual_.segment(0, 6) = q_dot_virtual_local_.segment(0, 6);
+        q_dot_virtual_lpf_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_before, 2000, 8);
+        q_dot_virtual_lpf_.segment(0, 6) = q_dot_virtual_local_.segment(0, 6);
 
-        q_ddot_virtual_local_ = (q_dot_virtual_ - q_dot_virtual_before) * 2000;
+        //q_dot_virtual_lpf_ = q_dot_virtual_;
+
+        q_ddot_virtual_local_ = (q_dot_virtual_lpf_ - q_dot_virtual_before) * 2000;
 
         q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 8);
         
         q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
-        q_dot_virtual_before = q_dot_virtual_;
-
-        q_dot_virtual_local_ = q_dot_virtual_;
+        q_dot_virtual_before = q_dot_virtual_lpf_;
     }
     else
     {
-        q_dot_virtual_ = q_dot_virtual_local_;
+        //q_dot_virtual_ = q_dot_virtual_local_;
     }
 }
 
@@ -1120,16 +1120,13 @@ void StateManager::stateEstimate()
         {
             RF_contact_pos_holder(2) = 0.0; // - RF_contactpoint_internal_pos(2);
             LF_contact_pos_holder(2) = 0.0; // - LF_contactpoint_internal_pos(2);
-
             RF_contact_pos_mod.setZero();
             LF_contact_pos_mod.setZero();
-
             RF_CP_est_before.setZero();
             LF_CP_est_before.setZero();
             dc.semode_init = false;
             pelv_v_before.setZero();
             pelv_x_before.setZero();
-
             imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
         }
 
@@ -1217,14 +1214,14 @@ void StateManager::stateEstimate()
         imu_acc_dat = link_local[Pelvis].Rotm * imu_lin_acc;
 
         imu_acc_dat = imu_acc_dat - imu_init;
-        double dt = 0.0005;
+        double dt = 1/2000;
         double tau = 0.6;
         double alpha = tau / (tau + dt);
 
         pelv_v = alpha * (imu_acc_dat * dt + pelv_v_before) + (1 - alpha) * mod_base_vel;
         pelv_v_before = pelv_v;
         q_virtual_ = q_virtual_local_;
-        //q_dot_virtual_ = q_dot_virtual_local_;
+        q_dot_virtual_ = q_dot_virtual_local_;
 
         pelv_x = alpha * (pelv_v * dt + imu_acc_dat * dt * dt * 0.5 + pelv_x_before) + (1 - alpha) * (-mod_base_pos);
         pelv_x_before = pelv_x;

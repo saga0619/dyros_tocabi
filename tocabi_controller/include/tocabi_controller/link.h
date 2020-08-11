@@ -10,6 +10,14 @@
 
 extern std::mutex mtx_rbdl;
 
+struct VelCommand
+{
+  int link_;
+  Eigen::Vector6d des_vel;
+  
+  bool used_;
+};
+
 struct TaskCommand
 {
   double command_time;

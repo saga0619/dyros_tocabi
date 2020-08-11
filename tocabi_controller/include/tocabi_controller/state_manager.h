@@ -4,11 +4,12 @@
 #include "tocabi_controller/data_container.h"
 #include "tocabi_controller/terminal.h"
 #include "tocabi_controller/MotorInfo.h"
-#include "geometry_msgs/PolygonStamped.h"
-#include "visualization_msgs/MarkerArray.h"
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/TaskCommandQue.h"
 #include "tocabi_controller/TaskGainCommand.h"
+#include "tocabi_controller/VelocityCommand.h"
+#include "geometry_msgs/PolygonStamped.h"
+#include "visualization_msgs/MarkerArray.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>

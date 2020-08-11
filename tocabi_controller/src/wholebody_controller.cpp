@@ -2847,6 +2847,50 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     return torque_task;
 }
 
+VectorQd WholebodyController::task_control_torque_force_control(RobotData &Robot, MatrixXd J_task, VectorXd desiredForce)
+{
+    Robot.task_dof = J_task.rows();
+
+    //Task Control Torque;
+    Robot.J_task_T.resize(MODEL_DOF + 6, Robot.task_dof);
+    Robot.J_task_T.setZero();
+    Robot.lambda_inv.resize(Robot.task_dof, Robot.task_dof);
+    Robot.lambda_inv.setZero();
+    Robot.lambda.resize(Robot.task_dof, Robot.task_dof);
+    Robot.lambda.setZero();
+
+    Robot.J_task_T = J_task.transpose();
+
+    Robot.lambda_inv = J_task * Robot.A_matrix_inverse * Robot.N_C * Robot.J_task_T;
+
+    Robot.lambda = Robot.lambda_inv.inverse();
+    Robot.J_task_inv_T = Robot.lambda * J_task * Robot.A_matrix_inverse * Robot.N_C;
+
+    Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
+    Robot.Q_T_ = Robot.Q.transpose();
+
+    Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
+
+    Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
+
+    //_F=lambda*(f_star);
+    //Jtemp=J_task_inv_T*Slc_k_T;
+    //Jtemp_2 = DyrosMath::pinv_SVD(Jtemp);
+    //Q.svd(s2,u2,v2);
+
+    VectorQd torque_task;
+    torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * desiredForce + gravity_compensation_torque(Robot);
+
+    //W.svd(s,u,v);
+    //V2.resize(28,6);
+    //V2.zero();
+
+    //torque_task = torque_task +
+
+    return torque_task;
+
+}
+
 VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot, MatrixXd J_task, VectorXd f_star_)
 {
     Robot.task_dof = J_task.rows();

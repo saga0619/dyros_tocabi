@@ -13,6 +13,7 @@ public:
   DataContainer &dc;
   CustomController &mycontroller;
   TaskCommand tc;
+  VelCommand vc;
 
   WholebodyController wbc_;
   Walking_controller wkc_;
@@ -26,6 +27,7 @@ public:
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
   void TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg);
+  void VelocityCommandCallback(const tocabi_controller::VelocityCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void gettaskcommand(tocabi_controller::TaskCommand &msg);
@@ -35,9 +37,9 @@ public:
   ros::Subscriber task_command;
   ros::Subscriber task_command_que;
   ros::Subscriber taskgain_sub;
+  ros::Subscriber vel_command_sub;
 
   tocabi_controller::TaskCommandQue tque_msg;
-
 
 private:
   void getState();

@@ -21,6 +21,7 @@ TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, D
     task_command = dc.nh.subscribe("/tocabi/taskcommand", 100, &TocabiController::TaskCommandCallback, this);
     task_command_que = dc.nh.subscribe("/tocabi/taskquecommand", 100, &TocabiController::TaskQueCommandCallback, this);
     taskgain_sub = dc.nh.subscribe("/tocabi/taskgaincommand", 100, &TocabiController::TaskGainCallback, this);
+    vel_command_sub = dc.nh.subscribe("tocabi/velcommand", 100, &TocabiController::VelocityCommandCallback, this);
 }
 
 void TocabiController::TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg)
@@ -44,6 +45,17 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
 {
     tocabi_controller::TaskCommand tc_temp = *msg;
     gettaskcommand(tc_temp);
+}
+
+void TocabiController::VelocityCommandCallback(const tocabi_controller::VelocityCommandConstPtr &msg)
+{
+    vc.link_ = msg->task_link;
+    for (int i = 0; i < 6; i++)
+    {
+        vc.des_vel[i] = msg->des_vel[i];
+    }
+
+    vc.used_ = false;
 }
 
 void TocabiController::TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg)
@@ -365,14 +377,14 @@ void TocabiController::dynamicsThreadHigh()
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i+6));
+                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
                 else
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i+6));
+                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
 
@@ -1248,9 +1260,9 @@ void TocabiController::dynamicsThreadLow()
                 if (tc.command_time == control_time_)
                 {
                     //If first
-                    //Desired Capture point is made with desired end capture point. 
-                    
-                    std::cout<<"Calculting Trajectory."<<std::endl;
+                    //Desired Capture point is made with desired end capture point.
+
+                    std::cout << "Calculting Trajectory." << std::endl;
                 }
 
                 if (tocabi_.ee_[0].contact && tocabi_.ee_[1].contact)
@@ -1478,6 +1490,44 @@ void TocabiController::dynamicsThreadLow()
 
                 Vector12d cf_ = wbc_.get_contact_force(tocabi_, torque_task);
                 std::cout << " l : " << cf_(3) / cf_(2) << " r : " << cf_(9) / cf_(8) << std::endl;*/
+            }
+            else if (tc.mode == 9)
+            {
+                wbc_.set_contact(tocabi_, 1, 1);
+                torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+
+                int task_number = 9;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired(2) = tc.height;
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+
+                //tocabi_.link_[COM_id].x_traj(0) = tocabi_.link_[COM_id].xpos(0) + vc.des_vel(0);
+
+                tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    //tocabi_.f_star(i) = tocabi_.link_[COM_id].pos_d_gain[i] * (vc.des_vel[i] - tocabi_.link_[COM_id].v[i]);
+                    tocabi_.f_star(i + 6) = tocabi_.link_[Upper_Body].rot_d_gain[i] * (vc.des_vel[i] - tocabi_.link_[Upper_Body].w[i]);
+                }
+
+                //tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+
+                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+
+                torque_grav.setZero();
             }
             else if (tc.mode >= 10)
             {
