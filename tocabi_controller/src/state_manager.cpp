@@ -1003,7 +1003,7 @@ void StateManager::qdotLPF()
     }
     else
     {
-        //q_dot_virtual_ = q_dot_virtual_local_;
+        q_dot_virtual_ = q_dot_virtual_local_;
     }
 }
 
@@ -1218,14 +1218,14 @@ void StateManager::stateEstimate()
         imu_acc_dat = link_local[Pelvis].Rotm * imu_lin_acc;
 
         imu_acc_dat = imu_acc_dat - imu_init;
-        double dt = 1/2000;
+        double dt = 0.0005;
         double tau = 0.6;
         double alpha = tau / (tau + dt);
 
         pelv_v = alpha * (imu_acc_dat * dt + pelv_v_before) + (1 - alpha) * mod_base_vel;
         pelv_v_before = pelv_v;
         q_virtual_ = q_virtual_local_;
-        q_dot_virtual_ = q_dot_virtual_local_;
+        //q_dot_virtual_ = q_dot_virtual_local_;
 
         pelv_x = alpha * (pelv_v * dt + imu_acc_dat * dt * dt * 0.5 + pelv_x_before) + (1 - alpha) * (-mod_base_pos);
         pelv_x_before = pelv_x;
