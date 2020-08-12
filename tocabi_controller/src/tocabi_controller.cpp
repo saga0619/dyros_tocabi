@@ -782,6 +782,8 @@ void TocabiController::dynamicsThreadLow()
             }
             else if (tc.mode == 2) //COM pos&rot control + upper rotation with jhpark
             {
+
+                //tocabi_.d_time_
                 /* 
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
@@ -1505,69 +1507,63 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM;
                 tocabi_.J_task.block(15, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Hand].Jac_COM;
 
-                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
-                tocabi_.link_[COM_id].x_desired(2) = tc.height;
-                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+                if (tc.task_init)
+                {
+                    std::cout << "Velocity Control initialized " << std::endl;
 
-                //tocabi_.link_[COM_id].x_traj(0) = tocabi_.link_[COM_id].xpos(0) + vc.des_vel(0);
+                    tocabi_.link_[COM_id].x_traj = tocabi_.link_[COM_id].x_init;
+                    tocabi_.link_[COM_id].v_traj = tocabi_.link_[COM_id].v_init;
 
-                tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
-                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+                    tocabi_.link_[COM_id].r_traj = tocabi_.link_[COM_id].rot_init;
+                    tocabi_.link_[COM_id].w_traj = tocabi_.link_[COM_id].w_init;
 
-                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();
-                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+                    tocabi_.link_[Upper_Body].r_traj = tocabi_.link_[Upper_Body].rot_init;
+                    tocabi_.link_[Upper_Body].w_traj = tocabi_.link_[Upper_Body].w_init;
 
-                tocabi_.link_[Right_Hand].x_desired[0] = tocabi_.link_[Right_Hand].x_init[0] + tc.r_x;
-                tocabi_.link_[Right_Hand].x_desired[1] = tocabi_.link_[Right_Hand].x_init[1] + tc.r_y;
-                tocabi_.link_[Right_Hand].x_desired[2] = tocabi_.link_[Right_Hand].x_init[2] + tc.r_z;
+                    tocabi_.link_[Right_Hand].x_traj = tocabi_.link_[Right_Hand].x_init;
+                    tocabi_.link_[Right_Hand].v_traj = tocabi_.link_[Right_Hand].v_init;
+                    tocabi_.link_[Right_Hand].r_traj = tocabi_.link_[Right_Hand].rot_init;
+                    tocabi_.link_[Right_Hand].w_traj = tocabi_.link_[Right_Hand].w_init;
 
-                tocabi_.link_[Right_Hand].rot_desired = tocabi_.link_[Right_Hand].rot_init * DyrosMath::rotateWithZ(tc.r_yaw) * DyrosMath::rotateWithX(tc.r_roll) * DyrosMath::rotateWithY(tc.r_pitch);
+                    tocabi_.link_[Left_Hand].x_traj = tocabi_.link_[Left_Hand].x_init;
+                    tocabi_.link_[Left_Hand].v_traj = tocabi_.link_[Left_Hand].v_init;
+                    tocabi_.link_[Left_Hand].r_traj = tocabi_.link_[Left_Hand].rot_init;
+                    tocabi_.link_[Left_Hand].w_traj = tocabi_.link_[Left_Hand].w_init;
 
-                tocabi_.link_[Left_Hand].x_desired[0] = tocabi_.link_[Left_Hand].x_init[0] + tc.l_x;
-                tocabi_.link_[Left_Hand].x_desired[1] = tocabi_.link_[Left_Hand].x_init[1] + tc.l_y;
-                tocabi_.link_[Left_Hand].x_desired[2] = tocabi_.link_[Left_Hand].x_init[2] + tc.l_z;
-
-                tocabi_.link_[Left_Hand].rot_desired = tocabi_.link_[Left_Hand].rot_init * DyrosMath::rotateWithZ(tc.l_yaw) * DyrosMath::rotateWithX(tc.l_roll) * DyrosMath::rotateWithY(tc.l_pitch);
-
-                tocabi_.link_[Right_Hand].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
-                tocabi_.link_[Right_Hand].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-                tocabi_.link_[Left_Hand].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
-                tocabi_.link_[Left_Hand].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-
-                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
-
-                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
-
-                //tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Right_Hand);
-                //tocabi_.f_star.segment(15, 6) = wbc_.getfstar6d(tocabi_, Left_Hand);
-
-                tocabi_.f_star.segment(9, 12).setZero();
+                    tc.task_init = false;
+                }
 
                 if (vc.link_ == 0)
                 {
-                    for (int i = 0; i < 3; i++)
-                        tocabi_.f_star(i + 6) = tocabi_.link_[Upper_Body].rot_d_gain[i] * (vc.des_vel[i] - tocabi_.link_[Upper_Body].w[i]);
+                    tocabi_.link_[COM_id].x_traj = tocabi_.link_[COM_id].x_traj + 0.5 * tocabi_.d_time_ * vc.des_vel.segment(0, 3);
+                    tocabi_.link_[COM_id].v_traj = vc.des_vel.segment(0, 3);
+                    tocabi_.link_[COM_id].r_traj = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[COM_id].r_traj, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[COM_id].w_traj = vc.des_vel.segment(3, 3);
                 }
                 else if (vc.link_ == 1)
                 {
-                    for (int i = 0; i < 3; i++)
-                        tocabi_.f_star(i + 9) = tocabi_.link_[Right_Hand].pos_d_gain[i] * (vc.des_vel[i] - tocabi_.link_[Right_Hand].v[i]);
+                    tocabi_.link_[Upper_Body].r_traj = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[Upper_Body].r_traj, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[Upper_Body].w_traj = vc.des_vel.segment(3, 3);
                 }
                 else if (vc.link_ == 2)
                 {
-                    for (int i = 0; i < 3; i++)
-                        tocabi_.f_star(i + 12) = tocabi_.link_[Right_Hand].rot_d_gain[i] * (vc.des_vel[i] - tocabi_.link_[Right_Hand].w[i]);
+                    tocabi_.link_[Right_Hand].x_traj = tocabi_.link_[Right_Hand].x_traj + 0.5 * tocabi_.d_time_ * vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Right_Hand].v_traj = vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Right_Hand].r_traj = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[Right_Hand].r_traj, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[Right_Hand].w_traj = vc.des_vel.segment(3, 3);
                 }
                 else if (vc.link_ == 3)
                 {
-                    for (int i = 0; i < 3; i++)
-                        tocabi_.f_star(i + 15) = tocabi_.link_[Left_Hand].pos_d_gain[i] * (vc.des_vel[i] - tocabi_.link_[Left_Hand].v[i]);
+                    tocabi_.link_[Left_Hand].x_traj = tocabi_.link_[Left_Hand].x_traj + 0.5 * tocabi_.d_time_ * vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Left_Hand].v_traj = vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Left_Hand].r_traj = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[Left_Hand].r_traj, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[Left_Hand].w_traj = vc.des_vel.segment(3, 3);
                 }
-                else if (vc.link_ == 4)
-                {
-                    for (int i = 0; i < 3; i++)
-                        tocabi_.f_star(i + 18) = tocabi_.link_[Left_Hand].rot_d_gain[i] * (vc.des_vel[i] - tocabi_.link_[Left_Hand].w[i]);
-                }
+
+                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Right_Hand);
+                tocabi_.f_star.segment(15, 6) = wbc_.getfstar6d(tocabi_, Left_Hand);
 
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
 
@@ -1955,6 +1951,7 @@ void TocabiController::getState()
     //q_dot_virtual_ = dc.q_dot_virtual_;
     //q_ddot_virtual_ = dc.q_ddot_virtual_;
     torque_ = dc.torque_;
+    tocabi_.d_time_ = dc.time - tocabi_.control_time_;
     tocabi_.control_time_ = dc.time;
     tocabi_.q_ = dc.q_;
     tocabi_.q_virtual_ = dc.q_virtual_;
