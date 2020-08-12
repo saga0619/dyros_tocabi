@@ -163,6 +163,8 @@ public:
   // set link initial position and rotation. initial position for task control.
   void Set_initpos();
 
+  void Set_initpos_local();
+
   void Set_initTask();
 
   bool Check_name(RigidBodyDynamics::Model &model_);
@@ -238,10 +240,20 @@ public:
   Eigen::Matrix3d r_traj;
   Eigen::Vector3d w_traj;
 
+  Eigen::Vector3d x_traj_local;
+  Eigen::Vector3d v_traj_local;
+  Eigen::Matrix3d r_traj_local;
+  Eigen::Vector3d w_traj_local;
+
   Eigen::Vector3d x_init;
   Eigen::Vector3d v_init;
   Eigen::Matrix3d rot_init;
   Eigen::Vector3d w_init;
+
+  Eigen::Vector3d x_init_local;
+  Eigen::Vector3d v_init_local;
+  Eigen::Matrix3d rot_init_local;
+  Eigen::Vector3d w_init_local;
 
   Eigen::Vector3d x_task_init;
   Eigen::Vector3d v_task_init;
