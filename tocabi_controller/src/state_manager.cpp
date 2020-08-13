@@ -191,7 +191,7 @@ void StateManager::stateThread(void)
             }
 
             updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
-        
+
             handleFT();
             contactEstimate();
             stateEstimate();
@@ -332,8 +332,6 @@ void StateManager::adv2ROS(void)
     }
     tgain_p.data = dc.t_gain;
     tgainPublisher.publish(tgain_p);
-
-
 
     pointpub_msg.header.stamp = ros::Time::now();
     Eigen::Vector3d temp;
@@ -995,7 +993,7 @@ void StateManager::qdotLPF()
         q_ddot_virtual_local_ = (q_dot_virtual_lpf_ - q_dot_virtual_before) * 2000;
 
         q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 200);
-        
+
         q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
 
         //q_dot_virtual_local_ = q_dot_virtual_lpf_;
@@ -1484,6 +1482,18 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         else
         {
             std::cout << "State Estimate by Ft : OFF" << std::endl;
+        }
+    }
+    else if (msg->data == "disablelower")
+    {
+        dc.disableLowerBody = !dc.disableLowerBody;
+        if (dc.disableLowerBody)
+        {
+            std::cout << "Disable LowerBody" << std::endl;
+        }
+        else
+        {
+            std::cout << "Enable LowerBody" << std::endl;
         }
     }
 }

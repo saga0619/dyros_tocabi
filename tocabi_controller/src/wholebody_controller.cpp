@@ -988,10 +988,6 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     static int task_dof, contact_dof;
     int constraint_per_contact = 14;
     bool qpt_info = false;
-        if(Robot.qp2nd)
-        {
-            std::cout<<"qp2nd enabled"<<std::endl;
-        }
 
     if ((task_dof != Robot.task_dof) || (contact_dof != 6 * Robot.contact_index))
     {

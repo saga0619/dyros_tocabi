@@ -157,6 +157,8 @@ public:
 
   bool testmode = false; // switch for controller test mode.
 
+  bool disableLowerBody = false;
+
   //Controller switch
 
   bool positionControl = false;

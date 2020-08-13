@@ -133,7 +133,6 @@ void RealRobotInterface::updateState()
         q_ddot_ = q_dot_ - q_dot_before_;
         q_dot_before_ = q_dot_;
 
-        
         q_virtual_local_.setZero();
         q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
         q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
@@ -1249,6 +1248,14 @@ void RealRobotInterface::ethercatThread()
                             {
                                 if (operation_ready)
                                 {
+                                    if (dc.disableLowerBody)
+                                    {
+                                        for (int i = 0; i < 6; i++)
+                                        {
+                                            torqueDesiredElmo(TOCABI::R_HipYaw_Joint + i) = 0.0;
+                                            torqueDesiredElmo(TOCABI::L_HipYaw_Joint + i) = 0.0;
+                                        }
+                                    }
                                     if (dc.torqueOn)
                                     {
                                         //If torqueOn command received, torque will increases slowly, for rising_time, which is currently 3 seconds.
@@ -1670,13 +1677,13 @@ void RealRobotInterface::ftsensorThread()
             LF_FT(i) = ft.leftFootAxisData[i];
         }
 
-        if(ft_calib_finish == false)
+        if (ft_calib_finish == false)
         {
             dc.ft_state = 1.0;
         }
         else
         {
-            if(RF_FT(2) > 100 || LF_FT(2) > 100)
+            if (RF_FT(2) > 100 || LF_FT(2) > 100)
             {
                 dc.ft_state = 0.0;
             }
@@ -1688,7 +1695,7 @@ void RealRobotInterface::ftsensorThread()
 
         if (dc.print_ft_info_tofile)
         {
-        //    ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
+            //    ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
         }
     }
     std::cout << "FTsensor Thread End!" << std::endl;
@@ -1727,14 +1734,14 @@ void RealRobotInterface::handftsensorThread()
         cycle_count++;
 
         ft_upper.DAQSensorData();
-   
+
         if (dc.ftcalib) //enabled by gui
         {
             if (ft_calib_init == false)
             {
                 ft_cycle_count = cycle_count;
                 ft_calib_init = true;
- //               pub_to_gui(dc, "ft sensor : calibration ... ");
+                //               pub_to_gui(dc, "ft sensor : calibration ... ");
             }
             if (cycle_count < 5 * SAMPLE_RATE + ft_cycle_count)
             {
@@ -1748,15 +1755,15 @@ void RealRobotInterface::handftsensorThread()
         }
         else
         {
-//            pub_to_gui(dc, "initreq");
+            //            pub_to_gui(dc, "initreq");
         }
 
         if (ft_calib_finish == true)
         {
             if (ft_calib_ui == false)
             {
-//                pub_to_gui(dc, "ft sensor : calibration finish ");
-//                pub_to_gui(dc, "ftgood");
+                //                pub_to_gui(dc, "ft sensor : calibration finish ");
+                //                pub_to_gui(dc, "ftgood");
                 ft_calib_ui = true;
             }
         }
