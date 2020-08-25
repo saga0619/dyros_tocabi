@@ -271,6 +271,11 @@ void Walking_controller::getRobotState(RobotData &Robot)
     LF_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, LF_float_current);
     COM_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, COM_float_current);
 
+    Ag_leg = Robot.Ag_.block(0, 0, 6, 12);
+    Ag_armR = Robot.Ag_.block(0, 25, 6, 8);
+    Ag_armL = Robot.Ag_.block(0, 15, 6, 8);
+    Ag_waist = Robot.Ag_.block(0, 12, 6, 3);
+
     calcRobotState(Robot);
 }
 
@@ -998,10 +1003,10 @@ void Walking_controller::comJacobianIK(RobotData &Robot)
 void Walking_controller::momentumControl(RobotData &Robot)
 {
 /*
-    XgIJ_leg = XgIJ.block(0, 0, 6, 12);
-    XgIJ_armR = XgIJ.block(0, 25, 6, 8);
-    XgIJ_armL = XgIJ.block(0, 15, 6, 8);
-    XgIJ_waist = XgIJ.block(0, 12, 6, 3);*/
+    Ag_leg = Ag.block(0, 0, 6, 12);
+    Ag_armR = Ag.block(0, 25, 6, 8);
+    Ag_armL = Ag.block(0, 15, 6, 8);
+    Ag_waist = Ag.block(0, 12, 6, 3);*/
 
     int variable_size, constraint_size;
 
@@ -1021,30 +1026,24 @@ void Walking_controller::momentumControl(RobotData &Robot)
     lbA.setZero(constraint_size);
     ubA.setZero(constraint_size);
 
-    H_leg = XgIJ_leg * Robot.q_dot_.head(12) + XgIJ_waist * Robot.q_dot_.segment(12,3);
+    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3);
 
-    H_leg(0) = 0.0;
-    H_leg(1) = 0.0;
-    H_leg(2) = 0.0;
-    H_leg(3) = 0.0;
-    H_leg(4) = 0.0;
-
-    XgIJ_waist.row(0).setZero();
-    XgIJ_waist.row(1).setZero();
-    XgIJ_waist.row(2).setZero();
-    XgIJ_waist.row(3).setZero();
-    XgIJ_waist.row(4).setZero();
-  //  XgIJ_waist.row(5).setZero();
+    Ag_waist.row(0).setZero();
+    Ag_waist.row(1).setZero();
+    Ag_waist.row(2).setZero();
+    Ag_waist.row(3).setZero();
+    Ag_waist.row(4).setZero();
+  //  Ag_waist.row(5).setZero();
   
 
-    XgIJ_waist.col(1).setZero();
-    XgIJ_waist.col(2).setZero();
-  //  XgIJ_waist.col(3).setZero();
-  //  XgIJ_waist.col(4).setZero();
-   // XgIJ_waist.col(5).setZero();
+    Ag_waist.col(1).setZero();
+    Ag_waist.col(2).setZero();
+  //  Ag_waist.col(3).setZero();
+  //  Ag_waist.col(4).setZero();
+   // Ag_waist.col(5).setZero();
 
-    H = XgIJ_waist.transpose()*XgIJ_waist;
-    g = 2*H_leg.transpose()*XgIJ_waist;
+    H = Ag_waist.transpose()*Ag_waist;
+    g = 2*H_leg.transpose()*Ag_waist;
 
     A.setZero();
     lbA.setIdentity();

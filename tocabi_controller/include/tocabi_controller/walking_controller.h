@@ -31,9 +31,6 @@ public:
     WalkingCommand wtc;
     Eigen::Vector12d desired_leg_q;
     Eigen::Vector12d desired_leg_q_NC;
-    Eigen::Vector6d mom;
-
-    Eigen::VectorXd qqqqq;
     Eigen::VectorQd desired_init_leg_q;
 
     CQuadraticProgram QP_m;
