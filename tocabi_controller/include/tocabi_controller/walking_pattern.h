@@ -4,6 +4,11 @@
 #include <fstream>
 #include "math_type_define.h"
 
+/* 
+ Walking controller algorithm is made by Junhyung Kim
+ PELVIS and FOOT traejctory is based on Pelvis Frame
+*/
+
 class WalkingPattern
 {
 public:
@@ -49,6 +54,8 @@ public:
     Eigen::VectorXd zmp_dy;
     Eigen::VectorXd com_refx;
     Eigen::VectorXd com_refy;
+    Eigen::VectorXd com_refdx;
+    Eigen::VectorXd com_refdy;
     Eigen::VectorXd zmp_refx;
     Eigen::VectorXd zmp_refy;
     Eigen::VectorXd b;
@@ -81,6 +88,10 @@ public:
     Eigen::Isometry3d PELV_trajectory_float;
     Eigen::Isometry3d COM_support_current;
     Eigen::Isometry3d COM_support_init;
+    
+    Eigen::Isometry3d RF_fisrt_init;
+    Eigen::Isometry3d LF_fisrt_init;
+    Eigen::Isometry3d PELV_first_init;
  
     Eigen::Vector6d SUF_float_initV;
     Eigen::Vector6d SWF_float_initV;
@@ -103,11 +114,14 @@ public:
     Eigen::Vector3d LF_trajectory_euler_support;
     Eigen::Vector3d RF_trajectory_euler_support;
 
+    Eigen::Vector4d PELV_firstinit;
+
     Eigen::Vector3d foot_distance;
     double zc;
     double lipm_w;
 
     Eigen::VectorQd q_init;
+    Eigen::VectorQd q_target;
 
     //Reference Frame Transform
     Eigen::Isometry3d LocaltoGlobal_current;
@@ -120,6 +134,38 @@ public:
     Eigen::Isometry3d Framereference;
     Eigen::Isometry3d Debug_Iso;
 
+    //Com Jacobian
+    Eigen::Vector3d r_c1;
+    Eigen::Matrix3d r_c1_skew;
+    Eigen::MatrixXd J;
+    Eigen::Matrix6d J_l;
+    Eigen::Matrix6d J_r;
+    Eigen::Matrix6d J_lc;
+    Eigen::Matrix6d J_rc;
+    Eigen::Matrix6d X21;
+    Eigen::Vector6d Xdot;
+    Eigen::Vector6d LFDotTraj;
+    Eigen::Vector6d LFDotPrevTraj;
+    Eigen::Vector6d RFDotTraj;
+    Eigen::Vector6d RFDotPrevTraj;
+    Eigen::Vector6d COMDotTraj;
+    Eigen::Vector6d SFerr;
+    Eigen::Vector3d Cfsemd;
+    Eigen::Matrix<double, 3, 6> Jfsem;
+    
+    
+    //MomentumControl
+    Eigen::Matrix6Qd XgIJ;
+    Eigen::Vector3d q_w;
+    Eigen::VectorQd qdot_moment;
+    Eigen::Vector6d MT_cen;
+    Eigen::Vector6d H_leg;
+    Eigen::VectorXd q_dm;
+    Eigen::Matrix6x12d XgIJ_leg;
+    Eigen::Matrix6x8d XgIJ_armR;
+    Eigen::Matrix6x8d XgIJ_armL;
+    Eigen::Matrix6x3d XgIJ_waist;  
+
     //User WalkingParameter
     int desired_foot_step_num;
     int t_rest_init;
@@ -131,22 +177,34 @@ public:
     int t_last;
     int t_start;
     int t_start_real;
+    int t_rest_temp;
+    int com_control;
     double t_imp;
     double foot_height;
     int current_step_num; // temp
 
     // Walking
     int walking_tick;
+    int contactMode; // 0 : double, 1 : RF SWING, 2 : LF SWING
+    bool phaseChange; // true : double, false : single
+   
+    /////temp
+    bool phaseChange_prev;
+    double double2Single;
+    double double2Single_pre;
+    double current_time;
+    double rate;
 
     //Ui WalkingParameter
     int ik_mode;
     int walking_pattern;
     int foot_step_dir;
-    bool walking_enable;
+    int walking_enable;
     double height;
     double step_length_x;
     double step_length_y;
     bool dob;
+    bool imu;
     Eigen::Vector4d target;
     bool com_control_mode;
     bool gyro_frame_flag;
@@ -155,7 +213,25 @@ public:
     double pelvis_dgain;
     double pelvis_offsetx;
 
+    Eigen::Vector3d COM;
+    Eigen::Vector3d CP;
 
-    std::fstream file[1];
+    Eigen::Vector3d com_support_temp;
+    Eigen::Vector3d com_support_temp_prev;
+    Eigen::Vector3d COM_prev;
+    
+    Eigen::Vector12d dob_hat;
+    Eigen::Vector12d dob_hat_prev;
+    Eigen::Vector12d leg_q;//temp
+
+    Eigen::Matrix2d rot_vel;//temp
+    Eigen::Matrix2d rot_prev;
+
+    Eigen::Vector3d rf_e, lf_e, rf_e_vel, lf_e_vel;
+
+    double dobGain;
+    double debug;
+
+    std::fstream file[2];
 };
 #endif

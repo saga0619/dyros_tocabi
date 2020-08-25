@@ -4,6 +4,9 @@ project(tocabi_controller)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11 -O3)
 
+ADD_DEFINITIONS(-DBOOST_MPL_LIMIT_LIST_SIZE=40)
+ADD_DEFINITIONS(-DBOOST_MPL_LIMIT_VECTOR_SIZE=40)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -18,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -31,6 +34,8 @@ add_message_files(
   GainCommand.msg
   MotorInfo.msg
   TaskCommand.msg
+  TaskCommandQue.msg
+  TaskGainCommand.msg
 )
 
 
@@ -85,9 +90,14 @@ target_link_libraries(tocabi_controller_lib
   -lmscl
   -lrbdl
   -lrbdl_urdfreader
+  -lurdfdom_model
+  -lboost_system 
   -lrt
   -lqpOASES
   -lsoem
+  -lcanlib
+  -lgsl
+  -lgslcblas
   ${CMAKE_CURRENT_SOURCE_DIR}/include/sensoray826/lib/lib826_64.so
 )
 
@@ -98,3 +108,4 @@ target_link_libraries(tocabi_controller
 
 add_dependencies(tocabi_controller_lib ${catkin_EXPORTED_TARGETS})
 add_dependencies(tocabi_controller &{catkin_EXPORTED_TARGETS})
+

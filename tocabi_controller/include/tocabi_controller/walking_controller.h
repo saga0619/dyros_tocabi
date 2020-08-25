@@ -3,6 +3,8 @@
 
 #include "tocabi_controller/walking_pattern.h"
 #include "tocabi_controller/link.h"
+#include "tocabi_controller/qp.h"
+#include <qpOASES.hpp>
 
 struct WalkingCommand
 {
@@ -18,28 +20,46 @@ struct WalkingCommand
   double step_length_x;
   double step_length_y;
   bool dob;
+  bool imu;
 };
+
+
 
 class Walking_controller : virtual public WalkingPattern
 {
 public:
     WalkingCommand wtc;
     Eigen::Vector12d desired_leg_q;
+    Eigen::Vector12d desired_leg_q_NC;
+    Eigen::Vector6d mom;
 
-    void walkingCompute(RobotData Robot);
+    Eigen::VectorXd qqqqq;
+    Eigen::VectorQd desired_init_leg_q;
+
+    CQuadraticProgram QP_m;
+
+    void walkingCompute(RobotData &Robot);
     void inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);
-    void setInitPose();
-    void getRobotState(RobotData Robot);
-    void getRobotInitState(RobotData Robot);
+    void setInitPose(RobotData &Robot, Eigen::VectorQd& leg_q);
+    void getRobotState(RobotData &Robot);
+    void modelFrameToLocal(RobotData &Robot);
+    void getRobotInitState(RobotData &Robot);
+    void walkingInitialize(RobotData &Robot);
     void setRobotStateInitialize();
     void updateNextStepTime();
-    void getUiWalkingParameter(int controller_Hz, int ikmode, int walkingpattern, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_, RobotData Robot);
-    void setWalkingParameter(RobotData Robot);
-    void walkingInitialize();
+    void updateInitTime();
+    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, RobotData &Robot);
+    void setWalkingParameter(RobotData &Robot);
+
+    void calcRobotState(RobotData &Robot);
+    void hipCompensator();
+    void ankleOriControl(RobotData &Robot);
+    void inverseKinematicsdob(RobotData &Robot);
+    void comJacobianState(RobotData &Robot);
+    void comJacobianIK(RobotData &Robot);
+    void momentumControl(RobotData &Robot);
 
 private:
-
 };
-
 
 #endif

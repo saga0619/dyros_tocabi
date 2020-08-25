@@ -1,0 +1,15 @@
+<launch>
+  <arg name="debug" default="false"/>
+  <arg name="rviz" default="false"/>
+  <arg name="controller" default="true" />
+  <arg name="gui" default="true"/>
+  <arg name="run_mode" default="simulation"/>
+  <arg name="pub_mode" default="true"/>
+  <arg name="urdfDampingmodel" default="false"/>
+
+  <node name="mujoco_ros" pkg="mujoco_ros" type="mujoco_ros" required="true" respawn="false" output="screen">
+    <param name="license" type="string" value="$(env HOME)/mjkey.txt" />
+    <param name="model_file" type="string" value="$(find tocabi_description)/mujoco_model/dyros_tocabi.xml"/>
+    <param name="pub_mode" value="$(arg pub_mode)"/>
+  </node>
+</launch>

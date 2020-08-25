@@ -1,3 +1,4 @@
+sam19960
 <robot name="dyros_tocabi_description">
   <mujoco>
       <compiler meshdir="../meshes/" balanceinertia="true"/>
@@ -400,7 +401,7 @@
         xyz="-0.05196 0.00005 -0.0219"
         rpy="0 0 0" />
       <mass
-        value="1.26426" />
+        value="1.76426" />
       <inertia
         ixx="0.418697"
         ixy="1.5176E-08"
@@ -855,7 +856,7 @@
         xyz="-0.05196 0.00005 -0.0219"
         rpy="0 0 0" />
       <mass
-        value="1.26426" />
+        value="1.76426" />
       <inertia
         ixx="0.418697"
         ixy="1.5176E-08"
@@ -1153,10 +1154,10 @@
     name="Upperbody_Link">
     <inertial>
       <origin
-        xyz="-0.03294 0 0.16798"
+        xyz="-0.03794 0 0.16798"
         rpy="0 0 0" />
       <mass
-        value="16.93384" />
+        value="18.13384" />
       <inertia
         ixx="1.270791438"
         ixy="0.000113985"
@@ -1479,9 +1480,9 @@
         value="0.4016" />
       <inertia
         ixx="0.000989903"
-        ixy="0.184275853"
+        ixy="0.000028237"
         ixz="-0.000000465"
-        iyy="0.000624253"
+        iyy="0.184275853"
         iyz="0.000000133"
         izz="0.001067575" />
     </inertial>

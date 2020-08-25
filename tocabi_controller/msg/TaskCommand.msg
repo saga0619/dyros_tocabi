@@ -1,7 +1,18 @@
 # CoM/Pelvis Control
 float64 ratio # left foot 0 ----- 1 right foot
 float64 height
-float64 angle
+
+float64 pelv_pitch
+float64 roll
+float64 pitch
+float64 yaw
+
+uint32 solver
+uint32 contactredis
+
+# Contact 
+bool left
+bool right
 
 # Control Duration And Mode
 float64 time
@@ -25,8 +36,10 @@ float64 r_yaw
 # Walking
 uint32 walking_enable
 uint32 pattern
+uint32 pattern2
 uint32 ik_mode
 bool dob
+bool imu
 uint32 first_foot_step
 float32 x
 float32 y
@@ -38,6 +51,7 @@ float32 step_length_y
 
 # TaskGain
 bool customTaskGain
+float32 acc_p
 float32 pos_p
 float32 pos_d
 float32 ang_p

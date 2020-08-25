@@ -26,8 +26,20 @@
 
 #define NSEC_PER_SEC 1000000000
 
-#define CNT_TO_RAD_46 (3.141592 * 2 / 819200) //819200
+#define CNT_TO_RAD_46 (3.141592 * 2 / (8192 * 100)) //819200
+#define CNT_TO_RAD_80 (3.141592 * 2 / (8000 * 100)) //819200
+
+#define EXT_CNT_TO_RAD_46 (3.141592 * 2 / 8192) //819200
+#define EXT_CNT_TO_RAD_80 (3.141592 * 2 / 8192) //819200
+
 #define RAD_TO_CNT_46 (1 / (CNT_TO_RAD_46))
+#define RAD_TO_CNT_80 (1 / (CNT_TO_RAD_80))
+
+#define EXT_RAD_TO_CNT_46 (1 / (EXT_CNT_TO_RAD_46))
+#define EXT_RAD_TO_CNT_80 (1 / (EXT_CNT_TO_RAD_80))
+
+#define ELMO_DOF 33
+
 /*
 #define Kp_Yaw1 150000   //Hip
 #define Kp_Roll1 500000  //Hip
@@ -61,61 +73,43 @@
 
 extern volatile bool shutdown_tocabi_bool;
 
-const double CNT2RAD[MODEL_DOF] =
+const double CNT2RAD[ELMO_DOF] =
     {
         CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
         CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
         CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
-        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
-        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_80, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
+        CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_80, CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46,
         CNT_TO_RAD_46, CNT_TO_RAD_46, CNT_TO_RAD_46};
 
-const double RAD2CNT[MODEL_DOF] =
+const double EXTCNT2RAD[ELMO_DOF] =
+    {
+        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
+        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
+        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
+        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
+        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46,
+        EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46, EXT_CNT_TO_RAD_46};
+
+const double RAD2CNT[ELMO_DOF] =
     {
         RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
         RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
         RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
-        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
-        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_80, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
+        RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_80, RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46,
         RAD_TO_CNT_46, RAD_TO_CNT_46, RAD_TO_CNT_46};
 
-const double CNT2NM[MODEL_DOF] =
-    {             //Elmo 순서
-        0.010526, //head
-        0.010526,
-        0.010526, //wrist
-        0.010526,
-        0.010526,
-        0.010526,
-        0.064516, //shoulder3
-        0.064516, //arm
-        0.064516, //arm
-        0.064516, //shoulder3
-        0.02381,  //Elbow
-        0.02381,  //Forearm
-        0.02381,  //Forearm
-        0.02381,  //Elbow
-        0.064516, //shoulder1
-        0.064516, //shoulder2
-        0.064516, //shoulder2
-        0.064516, //shoulder1
-        0.30303,  //Waist
-        0.30303,
-        0.1724, //rightLeg
-        0.2307,
-        0.2635,
-        0.2890,
-        0.2834,
-        0.0811,
-        0.30303, //upperbody
-        0.1724,  //leftLeg
-        0.2307,
-        0.2635,
-        0.2890,
-        0.2834,
-        0.0811};
+const double EXTRAD2CNT[ELMO_DOF] =
+    {
+        EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
+        EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
+        EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
+        EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
+        EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
+        EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46};
 
-const double NM2CNT[MODEL_DOF] =
+const double NM2CNT[ELMO_DOF] =
     {       //Elmo 순서
         95, //head
         95,
@@ -137,21 +131,35 @@ const double NM2CNT[MODEL_DOF] =
         15.5, //shoulder1
         3.3,  //Waist
         3.3,
-        5.8, //rightLeg
+        3.0, //rightLeg
         4.3,
         3.8,
         3.46,
         4.5,
         12.33,
         3.3, //upperbody
-        5.8, //leftLeg
+        3.0, //leftLeg
         4.3,
         3.8,
         3.46,
         4.5,
         12.33};
 
-const int positionExternalModElmo[MODEL_DOF] =
+const double jointLimitUp[ELMO_DOF] =
+    {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+const double jointLimitLow[ELMO_DOF] =
+    {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+const int positionExternalModElmo[ELMO_DOF] =
     {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
@@ -160,7 +168,7 @@ const int positionExternalModElmo[MODEL_DOF] =
         0,
         3799, 2522, 735, 8132, 2127, 7155};
 
-const double MOTORCONTSTANT[MODEL_DOF] =
+const double MOTORCONTSTANT[ELMO_DOF] =
     {
         0.11495,
         0.1748,
@@ -175,7 +183,7 @@ const double MOTORCONTSTANT[MODEL_DOF] =
         0.14915,
         0.05795};
 
-const double Kp[MODEL_DOF] =
+const double Kp[ELMO_DOF] =
     {
         Kp_Yaw1,
         Kp_Roll1,
@@ -190,7 +198,7 @@ const double Kp[MODEL_DOF] =
         Kp_Pitch3,
         Kp_Roll2};
 
-const double Kv[MODEL_DOF] =
+const double Kv[ELMO_DOF] =
     {
         Kv_Yaw1,
         Kv_Roll1,
@@ -206,7 +214,7 @@ const double Kv[MODEL_DOF] =
         Kv_Roll2};
 
 //Axis correction parameter.
-const double Dr[MODEL_DOF] =
+const double Dr[ELMO_DOF] =
     {1, -1, 1, 1, 1, 1,
      1, 1, 1, -1, -1, 1,
      1, -1, 1, 1, 1, 1,
@@ -214,56 +222,64 @@ const double Dr[MODEL_DOF] =
      1, 1, 1, 1, -1, 1,
      1, -1, 1};
 
+const double EXTDr[ELMO_DOF] =
+    {1, -1, 1, 1, 1, 1,
+     1, 1, 1, -1, -1, 1,
+     1, -1, 1, 1, 1, 1,
+     1, 1, 1, 1, 1, 1,
+     -1, -1, 1, 1, 1, -1,
+     -1, 1, -1};
+
 using namespace std;
 
 namespace EtherCAT_Elmo
 {
-enum MODE_OF_OPERATION
-{
-    ProfilePositionmode = 1,
-    ProfileVelocitymode = 3,
-    ProfileTorquemode = 4,
-    Homingmode = 6,
-    InterpolatedPositionmode = 7,
-    CyclicSynchronousPositionmode = 8,
-    CyclicSynchronousVelocitymode = 9,
-    CyclicSynchronousTorquemode = 10,
-    CyclicSynchronousTorquewithCommutationAngle = 11
-};
+    enum MODE_OF_OPERATION
+    {
+        ProfilePositionmode = 1,
+        ProfileVelocitymode = 3,
+        ProfileTorquemode = 4,
+        Homingmode = 6,
+        InterpolatedPositionmode = 7,
+        CyclicSynchronousPositionmode = 8,
+        CyclicSynchronousVelocitymode = 9,
+        CyclicSynchronousTorquemode = 10,
+        CyclicSynchronousTorquewithCommutationAngle = 11
+    };
 
-struct ElmoGoldDevice
-{
-    struct elmo_gold_tx
+    struct ElmoGoldDevice
     {
-        int32_t targetPosition;
-        int32_t targetVelocity;
-        int16_t targetTorque;
-        uint16_t maxTorque;
-        uint16_t controlWord;
-        int8_t modeOfOperation;
+        struct elmo_gold_tx
+        {
+            int32_t targetPosition;
+            int32_t targetVelocity;
+            int16_t targetTorque;
+            uint16_t maxTorque;
+            uint16_t controlWord;
+            int8_t modeOfOperation;
+        };
+        struct elmo_gold_rx
+        {
+            int32_t positionActualValue;
+            //int32_t positionFollowingErrrorValue;
+            uint32_t hommingSensor;
+            uint16_t statusWord;
+            //int8_t modeOfOperationDisplay;
+            int32_t velocityActualValue;
+            int16_t torqueActualValue;
+            //int16_t torqueDemandValue;
+            int32_t positionExternal;
+        };
     };
-    struct elmo_gold_rx
-    {
-        int32_t positionActualValue;
-        //int32_t positionFollowingErrrorValue;
-        uint32_t hommingSensor;
-        uint16_t statusWord;
-        //int8_t modeOfOperationDisplay;
-        int32_t velocityActualValue;
-        int16_t torqueActualValue;
-        //int16_t torqueDemandValue;
-        int32_t positionExternal;
-    };
-};
 } // namespace EtherCAT_Elmo
 
 namespace ElmoHommingStatus
 {
-enum FZResult
-{
-    SUCCESS = 11,
-    FAILURE = 22
-};
+    enum FZResult
+    {
+        SUCCESS = 11,
+        FAILURE = 22
+    };
 }; // namespace ElmoHommingStatus
 
 struct ElmoHomming
@@ -304,16 +320,20 @@ public:
     void ethercatCheck();
     void imuThread();
     void ftsensorThread();
+    void handftsensorThread();
 
     void ethercatThreadLower();
     void ethercatThreadUpper();
     void ethercatCheckLower();
     void ethercatCheckUpper();
-    
+
     int checkTrajContinuity(int slv_number);
     void checkSafety(int slv_number, double max_vel, double max_dis);
+
+    void checkJointLimit(int slv_number);
     void findZeroPoint(int slv_number);
     void findZeroLeg();
+    void findZeroPointlow(int slv_number);
 
     bool controlWordGenerate(const uint16_t statusWord, uint16_t &controlWord);
 
@@ -343,7 +363,7 @@ public:
         FZ_TORQUEZERO,
     };
 
-    ElmoHomming elmofz[MODEL_DOF];
+    ElmoHomming elmofz[ELMO_DOF];
 
     int expectedWKC;
     boolean needlf;
@@ -351,11 +371,14 @@ public:
     boolean inOP;
     uint8 currentgroup = 0;
 
-    int ElmoMode[MODEL_DOF];
-    bool checkPosSafety[MODEL_DOF];
-    //int ElmoState[MODEL_DOF];
-    //int ElmoState_before[MODEL_DOF];
+    int ElmoMode[ELMO_DOF];
+    bool checkPosSafety[ELMO_DOF];
+
+    double ELMO_NM2CNT[ELMO_DOF];
+    //int ElmoState[ELMO_DOF];
+    //int ElmoState_before[ELMO_DOF];
     fstream file_homming;
+    fstream ft_sensor;
     fstream elmo_zp;
     fstream elmo_zp_log;
     std::string zp_path, zplog_path, pack_path;
@@ -391,22 +414,19 @@ public:
     Eigen::VectorQd positionSafteyHoldElmo;
 
     Eigen::VectorQd rq_;
+    Eigen::VectorQd rq_ext_;
     Eigen::VectorQd rq_dot_;
 
-    Eigen::Vector4d imu_quat;
-    Eigen::Vector3d imu_ang_vel;
-    Eigen::Vector3d imu_lin_acc;
+    int stateElmo[ELMO_DOF];
+    int stateElmo_before[ELMO_DOF];
 
-    int stateElmo[MODEL_DOF];
-    int stateElmo_before[MODEL_DOF];
+    bool hommingElmo[ELMO_DOF];
+    bool hommingElmo_before[ELMO_DOF];
 
-    bool hommingElmo[MODEL_DOF];
-    bool hommingElmo_before[MODEL_DOF];
+    int ElmoSafteyMode[ELMO_DOF];
 
-    int ElmoSafteyMode[MODEL_DOF];
-
-    EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[MODEL_DOF];
-    EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[MODEL_DOF];
+    EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_rx *rxPDO[ELMO_DOF];
+    EtherCAT_Elmo::ElmoGoldDevice::elmo_gold_tx *txPDO[ELMO_DOF];
 
     bool ElmoConnected = false;
     bool ElmoTerminate = false;
@@ -425,6 +445,27 @@ public:
     //int bootseq
     const int firstbootseq[5] = {0, 33, 35, 8, 64};
     const int secondbootseq[4] = {0, 33, 35, 39};
+
+    bool ecat_connection_ok = false;
+
+    bool ecat_number_ok = false;
+    bool ecat_WKC_ok = false;
+    bool commutation_check = true;
+    bool commutation_ok = false;
+    bool commutation_fail = false;
+
+    bool zp_waiting_low_switch = false;
+    bool zp_waiting_upper_switch = false;
+
+    bool zp_init_check = true;
+    bool zp_low_check = false;
+    bool zp_upper_check = false;
+    bool zp_ok = false;
+    bool zp_fail = false;
+
+    bool zp_load_ok = true;
+
+    bool operation_ready = false;
 
 private:
     DataContainer &dc;

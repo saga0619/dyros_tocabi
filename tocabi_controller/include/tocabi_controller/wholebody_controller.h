@@ -47,6 +47,8 @@ public:
   //contact force redistribution by yisoolee method at 2 contact(both foot)
   VectorQd contact_force_redistribution_torque(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta);
 
+  VectorQd contact_force_redistribution_torque_walking(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta, double ratio, int supportFoot);
+
   //set contact force to desired contact force
   VectorQd contact_force_custom(RobotData &Robot, VectorQd command_torque, Eigen::VectorXd contact_force_now, Eigen::VectorXd contact_force_desired);
 
@@ -67,13 +69,19 @@ public:
   */
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
 
+  VectorQd task_control_torque_with_gravity(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+
+  VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int mode);
+
   VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 
   */
-  int task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, Eigen::VectorQd &task_torque);
+  VectorQd task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP2(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  VectorQd task_control_torque_QP3(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  VectorQd task_control_torque_QP2_with_contactforce_feedback(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP_gravity(RobotData &Robot);
   VectorXd check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   /*
@@ -96,6 +104,7 @@ public:
 
   //Utility functions
 
+
   //Get contact force from command torque
   VectorXd get_contact_force(RobotData &Robot, VectorQd command_torque);
 
@@ -103,6 +112,8 @@ public:
   Vector3d GetZMPpos(RobotData &Robot, bool Local = false);
   Vector3d GetZMPpos_fromFT(RobotData &Robot, bool Local = false);
   Vector3d GetZMPpos(RobotData &Robot, VectorXd ContactForce, bool Local = false);
+
+  VectorQd footRotateAssist(RobotData &Robot);
 
   //Eigen::Vector6d Getfstar( );
   Vector3d getfstar(RobotData &Robot, Vector3d kp, Vector3d kd, Vector3d p_desired, Vector3d p_now, Vector3d d_desired, Vector3d d_now);
@@ -114,9 +125,12 @@ public:
   Vector6d getfstar6d(RobotData &Robot, int link_id, Vector3d kpt, Vector3d kdt, Vector3d kpa, Vector3d kda);
   Vector6d getfstar6d(RobotData &Robot, int link_id);
 
+  VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
+
   Vector3d COM_traj_with_zmp(RobotData &Robot);
 
   //zmp controller
+  void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
   VectorQd CP_controller();
   Vector6d zmp_controller(RobotData &Robot, Vector2d ZMP, double height);
@@ -131,7 +145,6 @@ public:
   const int SINGLE_SUPPORT_RIGHT = 2;
   const int TRIPPLE_SUPPORT = 3;
   const int QUAD_SUPPORT = 4;
-
 
   void CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix);
   /*
@@ -212,6 +225,13 @@ private:
   //void contact_set(int contact_number, int link_id[]);
   void ForceRedistributionTwoContactMod2(double eta_cust, double footlength, double footwidth, double staticFrictionCoeff, double ratio_x, double ratio_y, Eigen::Vector3d P1, Eigen::Vector3d P2, Eigen::Vector12d &F12, Eigen::Vector6d &ResultantForce, Eigen::Vector12d &ForceRedistribution, double &eta);
   void ForceRedistributionTwoContactMod(double eta_cust, double footlength, double footwidth, double staticFrictionCoeff, double ratio_x, double ratio_y, Eigen::Vector3d P1, Eigen::Vector3d P2, Eigen::Vector12d &F12, Eigen::Vector6d &ResultantForce, Eigen::Vector12d &ForceRedistribution, double &eta);
+};
+
+class CapturePointPattern
+{
+public:
+  void init(RobotData &Robot, int StepNumber, double foot_x_dis, double stepTime);
+
 };
 
 #endif // WALKING_CONTROLLER_H

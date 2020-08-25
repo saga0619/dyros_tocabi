@@ -6,8 +6,8 @@
     name="Pelvis_Link">
     <inertial>
       <origin
-        xyz="-0.03191 0 0.01985"
-        rpy="0 0 0" />
+        xyz="-0.01591 0 0.01985"
+        rpy="0 0 0"/>
       <mass
         value="12.19525" />
       <inertia
@@ -1153,10 +1153,10 @@
     name="Upperbody_Link">
     <inertial>
       <origin
-        xyz="-0.04294 0 0.14798"
+        xyz="-0.03294 0 0.16798"
         rpy="0 0 0" />
       <mass
-        value="16.43384" />
+        value="16.93384" />
       <inertia
         ixx="1.270791438"
         ixy="0.000113985"
@@ -1592,10 +1592,10 @@
     name="L_Armlink_Link">
     <inertial>
       <origin
-        xyz="0.01896 0.11642 -0.0119"
+        xyz="-0.01896 0.11642 -0.0119"
         rpy="0 0 0" />
       <mass
-        value="0.43517" />
+        value="0.58517" />
       <inertia
         ixx="0.002878609"
         ixy="0.000302586"
@@ -1654,7 +1654,7 @@
         xyz="-0.00136 0.05256 0.01764"
         rpy="0 0 0" />
       <mass
-        value="1.96511" />
+        value="2.06511" />
       <inertia
         ixx="0.055865466"
         ixy="0.000151764"
@@ -1718,10 +1718,10 @@
     name="L_Forearm_Link">
     <inertial>
       <origin
-        xyz="0.01426 0.0767 0.00033"
+        xyz="-0.01426 0.0767 0.00033"
         rpy="0 0 0" />
       <mass
-        value="0.30234" />
+        value="0.35234" />
       <inertia
         ixx="0.001053636"
         ixy="0.000084568"
@@ -1844,7 +1844,7 @@
     name="L_Wrist2_Link">
     <inertial>
       <origin
-        xyz="0.00063 0.0536 0.00178"
+        xyz="0.00063 0.0636 0.00178"
         rpy="0 0 0" />
       <mass
         value="0.001" />
@@ -2081,10 +2081,10 @@
     name="R_Armlink_Link">
     <inertial>
       <origin
-        xyz="0.01896 -0.11642 -0.0119"
+        xyz="-0.01896 -0.11642 -0.0119"
         rpy="0 0 0" />
       <mass
-        value="0.43517" />
+        value="0.58517" />
       <inertia
         ixx="0.002878609"
         ixy="-0.000302586"
@@ -2143,7 +2143,7 @@
         xyz="-0.00136 -0.05256 0.01764"
         rpy="0 0 0" />
       <mass
-        value="1.96511" />
+        value="2.06511" />
       <inertia
         ixx="0.055865466"
         ixy="-0.000151764"
@@ -2209,10 +2209,10 @@
     name="R_Forearm_Link">
     <inertial>
       <origin
-        xyz="0.01426 -0.0767 0.00033"
+        xyz="-0.01426 -0.0767 0.00033"
         rpy="0 0 0" />
       <mass
-        value="0.30234" />
+        value="0.35234" />
       <inertia
         ixx="0.001053636"
         ixy="-0.000084568"
@@ -2335,7 +2335,7 @@
     name="R_Wrist2_Link">
     <inertial>
       <origin
-        xyz="0.00063 -0.0536 0.00178"
+        xyz="0.00063 -0.0636 0.00178"
         rpy="0 0 0" />
       <mass
         value="0.001" />

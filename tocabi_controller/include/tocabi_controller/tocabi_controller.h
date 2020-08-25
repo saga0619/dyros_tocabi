@@ -20,19 +20,24 @@ public:
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
+  void trajectoryplannar();
   void tuiThread();
+  void testThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
+  void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
+  void TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
-  void pubfromcontroller();
+  void gettaskcommand(tocabi_controller::TaskCommand &msg);
+  void customgainhandle();
+  void CPpatternGen();
 
   ros::Subscriber task_command;
-  std::ofstream data_out;
+  ros::Subscriber task_command_que;
+  ros::Subscriber taskgain_sub;
 
-  ros::Publisher point_pub;
-  ros::Publisher point_pub2;
-  geometry_msgs::PolygonStamped pointpub_msg;
-  geometry_msgs::PolygonStamped pointpub2_msg;
+  tocabi_controller::TaskCommandQue tque_msg;
+
 
 private:
   void getState();
@@ -43,6 +48,8 @@ private:
 
   bool connected;
 
+  std::vector<TaskCommand> tc_que_;
+
   //sim variables
   double time;
   double sim_time;
@@ -52,7 +59,11 @@ private:
   bool safetymode;
 
   bool task_switch = false;
+  bool task_que_switch = false;
+  bool task_que_start = false;
   bool tc_command = false;
+
+  int task_que_left = 0;
 
   int dym_hz, stm_hz;
   /*
@@ -64,6 +75,7 @@ private:
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd torque_;
+  Eigen::VectorQd torque_grav;
 
   //Command Var
   Eigen::VectorQd torque_desired;
@@ -83,7 +95,6 @@ private:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv_;
   Com com_;
-  int cr_mode;
 
   //Walking Information
   bool walkingCallbackOn;

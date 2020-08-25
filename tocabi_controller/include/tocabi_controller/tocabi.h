@@ -103,8 +103,9 @@ const int Left_Foot = 9;
 const int Right_Foot = 15;
 const int Left_Hand = 23;
 const int Right_Hand = 31;
-const int COM_id = 32;
-const int Head = 34;
+const int Head = 33;
+const int COM_id = 34;
+
 const int LEFT = 0;
 const int RIGHT = 1;
 

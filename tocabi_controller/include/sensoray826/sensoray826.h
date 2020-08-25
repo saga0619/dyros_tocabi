@@ -20,12 +20,6 @@ const SLOTATTR slotAttrs[16] = {
     {8, DEFAULT}, {9, DEFAULT}, {10, DEFAULT}, {11, DEFAULT},
     {12, DEFAULT}, {13, DEFAULT},
 };
-/*
-const SLOTATTR slotAttrs[16] = {
-    {0, DEFAULT}, {1, DEFAULT}, {2, DEFAULT}, {3, DEFAULT},
-    {4, DEFAULT}, {5, DEFAULT}, {6, DEFAULT}, {7, DEFAULT},
-    {8, DEFAULT}, {9, DEFAULT}, {10, DEFAULT}, {11, DEFAULT},
-};*/
 
 class sensoray826_dev
 {
@@ -44,7 +38,7 @@ class sensoray826_dev
     uint _timeStamp[ADC_MAX_SLOT];
     int _adBuf[ADC_MAX_SLOT];
 
-    enum AD_INDEX {LEFT_FOOT = 0, RIGHT_FOOT = 6};
+    enum AD_INDEX {LEFT_FOOT = 6, RIGHT_FOOT = 0};
 
 
 public:
@@ -65,12 +59,12 @@ public:
     };
     const double calibrationMatrixRFoot[6][6] = 
     {
-    {-4.14276,   0.47169,  18.14996, -192.32406, -12.17854,  188.45251},
-    {-15.82426,  215.16146,   5.86168, -110.41180,  10.19489, -109.28200},
-    {234.13572,  12.22003,  236.48927,   9.62643,  237.56447,   6.46699},
-    {-0.31526,   2.96688,  -7.74985,  -1.95993,   7.82324,  -1.21225},
-    {9.00393,   0.58525,  -4.66110,   2.40109,  -4.41446,  -2.77714},
-    {0.45306,  -4.90875,   0.37646,  -5.12388,   0.37545,  -4.83415}
+    {-3.92743,   0.34092,  17.49126, -192.70354, -13.73590,  190.19215},
+    {-8.92095,  217.00800,   7.88475, -112.09013,  11.38814, -109.84029},
+    {229.58964,  2.55390,  229.83769,   6.32248,  241.92547,   8.43114},
+    {-0.17926,   3.05960,  -7.60972,  -1.81525,   7.80692,  -1.29264},
+    {9.00835,   0.14417,  -4.77982,   2.54902,  -4.23245,  -2.82298},
+    {0.20565,  -4.89759,   0.36305,  -5.00519,   0.46035,  -4.94725}
     };
 
     double leftFootAxisData[6];
@@ -125,18 +119,18 @@ public:
 
         switch (errcode)
         {
-        case S826_ERR_OK:           break;
-        case S826_ERR_BOARD:        ROS_ERROR("Illegal board number"); break;
-        case S826_ERR_VALUE:        ROS_ERROR("Illegal argument"); break;
-        case S826_ERR_NOTREADY:     ROS_ERROR("Device not ready or timeout"); break;
-        case S826_ERR_CANCELLED:    ROS_ERROR("Wait cancelled"); break;
-        case S826_ERR_DRIVER:       ROS_ERROR("Driver call failed"); break;
-        case S826_ERR_MISSEDTRIG:   ROS_ERROR("Missed adc trigger"); break;
-        case S826_ERR_DUPADDR:      ROS_ERROR("Two boards have same number"); break;S826_SafeWrenWrite(board, 0x02);
-        case S826_ERR_BOARDCLOSED:  ROS_ERROR("Board not open"); break;
-        case S826_ERR_CREATEMUTEX:  ROS_ERROR("Can't create mutex"); break;
-        case S826_ERR_MEMORYMAP:    ROS_ERROR("Can't map board"); break;
-        default:                    ROS_ERROR("Unknown error"); break;
+            case S826_ERR_OK:           break;
+            case S826_ERR_BOARD:        ROS_ERROR("Illegal board number"); break;
+            case S826_ERR_VALUE:        ROS_ERROR("Illegal argument"); break;
+            case S826_ERR_NOTREADY:     ROS_ERROR("Device not ready or timeout"); break;
+            case S826_ERR_CANCELLED:    ROS_ERROR("Wait cancelled"); break;
+            case S826_ERR_DRIVER:       ROS_ERROR("Driver call failed"); break;
+            case S826_ERR_MISSEDTRIG:   ROS_ERROR("Missed adc trigger"); break;
+            case S826_ERR_DUPADDR:      ROS_ERROR("Two boards have same number"); break;S826_SafeWrenWrite(board, 0x02);
+            case S826_ERR_BOARDCLOSED:  ROS_ERROR("Board not open"); break;
+            case S826_ERR_CREATEMUTEX:  ROS_ERROR("Can't create mutex"); break;
+            case S826_ERR_MEMORYMAP:    ROS_ERROR("Can't map board"); break;
+            default:                    ROS_ERROR("Unknown error"); break;
         }
     }
 
@@ -199,6 +193,8 @@ public:
         {
             _calibLFTData[i] = 0.0;
             _calibRFTData[i] = 0.0;
+            leftFootAxisData_prev[i] = 0.0;
+            rightFootAxisData_prev[i] = 0.0;
         }
         for(int i=0; i<6; i++)
         {
@@ -233,28 +229,51 @@ public:
                 leftFootBias[i] = _calibLFTData[i];
                 rightFootBias[i] = _calibRFTData[i];
             }
-            leftFootBias[2] = leftFootBias[2]+22.81806;
-            rightFootBias[2] = rightFootBias[2]+22.81806; 
+
+            leftFootBias[2] = leftFootBias[2];
+            rightFootBias[2] = rightFootBias[2]; 
         }
     }
 
-    void computeFTData()
+    void computeFTData(bool ft_calib_finish)
     {
-        for(int i=0; i<6; i++)
+        if(ft_calib_finish == false)
         {
-            double _lf = 0.0;
-            double _rf = 0.0;
-            for(int j=0; j<6; j++)
+            for(int i=0; i<6; i++)
             {
-                _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
-                _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+                double _lf = 0.0;
+                double _rf = 0.0;
+                for(int j=0; j<6; j++)
+                {
+                    _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
+                    _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+                }
+
+                leftFootAxisData[i] = _lf;
+                rightFootAxisData[i] = _rf;
             }
+        }
+        else
+        {
+            for(int i=0; i<6; i++)
+            {
+                double _lf = 0.0;
+                double _rf = 0.0;
+                for(int j=0; j<6; j++)
+                {
+                    _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
+                    _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+                }
 
-            _lf -= leftFootBias[i];
-            _rf -= rightFootBias[i];
+                _lf -= leftFootBias[i];
+                _rf -= rightFootBias[i];
 
-            leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
-            rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
+                leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
+                rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
+            
+                leftFootAxisData_prev[i] = leftFootAxisData[i];
+                rightFootAxisData_prev[i] = rightFootAxisData[i];
+            }
         }
     }
 };
