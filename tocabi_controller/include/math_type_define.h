@@ -68,6 +68,9 @@ namespace Eigen
   typedef Matrix<rScalar, 6, 12> Matrix6x12d;
   typedef Matrix<rScalar, 6, 8> Matrix6x8d;
   typedef Matrix<rScalar, 6, 3> Matrix6x3d;
+  typedef Matrix<rScalar, 3, 12> Matrix3x12d;
+  typedef Matrix<rScalar, 3, 8> Matrix3x8d;
+  typedef Matrix<rScalar, 3, 3> Matrix3x3d;
 
   typedef Matrix<rScalar, 6, MODEL_DOF> Matrix6Qd;
   typedef Matrix<rScalar, 3, MODEL_DOF> Matrix3Qd;

@@ -54,9 +54,23 @@ void Walking_controller::walkingCompute(RobotData &Robot)
 
         momentumControl(Robot);
 
+        if(walking_tick == 0)
+        {
+            q_w(0) = desired_init_leg_q(12);
+            q_w(1) = desired_init_leg_q(13);
+            q_w(2) = desired_init_leg_q(14);
+
+            q_w(3) = desired_init_leg_q(16);
+            q_w(4) = desired_init_leg_q(24);
+        }
+
+
         q_w(0) = q_w(0) + q_dm(0)/Hz_;
         q_w(1) = q_w(1) + q_dm(1)/Hz_;
         q_w(2) = q_w(2) + q_dm(2)/Hz_;
+
+        q_w(3) = q_w(3) + q_dm(3)/Hz_;
+        q_w(4) = q_w(4) + q_dm(4)/Hz_;
 
 
         if(dob == 1)
@@ -241,7 +255,7 @@ void Walking_controller::getRobotState(RobotData &Robot)
         for (int i = 0; i < 3; i++)
         {
             SUF_float_currentV(i) = SUF_float_current.translation()(i);
-            SWF_float_currentV(i) = SWF_float_current.translation()(i);
+            SWF_float_currentV(i ) = SWF_float_current.translation()(i);
         }
         for (int i = 0; i < 3; i++)
         {
@@ -271,11 +285,22 @@ void Walking_controller::getRobotState(RobotData &Robot)
     LF_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, LF_float_current);
     COM_support_current = DyrosMath::multiplyIsometry3d(PELV_support_current, COM_float_current);
 
-    Ag_leg = Robot.Ag_.block(0, 0, 6, 12);
-    Ag_armR = Robot.Ag_.block(0, 25, 6, 8);
-    Ag_armL = Robot.Ag_.block(0, 15, 6, 8);
-    Ag_waist = Robot.Ag_.block(0, 12, 6, 3);
+    Ag_leg = Robot.Ag_.block(3, 0, 3, 12);
+    Ag_armR = Robot.Ag_.block(3, 25, 3, 8);
+    Ag_armL = Robot.Ag_.block(3, 15, 3, 8);
+    Ag_waist = Robot.Ag_.block(3, 12, 3, 3);
+/*    std::cout << "Ag_leg" <<std::endl;
+    std::cout <<Ag_leg << std::endl;
+*//*
+std::cout << "Ag_armR" <<std::endl;
+    std::cout <<Ag_armR << std::endl;
 
+    std::cout << "Ag_armL" <<std::endl;
+    std::cout <<Ag_armL << std::endl;*/
+/*
+    std::cout << "Ag_waist" <<std::endl;
+    std::cout <<Ag_waist << std::endl;
+*/
     calcRobotState(Robot);
 }
 
@@ -451,6 +476,7 @@ void Walking_controller::setRobotStateInitialize()
     com_desired.setZero();
     zmp_desired.setZero();
     com_support_temp.setZero();
+    q_w.resize(19);
     q_w.setZero();
 
     RF_float_current(3, 3) = 1.0;
@@ -1002,16 +1028,10 @@ void Walking_controller::comJacobianIK(RobotData &Robot)
 
 void Walking_controller::momentumControl(RobotData &Robot)
 {
-/*
-    Ag_leg = Ag.block(0, 0, 6, 12);
-    Ag_armR = Ag.block(0, 25, 6, 8);
-    Ag_armL = Ag.block(0, 15, 6, 8);
-    Ag_waist = Ag.block(0, 12, 6, 3);*/
-
     int variable_size, constraint_size;
 
-    variable_size = 3;
-    constraint_size = 2;
+    variable_size = 5;
+    constraint_size = 5;
 
     QP_m.InitializeProblemSize(variable_size, constraint_size);
 
@@ -1026,43 +1046,52 @@ void Walking_controller::momentumControl(RobotData &Robot)
     lbA.setZero(constraint_size);
     ubA.setZero(constraint_size);
 
-    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3);
+    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3) + Ag_armL * Robot.q_dot_.segment(15,8) + Ag_armR * Robot.q_dot_.segment(25,8);
 
-    Ag_waist.row(0).setZero();
-    Ag_waist.row(1).setZero();
-    Ag_waist.row(2).setZero();
-    Ag_waist.row(3).setZero();
-    Ag_waist.row(4).setZero();
-  //  Ag_waist.row(5).setZero();
-  
+    Eigen::MatrixXd Ag_temp;
+    Ag_temp.resize(3, 5);
+    Ag_temp.block<3,3>(0,0) = Ag_waist;
+    Ag_temp.block<3,1>(0,3) = Ag_armL.block<3,1>(0,1);
+    Ag_temp.block<3,1>(0,4) = Ag_armR.block<3,1>(0,1);
+    
+    H = Ag_temp.transpose()*Ag_temp;
+    g = 2*Ag_temp.transpose()*H_leg;
 
-    Ag_waist.col(1).setZero();
-    Ag_waist.col(2).setZero();
-  //  Ag_waist.col(3).setZero();
-  //  Ag_waist.col(4).setZero();
-   // Ag_waist.col(5).setZero();
+    A.setIdentity();
 
-    H = Ag_waist.transpose()*Ag_waist;
-    g = 2*H_leg.transpose()*Ag_waist;
+    for(int i=0; i<constraint_size; i++)
+    {
+        lbA(i) = -2.0;
+        ubA(i) = 2.0;
+    }
 
-    A.setZero();
-    lbA.setIdentity();
-    lbA = lbA * (-10.0);
-    ubA.setIdentity();
-    ubA = ubA * (10.0);
+    for(int i=0; i<variable_size; i++)
+    {
+        lb(i) = -2.0;
+        ub(i) = 2.0;
+    }
 
-    lb.setIdentity();
-    lb = lb * (-10.0);
-    ub.setIdentity();
-    ub = ub * (10.0);
-
-    QP_m.EnableEqualityCondition(0.0001);
+std::cout << lb << std::endl;
+    QP_m.EnableEqualityCondition(0.001);
     QP_m.UpdateMinProblem(H, g);
     QP_m.UpdateSubjectToAx(A, lbA, ubA);
     QP_m.UpdateSubjectToX(lb, ub);
 
     QP_m.SolveQPoases(100, q_dm);
 
+    Eigen::Vector5d temp;
+
+    temp = -H.inverse()*g;
+
+    std::cout << "H" << std::endl;
+    std::cout << H <<std::endl;
+
+
+    std::cout << "g" << std::endl;
+    std::cout << g <<std::endl;
+
+    std::cout << "q" << std::endl;
+    std::cout << q_dm <<std::endl;
 }
 
 void Walking_controller::setWalkingParameter(RobotData &Robot)

@@ -155,15 +155,13 @@ public:
     
     
     //MomentumControl
-    Eigen::Matrix6Qd XgIJ;
-    Eigen::Vector3d q_w;
-    Eigen::Vector6d MT_cen;
-    Eigen::Vector6d H_leg;
+    Eigen::VectorXd q_w;
+    Eigen::Vector3d H_leg;
     Eigen::VectorXd q_dm;
-    Eigen::Matrix6x12d Ag_leg;
-    Eigen::Matrix6x8d Ag_armR;
-    Eigen::Matrix6x8d Ag_armL;
-    Eigen::Matrix6x3d Ag_waist;  
+    Eigen::Matrix3x12d Ag_leg;
+    Eigen::Matrix3x8d Ag_armR;
+    Eigen::Matrix3x8d Ag_armL;
+    Eigen::Matrix3x3d Ag_waist;  
 
     //User WalkingParameter
     int desired_foot_step_num;
