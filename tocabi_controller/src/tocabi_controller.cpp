@@ -1752,6 +1752,8 @@ void TocabiController::getState()
     tocabi_.A_ = dc.A_;
     tocabi_.A_matrix = dc.A_;
     tocabi_.A_matrix_inverse = dc.A_inv;
+    tocabi_.Motor_inertia = dc.Motor_inertia;
+    tocabi_.Motor_inertia_inverse = dc.Motor_inertia_inverse;
     tocabi_.com_ = dc.com_;
 
     mtx_dc.unlock();
