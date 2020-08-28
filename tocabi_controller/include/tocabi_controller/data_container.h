@@ -96,6 +96,8 @@ public:
 
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
+  Eigen::MatrixVVd Motor_inertia;
+  Eigen::MatrixVVd Motor_inertia_inverse;
 
   Com com_;
 

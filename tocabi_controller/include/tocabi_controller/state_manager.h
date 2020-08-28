@@ -112,6 +112,8 @@ public:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
   Eigen::MatrixXd A_temp_;
+  Eigen::MatrixVVd Motor_inertia_;
+  Eigen::MatrixVVd Motor_inertia_inv;
 
   Eigen::Vector3d gravity_;
 
