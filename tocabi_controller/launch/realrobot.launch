@@ -28,4 +28,7 @@
   <group if="$(arg gui)">
     <node name="tocabi_gui" pkg="tocabi_gui" type="tocabi_gui"/>
   </group>
+
+  <node name="tocabi_pinocchio" pkg ="tocabi_pinocchio" type="tocabi_pinocchio.py" output="screen">
+  </node>
 </launch>

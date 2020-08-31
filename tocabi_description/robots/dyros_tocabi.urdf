@@ -1,4 +1,3 @@
-sam19960
 <robot name="dyros_tocabi_description">
   <mujoco>
       <compiler meshdir="../meshes/" balanceinertia="true"/>

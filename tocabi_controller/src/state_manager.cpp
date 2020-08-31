@@ -76,11 +76,14 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         urdf_path = desc_package_path + "/dyros_tocabi.urdf";
     }
 
-    ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", urdf_path.c_str());
+std::cout <<"urdf "<< desc_package_path << std::endl;
+    ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", desc_package_path.c_str());
 
+std::cout <<"urdf "<< desc_package_path << std::endl;
     RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_, true, verbose);
     RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_2, true, verbose);
 
+std::cout <<"urdf "<< desc_package_path << std::endl;
     ROS_INFO_COND(verbose, "Successfully loaded.");
     ROS_INFO_COND(verbose, "MODEL DOF COUNT = %d and MODEL Q SIZE = %d ", model_.dof_count, model_.q_size);
 
