@@ -10,21 +10,18 @@ void Link::initialize(RigidBodyDynamics::Model &model_, int id_, std::string nam
     Rotm.setZero();
     inertia.setZero();
     contact_point.setZero();
-
     model = &model_;
-
-    Jac.setZero(6, MODEL_DOF + 6);
-    Jac_COM.setZero(6, MODEL_DOF + 6);
-    Jac_COM_p.setZero(3, MODEL_DOF + 6);
-    Jac_COM_r.setZero(3, MODEL_DOF + 6);
-    Jac_Contact.setZero(6, MODEL_DOF + 6);
-    Jac_point.setZero(6, MODEL_DOF + 6);
-
-    j_temp.setZero(6, MODEL_DOF + 6);
-    j_temp2.setZero(6, MODEL_DOF + 6);
+    inertia = model->mBodies[id_].mInertia;
+    Jac.setZero();
+    Jac_COM.setZero();
+    Jac_COM_p.setZero();
+    Jac_COM_r.setZero();
+    Jac_Contact.setZero();
+    Jac_point.setZero();
+    j_temp.setZero(6, MODEL_DOF_VIRTUAL);
 }
 
-void Link::pos_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_)
+void Link::pos_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_)
 {
     mtx_rbdl.lock();
     xpos = RigidBodyDynamics::CalcBodyToBaseCoordinates(model_, q_virtual_, id, Eigen::Vector3d::Zero(), false);
@@ -41,28 +38,25 @@ bool Link::Check_name(RigidBodyDynamics::Model &model_)
     return (model_.GetBodyName(id) == name);
 }
 
-void Link::COM_Jac_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_)
+void Link::COM_Jac_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_)
 {
-    Eigen::MatrixXd j_p_(3, MODEL_DOF + 6), j_r_(3, MODEL_DOF + 6);
-    Eigen::MatrixXd fj_(6, MODEL_DOF + 6);
-
-    fj_.setZero();
+    j_temp.setZero();
 
     mtx_rbdl.lock();
-    RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, model_.mBodies[id].mCenterOfMass, fj_, false);
+    RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, model_.mBodies[id].mCenterOfMass, j_temp, false);
 
     mtx_rbdl.unlock();
 
-    Jac_COM_p = fj_.block(3, 0, 3, MODEL_DOF_VIRTUAL); //*E_T_;
-    Jac_COM_r = fj_.block(0, 0, 3, MODEL_DOF_VIRTUAL);
+    Jac_COM_p = j_temp.block(3, 0, 3, MODEL_DOF_VIRTUAL); //*E_T_;
+    Jac_COM_r = j_temp.block(0, 0, 3, MODEL_DOF_VIRTUAL);
 
     Jac_COM.block(0, 0, 3, MODEL_DOF_VIRTUAL) = Jac_COM_p;
     Jac_COM.block(3, 0, 3, MODEL_DOF_VIRTUAL) = Jac_COM_r;
 }
 
-void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position)
+void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position)
 {
-    j_temp.setZero(6, MODEL_DOF_VIRTUAL);
+    j_temp.setZero();
 
     mtx_rbdl.lock();
     RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, Jacobian_position, j_temp, false);
@@ -74,7 +68,7 @@ void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_v
 
 void Link::Set_Contact(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position)
 {
-    j_temp.setZero(6, MODEL_DOF_VIRTUAL);
+    j_temp.setZero();
 
     mtx_rbdl.lock();
     RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, Contact_position, j_temp, false);
@@ -101,7 +95,7 @@ void Link::Set_Sensor_Position(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &S
 
 void Link::Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position)
 {
-    j_temp.setZero(6, MODEL_DOF_VIRTUAL);
+    j_temp.setZero();
     mtx_rbdl.lock();
     RigidBodyDynamics::CalcPointJacobian6D(*model, q_virtual_, id, Contact_position, j_temp, false);
     xpos_contact = RigidBodyDynamics::CalcBodyToBaseCoordinates(*model, q_virtual_, id, Contact_position, false);
@@ -117,7 +111,38 @@ void Link::Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_p
     // - link_[0].xpos);
 }
 
-void Link::vw_Update(Eigen::VectorVQd &q_dot_virtual)
+void Link::Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &Contact_position)
+{
+    j_temp.setZero();
+    mtx_rbdl.lock();
+    RigidBodyDynamics::CalcPointJacobian6D(*model, q_virtual_, id, Contact_position, j_temp, false);
+    xpos_contact = RigidBodyDynamics::CalcBodyToBaseCoordinates(*model, q_virtual_, id, Contact_position, false);
+
+    mtx_rbdl.unlock();
+    // Jac_Contact.block<3,MODEL_DOF+6>(0,0)=fj_.block<3,MODEL_DOF+6>(3,0)*E_T_;
+    // Jac_Contact.block<3,MODEL_DOF+6>(3,0)=fj_.block<3,MODEL_DOF+6>(0,0)*E_T_;
+    Jac_Contact.block<3, MODEL_DOF + 6>(0, 0) = j_temp.block<3, MODEL_DOF + 6>(3, 0);
+    Jac_Contact.block<3, MODEL_DOF + 6>(3, 0) = j_temp.block<3, MODEL_DOF + 6>(0, 0);
+
+    v_contact = Jac_Contact.block(0, 0, 3, MODEL_DOF_VIRTUAL) * q_dot_virtual;
+
+    w_contact = Jac_Contact.block(3, 0, 3, MODEL_DOF_VIRTUAL) * q_dot_virtual;
+
+    // Jac_Contact.block<3,3>(0,3)= -
+    // DyrosMath::skm(RigidBodyDynamics::CalcBodyToBaseCoordinates(model_,q_virtual_,id,Contact_position,false)
+    // - link_[0].xpos);
+}
+
+void Link::Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D)
+{
+    mtx_rbdl.lock();
+    global_pos = RigidBodyDynamics::CalcBodyToBaseCoordinates(*model, q_virtual_, id, local_pos, false);
+    global_velocity6D = RigidBodyDynamics::CalcPointVelocity6D(*model, q_virtual_, q_dot_virtual, id, local_pos, false);
+
+    mtx_rbdl.unlock();
+}
+
+void Link::vw_Update(const Eigen::VectorVQd &q_dot_virtual)
 {
     Eigen::Vector6d vw;
     vw = Jac * q_dot_virtual;
@@ -137,7 +162,7 @@ void Link::Set_Trajectory_from_quintic(double current_time, double start_time, d
 {
     for (int j = 0; j < 3; j++)
     {
-        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), 0, 0, x_desired(j), 0, 0);
+        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), v_init(j), 0, x_desired(j), 0, 0);
         x_traj(j) = quintic(0);
         v_traj(j) = quintic(1);
         a_traj(j) = quintic(2);
@@ -151,7 +176,7 @@ void Link::Set_Trajectory_from_quintic(double current_time, double start_time, d
 {
     for (int j = 0; j < 3; j++)
     {
-        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), 0, 0, pos_desired(j), 0, 0);
+        Eigen::Vector3d quintic = DyrosMath::QuinticSpline(current_time, start_time, end_time, x_init(j), v_init(j), 0, pos_desired(j), 0, 0);
         x_traj(j) = quintic(0);
         v_traj(j) = quintic(1);
         a_traj(j) = quintic(2);
@@ -278,7 +303,17 @@ void Link::Set_Trajectory_rotation(double current_time, double start_time, doubl
 void Link::Set_initpos()
 {
     x_init = xpos;
+    v_init = v;
     rot_init = Rotm;
+    w_init = w;
+}
+
+void Link::Set_initTask()
+{
+    x_init = x_traj;
+    v_init = v_traj;
+    rot_init = r_traj;
+    w_init = w_traj;
 }
 
 std::ostream &operator<<(std::ostream &os, const Link &lk)

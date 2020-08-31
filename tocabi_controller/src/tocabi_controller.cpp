@@ -20,125 +20,8 @@ TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, D
     initialize();
     task_command = dc.nh.subscribe("/tocabi/taskcommand", 100, &TocabiController::TaskCommandCallback, this);
     task_command_que = dc.nh.subscribe("/tocabi/taskquecommand", 100, &TocabiController::TaskQueCommandCallback, this);
-    point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/cdata_pub", 1);
-    pointpub_msg.polygon.points.resize(13);
-    point_pub2 = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point_pub2", 1);
-    //pointpub_msg.polygon.points.reserve(20);
-}
-
-void TocabiController::pubfromcontroller()
-{
-    /*
-    * Point pub info : 
-    * 0 : com position
-    * 1 : com velocity
-    * 2 : com acceleration
-    * 3 : com angular momentum
-    * 4 : com position desired
-    * 5 : com velocity desired
-    * 6 : com acceleration desired
-    * 7 : fstar
-    */
-
-    pointpub_msg.header.stamp = ros::Time::now();
-
-    geometry_msgs::Point32 point;
-    /*
-    point.x = dc.tocabi_.com_.pos(0);
-    point.y = dc.tocabi_.com_.pos(1);
-    point.z = dc.tocabi_.com_.pos(2);
-    pointpub_msg.polygon.points[0] = point;
-
-    point.x = dc.tocabi_.com_.vel(0);
-    point.y = dc.tocabi_.com_.vel(1);
-    point.z = dc.tocabi_.com_.vel(2);
-    pointpub_msg.polygon.points[1] = point;
-*/
-    point.x = dc.tocabi_.com_.accel(0);
-    point.y = dc.tocabi_.com_.accel(1);
-    point.z = dc.tocabi_.com_.accel(2);
-    pointpub_msg.polygon.points[0] = point;
-    //pointpub_msg.polygon.points.push_back(point);
-
-    point.x = dc.tocabi_.link_[COM_id].a_traj(0);
-    point.y = dc.tocabi_.link_[COM_id].a_traj(1);
-    point.z = dc.tocabi_.link_[COM_id].a_traj(2);
-    pointpub_msg.polygon.points[1] = point;
-    /*
-
-    point.x = dc.tocabi_.com_.angular_momentum(0);
-    point.y = dc.tocabi_.com_.angular_momentum(1);
-    point.z = dc.tocabi_.com_.angular_momentum(2);
-    //pointpub_msg.polygon.points.push_back(point);
-
-    point.x = dc.tocabi_.link_[COM_id].x_traj(0);
-    point.y = dc.tocabi_.link_[COM_id].x_traj(1);
-    point.z = dc.tocabi_.link_[COM_id].x_traj(2);
-    //pointpub_msg.polygon.points.push_back(point);
-
-    point.x = dc.tocabi_.link_[COM_id].v_traj(0);
-    point.y = dc.tocabi_.link_[COM_id].v_traj(1);
-    point.z = dc.tocabi_.link_[COM_id].v_traj(2);
-    //pointpub_msg.polygon.points.push_back(point);
-
-    //pointpub_msg.polygon.points.push_back(point);
-
-    point.x = dc.tocabi_.fstar(0);
-    point.y = dc.tocabi_.fstar(1);
-    point.z = dc.tocabi_.fstar(2);
-    //pointpub_msg.polygon.points.push_back(point);
-
-    point.x = dc.tocabi_.ZMP(0); //from task torque -> contact force -> zmp
-    point.y = dc.tocabi_.ZMP(1);
-    point.z = dc.tocabi_.ZMP(2);
-    pointpub_msg.polygon.points[2] = point;
-
-    point.x = dc.tocabi_.ZMP_local(0); //from acceleration trajecoty -> tasktorque -> contactforce -> zmp
-    point.y = dc.tocabi_.ZMP_local(1);
-    point.z = dc.tocabi_.ZMP_local(2);
-    pointpub_msg.polygon.points[3] = point;
-
-    point.x = dc.tocabi_.ZMP_eqn_calc(0); //from acceleration trajectory with zmp equation : xddot = w^2(x-p),  zmp = x - xddot/w^2
-    point.y = dc.tocabi_.ZMP_eqn_calc(1);
-    point.z = dc.tocabi_.ZMP_eqn_calc(2);
-    pointpub_msg.polygon.points[4] = point;
-
-    point.x = dc.tocabi_.ZMP_desired(0); //from acceleration trajectory with zmp equation : xddot = w^2(x-p),  zmp = x - xddot/w^2
-    point.y = dc.tocabi_.ZMP_desired(1);
-    point.z = dc.tocabi_.ZMP_desired(2);
-    pointpub_msg.polygon.points[5] = point;
-
-    point.x = dc.tocabi_.ZMP_ft(0); //calc from ft sensor
-    point.y = dc.tocabi_.ZMP_ft(1);
-    point.z = dc.tocabi_.ZMP_ft(2);
-    pointpub_msg.polygon.points[6] = point;
-
-    point.x = dc.tocabi_.LH_FT(0);
-    point.y = dc.tocabi_.LH_FT(1);
-    point.z = dc.tocabi_.LH_FT(2);
-    pointpub_msg.polygon.points[7] = point;
-
-    if (dc.tocabi_.ContactForce.size() == 18)
-    {
-        point.x = dc.tocabi_.ContactForce(12 + 0);
-        point.y = dc.tocabi_.ContactForce(12 + 1);
-        point.z = dc.tocabi_.ContactForce(12 + 2);
-    }
-    else
-    {
-        point.x = 0.0;
-        point.y = 0.0;
-        point.z = 0.0;
-    }
-
-    pointpub_msg.polygon.points[8] = point;
-
-    point.x = dc.tocabi_.link_[Left_Hand].xpos_contact(0);
-    point.y = dc.tocabi_.link_[Left_Hand].xpos_contact(1);
-    point.z = dc.tocabi_.link_[Left_Hand].xpos_contact(2);
-    pointpub_msg.polygon.points[9] = point;*/
-
-    point_pub.publish(pointpub_msg);
+    taskgain_sub = dc.nh.subscribe("/tocabi/taskgaincommand", 100, &TocabiController::TaskGainCallback, this);
+    vel_command_sub = dc.nh.subscribe("tocabi/velcommand", 100, &TocabiController::VelocityCommandCallback, this);
 }
 
 void TocabiController::TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg)
@@ -162,9 +45,189 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
     gettaskcommand(tc_temp);
 }
 
+void TocabiController::VelocityCommandCallback(const tocabi_controller::VelocityCommandConstPtr &msg)
+{
+    vc.link_ = msg->task_link;
+    for (int i = 0; i < 6; i++)
+    {
+        vc.des_vel[i] = msg->des_vel[i];
+    }
+
+    vc.used_ = false;
+}
+
+void TocabiController::TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg)
+{
+    int link_id = 99;
+    int link_id2 = 99;
+    if (msg->mode == 0)
+    {
+        //Set every Gain to Zero
+        double kp = 400;
+        double kd = 40;
+        double akp = 400;
+        double akd = 40;
+
+        if (dc.mode == "realrobot")
+        {
+            kp = 60;
+            kd = 4;
+            akp = 80;
+            akd = 5;
+        }
+
+        link_id = COM_id;
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = kp;
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = kd;
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = akp;
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = akd;
+        }
+        link_id = Pelvis;
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = kp;
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = kd;
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = akp;
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = akd;
+        }
+        link_id = Upper_Body;
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = kp;
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = kd;
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = akp;
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = akd;
+        }
+        link_id = Left_Foot;
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = kp;
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = kd;
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = akp;
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = akd;
+        }
+        link_id = Left_Hand;
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = kp;
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = kd;
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = akp;
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = akd;
+        }
+        link_id = Right_Hand;
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = kp;
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = kd;
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = akp;
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = akd;
+        }
+        link_id = Right_Foot;
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = kp;
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = kd;
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = akp;
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = akd;
+        }
+
+        std::cout << "Reset Task Gain" << std::endl;
+    }
+    else if (msg->mode == 1)
+    {
+        link_id = COM_id;
+        std::cout << "Set COM Task Gain" << std::endl;
+    }
+    else if (msg->mode == 2)
+    {
+        link_id = Pelvis;
+        std::cout << "Set Pelvis Task Gain" << std::endl;
+    }
+    else if (msg->mode == 3)
+    {
+        link_id = Upper_Body;
+        std::cout << "Set Upper_Body Task Gain" << std::endl;
+    }
+    else if (msg->mode == 4)
+    {
+        link_id = Right_Foot;
+        link_id2 = Left_Foot;
+        //both foot
+        std::cout << "Set both foot Task Gain" << std::endl;
+    }
+    else if (msg->mode == 5)
+    {
+        link_id = Right_Hand;
+        link_id2 = Left_Hand;
+        //both hand
+        std::cout << "Set both hand Task Gain" << std::endl;
+    }
+    else if (msg->mode == 6)
+    {
+        //R foot
+        link_id = Right_Foot;
+        std::cout << "Set Right_Foot Task Gain" << std::endl;
+    }
+    else if (msg->mode == 7)
+    {
+        //L foot
+        link_id = Left_Foot;
+        std::cout << "Set Left_Foot Task Gain" << std::endl;
+    }
+    else if (msg->mode == 8)
+    {
+        //R hand
+        link_id = Right_Hand;
+        std::cout << "Set Right_Hand Task Gain" << std::endl;
+    }
+    else if (msg->mode == 9)
+    {
+        //L hand
+        link_id = Left_Hand;
+        std::cout << "Set Left_Hand Task Gain" << std::endl;
+    }
+
+    if (link_id != 99)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id].pos_p_gain(i) = msg->pgain[i];
+            dc.tocabi_.link_[link_id].pos_d_gain(i) = msg->dgain[i];
+            dc.tocabi_.link_[link_id].rot_p_gain(i) = msg->pgain[i + 3];
+            dc.tocabi_.link_[link_id].rot_d_gain(i) = msg->dgain[i + 3];
+        }
+
+        if (msg->mode != 0)
+        {
+
+            std::cout << "X kp : " << dc.tocabi_.link_[link_id].pos_p_gain[0] << " kd : " << dc.tocabi_.link_[link_id].pos_d_gain[0]
+                      << "  Y kp : " << dc.tocabi_.link_[link_id].pos_p_gain[1] << " kd : " << dc.tocabi_.link_[link_id].pos_d_gain[1]
+                      << "  Z kp : " << dc.tocabi_.link_[link_id].pos_p_gain[2] << " kd : " << dc.tocabi_.link_[link_id].pos_d_gain[2] << std::endl;
+            std::cout << "R kp : " << dc.tocabi_.link_[link_id].rot_p_gain[0] << " kd : " << dc.tocabi_.link_[link_id].rot_d_gain[0]
+                      << "  P kp : " << dc.tocabi_.link_[link_id].rot_p_gain[1] << " kd : " << dc.tocabi_.link_[link_id].rot_d_gain[1]
+                      << "  Y kp : " << dc.tocabi_.link_[link_id].rot_p_gain[2] << " kd : " << dc.tocabi_.link_[link_id].rot_d_gain[2] << std::endl;
+        }
+    }
+
+    if (link_id2 != 99)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            dc.tocabi_.link_[link_id2].pos_p_gain(i) = msg->pgain[i];
+            dc.tocabi_.link_[link_id2].pos_d_gain(i) = msg->dgain[i];
+            dc.tocabi_.link_[link_id2].rot_p_gain(i) = msg->pgain[i + 3];
+            dc.tocabi_.link_[link_id2].rot_d_gain(i) = msg->dgain[i + 3];
+        }
+    }
+
+    tocabi_.task_control_switch = false;
+}
+
 void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
 {
-
+    dc.tc_state = 0;
     tocabi_.control_time_pre_ = control_time_;
 
     tc.command_time = control_time_;
@@ -180,6 +243,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.height = msg.height;
 
     tc.contactredis = msg.contactredis;
+    tocabi_.contact_redistribution_mode = tc.contactredis;
     tc.solver = msg.solver;
 
     tc.custom_taskgain = msg.customTaskGain;
@@ -211,9 +275,21 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tocabi_.link_[Upper_Body].Set_initpos();
     tocabi_.link_[COM_id].Set_initpos();
 
+    if (false)
+    {
+        std::cout << "Set init by TaskCommand" << std::endl;
+        tocabi_.link_[Right_Foot].Set_initTask();
+        tocabi_.link_[Left_Foot].Set_initTask();
+        tocabi_.link_[Right_Hand].Set_initTask();
+        tocabi_.link_[Left_Hand].Set_initTask();
+        tocabi_.link_[Pelvis].Set_initTask();
+        tocabi_.link_[Upper_Body].Set_initTask();
+        tocabi_.link_[COM_id].Set_initTask();
+    }
+
     tc.init_com_height = tocabi_.com_.pos(2);
 
-    task_switch = true;
+    tocabi_.task_control_switch = true;
     tc_command = true;
 
     // Arm Desired Setting
@@ -226,12 +302,13 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tocabi_.link_[Right_Hand].x_desired = tocabi_.link_[Right_Hand].x_init + TargetDelta_r;
     tocabi_.link_[Right_Hand].rot_desired = DyrosMath::rotateWithX(tc.r_roll) * DyrosMath::rotateWithY(tc.r_pitch) * DyrosMath::rotateWithZ(tc.r_yaw) * tocabi_.link_[Right_Hand].rot_init;
     tocabi_.imu_pos_.setZero();
-    std::cout << "init set - COM x : " << tocabi_.link_[COM_id].x_init(0) << "\t y : " << tocabi_.link_[COM_id].x_init(1) << std::endl;
+    std::cout << control_time_ << "init set - COM x : " << tocabi_.link_[COM_id].x_init(0) << "\t y : " << tocabi_.link_[COM_id].x_init(1) << std::endl;
 
     //walking
     tc.walking_enable = msg.walking_enable;
     tc.ik_mode = msg.ik_mode;
     tc.walking_pattern = msg.pattern;
+    tc.walking_pattern2 = msg.pattern2;
     tc.foot_step_dir = msg.first_foot_step;
     tc.target_x = msg.x;
     tc.target_y = msg.y;
@@ -241,19 +318,22 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.step_length_y = msg.step_length_y;
     tc.step_length_x = msg.step_length_x;
     tc.dob = msg.dob;
+    tc.imu_walk = msg.imu;
     tc.walking_enable = msg.walking_enable;
     if (tc.walking_enable == 1.0 || tc.walking_enable == 3.0)
     {
         tc.mode = 11;
     }
-
-    data_out << "###############  COMMAND RECEIVED  ###############" << std::endl;
+    if (dc.print_data_ready)
+    {
+        dc.data_out << "###############  COMMAND RECEIVED  ###############" << control_time_ << std::endl;
+    }
 }
 
 void TocabiController::stateThread()
 {
     s_.connect();
-    s_.stateThread2();
+    s_.stateThread();
 }
 
 void TocabiController::dynamicsThreadHigh()
@@ -295,18 +375,18 @@ void TocabiController::dynamicsThreadHigh()
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_lpf_(i + 6));
                     }
                 }
                 else
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_lpf_(i + 6));
                     }
                 }
 
-                if (task_switch)
+                if (tocabi_.task_control_switch)
                 {
                     if (tc.mode >= 10)
                     {
@@ -316,7 +396,7 @@ void TocabiController::dynamicsThreadHigh()
             }
             else
             {
-                if (task_switch)
+                if (tocabi_.task_control_switch)
                 {
                     if (tc.mode >= 10)
                     {
@@ -457,7 +537,6 @@ void TocabiController::dynamicsThreadLow()
         kda_(i) = kdasim;
         accp_(i) = 1.0;
     }
-
     //kd_(1) = 120;
 
     std::cout << "DynamicsThreadLow : START" << std::endl;
@@ -465,7 +544,7 @@ void TocabiController::dynamicsThreadLow()
 
     //const char *file_name = "/home/saga/sim_data.txt";
 
-    std::string path = dc.homedir + "/red_sim_data/";
+    std::string path = dc.homedir;
     std::string current_time;
 
     time_t now = std::time(0);
@@ -474,17 +553,47 @@ void TocabiController::dynamicsThreadLow()
     tstruct = *localtime(&now);
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     current_time = buf;
-    std::string file_name = path + "sim_data" + current_time + ".txt";
-    data_out = std::ofstream(file_name.c_str());
+    dc.print_file_name = path + "/tocabi_data" + current_time + ".txt";
 
     std::stringstream ss;
 
     ///////////////////////
     wbc_.init(tocabi_);
+    tocabi_.TaskForce.setZero(6);
 
     std::chrono::steady_clock::time_point tp[6];
     std::chrono::duration<double> td[7];
 
+    //Task link gain setting.
+    tocabi_.link_[COM_id].pos_p_gain = kp_;
+    tocabi_.link_[COM_id].pos_d_gain = kd_;
+    tocabi_.link_[COM_id].rot_p_gain = tocabi_.link_[Pelvis].rot_p_gain = kpa_;
+    tocabi_.link_[COM_id].rot_d_gain = tocabi_.link_[Pelvis].rot_d_gain = kda_;
+    tocabi_.link_[Pelvis].pos_p_gain = kp_;
+    tocabi_.link_[Pelvis].pos_d_gain = kd_;
+
+    tocabi_.link_[Right_Foot].pos_p_gain = tocabi_.link_[Left_Foot].pos_p_gain = kp_;
+    tocabi_.link_[Right_Foot].pos_d_gain = tocabi_.link_[Left_Foot].pos_d_gain = kd_;
+    tocabi_.link_[Right_Foot].rot_p_gain = tocabi_.link_[Left_Foot].rot_p_gain = kpa_;
+    tocabi_.link_[Right_Foot].rot_d_gain = tocabi_.link_[Left_Foot].rot_d_gain = kda_;
+
+    tocabi_.link_[Right_Hand].pos_p_gain = tocabi_.link_[Left_Hand].pos_p_gain = kp_;
+    tocabi_.link_[Right_Hand].pos_d_gain = tocabi_.link_[Left_Hand].pos_d_gain = kd_;
+    tocabi_.link_[Right_Hand].rot_p_gain = tocabi_.link_[Left_Hand].rot_p_gain = kpa_ * 4;
+    tocabi_.link_[Right_Hand].rot_d_gain = tocabi_.link_[Left_Hand].rot_d_gain = kda_ * 2;
+
+    tocabi_.link_[Upper_Body].rot_p_gain = kpa_ * 4;
+    tocabi_.link_[Upper_Body].rot_d_gain = kda_ * 2;
+
+    tocabi_.link_[COM_id].pos_p_gain = kp_;
+    tocabi_.link_[COM_id].pos_d_gain = kd_;
+
+    tocabi_.link_[COM_id].acc_p_gain = accp_;
+    tocabi_.link_[Pelvis].acc_p_gain = accp_;
+    tocabi_.link_[Right_Foot].acc_p_gain = accp_;
+    tocabi_.link_[Left_Foot].acc_p_gain = accp_;
+    tocabi_.link_[Right_Hand].acc_p_gain = accp_;
+    tocabi_.link_[Left_Hand].acc_p_gain = accp_;
     //Control Loop Start
     while ((!shutdown_tocabi_bool))
     {
@@ -501,7 +610,9 @@ void TocabiController::dynamicsThreadLow()
         if (control_time_ == 0)
         {
             first = true;
-            task_switch = false;
+            tocabi_.task_control_switch = false;
+            tocabi_.ee_[0].contact = true;
+            tocabi_.ee_[1].contact = true;
         }
         if ((dyn_loop_start - start_time2) > sec1)
         {
@@ -524,38 +635,43 @@ void TocabiController::dynamicsThreadLow()
         tp[0] = std::chrono::steady_clock::now();
         getState(); //link data override
         tp[1] = std::chrono::steady_clock::now();
-        //Task link gain setting.
-        tocabi_.link_[COM_id].pos_p_gain = kp_;
-        tocabi_.link_[COM_id].pos_d_gain = kd_;
-        tocabi_.link_[COM_id].rot_p_gain = tocabi_.link_[Pelvis].rot_p_gain = kpa_;
-        tocabi_.link_[COM_id].rot_d_gain = tocabi_.link_[Pelvis].rot_d_gain = kda_;
-        tocabi_.link_[Pelvis].pos_p_gain = kp_;
-        tocabi_.link_[Pelvis].pos_d_gain = kd_;
-
-        tocabi_.link_[Right_Foot].pos_p_gain = tocabi_.link_[Left_Foot].pos_p_gain = kp_;
-        tocabi_.link_[Right_Foot].pos_d_gain = tocabi_.link_[Left_Foot].pos_d_gain = kd_;
-        tocabi_.link_[Right_Foot].rot_p_gain = tocabi_.link_[Left_Foot].rot_p_gain = kpa_;
-        tocabi_.link_[Right_Foot].rot_d_gain = tocabi_.link_[Left_Foot].rot_d_gain = kda_;
-
-        tocabi_.link_[Right_Hand].pos_p_gain = tocabi_.link_[Left_Hand].pos_p_gain = kp_;
-        tocabi_.link_[Right_Hand].pos_d_gain = tocabi_.link_[Left_Hand].pos_d_gain = kd_;
-        tocabi_.link_[Right_Hand].rot_p_gain = tocabi_.link_[Left_Hand].rot_p_gain = kpa_ * 4;
-        tocabi_.link_[Right_Hand].rot_d_gain = tocabi_.link_[Left_Hand].rot_d_gain = kda_ * 2;
-
-        tocabi_.link_[Upper_Body].rot_p_gain = kpa_ * 4;
-        tocabi_.link_[Upper_Body].rot_d_gain = kda_ * 2;
-
-        tocabi_.link_[COM_id].pos_p_gain = kp_;
-        tocabi_.link_[COM_id].pos_d_gain = kd_;
-
-        tocabi_.link_[COM_id].acc_p_gain = accp_;
-        tocabi_.link_[Pelvis].acc_p_gain = accp_;
-        tocabi_.link_[Right_Foot].acc_p_gain = accp_;
-        tocabi_.link_[Left_Foot].acc_p_gain = accp_;
-        tocabi_.link_[Right_Hand].acc_p_gain = accp_;
-        tocabi_.link_[Left_Hand].acc_p_gain = accp_;
 
         wbc_.update(tocabi_);
+
+        if (control_time_ == 0)
+        {
+            std::cout << "Gain ?" << std::endl;
+
+            tocabi_.link_[COM_id].pos_p_gain = kp_;
+            tocabi_.link_[COM_id].pos_d_gain = kd_;
+            tocabi_.link_[COM_id].rot_p_gain = tocabi_.link_[Pelvis].rot_p_gain = kpa_;
+            tocabi_.link_[COM_id].rot_d_gain = tocabi_.link_[Pelvis].rot_d_gain = kda_;
+            tocabi_.link_[Pelvis].pos_p_gain = kp_;
+            tocabi_.link_[Pelvis].pos_d_gain = kd_;
+
+            tocabi_.link_[Right_Foot].pos_p_gain = tocabi_.link_[Left_Foot].pos_p_gain = kp_;
+            tocabi_.link_[Right_Foot].pos_d_gain = tocabi_.link_[Left_Foot].pos_d_gain = kd_;
+            tocabi_.link_[Right_Foot].rot_p_gain = tocabi_.link_[Left_Foot].rot_p_gain = kpa_;
+            tocabi_.link_[Right_Foot].rot_d_gain = tocabi_.link_[Left_Foot].rot_d_gain = kda_;
+
+            tocabi_.link_[Right_Hand].pos_p_gain = tocabi_.link_[Left_Hand].pos_p_gain = kp_;
+            tocabi_.link_[Right_Hand].pos_d_gain = tocabi_.link_[Left_Hand].pos_d_gain = kd_;
+            tocabi_.link_[Right_Hand].rot_p_gain = tocabi_.link_[Left_Hand].rot_p_gain = kpa_ * 4;
+            tocabi_.link_[Right_Hand].rot_d_gain = tocabi_.link_[Left_Hand].rot_d_gain = kda_ * 2;
+
+            tocabi_.link_[Upper_Body].rot_p_gain = kpa_ * 4;
+            tocabi_.link_[Upper_Body].rot_d_gain = kda_ * 2;
+
+            tocabi_.link_[COM_id].pos_p_gain = kp_;
+            tocabi_.link_[COM_id].pos_d_gain = kd_;
+
+            tocabi_.link_[COM_id].acc_p_gain = accp_;
+            tocabi_.link_[Pelvis].acc_p_gain = accp_;
+            tocabi_.link_[Right_Foot].acc_p_gain = accp_;
+            tocabi_.link_[Left_Foot].acc_p_gain = accp_;
+            tocabi_.link_[Right_Hand].acc_p_gain = accp_;
+            tocabi_.link_[Left_Hand].acc_p_gain = accp_;
+        }
 
         tp[2] = std::chrono::steady_clock::now();
         sec = std::chrono::high_resolution_clock::now() - start_time;
@@ -569,13 +685,24 @@ void TocabiController::dynamicsThreadLow()
         torque_task.setZero(MODEL_DOF);
         TorqueContact.setZero();
 
-        if (dc.gravityMode)
+        if (dc.signal_gravityCompensation)
         {
-            std::cout << "Task Turned Off,, gravity compensation only !" << std::endl;
-            task_switch = false;
-            dc.gravityMode = false;
+            if (dc.positionControl)
+            {
+                std::cout << "Position Control Disabled!  ";
+            }
+
+            if (tocabi_.task_control_switch)
+            {
+                std::cout << "Task Switch Disabled!  ";
+            }
+            std::cout << "Gravity compensation only !" << std::endl;
+            tocabi_.task_control_switch = false;
+            dc.positionControl = false;
+            dc.signal_gravityCompensation = false;
         }
-        if (task_switch)
+
+        if (tocabi_.task_control_switch)
         {
             if (task_que_switch)
             {
@@ -619,7 +746,6 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero();
-                cr_mode = tc.contactredis;
             }
             else if (tc.mode == 1) //COM with rotation
             {
@@ -629,11 +755,12 @@ void TocabiController::dynamicsThreadLow()
                 */
                 wbc_.set_contact(tocabi_, 1, 1);
 
-                int task_number = 6;
+                int task_number = 9;
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
-                tocabi_.J_task = tocabi_.link_[COM_id].Jac;
+                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Pelvis].Jac;
+                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
 
                 tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
@@ -643,13 +770,18 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
-                tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();
+                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero();
-                cr_mode = tc.contactredis;
             }
             else if (tc.mode == 2) //COM pos&rot control + upper rotation with jhpark
             {
+
+                //tocabi_.d_time_
                 /* 
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
@@ -677,7 +809,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
-                cr_mode = tc.contactredis;
+
                 torque_grav.setZero();
             }
             else if (tc.mode == 3) //Pelv pos&rot control + upper rotation
@@ -708,7 +840,6 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
-                cr_mode = tc.contactredis;
                 torque_grav.setZero();
             }
             else if (tc.mode == 4) //left single
@@ -728,40 +859,42 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[COM_id].x_traj(1) = tocabi_.link_[Left_Foot].xpos(1);
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
-                cr_mode = tc.contactredis;
                 torque_grav.setZero();
             }
             else if (tc.mode == 5) //right single
             {
-                int task_number = 9;
+                int task_number = 6;
                 wbc_.set_contact(tocabi_, 0, 1);
 
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
                 tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
-                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                //tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
 
-                tocabi_.link_[COM_id].x_desired = tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired = tocabi_.link_[Right_Foot].x_init;
 
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[COM_id].rot_desired = DyrosMath::rotateWithY(tc.pelv_pitch * 3.1415 / 180.0);
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
-                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.link_[COM_id].x_traj(1) = tocabi_.link_[Right_Foot].xpos(1);
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX((tc.roll) * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
+                //tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
-                tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                //tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
-                cr_mode = tc.contactredis;
             }
             else if (tc.mode == 6) // double right
             {
@@ -788,24 +921,28 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
-                cr_mode = tc.contactredis;
             }
-            else if (tc.mode == 7) //wawlking test
+            else if (tc.mode == 7) //walking test
             {
-                int task_number = 9;
-                wbc_.set_contact(tocabi_, 1, 1);
-                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
-                tocabi_.f_star.setZero(task_number);
-                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
-                tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
-
+                //Pre parameter settings
                 double foot_distance = 0.2;
                 double step_length = 0.0;
                 int step_number = 10;
                 double step_time = tc.traj_time;
-                double w = sqrt(9.81 / tc.init_com_height);
+                double gc = 9.81;
+                double w = sqrt(gc / tc.init_com_height);
                 double b = exp(w * step_time);
+                double footswing_start_ratio = 0.8;
 
+                Vector3d footup;
+                footup.setZero();
+                footup(2) = 0.03;
+
+                Vector3d footdown;
+                footdown.setZero();
+                footdown(2) = -0.00;
+
+                //Footstep settings
                 Vector2d footstep[step_number];
                 footstep[0] = tocabi_.link_[Left_Foot].x_init.segment(0, 2);
                 footstep[1] = tocabi_.link_[Right_Foot].x_init.segment(0, 2);
@@ -817,32 +954,27 @@ void TocabiController::dynamicsThreadLow()
                 }
                 footstep[step_number - 1](0) = footstep[step_number - 2](0);
 
+                //Capture point settings
                 Vector2d cp[step_number];
                 cp[0] = (footstep[0] + footstep[1]) / 2;
                 cp[step_number - 1] = (footstep[step_number - 1] + footstep[step_number - 2]) / 2;
-
                 for (int i = 1; i < (step_number - 1); i++)
                 {
                     cp[step_number - 1 - i] = 1 / b * cp[step_number - i] - (1 - b) / b * footstep[step_number - i - 1];
                 }
 
+                //Zmp point settings
                 Vector2d zmp[step_number];
-
                 for (int i = 0; i < (step_number - 1); i++)
                 {
                     zmp[i] = cp[i + 1] / (1 - b) - b / (1 - b) * cp[i];
                 }
-
                 zmp[step_number - 1] = cp[step_number - 1];
-
-                static bool pub_once = true;
 
                 Vector2d pos_init_state[step_number + 1];
                 Vector2d vel_init_state[step_number + 1];
-
                 pos_init_state[0] = cp[0];
                 vel_init_state[0].setZero();
-
                 for (int i = 1; i <= step_number; i++)
                 {
                     pos_init_state[i] = cosh(w * step_time) * pos_init_state[i - 1] + 1 / w * sinh(w * step_time) * vel_init_state[i - 1] + (1 - cosh(w * step_time)) * zmp[i - 1];
@@ -860,11 +992,10 @@ void TocabiController::dynamicsThreadLow()
                 bool ds_enable = true;
 
                 double ds_r1, ds_r2;
-
                 double ds_ratio = 0.1;
-
                 ds_r1 = ds_ratio / 2;
                 ds_r2 = 1 - ds_ratio / 2;
+                static int before_step = 0;
 
                 for (int i = 0; i < step_number; i++)
                 {
@@ -880,16 +1011,91 @@ void TocabiController::dynamicsThreadLow()
                 //zmp[step_number - 1] = (cp[step_number - 1] - cosh(w * step_time) * pos_init_state[step_number - 1] - 1 / w * sinh(w * step_time) * vel_init_state[step_number - 1]) / (1 - cosh(w * step_time));
 
                 int current_step = (int)((tocabi_.control_time_ - tc.command_time) / tc.traj_time);
+
+                if (current_step == before_step)
+                {
+                    std::cout << control_time_ << " current step : " << current_step << std::endl;
+                    before_step++;
+                    if (before_step > step_number)
+                    {
+                        before_step = 0;
+                    }
+                }
+
                 if (current_step >= step_number)
                     current_step = step_number;
 
                 double currnet_time_w = tocabi_.control_time_ - tc.command_time - (double)current_step * tc.traj_time;
+
+                double foot_up_time = tc.command_time + (double)current_step * tc.traj_time + (1 - footswing_start_ratio) * tc.traj_time * 0.5;
+                double foot_down_time = tc.command_time + (double)current_step * tc.traj_time + 0.5 * tc.traj_time;
+                double foot_move_dur = tc.traj_time * footswing_start_ratio * 0.5;
 
                 if (current_step < step_number)
                 {
                     tocabi_.link_[COM_id].x_traj.segment(0, 2) = cosh(w * currnet_time_w) * pos_init_state[current_step] + 1 / w * sinh(w * currnet_time_w) * vel_init_state[current_step] + (1 - cosh(w * currnet_time_w)) * zmp[current_step];
                     tocabi_.link_[COM_id].v_traj.segment(0, 2) = w * sinh(w * currnet_time_w) * pos_init_state[current_step] + cosh(w * currnet_time_w) * vel_init_state[current_step] - w * sinh(w * currnet_time_w) * zmp[current_step];
                     tocabi_.link_[COM_id].a_traj.segment(0, 2) = w * w * cosh(w * currnet_time_w) * pos_init_state[current_step] + w * sinh(w * currnet_time_w) * vel_init_state[current_step] - w * w * cosh(w * currnet_time_w) * zmp[current_step];
+
+                    if ((current_step > 0) && (current_step < (step_number - 1)))
+                    {
+
+                        if (current_step % 2 == 0)
+                        {
+                            int task_number = 15;
+                            wbc_.set_contact(tocabi_, 1, 0);
+                            tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                            tocabi_.f_star.setZero(task_number);
+                            tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                            tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                            tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Foot].Jac_COM;
+                            tocabi_.link_[Right_Foot].x_traj = tocabi_.link_[Right_Foot].x_init;
+
+                            if (tocabi_.control_time_ > foot_up_time)
+                            {
+
+                                tocabi_.link_[Right_Foot].Set_Trajectory_from_quintic(tocabi_.control_time_, foot_up_time, foot_up_time + foot_move_dur, tocabi_.link_[Right_Foot].x_init, tocabi_.link_[Right_Foot].x_init + footup);
+                            }
+                            if (tocabi_.control_time_ >= foot_down_time)
+                            {
+                                tocabi_.link_[Right_Foot].Set_Trajectory_from_quintic(tocabi_.control_time_, foot_down_time, foot_down_time + foot_move_dur, tocabi_.link_[Right_Foot].x_init + footup, tocabi_.link_[Right_Foot].x_init + footdown);
+                            }
+                        }
+                        else
+                        {
+
+                            int task_number = 15;
+                            wbc_.set_contact(tocabi_, 0, 1);
+                            tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                            tocabi_.f_star.setZero(task_number);
+                            tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                            tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                            tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Foot].Jac_COM;
+                            tocabi_.link_[Left_Foot].x_traj = tocabi_.link_[Left_Foot].x_init;
+                            if (tocabi_.control_time_ > foot_up_time)
+                            {
+                                tocabi_.link_[Left_Foot].Set_Trajectory_from_quintic(tocabi_.control_time_, foot_up_time, foot_up_time + foot_move_dur, tocabi_.link_[Left_Foot].x_init, tocabi_.link_[Left_Foot].x_init + footup);
+                            }
+                            if (tocabi_.control_time_ >= foot_down_time)
+                            {
+                                tocabi_.link_[Left_Foot].Set_Trajectory_from_quintic(tocabi_.control_time_, foot_down_time, foot_down_time + foot_move_dur, tocabi_.link_[Left_Foot].x_init + footup, tocabi_.link_[Left_Foot].x_init + footdown);
+                            }
+                        }
+                    }
+                    else
+                    {
+
+                        int task_number = 9;
+                        wbc_.set_contact(tocabi_, 1, 1);
+                        tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                        tocabi_.f_star.setZero(task_number);
+                        tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
+                        tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                    }
+
+                    if (tocabi_.control_time_)
+                    {
+                    }
 
                     if (ds_enable)
                     {
@@ -900,13 +1106,13 @@ void TocabiController::dynamicsThreadLow()
                             {
                                 Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
                                 cx_init.segment(0, 2) = p_ds2[current_step];
-                                cx_init(2) = tc.height;
+                                cx_init(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_init.segment(0, 2) = v_ds2[current_step];
                                 cv_init(2) = 0;
                                 ca_init.segment(0, 2) = a_ds2[current_step];
                                 ca_init(2) = 0;
                                 cx_des.segment(0, 2) = p_ds1[current_step + 1];
-                                cx_des(2) = tc.height;
+                                cx_des(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_des.segment(0, 2) = v_ds1[current_step + 1];
                                 cv_des(2) = 0;
                                 ca_des.segment(0, 2) = a_ds1[current_step + 1];
@@ -921,13 +1127,13 @@ void TocabiController::dynamicsThreadLow()
                             {
                                 Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
                                 cx_init.segment(0, 2) = p_ds2[current_step - 1];
-                                cx_init(2) = tc.height;
+                                cx_init(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_init.segment(0, 2) = v_ds2[current_step - 1];
                                 cv_init(2) = 0;
                                 ca_init.segment(0, 2) = a_ds2[current_step - 1];
                                 ca_init(2) = 0;
                                 cx_des.segment(0, 2) = p_ds1[current_step];
-                                cx_des(2) = tc.height;
+                                cx_des(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_des.segment(0, 2) = v_ds1[current_step];
                                 cv_des(2) = 0;
                                 ca_des.segment(0, 2) = a_ds1[current_step];
@@ -939,13 +1145,13 @@ void TocabiController::dynamicsThreadLow()
                             {
                                 Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
                                 cx_init.segment(0, 2) = p_ds2[current_step];
-                                cx_init(2) = tc.height;
+                                cx_init(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_init.segment(0, 2) = v_ds2[current_step];
                                 cv_init(2) = 0;
                                 ca_init.segment(0, 2) = a_ds2[current_step];
                                 ca_init(2) = 0;
                                 cx_des.segment(0, 2) = p_ds1[current_step + 1];
-                                cx_des(2) = tc.height;
+                                cx_des(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_des.segment(0, 2) = v_ds1[current_step + 1];
                                 cv_des(2) = 0;
                                 ca_des.segment(0, 2) = a_ds1[current_step + 1];
@@ -960,13 +1166,13 @@ void TocabiController::dynamicsThreadLow()
                             {
                                 Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
                                 cx_init.segment(0, 2) = p_ds2[current_step - 1];
-                                cx_init(2) = tc.height;
+                                cx_init(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_init.segment(0, 2) = v_ds2[current_step - 1];
                                 cv_init(2) = 0;
                                 ca_init.segment(0, 2) = a_ds2[current_step - 1];
                                 ca_init(2) = 0;
                                 cx_des.segment(0, 2) = p_ds1[current_step];
-                                cx_des(2) = tc.height;
+                                cx_des(2) = tocabi_.link_[COM_id].x_init(2);
                                 cv_des.segment(0, 2) = v_ds1[current_step];
                                 cv_des(2) = 0;
                                 ca_des.segment(0, 2) = a_ds1[current_step];
@@ -981,11 +1187,11 @@ void TocabiController::dynamicsThreadLow()
                 {
                     Vector3d cx_init, cv_init, cx_des, cv_des;
                     cx_init.segment(0, 2) = pos_init_state[step_number];
-                    cx_init(2) = tc.height;
+                    cx_init(2) = tocabi_.link_[COM_id].x_init(2);
                     cv_init.segment(0, 2) = vel_init_state[step_number];
                     cv_init(2) = 0;
                     cx_des.segment(0, 2) = cp[step_number - 1];
-                    cx_des(2) = tc.height;
+                    cx_des(2) = tocabi_.link_[COM_id].x_init(2);
                     cv_des.setZero();
                     tocabi_.link_[COM_id].Set_Trajectory_from_quintic(currnet_time_w, 0, step_time, cx_init, cv_init, cx_des, cv_des);
                     //tocabi_.link_[COM_id].v_traj.segment(0, 2).setZero();
@@ -994,7 +1200,7 @@ void TocabiController::dynamicsThreadLow()
 
                 //for (int i =)
 
-                tocabi_.link_[COM_id].x_traj(2) = tc.height;
+                tocabi_.link_[COM_id].x_traj(2) = tocabi_.link_[COM_id].x_init(2);
 
                 tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
@@ -1004,229 +1210,120 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 //std::cout << "R_ fstar 0 :" << tocabi_.f_star(0) << " \t1: " << tocabi_.f_star(1) << " \t2: " << tocabi_.f_star(2) << " \ta: " << tocabi_.link_[COM_id].a_traj(1) << " \tx: " << tocabi_.link_[COM_id].x_traj(1) << " \tv: " << tocabi_.link_[COM_id].v_traj(1) <<" \tv: " << tocabi_.link_[COM_id].xpos(1) << std::endl;
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                if (current_step < (step_number - 1))
+                {
+
+                    if (current_step > 0)
+                    {
+                        if (current_step % 2 == 0)
+                        {
+                            tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Right_Foot);
+                        }
+                        else
+                        {
+                            tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Left_Foot);
+                        }
+                    }
+                }
+
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
-                cr_mode = tc.contactredis;
             }
-            else if (tc.mode == 8) //wawlking test
+            else if (tc.mode == 8) //UpperBody Joint control
             {
-                int task_number = 9;
+                
+            }
+            else if (tc.mode == 9)
+            {
                 wbc_.set_contact(tocabi_, 1, 1);
+                torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+
+                int task_number = 9 + 12;
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
-                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Pelvis].Jac;
+
+                tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
                 tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM;
+                tocabi_.J_task.block(15, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Hand].Jac_COM;
 
-                double foot_distance = 0.2;
-                double step_length = 0.0;
-                int step_number = 10;
-                double step_time = tc.traj_time;
-                double w = sqrt(9.81 / tc.init_com_height);
-                double b = exp(w * step_time);
-
-                Vector2d footstep[step_number];
-                footstep[0] = tocabi_.link_[Left_Foot].x_init.segment(0, 2);
-                footstep[1] = tocabi_.link_[Right_Foot].x_init.segment(0, 2);
-
-                for (int i = 2; i < step_number; i++)
+                if (tc.task_init)
                 {
-                    footstep[i](0) = footstep[0](0) + (i - 1) * step_length;
-                    footstep[i](1) = footstep[i - 2](1);
-                }
-                footstep[step_number - 1](0) = footstep[step_number - 2](0);
+                    std::cout << "Velocity Control initialized " << std::endl;
 
-                Vector2d cp[step_number];
-                cp[0] = (footstep[0] + footstep[1]) / 2;
-                cp[step_number - 1] = (footstep[step_number - 1] + footstep[step_number - 2]) / 2;
+                    tocabi_.link_[COM_id].x_traj = tocabi_.link_[COM_id].x_init;
+                    tocabi_.link_[COM_id].v_traj = tocabi_.link_[COM_id].v_init;
 
-                for (int i = 1; i < (step_number - 1); i++)
-                {
-                    cp[step_number - 1 - i] = 1 / b * cp[step_number - i] - (1 - b) / b * footstep[step_number - i - 1];
-                }
+                    tocabi_.link_[COM_id].r_traj = tocabi_.link_[COM_id].rot_init;
+                    tocabi_.link_[COM_id].w_traj = tocabi_.link_[COM_id].w_init;
 
-                Vector2d zmp[step_number];
+                    tocabi_.link_[Upper_Body].r_traj = tocabi_.link_[Upper_Body].rot_init;
+                    tocabi_.link_[Upper_Body].w_traj = tocabi_.link_[Upper_Body].w_init;
 
-                for (int i = 0; i < (step_number - 1); i++)
-                {
-                    zmp[i] = cp[i + 1] / (1 - b) - b / (1 - b) * cp[i];
+                    tocabi_.link_[Right_Hand].x_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * (tocabi_.link_[Right_Hand].x_init - tocabi_.link_[Upper_Body].x_init);
+                    tocabi_.link_[Right_Hand].v_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * (tocabi_.link_[Right_Hand].v_init - tocabi_.link_[Upper_Body].v_init);
+                    tocabi_.link_[Right_Hand].r_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * tocabi_.link_[Right_Hand].rot_init;
+                    tocabi_.link_[Right_Hand].w_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * (tocabi_.link_[Right_Hand].w_init - tocabi_.link_[Upper_Body].w_init);
+
+                    tocabi_.link_[Left_Hand].x_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * (tocabi_.link_[Left_Hand].x_init - tocabi_.link_[Upper_Body].x_init);
+                    tocabi_.link_[Left_Hand].v_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * (tocabi_.link_[Left_Hand].v_init - tocabi_.link_[Upper_Body].v_init);
+                    tocabi_.link_[Left_Hand].r_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * tocabi_.link_[Left_Hand].rot_init;
+                    tocabi_.link_[Left_Hand].w_traj_local = tocabi_.link_[Upper_Body].rot_init.transpose() * (tocabi_.link_[Left_Hand].w_init - tocabi_.link_[Upper_Body].w_init);
+
+                    tc.task_init = false;
+
+                    
                 }
 
-                zmp[step_number - 1] = cp[step_number - 1];
-
-                static bool pub_once = true;
-
-                Vector2d pos_init_state[step_number + 1];
-                Vector2d vel_init_state[step_number + 1];
-
-                pos_init_state[0] = cp[0];
-                vel_init_state[0].setZero();
-
-                for (int i = 1; i <= step_number; i++)
+                if (vc.link_ == 0)
                 {
-                    pos_init_state[i] = cosh(w * step_time) * pos_init_state[i - 1] + 1 / w * sinh(w * step_time) * vel_init_state[i - 1] + (1 - cosh(w * step_time)) * zmp[i - 1];
-                    vel_init_state[i] = w * sinh(w * step_time) * pos_init_state[i - 1] + cosh(w * step_time) * vel_init_state[i - 1] - w * sinh(w * step_time) * zmp[i - 1];
+                    tocabi_.link_[COM_id].x_traj = tocabi_.link_[COM_id].x_traj + 0.5 * tocabi_.d_time_ * vc.des_vel.segment(0, 3);
+                    tocabi_.link_[COM_id].v_traj = vc.des_vel.segment(0, 3);
+                    tocabi_.link_[COM_id].r_traj = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[COM_id].r_traj, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[COM_id].w_traj = vc.des_vel.segment(3, 3);
+                }
+                else if (vc.link_ == 1)
+                {
+                    tocabi_.link_[Upper_Body].r_traj = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[Upper_Body].r_traj, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[Upper_Body].w_traj = vc.des_vel.segment(3, 3);
+                }
+                else if (vc.link_ == 2)
+                {
+                    tocabi_.link_[Right_Hand].x_traj_local = tocabi_.link_[Right_Hand].x_traj_local + 0.5 * tocabi_.d_time_ * vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Right_Hand].v_traj_local = vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Right_Hand].r_traj_local = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[Right_Hand].r_traj_local, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[Right_Hand].w_traj_local = vc.des_vel.segment(3, 3);
+                }
+                else if (vc.link_ == 3)
+                {
+                    tocabi_.link_[Left_Hand].x_traj_local = tocabi_.link_[Left_Hand].x_traj_local + 0.5 * tocabi_.d_time_ * vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Left_Hand].v_traj_local = vc.des_vel.segment(0, 3);
+                    tocabi_.link_[Left_Hand].r_traj_local = DyrosMath::Add_vel_to_Rotm(tocabi_.link_[Left_Hand].r_traj_local, vc.des_vel.segment(3, 3), tocabi_.d_time_);
+                    tocabi_.link_[Left_Hand].w_traj_local = vc.des_vel.segment(3, 3);
                 }
 
-                Vector2d p_ds1[step_number];
-                Vector2d v_ds1[step_number];
-                Vector2d a_ds1[step_number];
+                tocabi_.link_[Right_Hand].x_traj = tocabi_.link_[Upper_Body].xpos + tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Right_Hand].x_traj_local;
+                tocabi_.link_[Right_Hand].v_traj = tocabi_.link_[Upper_Body].v + tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Right_Hand].v_traj_local;
+                tocabi_.link_[Right_Hand].r_traj = tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Right_Hand].r_traj_local;
+                tocabi_.link_[Right_Hand].w_traj = tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Right_Hand].w_traj_local;
 
-                Vector2d p_ds2[step_number];
-                Vector2d v_ds2[step_number];
-                Vector2d a_ds2[step_number];
+                tocabi_.link_[Left_Hand].x_traj = tocabi_.link_[Upper_Body].xpos + tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Left_Hand].x_traj_local;
+                tocabi_.link_[Left_Hand].v_traj = tocabi_.link_[Upper_Body].v + tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Left_Hand].v_traj_local;
+                tocabi_.link_[Left_Hand].r_traj = tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Left_Hand].r_traj_local;
+                tocabi_.link_[Left_Hand].w_traj = tocabi_.link_[Upper_Body].Rotm * tocabi_.link_[Left_Hand].w_traj_local;
 
-                double ds_r1, ds_r2;
-
-                double ds_ratio = 0.1;
-
-                ds_r1 = ds_ratio / 2;
-                ds_r2 = 1 - ds_ratio / 2;
-
-                for (int i = 0; i < step_number; i++)
-                {
-                    p_ds1[i] = cosh(w * step_time * ds_r1) * pos_init_state[i] + 1 / w * sinh(w * step_time * ds_r1) * vel_init_state[i] + (1 - cosh(w * step_time * ds_r1)) * zmp[i];
-                    v_ds1[i] = w * sinh(w * step_time * ds_r1) * pos_init_state[i] + cosh(w * step_time * ds_r1) * vel_init_state[i] - w * sinh(w * step_time * ds_r1) * zmp[i];
-                    a_ds1[i] = w * w * cosh(w * step_time * ds_r1) * pos_init_state[i] + w * sinh(w * step_time * ds_r1) * vel_init_state[i] - w * w * cosh(w * step_time * ds_r1) * zmp[i];
-
-                    p_ds2[i] = cosh(w * step_time * ds_r2) * pos_init_state[i] + 1 / w * sinh(w * step_time * ds_r2) * vel_init_state[i] + (1 - cosh(w * step_time * ds_r2)) * zmp[i];
-                    v_ds2[i] = w * sinh(w * step_time * ds_r2) * pos_init_state[i] + cosh(w * step_time * ds_r2) * vel_init_state[i] - w * sinh(w * step_time * ds_r2) * zmp[i];
-                    a_ds2[i] = w * w * cosh(w * step_time * ds_r2) * pos_init_state[i] + w * sinh(w * step_time * ds_r2) * vel_init_state[i] - w * w * cosh(w * step_time * ds_r2) * zmp[i];
-                }
-
-                //zmp[step_number - 1] = (cp[step_number - 1] - cosh(w * step_time) * pos_init_state[step_number - 1] - 1 / w * sinh(w * step_time) * vel_init_state[step_number - 1]) / (1 - cosh(w * step_time));
-
-                int current_step = (int)((tocabi_.control_time_ - tc.command_time) / tc.traj_time);
-                if (current_step >= step_number)
-                    current_step = step_number;
-
-                double currnet_time_w = tocabi_.control_time_ - tc.command_time - (double)current_step * tc.traj_time;
-
-                if (current_step < step_number)
-                {
-                    tocabi_.link_[Pelvis].x_traj.segment(0, 2) = cosh(w * currnet_time_w) * pos_init_state[current_step] + 1 / w * sinh(w * currnet_time_w) * vel_init_state[current_step] + (1 - cosh(w * currnet_time_w)) * zmp[current_step];
-                    tocabi_.link_[Pelvis].v_traj.segment(0, 2) = w * sinh(w * currnet_time_w) * pos_init_state[current_step] + cosh(w * currnet_time_w) * vel_init_state[current_step] - w * sinh(w * currnet_time_w) * zmp[current_step];
-                    tocabi_.link_[Pelvis].a_traj.segment(0, 2) = w * w * cosh(w * currnet_time_w) * pos_init_state[current_step] + w * sinh(w * currnet_time_w) * vel_init_state[current_step] - w * w * cosh(w * currnet_time_w) * zmp[current_step];
-                    if (current_step == 0)
-                    {
-                        if (currnet_time_w > step_time * ds_r2)
-                        {
-                            Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
-                            cx_init.segment(0, 2) = p_ds2[current_step];
-                            cx_init(2) = tc.height;
-                            cv_init.segment(0, 2) = v_ds2[current_step];
-                            cv_init(2) = 0;
-                            ca_init.segment(0, 2) = a_ds2[current_step];
-                            ca_init(2) = 0;
-                            cx_des.segment(0, 2) = p_ds1[current_step + 1];
-                            cx_des(2) = tc.height;
-                            cv_des.segment(0, 2) = v_ds1[current_step + 1];
-                            cv_des(2) = 0;
-                            ca_des.segment(0, 2) = a_ds1[current_step + 1];
-                            ca_des(2) = 0;
-
-                            tocabi_.link_[Pelvis].Set_Trajectory_from_quintic(currnet_time_w, step_time * ds_r2, step_time * (1 + ds_r1), cx_init, cv_init, ca_init, cx_des, cv_des, ca_des);
-                        }
-                    }
-                    else if ((current_step > 0) && (current_step < (step_number - 1)))
-                    {
-                        if (currnet_time_w < step_time * ds_r1)
-                        {
-                            Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
-                            cx_init.segment(0, 2) = p_ds2[current_step - 1];
-                            cx_init(2) = tc.height;
-                            cv_init.segment(0, 2) = v_ds2[current_step - 1];
-                            cv_init(2) = 0;
-                            ca_init.segment(0, 2) = a_ds2[current_step - 1];
-                            ca_init(2) = 0;
-                            cx_des.segment(0, 2) = p_ds1[current_step];
-                            cx_des(2) = tc.height;
-                            cv_des.segment(0, 2) = v_ds1[current_step];
-                            cv_des(2) = 0;
-                            ca_des.segment(0, 2) = a_ds1[current_step];
-                            ca_des(2) = 0;
-
-                            tocabi_.link_[Pelvis].Set_Trajectory_from_quintic(currnet_time_w, -step_time * ds_r1, step_time * ds_r1, cx_init, cv_init, ca_init, cx_des, cv_des, ca_des);
-                        }
-                        else if (currnet_time_w > step_time * ds_r2)
-                        {
-                            Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
-                            cx_init.segment(0, 2) = p_ds2[current_step];
-                            cx_init(2) = tc.height;
-                            cv_init.segment(0, 2) = v_ds2[current_step];
-                            cv_init(2) = 0;
-                            ca_init.segment(0, 2) = a_ds2[current_step];
-                            ca_init(2) = 0;
-                            cx_des.segment(0, 2) = p_ds1[current_step + 1];
-                            cx_des(2) = tc.height;
-                            cv_des.segment(0, 2) = v_ds1[current_step + 1];
-                            cv_des(2) = 0;
-                            ca_des.segment(0, 2) = a_ds1[current_step + 1];
-                            ca_des(2) = 0;
-
-                            tocabi_.link_[Pelvis].Set_Trajectory_from_quintic(currnet_time_w, step_time * ds_r2, step_time * (1 + ds_r1), cx_init, cv_init, ca_init, cx_des, cv_des, ca_des);
-                        }
-                    }
-                    else if (current_step == (step_number - 1))
-                    {
-                        if (currnet_time_w < step_time * ds_r1)
-                        {
-                            Vector3d cx_init, cv_init, cx_des, cv_des, ca_init, ca_des;
-                            cx_init.segment(0, 2) = p_ds2[current_step - 1];
-                            cx_init(2) = tc.height;
-                            cv_init.segment(0, 2) = v_ds2[current_step - 1];
-                            cv_init(2) = 0;
-                            ca_init.segment(0, 2) = a_ds2[current_step - 1];
-                            ca_init(2) = 0;
-                            cx_des.segment(0, 2) = p_ds1[current_step];
-                            cx_des(2) = tc.height;
-                            cv_des.segment(0, 2) = v_ds1[current_step];
-                            cv_des(2) = 0;
-                            ca_des.segment(0, 2) = a_ds1[current_step];
-                            ca_des(2) = 0;
-
-                            tocabi_.link_[Pelvis].Set_Trajectory_from_quintic(currnet_time_w, -step_time * ds_r1, step_time * ds_r1, cx_init, cv_init, ca_init, cx_des, cv_des, ca_des);
-                        }
-                    }
-                }
-                else
-                {
-                    Vector3d cx_init, cv_init, cx_des, cv_des;
-                    cx_init.segment(0, 2) = pos_init_state[step_number];
-                    cx_init(2) = tc.height;
-                    cv_init.segment(0, 2) = vel_init_state[step_number];
-                    cv_init(2) = 0;
-                    cx_des.segment(0, 2) = cp[step_number - 1];
-                    cx_des(2) = tc.height;
-                    cv_des.setZero();
-                    tocabi_.link_[Pelvis].Set_Trajectory_from_quintic(currnet_time_w, 0, step_time, cx_init, cv_init, cx_des, cv_des);
-                    //tocabi_.link_[COM_id].v_traj.segment(0, 2).setZero();
-                    //tocabi_.link_[COM_id].a_traj.segment(0, 2).setZero();
-                }
-
-                //for (int i =)
-
-                tocabi_.link_[Pelvis].x_traj(2) = tc.height;
-
-                tocabi_.link_[Pelvis].rot_desired = Matrix3d::Identity();
-                tocabi_.link_[Pelvis].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-                tocabi_.link_[Upper_Body].rot_desired = Matrix3d::Identity();
-                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
-
-                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, Pelvis);
-                //std::cout << "R_ fstar 0 :" << tocabi_.f_star(0) << " \t1: " << tocabi_.f_star(1) << " \t2: " << tocabi_.f_star(2) << " \ta: " << tocabi_.link_[COM_id].a_traj(1) << " \tx: " << tocabi_.link_[COM_id].x_traj(1) << " \tv: " << tocabi_.link_[COM_id].v_traj(1) <<" \tv: " << tocabi_.link_[COM_id].xpos(1) << std::endl;
+                tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Right_Hand);
+                tocabi_.f_star.segment(15, 6) = wbc_.getfstar6d(tocabi_, Left_Hand);
+
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
-                torque_grav.setZero(); // = wbc_.gravity_compensation_torque(tocabi_);
-                cr_mode = tc.contactredis;
 
-                tocabi_.link_[COM_id].a_traj = tocabi_.link_[Pelvis].a_traj;
-
-                Vector12d cf_ = wbc_.get_contact_force(tocabi_, torque_task);
-                std::cout << " l : " << cf_(3) / cf_(2) << " r : " << cf_(9) / cf_(8) << std::endl;
+                torque_grav.setZero();
             }
             else if (tc.mode >= 10)
             {
-                cr_mode = 2;
+                tocabi_.contact_redistribution_mode = 2;
 
                 if (tc_command == true)
                 {
@@ -1245,39 +1342,62 @@ void TocabiController::dynamicsThreadLow()
 
             //std::cout << "q_ext - q_int of R_hip Roll : " << dc.q_(7) - dc.q_ext_(7) << std::endl;
             //std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
+            if (dc.print_data_ready)
+            {
+                dc.data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
+            }
+            tocabi_.TaskForce = tocabi_.lambda * tocabi_.f_star;
+
+            for (int i = 0; i < tocabi_.TaskForce.size(); i++)
+            {
+                if (tocabi_.TaskForce(i) > 300)
+                {
+                    std::cout << cyellow << control_time_ << " : task force warning detected. at " << i << ", " << tocabi_.TaskForce(i) << creset << std::endl;
+
+                    std::cout << "pelv z : " << tocabi_.link_[Pelvis].xpos(2) << "  \tcom xpos : " << tocabi_.link_[COM_id].xpos(2) << "  \tcom x traj : " << tocabi_.link_[COM_id].x_traj(2) << "  \tcom v : " << tocabi_.link_[COM_id].v(2) << "  \tcom v traj : " << tocabi_.link_[COM_id].v_traj(2) << std::endl;
+
+                    dc.tc_state = 1;
+                    if (tocabi_.TaskForce(i) > 1000)
+                    {
+                        std::cout << cred << " task force limit approach. task control disabled. " << creset << std::endl;
+                        dc.signal_gravityCompensation = true;
+                        dc.tc_state = 2;
+                    }
+                }
+            }
+            //std::cout << control_time_ << " COM Fy : " << Fs(1) << std::endl;
         }
         else
         {
             wbc_.set_contact(tocabi_);
             tp[3] = std::chrono::steady_clock::now();
             torque_grav = wbc_.gravity_compensation_torque(tocabi_);
-            cr_mode = 0;
             //torque_grav = wbc_.task_control_torque_QP_gravity(red_);
         }
 
         tp[4] = std::chrono::steady_clock::now();
         TorqueDesiredLocal = torque_grav + torque_task;
-        
-        if (dc.torqueredis)
-        {
-            dc.torqueredis = false;
-            cr_mode++;
-            if (cr_mode > 2)
-                cr_mode = 0;
 
-            if (cr_mode == 0)
+        if (dc.signal_contactTorqueRedistribution)
+        {
+            dc.signal_contactTorqueRedistribution = false;
+            tocabi_.contact_redistribution_mode++;
+            if (tocabi_.contact_redistribution_mode > 2)
+                tocabi_.contact_redistribution_mode = 0;
+
+            if (tocabi_.contact_redistribution_mode == 0)
                 std::cout << "contact torque redistribution by yslee " << std::endl;
-            else if (cr_mode == 1)
+            else if (tocabi_.contact_redistribution_mode == 1)
                 std::cout << "contact torque redistribution by qp " << std::endl;
-            else if (cr_mode == 2)
+            else if (tocabi_.contact_redistribution_mode == 2)
                 std::cout << "contact torque redistribution disabled " << std::endl;
         }
 
-        if (cr_mode == 0)
+        if (tocabi_.contact_redistribution_mode == 0)
         {
             TorqueContact = wbc_.contact_force_redistribution_torque(tocabi_, TorqueDesiredLocal, fc_redis, fc_ratio);
         }
-        else if (cr_mode == 1)
+        else if (tocabi_.contact_redistribution_mode == 1)
         {
             TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
@@ -1308,6 +1428,12 @@ void TocabiController::dynamicsThreadLow()
 
         tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
 
+        tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
+
+        double qddot_err_size = (tocabi_.q_ddot_estimate_ - tocabi_.q_ddot_virtual_.segment(6, MODEL_DOF)).norm();
+
+        //std::cout << control_time_ << "qddot error : " << tocabi_.q_dot_diff_(5) / 0.0005 << " q_ddot from sim : " << tocabi_.q_ddot_virtual_(5) << " qddotes size : " << tocabi_.q_ddot_estimate_(5) << std::endl;
+
         tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
         tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);
 
@@ -1315,8 +1441,6 @@ void TocabiController::dynamicsThreadLow()
         tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81;
         tocabi_.ZMP_eqn_calc(1) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81 + tocabi_.com_.angular_momentum(0) / (tocabi_.com_.mass * 9.81);
         tocabi_.ZMP_eqn_calc(2) = 0.0;
-
-        //pubfromcontroller();
 
         //std::cout << "ZMP desired : " << tocabi_.ZMP_desired(1) << "\tZMP ft : " << tocabi_.ZMP_ft(1) << "\tZMP error : " << tocabi_.ZMP_error(1) << std::endl;
         //std::cout << "zmp error x : "<< zmp1(0) <<"  y : "<< zmp1(1)<<std::endl;
@@ -1383,7 +1507,6 @@ void TocabiController::customgainhandle()
         tocabi_.link_[Left_Hand].acc_p_gain = Vector3d::Ones() * tc.acc_p;
     }
 }
-
 void TocabiController::tuiThread()
 {
     int ch;
@@ -1422,10 +1545,6 @@ void TocabiController::tuiThread()
                 pub_ = false;
             }*/
         }
-
-        if (control_time_ != before_time)
-            if (dc.mode != "ethercattest")
-                pubfromcontroller();
 
         ch = kbhit();
         //kch = -1;
@@ -1499,6 +1618,22 @@ void TocabiController::tuiThread()
             }
         }
 
+        if (dc.open_file_for_print && !dc.print_data_ready)
+        {
+            dc.data_out = std::ofstream(dc.print_file_name.c_str());
+            if (dc.data_out.is_open())
+            {
+                std::cout << "Start Logging Data .... to " << dc.print_file_name << std::endl;
+                dc.data_out << "Start Data Print" << std::endl;
+                dc.print_data_ready = true;
+            }
+            else
+            {
+                std::cout << "Failed to open tocabi_data.txt" << std::endl;
+            }
+            dc.open_file_for_print = false;
+        }
+
         //AURA CONTROL PART
 
         static bool safetymode_led = false;
@@ -1506,7 +1641,7 @@ void TocabiController::tuiThread()
         int tg1 = 255 * dc.t_gain;
         int tg2 = (255 - 63) * dc.t_gain;
 
-        dc.rgbPubMsg.data = {tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1, 0, 0};
+        dc.rgbPubMsg.data = {0, 0, tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1};
         dc.rgbPub.publish(dc.rgbPubMsg);
 
         if (dc.safetyison)
@@ -1568,18 +1703,26 @@ void TocabiController::getState()
     //q_dot_virtual_ = dc.q_dot_virtual_;
     //q_ddot_virtual_ = dc.q_ddot_virtual_;
     torque_ = dc.torque_;
+    tocabi_.d_time_ = dc.time - tocabi_.control_time_;
     tocabi_.control_time_ = dc.time;
     tocabi_.q_ = dc.q_;
     tocabi_.q_virtual_ = dc.q_virtual_;
     tocabi_.q_dot_ = dc.q_dot_;
     tocabi_.q_dot_virtual_ = dc.q_dot_virtual_;
     tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
+    tocabi_.q_dot_diff_ = tocabi_.q_dot_ - tocabi_.q_dot_before_;
+    tocabi_.q_dot_ = tocabi_.q_dot_before_;
+    tocabi_.q_dot_virtual_lpf_ = dc.q_dot_virtual_lpf;
 
     static bool first_run = true;
     if (first_run)
     {
         for (int i = 0; i < LINK_NUMBER + 1; i++)
         {
+            dc.link_[i].pos_p_gain = tocabi_.link_[i].pos_p_gain;
+            dc.link_[i].pos_d_gain = tocabi_.link_[i].pos_d_gain;
+            dc.link_[i].rot_p_gain = tocabi_.link_[i].rot_p_gain;
+            dc.link_[i].rot_d_gain = tocabi_.link_[i].rot_d_gain;
 
             tocabi_.link_[i] = dc.link_[i];
         }
@@ -1628,11 +1771,11 @@ void TocabiController::trajectoryplannar()
         std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
         time_from_begin = (t_begin1 - t_begin);
 
-        if (task_switch)
+        if (tocabi_.task_control_switch)
         {
             if (tc.mode >= 10)
             {
-                cr_mode = 2;
+                tocabi_.contact_redistribution_mode = 2;
 
                 if (tc_command == true)
                 {

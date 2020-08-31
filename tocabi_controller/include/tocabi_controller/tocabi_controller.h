@@ -12,6 +12,7 @@ public:
   DataContainer &dc;
   CustomController &mycontroller;
   TaskCommand tc;
+  VelCommand vc;
 
   WholebodyController wbc_;
   Walking_controller wkc_;
@@ -24,22 +25,20 @@ public:
   void testThread();
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
+  void TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg);
+  void VelocityCommandCallback(const tocabi_controller::VelocityCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
   void gettaskcommand(tocabi_controller::TaskCommand &msg);
-  void pubfromcontroller();
   void customgainhandle();
+  void CPpatternGen();
 
   ros::Subscriber task_command;
   ros::Subscriber task_command_que;
+  ros::Subscriber taskgain_sub;
+  ros::Subscriber vel_command_sub;
 
   tocabi_controller::TaskCommandQue tque_msg;
-  std::ofstream data_out;
-
-  ros::Publisher point_pub;
-  ros::Publisher point_pub2;
-  geometry_msgs::PolygonStamped pointpub_msg;
-  geometry_msgs::PolygonStamped pointpub2_msg;
 
 private:
   void getState();
@@ -97,7 +96,6 @@ private:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv_;
   Com com_;
-  int cr_mode;
 
   //////////dg custom controller variables////////
   void setWalkingParameter(double walking_duration, double walking_speed, double step_width, double knee_target_angle);

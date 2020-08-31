@@ -131,14 +131,14 @@ const double NM2CNT[ELMO_DOF] =
         15.5, //shoulder1
         3.3,  //Waist
         3.3,
-        5.8, //rightLeg
+        3.0, //rightLeg
         4.3,
         3.8,
         3.46,
         4.5,
         12.33,
         3.3, //upperbody
-        5.8, //leftLeg
+        3.0, //leftLeg
         4.3,
         3.8,
         3.46,
@@ -234,52 +234,52 @@ using namespace std;
 
 namespace EtherCAT_Elmo
 {
-enum MODE_OF_OPERATION
-{
-    ProfilePositionmode = 1,
-    ProfileVelocitymode = 3,
-    ProfileTorquemode = 4,
-    Homingmode = 6,
-    InterpolatedPositionmode = 7,
-    CyclicSynchronousPositionmode = 8,
-    CyclicSynchronousVelocitymode = 9,
-    CyclicSynchronousTorquemode = 10,
-    CyclicSynchronousTorquewithCommutationAngle = 11
-};
+    enum MODE_OF_OPERATION
+    {
+        ProfilePositionmode = 1,
+        ProfileVelocitymode = 3,
+        ProfileTorquemode = 4,
+        Homingmode = 6,
+        InterpolatedPositionmode = 7,
+        CyclicSynchronousPositionmode = 8,
+        CyclicSynchronousVelocitymode = 9,
+        CyclicSynchronousTorquemode = 10,
+        CyclicSynchronousTorquewithCommutationAngle = 11
+    };
 
-struct ElmoGoldDevice
-{
-    struct elmo_gold_tx
+    struct ElmoGoldDevice
     {
-        int32_t targetPosition;
-        int32_t targetVelocity;
-        int16_t targetTorque;
-        uint16_t maxTorque;
-        uint16_t controlWord;
-        int8_t modeOfOperation;
+        struct elmo_gold_tx
+        {
+            int32_t targetPosition;
+            int32_t targetVelocity;
+            int16_t targetTorque;
+            uint16_t maxTorque;
+            uint16_t controlWord;
+            int8_t modeOfOperation;
+        };
+        struct elmo_gold_rx
+        {
+            int32_t positionActualValue;
+            //int32_t positionFollowingErrrorValue;
+            uint32_t hommingSensor;
+            uint16_t statusWord;
+            //int8_t modeOfOperationDisplay;
+            int32_t velocityActualValue;
+            int16_t torqueActualValue;
+            //int16_t torqueDemandValue;
+            int32_t positionExternal;
+        };
     };
-    struct elmo_gold_rx
-    {
-        int32_t positionActualValue;
-        //int32_t positionFollowingErrrorValue;
-        uint32_t hommingSensor;
-        uint16_t statusWord;
-        //int8_t modeOfOperationDisplay;
-        int32_t velocityActualValue;
-        int16_t torqueActualValue;
-        //int16_t torqueDemandValue;
-        int32_t positionExternal;
-    };
-};
 } // namespace EtherCAT_Elmo
 
 namespace ElmoHommingStatus
 {
-enum FZResult
-{
-    SUCCESS = 11,
-    FAILURE = 22
-};
+    enum FZResult
+    {
+        SUCCESS = 11,
+        FAILURE = 22
+    };
 }; // namespace ElmoHommingStatus
 
 struct ElmoHomming
@@ -373,9 +373,12 @@ public:
 
     int ElmoMode[ELMO_DOF];
     bool checkPosSafety[ELMO_DOF];
+
+    double ELMO_NM2CNT[ELMO_DOF];
     //int ElmoState[ELMO_DOF];
     //int ElmoState_before[ELMO_DOF];
     fstream file_homming;
+    fstream ft_sensor;
     fstream elmo_zp;
     fstream elmo_zp_log;
     std::string zp_path, zplog_path, pack_path;

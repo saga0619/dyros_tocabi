@@ -10,6 +10,79 @@
 
 extern std::mutex mtx_rbdl;
 
+struct VelCommand
+{
+  int link_;
+  Eigen::Vector6d des_vel;
+  
+  bool used_;
+};
+
+struct TaskCommand
+{
+  double command_time;
+  double traj_time;
+  bool task_init;
+  int mode;
+  // COM Related
+  double ratio;
+  double height;
+  double pelv_pitch;
+  double roll;
+  double pitch;
+  double yaw;
+  // Arm Related
+  double l_x;
+  double l_y;
+  double l_z;
+  double l_roll;
+  double l_pitch;
+  double l_yaw;
+  double r_x;
+  double r_y;
+  double r_z;
+  double r_roll;
+  double r_pitch;
+  double r_yaw;
+
+  int solver;
+  int contactredis;
+
+  double init_com_height;
+
+  //Walking Related
+  int walking_enable;
+  int ik_mode;
+  int walking_pattern;
+  int walking_pattern2;
+  int foot_step_dir;
+  double target_x;
+  double target_y;
+  double target_z;
+  double theta;
+  double walking_height;
+  double step_length_x;
+  double step_length_y;
+  bool dob;
+  bool imu_walk;
+
+  //taskgain
+  bool custom_taskgain;
+  double pos_p;
+  double pos_d;
+  double ang_p;
+  double ang_d;
+  double acc_p;
+};
+
+class TQue
+{
+public:
+  bool update;
+  //std::string text;
+  char text[256];
+};
+
 struct Com
 {
   double mass;
@@ -19,7 +92,7 @@ struct Com
   Eigen::Vector3d angular_momentum;
   Eigen::Vector2d ZMP;
   Eigen::Vector2d CP;
-  Eigen::MatrixXd Jac;
+  Eigen::Matrix6Vd Jac;
 };
 
 class Link
@@ -29,10 +102,10 @@ public:
   void initialize(RigidBodyDynamics::Model &model_, int id_, std::string name_, double mass, Eigen::Vector3d &local_com_position);
 
   // Update COM jacobian
-  void COM_Jac_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_);
+  void COM_Jac_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_);
 
   // Update xpos, xipos, rotm.
-  void pos_Update(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_);
+  void pos_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_);
 
   // Set Contact point, Contact jacobian
   void Set_Contact(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position);
@@ -40,14 +113,17 @@ public:
   // Set Contact point, Contact jacobian
   void Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position);
 
+  // Set Contact point, Contact jacobian
+  void Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &Contact_position);
+
   // Set Sensor Position
   void Set_Sensor_Position(Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Sensor_position);
 
   // update Jacobian matrix of local position at link.
-  void Set_Jacobian(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
+  void Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
 
   // update link velocity(6D, translation and rotation) from jacobian matrix Jac.
-  void vw_Update(Eigen::VectorVQd &q_dot_virtual);
+  void vw_Update(const Eigen::VectorVQd &q_dot_virtual);
 
   // set link Trajectory of id i.
   void Set_Trajectory(Eigen::Vector3d position_desired, Eigen::Vector3d velocity_desired, Eigen::Matrix3d rotation_desired, Eigen::Vector3d rotational_velocity_desired);
@@ -87,7 +163,13 @@ public:
   // set link initial position and rotation. initial position for task control.
   void Set_initpos();
 
+  void Set_initpos_local();
+
+  void Set_initTask();
+
   bool Check_name(RigidBodyDynamics::Model &model_);
+
+  void Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D);
 
   //constant variables
   int id;
@@ -125,6 +207,12 @@ public:
   //cartesian velocity of body
   Eigen::Vector3d v;
 
+  //cartesian velocity of contact point at body
+  Eigen::Vector3d v_contact;
+
+  //cartesian velocity of contact point at body
+  Eigen::Vector3d w_contact;
+
   //rotational velocity of body
   Eigen::Vector3d w;
 
@@ -152,9 +240,26 @@ public:
   Eigen::Matrix3d r_traj;
   Eigen::Vector3d w_traj;
 
+  Eigen::Vector3d x_traj_local;
+  Eigen::Vector3d v_traj_local;
+  Eigen::Matrix3d r_traj_local;
+  Eigen::Vector3d w_traj_local;
+
   Eigen::Vector3d x_init;
   Eigen::Vector3d v_init;
   Eigen::Matrix3d rot_init;
+  Eigen::Vector3d w_init;
+
+  Eigen::Vector3d x_init_local;
+  Eigen::Vector3d v_init_local;
+  Eigen::Matrix3d rot_init_local;
+  Eigen::Vector3d w_init_local;
+
+  Eigen::Vector3d x_task_init;
+  Eigen::Vector3d v_task_init;
+  Eigen::Vector3d a_task_init;
+  Eigen::Matrix3d r_task_init;
+  Eigen::Vector3d w_task_init;
 
   Eigen::Vector3d x_desired;
   Eigen::Matrix3d rot_desired;
@@ -169,7 +274,6 @@ public:
 
 private:
   Eigen::MatrixXd j_temp;
-  Eigen::MatrixXd j_temp2;
 };
 
 class EndEffector
@@ -206,7 +310,7 @@ public:
   //PositionPDGain
   double Kps[MODEL_DOF];
   double Kvs[MODEL_DOF];
-  std::vector<double> vector_kp, vector_kv;
+  std::vector<double> vector_kp, vector_kv, vector_NM2CNT;
 
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
@@ -216,7 +320,13 @@ public:
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
+  Eigen::VectorVQd q_dot_virtual_lpf_;
   Eigen::VectorQd q_ext_;
+
+  Eigen::VectorQd q_dot_before_;
+  Eigen::VectorQd q_dot_diff_;
+  
+  Eigen::VectorQd q_ddot_estimate_;
 
   Eigen::VectorXd ContactForce;
   Eigen::Vector12d ContactForce_FT;
@@ -231,10 +341,12 @@ public:
   Eigen::Vector3d ZMP_command;
   Eigen::Vector3d ZMP_mod;
 
+  Eigen::VectorXd TaskForce;
+
   bool zmp_feedback_control = false;
   bool check = false;
   bool qp2nd = false;
-  bool yaw_init_swc = false;
+  bool signal_yaw_init = false;
   Eigen::Vector3d fstar;
 
   //bool contact_[ENDEFFECTOR_NUMBER] = {true, true};
@@ -283,6 +395,7 @@ public:
 
   Eigen::MatrixXd J_task;
   Eigen::VectorXd f_star;
+  Eigen::VectorXd f_star_a_;
 
   Eigen::MatrixXd Lambda_c;
   Eigen::MatrixXd N_C;
@@ -312,6 +425,10 @@ public:
   Eigen::Vector3d ZMP_pos;
 
   Eigen::Vector3d imu_pos_;
+  Eigen::Vector3d imu_vel_;
+
+  //contact redistribution mode selector. 0 : yslee 1: qp 2: off
+  int contact_redistribution_mode = 0;
 
   double fc_redis;
 
@@ -321,6 +438,7 @@ public:
   bool zmp_control;
   bool mpc_init;
   bool showdata;
+  bool task_control_switch = false;
 
   RigidBodyDynamics::Model model_virtual;
 };

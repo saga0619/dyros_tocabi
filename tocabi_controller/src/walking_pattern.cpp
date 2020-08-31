@@ -323,19 +323,20 @@ void WalkingPattern::footStepTotal()
 
     Eigen::Isometry3d temp_;
     temp_.linear() = PELV_first_init.linear();
-    temp_.translation().setZero();
+    temp_.translation() = PELV_first_init.translation();
 
   for(int i = 0; i < numberOfFootstep; i++)
   {
       if(foot_step(i,6) == 1)
       {
-          foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
+         foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
+          foot_step(i,1) = (temp_.inverse()*RF_fisrt_init).translation()(1);
       }
       else
       {
           foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*LF_fisrt_init).translation()(0);
+          foot_step(i,1) = (temp_.inverse()*LF_fisrt_init).translation()(1);
       }
-      foot_step(i,1) = foot_step(i,1) + (temp_.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
   }
 }
 
@@ -445,6 +446,8 @@ void WalkingPattern::cpReferencePatternGeneration()
   capturePoint_refy.resize((t_total*(total_step_num+1)+t_temp-1));
   com_refx.resize((t_total*(total_step_num+1)+t_temp-1));
   com_refy.resize((t_total*(total_step_num+1)+t_temp-1));
+  com_refdx.resize((t_total*(total_step_num+1)+t_temp-1));
+  com_refdy.resize((t_total*(total_step_num+1)+t_temp-1));
   zmp_refx.resize((t_total*(total_step_num+1)+t_temp-1));
   zmp_refy.resize((t_total*(total_step_num+1)+t_temp-1));
 
@@ -540,17 +543,33 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.03;
+        capturePoint_offsety(i) = 0.00;
+      //  capturePoint_offsety(i) = 0.01;
         capturePoint_offsetx(i) = 0.00;
     }
-    capturePoint_ox(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
-    capturePoint_oy(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
 
-    capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1) + 0.05;
-    capturePoint_oy(total_step_num + 1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
-    capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2) + 0.05;
-    capturePoint_oy(total_step_num + 2) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
+    if(com_control == 0)
+    {
+        capturePoint_ox(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
+        capturePoint_oy(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
 
+        capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1) + 0.05;
+        capturePoint_oy(total_step_num + 1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
+        capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2) + 0.05;
+        capturePoint_oy(total_step_num + 2) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
+    }
+    else
+    {
+        capturePoint_ox(0) = (PELV_first_init.inverse()*COM_float_init).translation()(0);
+        capturePoint_oy(0) = (PELV_first_init.inverse()*COM_float_init).translation()(1);
+
+        capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1) + 0.05;
+        capturePoint_oy(total_step_num + 1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
+        capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2) + 0.05;
+        capturePoint_oy(total_step_num + 2) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
+    }
+
+   
     for(int i = 0; i<total_step_num; i++)
     {
         if(foot_step(0,6)==0) //right support
@@ -612,11 +631,23 @@ void WalkingPattern::cptoComTrajectory()
         {
             com_refx(i) = lipm_w/Hz_*capturePoint_refx(i)+(1-lipm_w/Hz_)*com_refx(i-1);
             com_refy(i) = lipm_w/Hz_*capturePoint_refy(i)+(1-lipm_w/Hz_)*com_refy(i-1);
+            com_refdx(i) = (com_refx(i) - com_refx(i-1))*Hz_;
+            com_refdy(i) = (com_refy(i) - com_refy(i-1))*Hz_;
         }
         else
         {   
-            com_refx(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
-            com_refy(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
+            if(com_control == 0)
+            {
+                com_refx(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
+                com_refy(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
+            }
+            else
+            {
+                com_refx(i) = (PELV_float_init.inverse()*COM_float_init).translation()(0);
+                com_refy(i) = (PELV_float_init.inverse()*COM_float_init).translation()(1);
+            }
+            com_refdx(i) = 0.0;
+            com_refdy(i) = 0.0;
         }    
     }
 }
@@ -639,6 +670,7 @@ void WalkingPattern::setComTrajectory()
     zmp_desired(1) = zmp_refy(walking_tick);  
     xyd(3) = 1.0;
     xyd = GlobaltoLocal_current * xyd;
+    
     if(current_step_num == 0)
     {
         xd(0) = com_refx(walking_tick);
@@ -647,6 +679,7 @@ void WalkingPattern::setComTrajectory()
     {
         xd(0) = xyd(0);
     }
+
     yd(0) = xyd(1);
 
     if(walking_tick == 0)
@@ -736,8 +769,8 @@ void WalkingPattern::setPelvisTrajectory()
     //Trunk Position
     if(com_control_mode == true)
     {
-        PELV_trajectory_support.translation()(0) = com_desired(0);// PELV_support_current.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
-        PELV_trajectory_support.translation()(1) = com_desired(1);//PELV_support_current.translation()(1); //+ pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
+      //  PELV_trajectory_support.translation()(0) = PELV_float_current.translation()(0) + pelvis_pgain*(com_refx(walking_tick)-COM_float_current.translation()(0))//com_desired(0);// PELV_support_current.translation()(0) + pelvis_pgain*(com_desired(0) - COM_support_current.translation()(0));
+      //  PELV_trajectory_support.translation()(1) = PELV_float_current.translation()(1) + pelvis_pgain*(com_refy(walking_tick)-COM_float_current.translation()(1))//com_desired(1);//PELV_support_current.translation()(1); //+ pelvis_pgain*(com_desired(1) - COM_support_current.translation()(1));
         //PELV_trajectory_support.translation()(2) = PELV_firstinit(2);//PELV_support_current.translation()(2);// + pelvis_pgain*(com_desired(2) - COM_support_current.translation()(2));
     }
     else
@@ -1023,6 +1056,7 @@ void WalkingPattern::setFootTrajectory()
 
 void WalkingPattern::supportToFloatPattern()
 {
+    double kp = 1.8;
     if(gyro_frame_flag == true)
     {
         Eigen::Isometry3d reference = PELV_trajectory_float;
@@ -1034,21 +1068,18 @@ void WalkingPattern::supportToFloatPattern()
     }
     else
     {   
-        PELV_trajectory_float.translation()(0)= com_refx(walking_tick);
-        PELV_trajectory_float.translation()(1)= com_refy(walking_tick);
-        PELV_trajectory_float.translation()(2) = 0.0;      
-        
-        
-
-        PELV_trajectory_float.linear().setIdentity();
-
-     /*   if(walking_tick <= t_temp)
+        if(com_control == 0)
         {
-            Eigen::Isometry3d temp;
-            temp.linear() = PELV_first_init.linear();
-            temp.translation().setZero();
-            PELV_trajectory_float = temp.inverse()*PELV_trajectory_float;
-        }*/
+            PELV_trajectory_float.translation()(0)= com_refx(walking_tick);
+            PELV_trajectory_float.translation()(1)= com_refy(walking_tick);
+        }
+        else
+        {
+            PELV_trajectory_float.translation()(0)= (PELV_first_init.inverse()*PELV_float_current).translation()(0) + kp*(com_refx(walking_tick)-COM_float_current.translation()(0));//(PELV_first_init.inverse()*COM_float_current).translation()(0));
+            PELV_trajectory_float.translation()(1)= (PELV_first_init.inverse()*PELV_float_current).translation()(1) + kp*(com_refy(walking_tick)-COM_float_current.translation()(1));//(PELV_first_init.inverse()*COM_float_current).translation()(1));
+        }
+        PELV_trajectory_float.translation()(2) = 0.0;      
+        PELV_trajectory_float.linear().setIdentity();
     }
 }
 

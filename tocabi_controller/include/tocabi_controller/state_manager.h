@@ -4,10 +4,12 @@
 #include "tocabi_controller/data_container.h"
 #include "tocabi_controller/terminal.h"
 #include "tocabi_controller/MotorInfo.h"
-#include "geometry_msgs/PolygonStamped.h"
-#include "visualization_msgs/MarkerArray.h"
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/TaskCommandQue.h"
+#include "tocabi_controller/TaskGainCommand.h"
+#include "tocabi_controller/VelocityCommand.h"
+#include "geometry_msgs/PolygonStamped.h"
+#include "visualization_msgs/MarkerArray.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
@@ -31,18 +33,22 @@ public:
   virtual ~StateManager() {}
   DataContainer &dc;
   virtual void connect();
-  virtual void stateThread();  //main thread managing state
-  virtual void stateThread2(); //main thread managing state
+  virtual void stateThread(); //main thread managing state
   virtual void updateState();
   //virtual void sendCommand(Eigen::VectorQd command);
   virtual void sendCommand(Eigen::VectorQd command, double sim_time, int control_mode = Torquemode);
 
   //initialize variables
   virtual void initialize();
+
+  void handleFT();
+
   //store data at container
   void storeState();
 
   void storeSync();
+
+  void contactEstimate();
 
   void stateEstimate();
   //private functions
@@ -51,13 +57,19 @@ public:
   void adv2ROS();
 
   //update kinematic information with RBDL
-  void updateKinematics(RigidBodyDynamics::Model &model_l, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
+  void updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
 
   //testThread to test multithread
   void testThread();
 
   void initYaw();
   //private variables
+
+  void imuCompenstation();
+
+  void qdotLPF();
+
+  void sendStateToGui();
 
   //Set Position Joint PD Gain
   void SetPositionPDGainMatrix();
@@ -78,15 +90,24 @@ public:
   Eigen::VectorQd q_ddot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
+  Eigen::VectorVQd q_dot_virtual_lpf_before;
   Eigen::VectorVQd q_dot_virtual_raw_;
   Eigen::VectorVQd q_dot_virtual_before;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_lpf_;
+  Eigen::VectorVQd q_ddot_virtual_before_;
   Eigen::VectorQd torque_;
   Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;
   Eigen::VectorVQd tau_nonlinear_;
 
+  Eigen::VectorQVQd q_virtual_local_;
+  Eigen::VectorVQd q_dot_virtual_local_;
+  Eigen::VectorVQd q_ddot_virtual_local_;
+
+  Eigen::MatrixVVd Motor_inertia_;
+  Eigen::MatrixVVd Motor_inertia_inv;
+  
   double roll, pitch, yaw;
   double yaw_radian;
   double yaw_init;
@@ -101,10 +122,20 @@ public:
   RigidBodyDynamics::Model model_2;
 
   Link link_[LINK_NUMBER + 1];
+  Link link_local[LINK_NUMBER + 1];
   Com com_;
 
   Eigen::Vector6d RF_FT, LF_FT, LH_FT, RH_FT;
+  Eigen::Vector6d RF_CF_FT, LF_CF_FT;
+  Eigen::Vector6d RF_CF_FT_local, LF_CF_FT_local;
 
+  Eigen::Vector2d RF_FT_ZMP_local, LF_FT_ZMP_local;
+  Eigen::Vector3d RF_CP_est, LF_CP_est;
+
+  bool RF_Contact, LF_Contact;
+  
+
+  double rf_s_ratio, lf_s_ratio;
   std::chrono::steady_clock::time_point st_start_time;
 
   Eigen::Vector4d imu_quat;
@@ -113,7 +144,9 @@ public:
   Eigen::Vector3d pelv_lin_acc;
   Eigen::Vector3d imu_lin_acc_before;
   Eigen::Vector3d imu_lin_acc_lpf;
-  
+
+  Eigen::Vector3d Real_Vel;
+  Eigen::Vector3d Real_Pos;
 
   //Communication Subscriber!
 
@@ -124,7 +157,6 @@ public:
   ros::Publisher motor_info_pub;
   ros::Publisher motor_acc_dif_info_pub;
   ros::Publisher point_pub;
-  ros::Publisher point_pub2;
   ros::Publisher gui_state_pub;
 
   ros::Publisher ft_viz_pub;
