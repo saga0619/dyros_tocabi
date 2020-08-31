@@ -1059,11 +1059,17 @@ void Walking_controller::momentumControl(RobotData &Robot)
 
     A.setIdentity();
 
-    for(int i=0; i<constraint_size; i++)
+    for(int i=0; i<3; i++)
     {
-        lbA(i) = -2.0;
-        ubA(i) = 2.0;
+        lbA(i) = (-0.3 - q_w(i))*Hz_;
+        ubA(i) = (0.3 - q_w(i))*Hz_;
     }
+
+    lbA(3) = (0.0 - q_w(3))*Hz_;
+    ubA(3) = (0.6 - q_w(3))*Hz_;
+
+    lbA(4) = (-0.6 - q_w(4))*Hz_;
+    ubA(4) = (0.0 - q_w(4))*Hz_;
 
     for(int i=0; i<variable_size; i++)
     {
@@ -1071,7 +1077,7 @@ void Walking_controller::momentumControl(RobotData &Robot)
         ub(i) = 2.0;
     }
 
-std::cout << lb << std::endl;
+    std::cout << lb << std::endl;
     QP_m.EnableEqualityCondition(0.001);
     QP_m.UpdateMinProblem(H, g);
     QP_m.UpdateSubjectToAx(A, lbA, ubA);
