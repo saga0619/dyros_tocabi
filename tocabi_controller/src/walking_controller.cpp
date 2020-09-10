@@ -1062,8 +1062,11 @@ void Walking_controller::momentumControl(RobotData &Robot)
     }
 
     double beta, beta1;
-    beta = 0.1;
+    beta = 0.2;
     beta1 = 0.1;
+
+  /*  beta =0.0;
+    beta1 = 0.0;*/
     I.setIdentity();
 
     for(int i = 0; i<5; i++)
@@ -1106,9 +1109,8 @@ std::cout << Ag_armR << std::endl;
     }
 
     lbA(3) = (0.15 - q_w(3))*Hz_;
-    ubA(3) = (0.4 - q_w(3))*Hz_;
-
-    lbA(4) = (-0.4 - q_w(4))*Hz_;
+    ubA(3) = (0.45 - q_w(3))*Hz_;
+    lbA(4) = (-0.45 - q_w(4))*Hz_;
     ubA(4) = (-0.15 - q_w(4))*Hz_;
 
     for(int i=0; i<variable_size; i++)
