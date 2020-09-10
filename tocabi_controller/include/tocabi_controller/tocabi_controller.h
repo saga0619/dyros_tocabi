@@ -33,6 +33,7 @@ public:
   void gettaskcommand(tocabi_controller::TaskCommand &msg);
   void customgainhandle();
   void CPpatternGen();
+  Eigen::Vector3d velRegulation(Eigen::Vector3d traj_before, Eigen::Vector3d traj_now, Eigen::Vector3d acc_max);
 
   ros::Subscriber task_command;
   ros::Subscriber task_command_que;

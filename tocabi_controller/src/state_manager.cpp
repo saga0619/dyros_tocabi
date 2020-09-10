@@ -118,6 +118,8 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
             total_mass += link_[i].Mass;
         }
 
+        
+
         link_[Right_Foot].contact_point << 0.03, 0, -0.1585;
         link_[Right_Foot].sensor_point << 0.0, 0.0, -0.09;
         link_[Left_Foot].contact_point << 0.03, 0, -0.1585;
@@ -143,6 +145,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
         // model_.mJoints[2] = J_temp;
         std::cout << "Total Mass : " << total_mass << std::endl; // mass without head -> 83.6 kg
+        dc.tocabi_.total_mass = total_mass;
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
@@ -821,8 +824,8 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     link_p[COM_id].Jac.setZero(6, MODEL_DOF + 6);
 
-    link_p[COM_id].Jac.block(0, 0, 3, MODEL_DOF + 6) = jacobian_com.block(0, 0, 3, MODEL_DOF + 6) / com_.mass;
-    link_p[COM_id].Jac.block(3, 0, 3, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(3, 0, 3, MODEL_DOF + 6);
+    link_p[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6) / com_.mass;
+    link_p[COM_id].Jac.block(2, 0, 4, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(2, 0, 4, MODEL_DOF + 6);
 
     link_p[COM_id].Jac_COM_p = jacobian_com / com_.mass;
 

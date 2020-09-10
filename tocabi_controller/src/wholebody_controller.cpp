@@ -513,7 +513,7 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, Eigen::Matri
     else if (mode == 4)
     {
         Robot.qp2nd = true;
-        return task_control_torque_QP2(Robot, J_task, f_star_);
+        return task_control_torque_QP3(Robot, J_task, f_star_);
     }
 }
 
@@ -1557,8 +1557,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     Robot.Slc_k.setZero(MODEL_DOF, MODEL_DOF + 6);
     Robot.Slc_k.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
     Robot.Slc_k_T = Robot.Slc_k.transpose();
-
-    
 
     A.block(0, 0, task_dof, MODEL_DOF) = Robot.J_task_inv_T * Robot.Slc_k_T;
     //A.block(0, MODEL_DOF + contact_dof, task_dof, task_dof) = -Robot.lambda;
@@ -2652,6 +2650,7 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
 
 VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_task, VectorXd f_star_)
 {
+    std::cout<<"This solver deprecated!"<<std::endl;
     Robot.task_dof = J_task.rows();
 
     //Task Control Torque;
@@ -2884,7 +2883,6 @@ VectorQd WholebodyController::task_control_torque_force_control(RobotData &Robot
     //torque_task = torque_task +
 
     return torque_task;
-
 }
 
 VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot, MatrixXd J_task, VectorXd f_star_)
@@ -2919,7 +2917,15 @@ VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot,
     //Q.svd(s2,u2,v2);
 
     VectorQd torque_task;
-    torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * Robot.lambda * f_star_ + gravity_compensation_torque(Robot);
+
+    if (Robot.task_force_control)
+    {
+        torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * f_star_ + gravity_compensation_torque(Robot);
+    }
+    else
+    {
+        torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * Robot.lambda * f_star_ + gravity_compensation_torque(Robot);
+    }
 
     //W.svd(s,u,v);
     //V2.resize(28,6);

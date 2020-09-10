@@ -121,6 +121,9 @@ public:
 
   // update Jacobian matrix of local position at link.
   void Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
+  
+  // update Point Jacobian matrix of local position at link.
+  void Set_Jacobian_custom(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
 
   // update link velocity(6D, translation and rotation) from jacobian matrix Jac.
   void vw_Update(const Eigen::VectorVQd &q_dot_virtual);
@@ -171,6 +174,7 @@ public:
 
   void Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D);
 
+  
   //constant variables
   int id;
   double Mass;
@@ -270,6 +274,9 @@ public:
   Eigen::Vector3d rot_d_gain;
   Eigen::Vector3d acc_p_gain;
 
+  Eigen::Vector3d max_p_acc_;
+  Eigen::Vector3d max_p_vel_;
+
   RigidBodyDynamics::Model *model;
 
 private:
@@ -306,11 +313,14 @@ public:
   double orientation;
   double roll, pitch, yaw;
   double yaw_init = 0.0;
+  double total_mass;
 
   //PositionPDGain
   double Kps[MODEL_DOF];
   double Kvs[MODEL_DOF];
   std::vector<double> vector_kp, vector_kv, vector_NM2CNT;
+  std::vector<double> v_com_kp, v_com_kv, v_up_kp, v_up_kv, v_pelv_kp, v_pelv_kv, v_hand_kp, v_hand_kv, v_foot_kp, v_foot_kv;
+
 
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
