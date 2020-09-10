@@ -609,6 +609,7 @@ void StateManager::initialize()
     data_received_counter_ = 0;
     A_.setZero();
     A_temp_.setZero(MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL);
+    Motor_inertia_.setZero();
     q_.setZero();
     q_dot_.setZero();
 
@@ -660,6 +661,8 @@ void StateManager::storeState()
 
     dc.A_ = A_;
     dc.A_inv = A_inv;
+    dc.Motor_inertia = Motor_inertia_;
+    dc.Motor_inertia_inverse = Motor_inertia_inv;
 
     dc.tocabi_.ContactForce_FT.segment(0, 6) = LF_CF_FT;
     dc.tocabi_.ContactForce_FT.segment(6, 6) = RF_CF_FT;
@@ -709,6 +712,33 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     A_ = A_temp_;
     A_inv = A_.inverse();
+    for (int i = 0; i < 6; ++i){
+        Motor_inertia_(i, i) = 10.0;
+    }
+    for (int i = 0; i < 2; ++i){
+        Motor_inertia_(6 + 6 * i, 6 + 6 * i) = 0.56;
+        Motor_inertia_(7 + 6 * i, 7 + 6 * i) = 0.8;
+        Motor_inertia_(8 + 6 * i, 8 + 6 * i) = 1.08;
+        Motor_inertia_(9 + 6 * i, 9 + 6 * i) = 1.08;
+        Motor_inertia_(10 + 6 * i, 10 + 6 * i) = 1.08;
+        Motor_inertia_(11 + 6 * i, 11 + 6 * i) = 0.306;
+
+        Motor_inertia_(21 + 10 * i, 21 + 10 * i) = 0.185;
+        Motor_inertia_(22 + 10 * i, 22 + 10 * i) = 0.184;
+        Motor_inertia_(23 + 10 * i, 23 + 10 * i) = 0.192;
+        Motor_inertia_(24 + 10 * i, 24 + 10 * i) = 0.184;
+        Motor_inertia_(25 + 10 * i, 25 + 10 * i) = 0.056;
+        Motor_inertia_(26 + 10 * i, 26 + 10 * i) = 0.05;
+        Motor_inertia_(27 + 10 * i, 27 + 10 * i) = 0.015;
+        Motor_inertia_(28 + 10 * i, 28 + 10 * i) = 0.015;
+    }
+    Motor_inertia_(18, 18) = 1.01;
+    Motor_inertia_(19, 19) = 1.01;
+    Motor_inertia_(20, 20) = 1.27;
+    Motor_inertia_(29, 29) = 0.015;
+    Motor_inertia_(30, 30) = 0.015;
+
+    Motor_inertia_inv = Motor_inertia_.inverse();
 
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
