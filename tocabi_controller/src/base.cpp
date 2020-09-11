@@ -31,6 +31,7 @@ int main(int argc, char **argv)
     dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
     dc.nh.getParam("/tocabi_controller/Kp", dc.tocabi_.vector_kp);
     dc.nh.getParam("/tocabi_controller/Kv", dc.tocabi_.vector_kv);
+    dc.nh.getParam("/tocabi_controller/vellimit", dc.safety_limit);
     dc.nh.getParam("/tocabi_controller/NM2CNT", dc.tocabi_.vector_NM2CNT);
 
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);

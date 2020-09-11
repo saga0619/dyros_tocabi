@@ -152,6 +152,8 @@ public:
   bool elmo_Ready = false;
   //Simulation switch
 
+  std::vector<double> safety_limit;
+
   bool pubmode = false;      // Publish mode of mujoco, integrated mode(basic), detached mode.
   bool checkfreqency = true; // check running frequency of state thread and dynamics thread.
 

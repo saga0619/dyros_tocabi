@@ -179,7 +179,11 @@ void RealRobotInterface::checkJointLimit(int slv_number)
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
 {
     bool damping_mode = false;
-
+    if(slv_number == 5)
+    {
+        std::cout << "maxvel" << std::endl;
+        std::cout << max_vel <<std::endl;
+    }
     if (ElmoSafteyMode[slv_number] == 0)
     {
         if (checkPosSafety[slv_number])
@@ -1353,7 +1357,7 @@ void RealRobotInterface::ethercatThread()
                                 }
                                 else
                                 {
-                                    checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
+                                    checkSafety(i, dc.safety_limit[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                                 }
                                 checkJointLimit(i);
                             }
