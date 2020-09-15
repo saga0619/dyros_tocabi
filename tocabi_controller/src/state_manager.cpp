@@ -251,6 +251,7 @@ void StateManager::testThread()
             q_virtual_(i) = 0.0;
         q_virtual_(MODEL_DOF_VIRTUAL) = 1.0;
         q_ = q_virtual_.segment(6, MODEL_DOF);
+    
 
         t[1] = std::chrono::high_resolution_clock::now();
         updateKinematics(model_, link_local, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
@@ -314,9 +315,10 @@ void StateManager::adv2ROS(void)
     for (int i = 0; i < MODEL_DOF; i++)
     {
         joint_state_msg.position[i] = q_[i];
-        joint_state_msg.velocity[i] = q_dot_[i];
+        joint_state_msg.velocity[i] = dc.q_dot_[i];
         joint_state_msg.effort[i] = dc.torque_desired[i];
     }
+
     joint_states_pub.publish(joint_state_msg);
     time_msg.data = control_time_;
     time_pub.publish(time_msg);
@@ -991,6 +993,8 @@ void StateManager::qdotLPF()
     {
         q_dot_virtual_ = q_dot_virtual_local_;
     }
+
+    q_dot_ = q_dot_virtual_.segment(6,MODEL_DOF);
 }
 
 void StateManager::sendStateToGui()
@@ -1245,15 +1249,27 @@ void StateManager::SetPositionPDGainMatrix()
     }
 }
 
-void StateManager::PinocchioCallback(const std_msgs::Float64MultiArray &msg)
+void StateManager::PinocchioCallback(const tocabi_controller::model &msg)
 {
     for (int i = 0; i<6; i++)
     {
         for(int j=0; j<MODEL_DOF; j++)
         {   
-            dc.tocabi_.Ag_(i,j) = msg.data[33*i+j];
+            dc.tocabi_.Ag_(i,j) = msg.CMM[33*i+j];
+        }
+
+        for(int j=0; j<MODEL_DOF; j++)
+        {   
+            dc.tocabi_.Cor_(i,j) = msg.COR[33*i+j];
         }
     }
+/*
+    std::cout << "MOMENTUM MATRIX" << std::endl;
+    std::cout << dc.tocabi_.Ag_ << std::endl;
+  
+    std::cout << "Col MATRIX" << std::endl;
+    std::cout << dc.tocabi_.Cor_ << std::endl;
+  */
   /*  std::cout << "MOMENTUM MATRIX" << std::endl;
     std::cout << dc.tocabi_.Ag_ <<std::endl;*/
 }

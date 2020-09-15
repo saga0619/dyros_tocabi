@@ -36,6 +36,7 @@ add_message_files(
   TaskCommand.msg
   TaskCommandQue.msg
   TaskGainCommand.msg
+  model.msg
 )
 
 

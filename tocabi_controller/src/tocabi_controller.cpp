@@ -1893,7 +1893,13 @@ void TocabiController::trajectoryplannar()
                 }
             }
         }
+
+        
+     std::chrono::high_resolution_clock::time_point t_begin2 = std::chrono::high_resolution_clock::now();
+     time_interval = t_begin1-t_begin2;
+    // std::cout <<"time" << time_interval.count()<<std::endl;
     }
+       
 }
 
 void TocabiController::initialize()

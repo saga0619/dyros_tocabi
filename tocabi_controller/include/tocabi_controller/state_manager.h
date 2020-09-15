@@ -9,6 +9,7 @@
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/TaskCommandQue.h"
 #include "tocabi_controller/TaskGainCommand.h"
+#include "tocabi_controller/model.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
@@ -170,7 +171,7 @@ public:
   geometry_msgs::PolygonStamped pointpub_msg;
 
   void CommandCallback(const std_msgs::StringConstPtr &msg);
-  void PinocchioCallback(const std_msgs::Float64MultiArray &msg);
+  void PinocchioCallback(const tocabi_controller::model &msg);
   //void TaskCommandCallback(const dyros_red_msgs::TaskCommandConstPtr &msg);
 
   //Terminate Signal Handler

@@ -161,7 +161,8 @@ public:
     Eigen::Matrix3x12d Ag_leg;
     Eigen::Matrix3x8d Ag_armR;
     Eigen::Matrix3x8d Ag_armL;
-    Eigen::Matrix3x3d Ag_waist;  
+    Eigen::Matrix3x3d Ag_waist;
+    Eigen::Vector5d qd_prev;  
 
     //User WalkingParameter
     int desired_foot_step_num;

@@ -64,14 +64,12 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             q_w(4) = desired_init_leg_q(26);
         }
 
-
         q_w(0) = q_w(0) + q_dm(0)/Hz_;
         q_w(1) = q_w(1) + q_dm(1)/Hz_;
         q_w(2) = q_w(2) + q_dm(2)/Hz_;
 
         q_w(3) = q_w(3) + q_dm(3)/Hz_;
         q_w(4) = q_w(4) + q_dm(4)/Hz_;
-
 
         if(dob == 1)
         {
@@ -1046,27 +1044,40 @@ void Walking_controller::momentumControl(RobotData &Robot)
     lbA.setZero(constraint_size);
     ubA.setZero(constraint_size);
 
-    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3) + Ag_armL * Robot.q_dot_.segment(15,8) + Ag_armR * Robot.q_dot_.segment(25,8);
-
-    Eigen::MatrixXd Ag_temp;
-    Eigen::Matrix5d I;
-    Eigen::Vector5d qd_prev;
-
+    Eigen::Vector3d q_waistd;
+    Eigen::Vector8d q_rarmd, q_larmd;
+    
     if(walking_tick == 0)
     {
-        qd_prev(0) = Robot.q_dot_(12);
-        qd_prev(1) = Robot.q_dot_(13);
-        qd_prev(2) = Robot.q_dot_(14);
-        qd_prev(3) = Robot.q_dot_(16);
-        qd_prev(4) = Robot.q_dot_(26);
+        q_waistd.setZero();
+        q_rarmd.setZero();
+        q_larmd.setZero();
+        qd_prev.setZero();
     }
+    else
+    {   
+        q_waistd.setZero();
+        q_rarmd.setZero();
+        q_larmd.setZero();
+
+        for(int i = 0; i < 3; i++)
+        {
+            q_waistd(i) = q_dm(i);
+        }        
+        q_rarmd(1) = q_dm(4);
+        q_larmd(1) = q_dm(3);
+    }
+
+   // H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3) + Ag_armL * Robot.q_dot_.segment(15,8) + Ag_armR * Robot.q_dot_.segment(25,8);
+    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
+ 
+    Eigen::MatrixXd Ag_temp;
+    Eigen::Matrix5d I;
 
     double beta, beta1;
     beta = 0.2;
     beta1 = 0.1;
 
-  /*  beta =0.0;
-    beta1 = 0.0;*/
     I.setIdentity();
 
     for(int i = 0; i<5; i++)
@@ -1140,14 +1151,14 @@ void Walking_controller::setWalkingParameter(RobotData &Robot)
 {
     desired_foot_step_num = 8;
     walking_tick = 0;
-    t_rest_init = 0.05 * Hz_;
-    t_rest_last = 0.05 * Hz_;
-    t_double1 = 0.05 * Hz_;
-    t_double2 = 0.05 * Hz_;
-    t_total = 0.5 * Hz_;
+   t_rest_init = 0.1 * Hz_;
+    t_rest_last = 0.1 * Hz_;
+    t_double1 = 0.1 * Hz_;
+    t_double2 = 0.1 * Hz_;
+    t_total = 1.0 * Hz_;
     t_temp = 4.0 * Hz_;
-
-    /*    t_double1 = 0.35*Hz_;
+/*
+    t_double1 = 0.35*Hz_;
     t_double2 = 0.35*Hz_;
     t_rest_init = .15*Hz_;
     t_rest_last = .15*Hz_;
