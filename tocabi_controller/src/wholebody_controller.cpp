@@ -2273,22 +2273,60 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
     return VectorXd::Zero(MODEL_DOF);
 }
 
-VectorQd WholebodyController::footRotateAssist(RobotData &Robot)
+VectorQd WholebodyController::footRotateAssist(RobotData &Robot, bool left, bool right)
 {
     //if prelanding approach engaged
     //enable roll/yaw control with ankle joint.
 
     //Right foot
-    Vector2d RF_rot, RF_ang_v;
-    Vector2d LF_rot, LF_ang_v;
+    Vector3d RF_rot, RF_ang_v;
+    Vector3d LF_rot, LF_ang_v;
 
-    Robot.link_[Right_Foot].Rotm;
+    Vector3d RF_eulr, LF_eulr;
+    Vector3d RF_eulr_l, LF_eulr_l;
+
+    RF_eulr = DyrosMath::rot2Euler_tf(Robot.link_[Right_Foot].Rotm);
+    LF_eulr = DyrosMath::rot2Euler_tf(Robot.link_[Left_Foot].Rotm);
+
+    RF_eulr_l = DyrosMath::rot2Euler_tf(DyrosMath::rotateWithZ(-RF_eulr(2)) * Robot.link_[Right_Foot].Rotm);
+    LF_eulr_l = DyrosMath::rot2Euler_tf(DyrosMath::rotateWithZ(-LF_eulr(2)) * Robot.link_[Left_Foot].Rotm);
+
+    RF_ang_v = DyrosMath::rotateWithZ(-RF_eulr(2)) * Robot.link_[Right_Foot].v;
+    LF_ang_v = DyrosMath::rotateWithZ(-RF_eulr(2)) * Robot.link_[Right_Foot].v;
+
+    VectorQd torque_assist;
+    torque_assist.setZero();
+
+    double pitch_p, pitch_d, roll_p, roll_d;
+
+    pitch_p = 100;
+    pitch_d = 20;
+    roll_p = 400;
+    roll_d = 40;
+
+    if (left)
+    {
+
+        torque_assist(4) = -pitch_p * LF_eulr_l(1) - pitch_d * LF_ang_v(1); //pitch
+
+        torque_assist(5) = -roll_p * LF_eulr_l(0) - roll_d * LF_ang_v(0); //roll
+
+        std::cout << " LF eulr : " << LF_eulr_l(0) << "  torque_assist : " << torque_assist(5) << std::endl;
+    }
+
+    if (right)
+    {
+        torque_assist(10) = -pitch_p * RF_eulr_l(1) - pitch_d * RF_ang_v(1);
+        torque_assist(11) = -roll_p * RF_eulr_l(0) - roll_d * RF_ang_v(0);
+    }
 
     //get foot orientation
 
     //get foot angular velocity
 
     //simply, orientation, foot angular velocity controller.
+
+    return torque_assist;
 }
 
 /*
@@ -2650,7 +2688,7 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
 
 VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_task, VectorXd f_star_)
 {
-    std::cout<<"This solver deprecated!"<<std::endl;
+    std::cout << "This solver deprecated!" << std::endl;
     Robot.task_dof = J_task.rows();
 
     //Task Control Torque;
@@ -3589,7 +3627,6 @@ Vector3d WholebodyController::GetZMPpos(RobotData &Robot, bool Local)
     P_.setZero();
     static Vector3d zmp_pos_max = (Eigen::Vector3d() << 0, 0, 0).finished();
     static Vector3d zmp_pos_min = (Eigen::Vector3d() << 0, 0, 0).finished();
-
     if (Local)
     {
         zmp_pos(0) = (-Robot.ContactForce(4) - (Robot.ee_[0].cp_(2) - P_(2)) * Robot.ContactForce(0) + Robot.ee_[0].cp_(0) * Robot.ContactForce(2) - Robot.ContactForce(10) - (Robot.ee_[1].cp_(2) - P_(2)) * Robot.ContactForce(6) + Robot.ee_[1].cp_(0) * Robot.ContactForce(8)) / (Robot.ContactForce(2) + Robot.ContactForce(8));
@@ -3597,10 +3634,16 @@ Vector3d WholebodyController::GetZMPpos(RobotData &Robot, bool Local)
     }
     else
     {
+        Robot.ZMP_l(0) = Robot.ee_[0].cp_(0) + (-Robot.ContactForce(4) - Robot.ContactForce(0) * (Robot.ee_[0].cp_(2) - Robot.ee_[0].cp_(2))) / Robot.ContactForce(2);
+        Robot.ZMP_l(1) = Robot.ee_[0].cp_(1) + (Robot.ContactForce(3) - Robot.ContactForce(1) * (Robot.ee_[0].cp_(2) - Robot.ee_[0].cp_(2))) / Robot.ContactForce(2);
+
+        Robot.ZMP_r(0) = Robot.ee_[1].cp_(0) + (-Robot.ContactForce(4 + 6) - Robot.ContactForce(0 + 6) * (Robot.ee_[1].cp_(2) - Robot.ee_[1].cp_(2))) / Robot.ContactForce(2 + 6);
+        Robot.ZMP_r(1) = Robot.ee_[1].cp_(1) + (Robot.ContactForce(3 + 6) - Robot.ContactForce(1 + 6) * (Robot.ee_[1].cp_(2) - Robot.ee_[1].cp_(2))) / Robot.ContactForce(2 + 6);
+
         if (Robot.ee_[0].contact && Robot.ee_[1].contact)
         {
-            zmp_pos(0) = (-Robot.ContactForce(4) - (Robot.ee_[0].cp_(2) - P_(2)) * Robot.ContactForce(0) + Robot.ee_[0].cp_(0) * Robot.ContactForce(2) - Robot.ContactForce(10) - (Robot.ee_[1].cp_(2) - P_(2)) * Robot.ContactForce(6) + Robot.ee_[1].cp_(0) * Robot.ContactForce(8)) / (Robot.ContactForce(2) + Robot.ContactForce(8));
-            zmp_pos(1) = (Robot.ContactForce(3) - (Robot.ee_[0].cp_(2) - P_(2)) * Robot.ContactForce(1) + Robot.ee_[0].cp_(1) * Robot.ContactForce(2) + Robot.ContactForce(9) - (Robot.ee_[1].cp_(2) - P_(2)) * Robot.ContactForce(7) + Robot.ee_[1].cp_(1) * Robot.ContactForce(8)) / (Robot.ContactForce(2) + Robot.ContactForce(8));
+            zmp_pos(0) = (Robot.ZMP_l(0) * Robot.ContactForce(2) + Robot.ZMP_r(0) * Robot.ContactForce(8)) / (Robot.ContactForce(2) + Robot.ContactForce(8));
+            zmp_pos(1) = (Robot.ZMP_l(1) * Robot.ContactForce(2) + Robot.ZMP_r(1) * Robot.ContactForce(8)) / (Robot.ContactForce(2) + Robot.ContactForce(8));
         }
         else if (Robot.ee_[0].contact) //left contact
         {
@@ -3608,22 +3651,19 @@ Vector3d WholebodyController::GetZMPpos(RobotData &Robot, bool Local)
             //std::cout<<"rk_.ContactForce(4) : "<<rk_.ContactForce(4)<<"rk_.ContactForce(2)"
             //std::cout << "x : " << rk_.ContactForce(4) / rk_.ContactForce(2) << "\t";
             //std::cout << "y : " << rk_.ContactForce(3) / rk_.ContactForce(2) << "\t cp x: " << rk_.link_[Left_Foot].xpos_contact(0) << "\t cp y : " << rk_.link_[Left_Foot].xpos_contact(1) << std::endl;
-            zmp_pos(0) = -Robot.ContactForce(4) / Robot.ContactForce(2) + Robot.link_[Left_Foot].xpos_contact(0);
-            zmp_pos(1) = -Robot.ContactForce(3) / Robot.ContactForce(2) + Robot.link_[Left_Foot].xpos_contact(1);
-
+            zmp_pos(0) = Robot.ZMP_l(0);
+            zmp_pos(1) = Robot.ZMP_l(1);
             //zmp_pos(0) = (-ContactForce(4) - (rk_.ee_[1].cp_(2) - P_(2)) * ContactForce(0) + rk_.ee_[1].cp_(0) * ContactForce(2) - ContactForce(10) - (rk_.ee_[0].cocp_ntact(2) - P_(2)) * ContactForce(6) + rk_.ee_[0].cp_(0) * ContactForce(8)) / (ContactForce(2) + ContactForce(8));
             //zmp_pos(1) = (ContactForce(3) - (rk_.ee_[1].cp_(2) - P_(2)) * ContactForce(1) + rk_.ee_[1].cp_(1) * ContactForce(2) + ContactForce(9) - (rk_.ee_[0].cp_(2) - P_(2)) * ContactForce(7) + rk_.ee_[0].cp_(1) * ContactForce(8)) / (ContactForce(2) + ContactForce(8));
         }
         else if (Robot.ee_[1].contact) //right contact
         {
-            zmp_pos(0) = -Robot.ContactForce(4 + 6) / Robot.ContactForce(2 + 6) + Robot.ee_[1].cp_(0);
-            zmp_pos(1) = -Robot.ContactForce(3 + 6) / Robot.ContactForce(2 + 6) + Robot.ee_[1].cp_(1);
+            zmp_pos(0) = Robot.ZMP_r(0);
+            zmp_pos(1) = Robot.ZMP_r(1);
         }
     }
-
     //zmp_pos(0) = (-ContactForce(4) - P_right(2) * ContactForce(0) + P_right(0) * ContactForce(2) - ContactForce(10) - P_left(2) * ContactForce(6) + P_left(0) * ContactForce(8)) / (ContactForce(2)+ContactForce(8));
     //zmp_pos(1) = (ContactForce(3) - P_right(2) * ContactForce(1) + P_right(1) * ContactForce(2) + ContactForce(9) - P_left(2) * ContactForce(7) + P_left(1) * ContactForce(8)) / (ContactForce(2)+ContactForce(8));
-
     //std::cout << "ZMP position : " << zmp_pos(0) << "\t" << zmp_pos(1) << "\t" << zmp_pos(2) << " " << std::endl;
     //printf("ZMP position : %8.4f  %8.4f  %8.4f  max : %8.4f  %8.4f  %8.4f  min : %8.4f  %8.4f  %8.4f\n", zmp_pos(0), zmp_pos(1), zmp_pos(2), zmp_pos_max(0), zmp_pos_max(1), zmp_pos_max(2), zmp_pos_min(0), zmp_pos_min(1), zmp_pos_min(2));
     for (int i = 0; i < 3; i++)
@@ -3658,10 +3698,18 @@ Vector3d WholebodyController::GetZMPpos_fromFT(RobotData &Robot, bool Local)
     }
     else
     {
+        Vector3d zmp_r, zmp_l;
+        //std::cout << "sensor xpos x : " << Robot.ee_[0].sensor_xpos(0) << " ee_ xpos x : " << Robot.ee_[0].xpos(0) << " ee_cp_ : " << Robot.ee_[0].cp_(0) << std::endl;
+        zmp_l(0) = Robot.ee_[0].cp_(0) + (-Robot.ContactForce_FT(4) - Robot.ContactForce_FT(0) * (Robot.ee_[0].cp_(2) - Robot.ee_[0].cp_(2))) / Robot.ContactForce_FT(2);
+        zmp_l(1) = Robot.ee_[0].cp_(1) + (Robot.ContactForce_FT(3) - Robot.ContactForce_FT(1) * (Robot.ee_[0].cp_(2) - Robot.ee_[0].cp_(2))) / Robot.ContactForce_FT(2);
+
+        zmp_r(0) = Robot.ee_[1].cp_(0) + (-Robot.ContactForce_FT(4 + 6) - Robot.ContactForce_FT(0 + 6) * (Robot.ee_[1].cp_(2) - Robot.ee_[1].cp_(2))) / Robot.ContactForce_FT(2 + 6);
+        zmp_r(1) = Robot.ee_[1].cp_(1) + (Robot.ContactForce_FT(3 + 6) - Robot.ContactForce_FT(1 + 6) * (Robot.ee_[1].cp_(2) - Robot.ee_[1].cp_(2))) / Robot.ContactForce_FT(2 + 6);
+
         if (Robot.ee_[0].contact && Robot.ee_[1].contact)
         {
-            zmp_pos(0) = (-Robot.ContactForce_FT(4) - (Robot.ee_[0].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(0) + Robot.ee_[0].sensor_xpos(0) * Robot.ContactForce_FT(2) - Robot.ContactForce_FT(10) - (Robot.ee_[1].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(6) + Robot.ee_[1].sensor_xpos(0) * Robot.ContactForce_FT(8)) / (Robot.ContactForce_FT(2) + Robot.ContactForce_FT(8));
-            zmp_pos(1) = (Robot.ContactForce_FT(3) - (Robot.ee_[0].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(1) + Robot.ee_[0].sensor_xpos(1) * Robot.ContactForce_FT(2) + Robot.ContactForce_FT(9) - (Robot.ee_[1].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(7) + Robot.ee_[1].sensor_xpos(1) * Robot.ContactForce_FT(8)) / (Robot.ContactForce_FT(2) + Robot.ContactForce_FT(8));
+            zmp_pos(0) = (zmp_l(0) * Robot.ContactForce_FT(2) + zmp_r(0) * Robot.ContactForce_FT(8)) / (Robot.ContactForce_FT(2) + Robot.ContactForce_FT(8));
+            zmp_pos(1) = (zmp_l(1) * Robot.ContactForce_FT(2) + zmp_r(1) * Robot.ContactForce_FT(8)) / (Robot.ContactForce_FT(2) + Robot.ContactForce_FT(8));
         }
         else if (Robot.ee_[0].contact) //left contact
         {
@@ -3669,22 +3717,19 @@ Vector3d WholebodyController::GetZMPpos_fromFT(RobotData &Robot, bool Local)
             //std::cout<<"rk_.ContactForce(4) : "<<rk_.ContactForce(4)<<"rk_.ContactForce(2)"
             //std::cout << "x : " << rk_.ContactForce(4) / rk_.ContactForce(2) << "\t";
             //std::cout << "y : " << rk_.ContactForce(3) / rk_.ContactForce(2) << "\t cp x: " << rk_.link_[Left_Foot].xpos_contact(0) << "\t cp y : " << rk_.link_[Left_Foot].xpos_contact(1) << std::endl;
-            zmp_pos(0) = -Robot.ContactForce_FT(4) / Robot.ContactForce_FT(2) + Robot.ee_[0].sensor_xpos(0);
-            zmp_pos(1) = -Robot.ContactForce_FT(3) / Robot.ContactForce_FT(2) + Robot.ee_[0].sensor_xpos(1);
-
+            zmp_pos(0) = zmp_l(0);
+            zmp_pos(1) = zmp_l(1);
             //zmp_pos(0) = (-ContactForce(4) - (rk_.ee_[1].cp_(2) - P_(2)) * ContactForce(0) + rk_.ee_[1].cp_(0) * ContactForce(2) - ContactForce(10) - (rk_.ee_[0].cocp_ntact(2) - P_(2)) * ContactForce(6) + rk_.ee_[0].cp_(0) * ContactForce(8)) / (ContactForce(2) + ContactForce(8));
             //zmp_pos(1) = (ContactForce(3) - (rk_.ee_[1].cp_(2) - P_(2)) * ContactForce(1) + rk_.ee_[1].cp_(1) * ContactForce(2) + ContactForce(9) - (rk_.ee_[0].cp_(2) - P_(2)) * ContactForce(7) + rk_.ee_[0].cp_(1) * ContactForce(8)) / (ContactForce(2) + ContactForce(8));
         }
         else if (Robot.ee_[1].contact) //right contact
         {
-            zmp_pos(0) = -Robot.ContactForce_FT(4 + 6) / Robot.ContactForce_FT(2 + 6) + Robot.ee_[1].sensor_xpos(0);
-            zmp_pos(1) = -Robot.ContactForce_FT(3 + 6) / Robot.ContactForce_FT(2 + 6) + Robot.ee_[1].sensor_xpos(1);
+            zmp_pos(0) = zmp_r(0);
+            zmp_pos(1) = zmp_r(1);
         }
     }
-
     //zmp_pos(0) = (-ContactForce(4) - P_right(2) * ContactForce(0) + P_right(0) * ContactForce(2) - ContactForce(10) - P_left(2) * ContactForce(6) + P_left(0) * ContactForce(8)) / (ContactForce(2)+ContactForce(8));
     //zmp_pos(1) = (ContactForce(3) - P_right(2) * ContactForce(1) + P_right(1) * ContactForce(2) + ContactForce(9) - P_left(2) * ContactForce(7) + P_left(1) * ContactForce(8)) / (ContactForce(2)+ContactForce(8));
-
     //std::cout << "ZMP position : " << zmp_pos(0) << "\t" << zmp_pos(1) << "\t" << zmp_pos(2) << " " << std::endl;
     //printf("ZMP position : %8.4f  %8.4f  %8.4f  max : %8.4f  %8.4f  %8.4f  min : %8.4f  %8.4f  %8.4f\n", zmp_pos(0), zmp_pos(1), zmp_pos(2), zmp_pos_max(0), zmp_pos_max(1), zmp_pos_max(2), zmp_pos_min(0), zmp_pos_min(1), zmp_pos_min(2));
     for (int i = 0; i < 3; i++)

@@ -118,8 +118,6 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
             total_mass += link_[i].Mass;
         }
 
-        
-
         link_[Right_Foot].contact_point << 0.03, 0, -0.1585;
         link_[Right_Foot].sensor_point << 0.0, 0.0, -0.09;
         link_[Left_Foot].contact_point << 0.03, 0, -0.1585;
@@ -397,9 +395,13 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
     //pointpub_msg.polygon.points[10].z = rtr * mod / dc.torque_desired[7];
 
-    pointpub_msg.polygon.points[10].x = dc.tocabi_.link_[Pelvis].v(0);
-    pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[Pelvis].v(1);
-    pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[Pelvis].v(2);
+    pointpub_msg.polygon.points[10].x = dc.tocabi_.ZMP_ft(0);
+    pointpub_msg.polygon.points[10].y = dc.tocabi_.ZMP_ft(1);
+    pointpub_msg.polygon.points[10].z = dc.tocabi_.ZMP_ft(2);
+
+    pointpub_msg.polygon.points[11].x = dc.tocabi_.ZMP_desired(0);
+    pointpub_msg.polygon.points[11].y = dc.tocabi_.ZMP_desired(1);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired2(0);
 
     Matrix6d adt;
 
@@ -464,10 +466,6 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[11].x = dc.q_(7);
     //pointpub_msg.polygon.points[11].y = dc.q_ext_(7);
     //pointpub_msg.polygon.points[11].z = dc.tocabi_.imu_pos_(2);
-
-    pointpub_msg.polygon.points[11].x = RF_CP_est(0);
-    pointpub_msg.polygon.points[11].y = RF_CP_est(1);
-    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].a_traj(1);
 
     /*
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
@@ -666,6 +664,8 @@ void StateManager::storeState()
 
     dc.tocabi_.ContactForce_FT.segment(0, 6) = LF_CF_FT;
     dc.tocabi_.ContactForce_FT.segment(6, 6) = RF_CF_FT;
+    dc.tocabi_.ContactForce_FT_raw.segment(0, 6) = LF_FT;
+    dc.tocabi_.ContactForce_FT_raw.segment(6, 6) = RF_FT;
 
     Eigen::Matrix6d Rotm;
     Rotm.setZero();
@@ -712,10 +712,12 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     A_ = A_temp_;
     A_inv = A_.inverse();
-    for (int i = 0; i < 6; ++i){
+    for (int i = 0; i < 6; ++i)
+    {
         Motor_inertia_(i, i) = 10.0;
     }
-    for (int i = 0; i < 2; ++i){
+    for (int i = 0; i < 2; ++i)
+    {
         Motor_inertia_(6 + 6 * i, 6 + 6 * i) = 0.56;
         Motor_inertia_(7 + 6 * i, 7 + 6 * i) = 0.8;
         Motor_inertia_(8 + 6 * i, 8 + 6 * i) = 1.08;
@@ -895,11 +897,11 @@ void StateManager::handleFT()
     rotrf.block(3, 3, 3, 3) = link_local[Right_Foot].Rotm;
     Vector3d RF_com(-0.0162, 0.00008, -0.1209);
 
-    Vector3d com2cp = link_local[Right_Foot].contact_point - RF_com;
+    Vector3d com2cp = link_local[Right_Foot].sensor_point - RF_com;
 
     Matrix6d adt2;
-    adt.setIdentity();
-    adt.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+    adt2.setIdentity();
+    adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
 
     Vector6d Wrench_foot_plate;
     Wrench_foot_plate.setZero();
@@ -920,8 +922,8 @@ void StateManager::handleFT()
 
     com2cp = link_local[Left_Foot].contact_point - LF_com;
 
-    adt.setIdentity();
-    adt.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+    adt2.setIdentity();
+    adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
     Wrench_foot_plate.setZero();
     Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
 

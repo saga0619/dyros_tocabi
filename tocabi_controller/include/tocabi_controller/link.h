@@ -340,6 +340,7 @@ public:
 
   Eigen::VectorXd ContactForce;
   Eigen::Vector12d ContactForce_FT;
+  Eigen::Vector12d ContactForce_FT_raw;
   Eigen::Vector6d LH_FT, RH_FT;
   Eigen::Vector3d ZMP;
   Eigen::Vector3d ZMP_local;
@@ -350,6 +351,8 @@ public:
   Eigen::Vector3d ZMP_eqn_calc;
   Eigen::Vector3d ZMP_command;
   Eigen::Vector3d ZMP_mod;
+  Eigen::Vector3d ZMP_r;
+  Eigen::Vector3d ZMP_l;
 
   Eigen::VectorXd TaskForce;
 
