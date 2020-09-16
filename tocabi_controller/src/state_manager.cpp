@@ -1240,6 +1240,40 @@ void StateManager::stateEstimate()
     }
 }
 
+void StateManager::estimateJointVelocity()
+{
+    double dt;
+    dt = 1/2000;
+    Eigen::MatrixXd A_t, A_dt, B_t, B_dt, C;
+    Eigen::MatrixQQd I;
+    I.setIdentity();
+    A_t.setZero(MODEL_DOF*2, MODEL_DOF*2);
+    A_dt.setZero(MODEL_DOF*2, MODEL_DOF*2);
+    B_t.setZero(MODEL_DOF*2, MODEL_DOF);
+    B_dt.setZero(MODEL_DOF*2, MODEL_DOF);
+    C.setZero(MODEL_DOF, MODEL_DOF*2);
+
+    A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
+    A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = dc.A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
+    B_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = dc.A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF);
+    C.bottomLeftCorner(MODEL_DOF, MODEL_DOF) = I;
+    B_dt = B_t*dt;
+    A_dt = dt*A_t + I;
+    
+    //A_t.topLeft = I;
+    if(velEst == false)
+    {
+        q_dot_est = q_dot_;
+        q_ddot_est = q_ddot_;
+        velEst = true;
+    }
+
+    double L;
+    L = 2.0;
+
+    //q_dot_est = q_dot + L*(q); 
+}
+
 void StateManager::SetPositionPDGainMatrix()
 {
     for (int i = 0; i < MODEL_DOF; i++)
@@ -1257,21 +1291,15 @@ void StateManager::PinocchioCallback(const tocabi_controller::model &msg)
         {   
             dc.tocabi_.Ag_(i,j) = msg.CMM[33*i+j];
         }
-
+    }
+    
+    for(int i = 0; i<MODEL_DOF; i++)
+    {
         for(int j=0; j<MODEL_DOF; j++)
         {   
             dc.tocabi_.Cor_(i,j) = msg.COR[33*i+j];
         }
     }
-/*
-    std::cout << "MOMENTUM MATRIX" << std::endl;
-    std::cout << dc.tocabi_.Ag_ << std::endl;
-  
-    std::cout << "Col MATRIX" << std::endl;
-    std::cout << dc.tocabi_.Cor_ << std::endl;
-  */
-  /*  std::cout << "MOMENTUM MATRIX" << std::endl;
-    std::cout << dc.tocabi_.Ag_ <<std::endl;*/
 }
 
 void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)

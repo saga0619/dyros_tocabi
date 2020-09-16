@@ -355,7 +355,7 @@ public:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_matrix_inverse;
   Eigen::Matrix6Qd Ag_;
-  Eigen::Matrix6Qd Cor_;
+  Eigen::MatrixQQd Cor_;
 
   Eigen::MatrixVVd Motor_inertia;
   Eigen::MatrixVVd Motor_inertia_inverse;

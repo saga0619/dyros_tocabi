@@ -1068,8 +1068,8 @@ void Walking_controller::momentumControl(RobotData &Robot)
         q_larmd(1) = q_dm(3);
     }
 
-   // H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3) + Ag_armL * Robot.q_dot_.segment(15,8) + Ag_armR * Robot.q_dot_.segment(25,8);
-    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
+    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3) + Ag_armL * Robot.q_dot_.segment(15,8) + Ag_armR * Robot.q_dot_.segment(25,8);
+   // H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
  
     Eigen::MatrixXd Ag_temp;
     Eigen::Matrix5d I;

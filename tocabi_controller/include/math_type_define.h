@@ -73,6 +73,7 @@ namespace Eigen
   typedef Matrix<rScalar, 3, 3> Matrix3x3d;
 
   typedef Matrix<rScalar, 6, MODEL_DOF> Matrix6Qd;
+  typedef Matrix<rScalar, MODEL_DOF, MODEL_DOF> MatrixQQd;
   typedef Matrix<rScalar, 3, MODEL_DOF> Matrix3Qd;
 
   //Complex

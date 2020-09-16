@@ -53,6 +53,8 @@ public:
   void stateEstimate();
   //private functions
 
+  void estimateJointVelocity();
+
   //advertise informations to ROS
   void adv2ROS();
 
@@ -82,12 +84,17 @@ public:
 
   int data_received_counter_;
 
+  bool velEst = false;
+
   Eigen::VectorQd q_;
   Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
   Eigen::VectorQd q_dot_before_;
   Eigen::VectorQd q_ddot_;
+  Eigen::VectorQd q_est;
+  Eigen::VectorQd q_dot_est;
+  Eigen::VectorQd q_ddot_est;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
   Eigen::VectorVQd q_dot_virtual_raw_;
@@ -173,7 +180,7 @@ public:
   void CommandCallback(const std_msgs::StringConstPtr &msg);
   void PinocchioCallback(const tocabi_controller::model &msg);
   //void TaskCommandCallback(const dyros_red_msgs::TaskCommandConstPtr &msg);
-
+  
   //Terminate Signal Handler
   //static void sigintHandler(int sig);
 };
