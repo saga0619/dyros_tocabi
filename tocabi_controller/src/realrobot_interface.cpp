@@ -62,7 +62,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     ft_sensor.open(dc.homedir + "/Ftsensorcheck.txt", ios_base::out);
     file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
-    fz_group1.resize(16);
+    fz_group1.resize(18);
     int i = 0;
     fz_group1[i++] = TOCABI::Neck_Joint;
     fz_group1[i++] = TOCABI::Head_Joint;
@@ -74,6 +74,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     fz_group1[i++] = TOCABI::R_Elbow_Joint;
     fz_group1[i++] = TOCABI::R_Forearm_Joint;
     fz_group1[i++] = TOCABI::R_Wrist1_Joint;
+    fz_group1[i++] = TOCABI::R_Wrist2_Joint;
 
     fz_group1[i++] = TOCABI::L_Shoulder1_Joint;
     fz_group1[i++] = TOCABI::L_Shoulder2_Joint;
@@ -82,6 +83,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     fz_group1[i++] = TOCABI::L_Elbow_Joint;
     fz_group1[i++] = TOCABI::L_Forearm_Joint;
     fz_group1[i++] = TOCABI::L_Wrist1_Joint;
+    fz_group1[i++] = TOCABI::L_Wrist2_Joint;
 
     elmofz[TOCABI::R_Armlink_Joint].init_direction = -1.0;
     elmofz[TOCABI::L_Armlink_Joint].init_direction = -1.0;

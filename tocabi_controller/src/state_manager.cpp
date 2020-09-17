@@ -401,7 +401,7 @@ void StateManager::adv2ROS(void)
 
     pointpub_msg.polygon.points[11].x = dc.tocabi_.ZMP_desired(0);
     pointpub_msg.polygon.points[11].y = dc.tocabi_.ZMP_desired(1);
-    pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired2(0);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired2(1);
 
     Matrix6d adt;
 
@@ -438,7 +438,7 @@ void StateManager::adv2ROS(void)
 
     Vector6d RsForce;
 
-    RsForce = Rs_ * dc.tocabi_.ContactForce;
+    //RsForce = Rs_ * dc.tocabi_.ContactForce;
 
     //pointpub_msg.polygon.points[10].z = RsForce(3) / RsForce(2); // + dc.tocabi_.link_[Pelvis].xpos(1);
     //pointpub_msg.polygon.points[10].x = -RsForce(1) / dc.tocabi_.com_.mass;
