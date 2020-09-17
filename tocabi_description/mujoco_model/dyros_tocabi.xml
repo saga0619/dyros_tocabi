@@ -281,8 +281,8 @@
                                                     <body name="L_Wrist2_Link" pos="0 0.046 0">
                                                         <inertial pos="0.00063 0.0536 0.00178" mass="0.001" fullinertia="0.000865450 0.000696917 0.015377823 0 0 0" />
                                                         <joint name="L_Wrist2_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-2.094 2.094" class="Upper"/>
-                                                        <geom size="0.03 0.035 0.03" pos="0 0.057 0" type="box" class="cls"/>
-                                                        <geom size="0.03 0.035 0.03" pos="0 0.057 0" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
+                                                        <geom size="0.03 0.01 0.03" pos="0 0.025 0" type="box" class="cls"/>
+                                                        <geom size="0.03 0.01 0.03" pos="0 0.025 0" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
                                                     </body>
                                                 </body>
                                             </body>
@@ -334,8 +334,8 @@
                                                     <body name="R_Wrist2_Link" pos="0 -0.046 0">
                                                         <inertial pos="0.00063 -0.0536 0.00178" quat="0.5 0.5 -0.5 0.5" mass="0.001" fullinertia="0.000865450 0.000696917 0.015377823 0 0 0" />
                                                         <joint name="R_Wrist2_Joint" pos="0 0 0" axis="0 0 1" limited="true" range="-2.094 2.094" class="Upper"/>
-                                                        <geom size="0.03 0.035 0.03" pos="0 -0.057 0" type="box" class="cls" />
-                                                        <geom size="0.03 0.035 0.03" pos="0 -0.057 0" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
+                                                        <geom size="0.03 0.01 0.03" pos="0 -0.025 0" type="box" class="cls" />
+                                                        <geom size="0.03 0.01 0.03" pos="0 -0.025 0" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
                                                     </body>
                                                 </body>
                                             </body>

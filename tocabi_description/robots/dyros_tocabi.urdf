@@ -1858,10 +1858,10 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0.057 0"
+        xyz="0 0.025 0"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.02 0.06"/>
       </geometry>
       <material
         name="">
@@ -1871,10 +1871,10 @@
     </visual>
 	<collision>
       <origin
-        xyz="0 0.057 0"
+        xyz="0 0.025 0"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.02 0.06"/>
       </geometry>
     </collision>
   </link>
@@ -2349,10 +2349,10 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 -0.057 0"
+        xyz="0 -0.025 0"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.02 0.06"/>
       </geometry>
       <material
         name="">
@@ -2362,10 +2362,10 @@
     </visual>
     <collision>
       <origin
-        xyz="0 -0.057 0"
+        xyz="0 -0.025 0"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.02 0.06"/>
       </geometry>
     </collision>
   </link>
