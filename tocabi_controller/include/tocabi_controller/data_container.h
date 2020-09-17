@@ -88,7 +88,7 @@ public:
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd q_ext_;
-
+  
   //Kinematics Information :
   Link link_[LINK_NUMBER + 1];
 
@@ -132,7 +132,7 @@ public:
   
   int elmo_cnt;
 
-  std::ofstream f_out;
+  std::ofstream f_out;  
 
   //Gui Command
   std::string command;
@@ -152,7 +152,7 @@ public:
   bool elmo_Ready = false;
   //Simulation switch
 
-  std::vector<double> safety_limit;
+  std::vector<double  > safety_limit;
 
   bool pubmode = false;      // Publish mode of mujoco, integrated mode(basic), detached mode.
   bool checkfreqency = true; // check running frequency of state thread and dynamics thread.

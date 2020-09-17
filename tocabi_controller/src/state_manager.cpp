@@ -76,14 +76,11 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         urdf_path = desc_package_path + "/dyros_tocabi.urdf";
     }
 
-std::cout <<"urdf "<< desc_package_path << std::endl;
     ROS_INFO_COND(verbose, "Loading DYROS TOCABI description from = %s", desc_package_path.c_str());
 
-std::cout <<"urdf "<< desc_package_path << std::endl;
     RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_, true, verbose);
     RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &model_2, true, verbose);
 
-std::cout <<"urdf "<< desc_package_path << std::endl;
     ROS_INFO_COND(verbose, "Successfully loaded.");
     ROS_INFO_COND(verbose, "MODEL DOF COUNT = %d and MODEL Q SIZE = %d ", model_.dof_count, model_.q_size);
 
@@ -198,7 +195,7 @@ void StateManager::stateThread(void)
             stateEstimate();
             //lowpass filter for q_dot
             updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-                        
+
             storeState();
 
             if ((cycle_count % 10) == 0)
@@ -1233,45 +1230,11 @@ void StateManager::stateEstimate()
         q_dot_virtual_before = q_dot_virtual_;
     }
     else
-    {
+    { 
         q_virtual_ = q_virtual_local_;
         q_dot_virtual_ = q_dot_virtual_local_;
         q_ddot_virtual_ = q_ddot_virtual_local_;
     }
-}
-
-void StateManager::estimateJointVelocity()
-{
-    double dt;
-    dt = 1/2000;
-    Eigen::MatrixXd A_t, A_dt, B_t, B_dt, C;
-    Eigen::MatrixQQd I;
-    I.setIdentity();
-    A_t.setZero(MODEL_DOF*2, MODEL_DOF*2);
-    A_dt.setZero(MODEL_DOF*2, MODEL_DOF*2);
-    B_t.setZero(MODEL_DOF*2, MODEL_DOF);
-    B_dt.setZero(MODEL_DOF*2, MODEL_DOF);
-    C.setZero(MODEL_DOF, MODEL_DOF*2);
-
-    A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
-    A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = dc.A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
-    B_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = dc.A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF);
-    C.bottomLeftCorner(MODEL_DOF, MODEL_DOF) = I;
-    B_dt = B_t*dt;
-    A_dt = dt*A_t + I;
-    
-    //A_t.topLeft = I;
-    if(velEst == false)
-    {
-        q_dot_est = q_dot_;
-        q_ddot_est = q_ddot_;
-        velEst = true;
-    }
-
-    double L;
-    L = 2.0;
-
-    //q_dot_est = q_dot + L*(q); 
 }
 
 void StateManager::SetPositionPDGainMatrix()
