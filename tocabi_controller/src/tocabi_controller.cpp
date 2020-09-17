@@ -1497,8 +1497,8 @@ void TocabiController::dynamicsThreadLow()
 
                 ZMP_command.setZero();
 
-                p_gain << 0.8, 0.8, 0;
-                i_gain << 30.0, 30.0, 0;
+                p_gain << 0.5, 0.5, 0;
+                i_gain << 1.0, 1.0, 0;
 
                 p_control(0) = p_gain(0) * tocabi_.ZMP_error(0);
                 p_control(1) = p_gain(1) * tocabi_.ZMP_error(1);
