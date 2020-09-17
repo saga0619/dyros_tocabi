@@ -111,20 +111,20 @@ const double EXTRAD2CNT[ELMO_DOF] =
 
 const double NM2CNT[ELMO_DOF] =
     {       //Elmo 순서
-        95, //head
-        95,
-        95, //wrist
-        95,
-        95,
-        95,
+        95.0, //head
+        95.0,
+        95.0, //wrist
+        95.0,
+        95.0,
+        95.0,
         15.5, //shoulder3
         15.5, //arm
         15.5, //arm
         15.5, //shoulder3
-        42,   //Elbow
-        42,   //Forearm
-        42,   //Forearm
-        42,   //Elbow
+        42.0,   //Elbow
+        42.0,   //Forearm
+        42.0,   //Forearm
+        42.0,   //Elbow
         15.5, //shoulder1
         15.5, //shoulder2
         15.5, //shoulder2
@@ -412,6 +412,7 @@ public:
     Eigen::VectorQd positionZeroModElmo;
     Eigen::VectorQd initTimeElmo;
     Eigen::VectorQd positionSafteyHoldElmo;
+    Eigen::VectorQd torqueCustomCommand;
 
     Eigen::VectorQd rq_;
     Eigen::VectorQd rq_ext_;
@@ -419,6 +420,10 @@ public:
 
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];
+
+    bool torqueCCEnable;
+    double torqueCC_recvt;
+    double torqueCC_comt;
 
     bool hommingElmo[ELMO_DOF];
     bool hommingElmo_before[ELMO_DOF];
@@ -473,8 +478,10 @@ private:
     Eigen::VectorQd getCommand();
 
     ros::Subscriber gainSubscriber;
+    ros::Subscriber commandSubscriber;
     Eigen::VectorQd CustomGain;
-    void gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg);
+    void gainCallback(const std_msgs::Float32MultiArrayConstPtr &msg);
+    void tcommandCallback(const std_msgs::Float32MultiArrayConstPtr &msg);
 
     double elmoJointMove(double init, double angle, double start_time, double traj_time);
 

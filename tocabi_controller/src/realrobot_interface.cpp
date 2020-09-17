@@ -19,7 +19,8 @@ bool elmo_waiting_lowinit_command = false;
 
 RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global), StateManager(dc_global)
 {
-    gainSubscriber = dc.nh.subscribe("/tocabi/gain_command", 100, &RealRobotInterface::gainCallbak, this);
+    gainSubscriber = dc.nh.subscribe("/tocabi/gain_command", 100, &RealRobotInterface::gainCallback, this);
+    commandSubscriber = dc.nh.subscribe("/tocabi/torquemanual", 100, &RealRobotInterface::tcommandCallback, this);
 
     //pack_path = ros::package::getPath("tocabi_controller");
     zp_path = dc.homedir + "/zeropoint";
@@ -1320,6 +1321,23 @@ void RealRobotInterface::ethercatThread()
                                 }
                             }
 
+                            if (torqueCCEnable)
+                            {
+                                if ((control_time_ >= torqueCC_recvt) && (control_time_ < (torqueCC_recvt + torqueCC_comt)))
+                                {
+                                    for (int i = 0; i < MODEL_DOF; i++)
+                                    {
+                                        ElmoMode[i] = EM_TORQUE;
+                                        torqueDesiredElmo[i] = torqueCustomCommand[i];
+                                    }
+                                }
+
+                                if (control_time_ > (torqueCC_recvt + torqueCC_comt))
+                                {
+                                    torqueCCEnable = false;
+                                }
+                            }
+
                             //ECAT JOINT COMMAND
 
                             for (int i = 0; i < ec_slavecount; i++)
@@ -1823,7 +1841,7 @@ bool RealRobotInterface::controlWordGenerate(const uint16_t statusWord, uint16_t
     return false;
 }
 
-void RealRobotInterface::gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg)
+void RealRobotInterface::gainCallback(const std_msgs::Float32MultiArrayConstPtr &msg)
 {
     std::cout << "customgain Command received ! " << std::endl;
     for (int i = 0; i < MODEL_DOF; i++)
@@ -1833,4 +1851,49 @@ void RealRobotInterface::gainCallbak(const std_msgs::Float32MultiArrayConstPtr &
     }
     std::cout << std::endl;
     dc.customGain = true;
+}
+
+void RealRobotInterface::tcommandCallback(const std_msgs::Float32MultiArrayConstPtr &msg)
+{
+    if (msg->data.size() == 2)
+    {
+        if ((msg->data[0] >= MODEL_DOF) || (msg->data[0] < 0))
+        {
+            std::cout << "Joint Number Error :::\n Usage : \n 1 : joint number \n 2 : torque(NM) \n 3 : duration(option)" << std::endl;
+        }
+        else
+        {
+            std::cout << TOCABI::ELMO_NAME[(int)(msg->data[0])] << " : " << msg->data[1] << " NM for 1 seconds " << std::endl;
+            torqueCustomCommand.setZero();
+            torqueCustomCommand[(int)(msg->data[0])] = msg->data[1];
+            torqueCC_recvt = control_time_;
+            torqueCC_comt = 1.0;
+            torqueCCEnable = true;
+        }
+    }
+    else if (msg->data.size() == 3)
+    {
+        if ((msg->data[0] >= MODEL_DOF) || (msg->data[0] < 0))
+        {
+            std::cout << "Joint Number Error :::\n Usage : \n 1 : joint number \n 2 : torque(NM) \n 3 : duration(option)" << std::endl;
+        }
+        else
+        {
+            std::cout << TOCABI::ELMO_NAME[(int)(msg->data[0])] << " : " << msg->data[1] << " NM for " << msg->data[2] << " seconds " << std::endl;
+
+            torqueCustomCommand.setZero();
+            torqueCustomCommand[(int)(msg->data[0])] = msg->data[1];
+            torqueCC_recvt = control_time_;
+            torqueCC_comt = msg->data[2];
+            torqueCCEnable = true;
+        }
+    }
+    else if (msg->data.size() == MODEL_DOF)
+    {
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            torqueCustomCommand[i] = msg->data[i];
+        }
+        torqueCCEnable = true;
+    }
 }
