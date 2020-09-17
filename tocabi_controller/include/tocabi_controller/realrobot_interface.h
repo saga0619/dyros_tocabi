@@ -215,7 +215,7 @@ const double Kv[ELMO_DOF] =
 
 //Axis correction parameter.
 const double Dr[ELMO_DOF] =
-    {1, -1, 1, 1, 1, 1,
+    {1, -1, 1, -1, 1, 1,
      1, 1, 1, -1, -1, 1,
      1, -1, 1, 1, 1, 1,
      1, 1, -1, -1, -1, -1,
