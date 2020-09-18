@@ -69,16 +69,15 @@ public:
   */
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
 
-  VectorQd task_control_torque_with_gravity(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  VectorQd task_control_torque_with_gravity(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, bool force_control = false);
 
-  // desired force  = lambda_task * f_star 
+  // desired force  = lambda_task * f_star
   VectorQd task_control_torque_force_control(RobotData &Robot, MatrixXd J_task, VectorXd desiredForce);
-  
+
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int mode);
 
   VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
-  
-  
+
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 
@@ -111,7 +110,7 @@ public:
 
   //Get contact force from command torque
   VectorXd get_contact_force(RobotData &Robot, VectorQd command_torque);
-
+  MatrixXd GetTaskLambda(RobotData &Robot, MatrixXd J_task);
   //Get ZMP position from contact forces and both foot position
   Vector3d GetZMPpos(RobotData &Robot, bool Local = false);
   Vector3d GetZMPpos_fromFT(RobotData &Robot, bool Local = false);

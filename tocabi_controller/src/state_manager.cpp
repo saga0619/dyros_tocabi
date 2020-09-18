@@ -485,8 +485,8 @@ void StateManager::adv2ROS(void)
 */
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * dc.tocabi_.ZMP_ft;
 
-    pointpub_msg.polygon.points[12].x = LF_CP_est(0);
-    pointpub_msg.polygon.points[12].y = LF_CP_est(1);
+    pointpub_msg.polygon.points[12].x = dc.tocabi_.CP_desired(1);
+    pointpub_msg.polygon.points[12].y = dc.tocabi_.CP_(1);
     pointpub_msg.polygon.points[12].z = dc.tocabi_.ZMP_ft(2);
 
     pointpub_msg.polygon.points[13].x = Real_Pos(0);

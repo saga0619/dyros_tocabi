@@ -353,7 +353,8 @@ public:
   Eigen::Vector3d ZMP_mod;
   Eigen::Vector3d ZMP_r;
   Eigen::Vector3d ZMP_l;
-
+  Eigen::Vector3d CP_;
+  Eigen::Vector3d CP_desired;
   Eigen::VectorXd TaskForce;
 
   bool zmp_feedback_control = false;
@@ -379,7 +380,7 @@ public:
   double end_time_[4];
   bool target_arrived_[4];
   bool debug;
-
+  bool lambda_calc = false;
   int Right = 0;
   int Left = 1;
 

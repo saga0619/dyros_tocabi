@@ -277,8 +277,6 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
     //std::cout<<"Robot.W_inv"<<Robot.W_inv<<std::endl;
     Robot.contact_force_predict.setZero();
     Robot.contact_calc = true;
-
-    
 }
 
 Matrix2d matpower(Matrix2d mat, int i)
@@ -2309,7 +2307,7 @@ VectorQd WholebodyController::footRotateAssist(RobotData &Robot, bool left, bool
     if (left)
     {
         torque_assist(4) = -pitch_p * LF_eulr_l(1) - pitch_d * LF_ang_v(1); //pitch
-        torque_assist(5) = -roll_p * LF_eulr_l(0) - roll_d * LF_ang_v(0); //roll
+        torque_assist(5) = -roll_p * LF_eulr_l(0) - roll_d * LF_ang_v(0);   //roll
     }
 
     if (right)
@@ -2921,31 +2919,43 @@ VectorQd WholebodyController::task_control_torque_force_control(RobotData &Robot
 
     return torque_task;
 }
+MatrixXd WholebodyController::GetTaskLambda(RobotData &Robot, MatrixXd J_task)
+{
+    Robot.lambda_calc = true;
 
-VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot, MatrixXd J_task, VectorXd f_star_)
+    Robot.lambda_inv = J_task * Robot.A_matrix_inverse * Robot.N_C * J_task.transpose();
+    Robot.lambda = Robot.lambda_inv.inverse();
+
+    return Robot.lambda;
+}
+
+VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, bool force_control)
 {
     Robot.task_dof = J_task.rows();
+    Robot.J_task_T = Robot.J_task.transpose();
+
+    Robot.task_force_control = force_control;
+
+    if (Robot.task_force_control && Robot.lambda_calc)
+    {
+    }
+    else if (Robot.task_force_control)
+    {
+        Robot.lambda_inv = J_task * Robot.A_matrix_inverse * Robot.N_C * J_task.transpose();
+        Robot.lambda = Robot.lambda_inv.inverse();
+    }
+    else
+    {
+        Robot.lambda_inv = J_task * Robot.A_matrix_inverse * Robot.N_C * J_task.transpose();
+        Robot.lambda = Robot.lambda_inv.inverse();
+    }
 
     //Task Control Torque;
-    Robot.J_task_T.resize(MODEL_DOF + 6, Robot.task_dof);
-    Robot.J_task_T.setZero();
-    Robot.lambda_inv.resize(Robot.task_dof, Robot.task_dof);
-    Robot.lambda_inv.setZero();
-    Robot.lambda.resize(Robot.task_dof, Robot.task_dof);
-    Robot.lambda.setZero();
 
-    Robot.J_task_T = J_task.transpose();
-
-    Robot.lambda_inv = J_task * Robot.A_matrix_inverse * Robot.N_C * Robot.J_task_T;
-
-    Robot.lambda = Robot.lambda_inv.inverse();
     Robot.J_task_inv_T = Robot.lambda * J_task * Robot.A_matrix_inverse * Robot.N_C;
-
     Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
     Robot.Q_T_ = Robot.Q.transpose();
-
     Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
-
     Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
 
     //_F=lambda*(f_star);
@@ -2957,13 +2967,15 @@ VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot,
 
     if (Robot.task_force_control)
     {
+
         torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * f_star_ + gravity_compensation_torque(Robot);
     }
     else
     {
         torque_task = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * Robot.lambda * f_star_ + gravity_compensation_torque(Robot);
     }
-
+    Robot.task_force_control = false;
+    Robot.lambda_calc = false;
     //W.svd(s,u,v);
     //V2.resize(28,6);
     //V2.zero();
@@ -3768,7 +3780,7 @@ Vector3d WholebodyController::GetZMPpos(RobotData &Robot, VectorXd ContactForce,
     }
     else
     {
-       Vector3d zmp_r, zmp_l;
+        Vector3d zmp_r, zmp_l;
         //std::cout << "sensor xpos x : " << Robot.ee_[0].sensor_xpos(0) << " ee_ xpos x : " << Robot.ee_[0].xpos(0) << " ee_cp_ : " << Robot.ee_[0].cp_(0) << std::endl;
         zmp_l(0) = Robot.ee_[0].cp_(0) + (-ContactForce(4) - ContactForce(0) * (Robot.ee_[0].cp_(2) - Robot.ee_[0].cp_(2))) / ContactForce(2);
         zmp_l(1) = Robot.ee_[0].cp_(1) + (ContactForce(3) - ContactForce(1) * (Robot.ee_[0].cp_(2) - Robot.ee_[0].cp_(2))) / ContactForce(2);

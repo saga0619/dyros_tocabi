@@ -1354,6 +1354,9 @@ void TocabiController::dynamicsThreadLow()
                 static Vector2d cp_init;
                 static Vector2d cp_desired;
                 Vector2d cp_current = 1 / w * tocabi_.link_[COM_id].v.segment(0, 2) + tocabi_.link_[COM_id].xpos.segment(0, 2);
+                tocabi_.CP_(0) = cp_current(0);
+                tocabi_.CP_(1) = cp_current(1);
+                tocabi_.CP_(2) = 0;
 
                 static int support_foot = -1;
                 static int swing_foot = -1;
@@ -1376,8 +1379,11 @@ void TocabiController::dynamicsThreadLow()
                 Vector6d com_fs;
                 Vector2d acc_desired;
 
+                static bool next_step = true;
+
                 if (tc.task_init)
                 {
+                    next_step = true;
                     step_cnt = -1;
                     tc.task_init = false;
                     zmp_desired.setZero();
@@ -1385,9 +1391,14 @@ void TocabiController::dynamicsThreadLow()
                     support_foot = -1;
                     swing_foot = -1;
                 }
-
-                if (elapsed_time >= step_time * (step_cnt + 1))
+                if ((cp_current - cp_desired).norm() < 0.01)
                 {
+                    next_step = true;
+                }
+
+                if (next_step)
+                {
+                    next_step = false;
                     step_cnt++;
 
                     std::cout << "current step : " << step_cnt; // std::endl;
@@ -1407,15 +1418,16 @@ void TocabiController::dynamicsThreadLow()
                     if (support_foot == 0)
                     {
                         std::cout << "  support foot : left" << std::endl;
-                        tocabi_.link_[Right_Foot].x_init = tocabi_.link_[Right_Foot].xpos;
+                        //tocabi_.link_[Right_Foot].x_init = tocabi_.link_[Right_Foot].xpos;
                     }
                     else
                     {
                         std::cout << "  support foot : right" << std::endl;
-                        tocabi_.link_[Left_Foot].x_init = tocabi_.link_[Left_Foot].xpos;
+                        //tocabi_.link_[Left_Foot].x_init = tocabi_.link_[Left_Foot].xpos;
                     }
                 }
-
+                tocabi_.CP_desired(0) = cp_desired(0);
+                tocabi_.CP_desired(1) = cp_desired(1);
                 elapsed_step_time = elapsed_time - step_cnt * (step_time);
                 left_step_time = step_time - elapsed_step_time;
 
@@ -1532,19 +1544,28 @@ void TocabiController::dynamicsThreadLow()
 
                 ra_right = false;
                 ra_left = false;
+
+                Vector3d foot_up, foot_down;
+
+                foot_up << 0, 0, 0.03;
+                foot_down << 0, 0, -0.03;
                 if (step_cnt > 0)
                 {
                     if (support_foot == 0) //left foot support
                     {
                         tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Foot].Jac_Contact;
-                        tocabi_.link_[Right_Foot].x_traj = tocabi_.link_[Right_Foot].x_init;
+                        tocabi_.link_[Right_Foot].Set_Trajectory_from_quintic(elapsed_step_time, step_time * 0.05, step_time * 0.4, tocabi_.link_[Right_Foot].x_init, tocabi_.link_[Right_Foot].x_init + foot_up);
+                        if (elapsed_step_time >= step_time * 0.4)
+                            tocabi_.link_[Right_Foot].Set_Trajectory_from_quintic(elapsed_step_time, step_time * 0.4, step_time * 0.7, tocabi_.link_[Right_Foot].x_init + foot_up, tocabi_.link_[Right_Foot].x_init);
                         tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Right_Foot);
                         ra_right = true;
                     }
                     else if (support_foot == 1) //right foot support
                     {
                         tocabi_.J_task.block(9, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Foot].Jac_Contact;
-                        tocabi_.link_[Left_Foot].x_traj = tocabi_.link_[Left_Foot].x_init;
+                        tocabi_.link_[Left_Foot].Set_Trajectory_from_quintic(elapsed_step_time, step_time * 0.05, step_time * 0.4, tocabi_.link_[Left_Foot].x_init, tocabi_.link_[Left_Foot].x_init + foot_up);
+                        if (elapsed_step_time >= step_time * 0.4)
+                            tocabi_.link_[Left_Foot].Set_Trajectory_from_quintic(elapsed_step_time, step_time * 0.4, step_time * 0.7, tocabi_.link_[Left_Foot].x_init + foot_up, tocabi_.link_[Left_Foot].x_init);
                         tocabi_.f_star.segment(9, 6) = wbc_.getfstar6d(tocabi_, Left_Foot);
                         ra_left = true;
                     }
@@ -1567,8 +1588,55 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
                 //torque_task = wbc_.task_control_torque_with_gravity(tocabi_, tocabi_.J_task, tocabi_.f_star);
-                VectorQd torque_task_initial = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+                VectorXd force_desired_;
+                wbc_.GetTaskLambda(tocabi_, tocabi_.J_task);
+
+                force_desired_ = tocabi_.lambda * tocabi_.f_star;
+
+                if (step_cnt > 0)
+                {
+                    if (elapsed_step_time > 0.45 * step_time)
+                        force_desired_(11) = force_desired_(11) + DyrosMath::minmax_cut((elapsed_step_time - 0.45 * step_time) / (0.45 * step_time), 0, 1) * -15.0;
+                }
+
+                VectorQd torque_task_initial = wbc_.task_control_torque_with_gravity(tocabi_, tocabi_.J_task, force_desired_, true); //wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 Vector3d zmp_id = wbc_.GetZMPpos(tocabi_, wbc_.get_contact_force(tocabi_, torque_task_initial));
+
+                ee_local_zmp = tocabi_.ee_[support_foot].rotm.inverse() * (zmp_id - tocabi_.ee_[support_foot].cp_);
+                //tocabi_.zmp_
+                if (step_cnt > 0)
+                {
+                    bool zmp_regulated = false;
+                    if (abs(ee_local_zmp(0)) > tocabi_.ee_[support_foot].cs_x_length)
+                    {
+                        zmp_regulated = true;
+                        if (ee_local_zmp(0) > 0)
+                        {
+                            ee_local_zmp(0) = tocabi_.ee_[support_foot].cs_x_length;
+                        }
+                        else
+                        {
+                            ee_local_zmp(0) = -tocabi_.ee_[support_foot].cs_x_length;
+                        }
+                    }
+                    if (abs(ee_local_zmp(1)) > tocabi_.ee_[support_foot].cs_y_length)
+                    {
+                        zmp_regulated = true;
+                        if (ee_local_zmp(1) > 0)
+                        {
+                            ee_local_zmp(1) = tocabi_.ee_[support_foot].cs_y_length;
+                        }
+                        else
+                        {
+                            ee_local_zmp(1) = -tocabi_.ee_[support_foot].cs_y_length;
+                        }
+                    }
+                    if (zmp_regulated)
+                    {
+                        std::cout << "zmp regulated 2 x : " << ee_local_zmp(0) << " y : " << ee_local_zmp(1) << std::endl;
+                        zmp_id = tocabi_.ee_[support_foot].rotm * ee_local_zmp + tocabi_.ee_[support_foot].cp_;
+                    }
+                }
 
                 Vector3d zmp_error_id = zmp_id - tocabi_.ZMP_ft;
                 VectorQd torque_foot_control_add;
@@ -1589,8 +1657,8 @@ void TocabiController::dynamicsThreadLow()
 
                 ZMP_command.setZero();
 
-                p_gain << 0.5, 0.5, 0;
-                i_gain << 1.0, 1.0, 0;
+                p_gain << 0.3, 0.3, 0;
+                i_gain << 0.8, 0.8, 0;
 
                 p_control(0) = p_gain(0) * zmp_error_id(0);
                 p_control(1) = p_gain(1) * zmp_error_id(1);
@@ -1634,7 +1702,7 @@ void TocabiController::dynamicsThreadLow()
                     torque_foot_control_add(4) = -ZMP_command(0) * tocabi_.ContactForce_FT(2); //pitch
                     torque_foot_control_add(5) = ZMP_command(1) * tocabi_.ContactForce_FT(2);  //roll
 
-                    torque_pelvis_rot_add(1) = -(tocabi_.roll * pelv_rot_ass_p + pelv_v(0) * pelv_rot_ass_d);
+                    //torque_pelvis_rot_add(1) = -(tocabi_.roll * pelv_rot_ass_p + pelv_v(0) * pelv_rot_ass_d);
 
                     //eulr_f = DyrosMath::rot2Euler_tf(tocabi_.link_[Right_Foot].Rotm);
                     //eulr_f = DyrosMath::rot2Euler_tf(tocabi_.link_[Right_Foot].Rotm * DyrosMath::rotateWithZ(-eulr_f(2)));
@@ -1645,15 +1713,16 @@ void TocabiController::dynamicsThreadLow()
                     torque_foot_control_add(4 + 6) = -ZMP_command(0) * tocabi_.ContactForce_FT(2 + 6);
                     torque_foot_control_add(5 + 6) = ZMP_command(1) * tocabi_.ContactForce_FT(2 + 6);
                     //torque_foot_control_add += wbc_.footRotateAssist(tocabi_, 1, 0);
-                    torque_pelvis_rot_add(1 + 6) = tocabi_.roll * pelv_rot_ass_p + pelv_v(0) * pelv_rot_ass_d;
+                    //torque_pelvis_rot_add(1 + 6) = tocabi_.roll * pelv_rot_ass_p + pelv_v(0) * pelv_rot_ass_d;
                 }
 
-                //              std::cout << "excuse me?" << std::endl;
+                //std::cout << "excuse me?" << std::endl;
                 tocabi_.ZMP_desired2(1) = zmp_id(1);
                 torque_task = torque_task_initial;
+                //DyrosMath::minmax_cut(elapsed_step_time / step_time * 20.0, 0, 1) *
                 torque_add = torque_foot_control_add + wbc_.footRotateAssist(tocabi_, ra_left, ra_right) + torque_pelvis_rot_add;
 
-                //                std::cout << "excuse u!" << std::endl;
+                //std::cout << "excuse u!" << std::endl;
                 tocabi_.f_star.setZero();
                 torque_grav.setZero();
                 //tocabi_.ZMP_desired2(0) = int_y;
