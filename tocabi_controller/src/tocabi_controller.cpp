@@ -976,7 +976,23 @@ void TocabiController::dynamicsThreadLow()
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
                 wbc_.set_contact(tocabi_, 1, 1, 1, 1);
-                torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+                //torque_grav = wbc_.gravity_compensation_torque(tocabi_);
+
+                int task_number = 3;
+                tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
+                tocabi_.f_star.setZero(task_number);
+
+                tocabi_.J_task.block(0, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac.block(0, 0, 3, MODEL_DOF_VIRTUAL);
+
+                tocabi_.link_[COM_id].x_desired = tocabi_.link_[COM_id].x_init;
+                tocabi_.link_[COM_id].x_desired(0) = tocabi_.link_[COM_id].x_desired(0) + 0.05;
+                tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
+
+                tocabi_.f_star.segment(0, 3) = wbc_.getfstar_tra(tocabi_, COM_id);
+
+                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+                torque_grav.setZero();
+
                 /*
                 int task_number = 9;
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
@@ -1556,6 +1572,8 @@ void TocabiController::dynamicsThreadLow()
 
                 Vector3d zmp_error_id = zmp_id - tocabi_.ZMP_ft;
                 VectorQd torque_foot_control_add;
+                VectorQd torque_pelvis_rot_add;
+                torque_pelvis_rot_add.setZero();
                 torque_foot_control_add.setZero();
                 torque_foot_control_add(5) = 0.0;
                 torque_foot_control_add(5 + 6) = 0.0;
@@ -1606,10 +1624,17 @@ void TocabiController::dynamicsThreadLow()
                     //std::cout << "integral : " << int_y << "  zmp_ft : " << tocabi_.ZMP_ft(1) << "  zmp des : " << zmp_desired_before(1) << "  zmperr : " << tocabi_.ZMP_error(1) << " dtime : " << tocabi_.d_time_ << std::endl;
                 }
 
+                Vector3d pelv_v = tocabi_.link_[Pelvis].Rotm.transpose() * tocabi_.link_[Pelvis].w;
+
+                double pelv_rot_ass_p = 100;
+                double pelv_rot_ass_d = 20;
+
                 if (support_foot == 0)
                 {
                     torque_foot_control_add(4) = -ZMP_command(0) * tocabi_.ContactForce_FT(2); //pitch
                     torque_foot_control_add(5) = ZMP_command(1) * tocabi_.ContactForce_FT(2);  //roll
+
+                    torque_pelvis_rot_add(1) = -(tocabi_.roll * pelv_rot_ass_p + pelv_v(0) * pelv_rot_ass_d);
 
                     //eulr_f = DyrosMath::rot2Euler_tf(tocabi_.link_[Right_Foot].Rotm);
                     //eulr_f = DyrosMath::rot2Euler_tf(tocabi_.link_[Right_Foot].Rotm * DyrosMath::rotateWithZ(-eulr_f(2)));
@@ -1620,12 +1645,13 @@ void TocabiController::dynamicsThreadLow()
                     torque_foot_control_add(4 + 6) = -ZMP_command(0) * tocabi_.ContactForce_FT(2 + 6);
                     torque_foot_control_add(5 + 6) = ZMP_command(1) * tocabi_.ContactForce_FT(2 + 6);
                     //torque_foot_control_add += wbc_.footRotateAssist(tocabi_, 1, 0);
+                    torque_pelvis_rot_add(1 + 6) = tocabi_.roll * pelv_rot_ass_p + pelv_v(0) * pelv_rot_ass_d;
                 }
 
                 //              std::cout << "excuse me?" << std::endl;
                 tocabi_.ZMP_desired2(1) = zmp_id(1);
                 torque_task = torque_task_initial;
-                torque_add = torque_foot_control_add + wbc_.footRotateAssist(tocabi_, ra_left, ra_right);
+                torque_add = torque_foot_control_add + wbc_.footRotateAssist(tocabi_, ra_left, ra_right) + torque_pelvis_rot_add;
 
                 //                std::cout << "excuse u!" << std::endl;
                 tocabi_.f_star.setZero();
