@@ -195,6 +195,7 @@ void StateManager::stateThread(void)
             stateEstimate();
             //lowpass filter for q_dot
             updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+            jointVelocityEstimate();
 
             storeState();
 
@@ -1235,6 +1236,67 @@ void StateManager::stateEstimate()
         q_dot_virtual_ = q_dot_virtual_local_;
         q_ddot_virtual_ = q_ddot_virtual_local_;
     }
+}
+
+void StateManager::jointVelocityEstimate()
+{
+    //Estimate joint velocity using state observer
+    double dt;
+    dt = 1/2000;
+    Eigen::MatrixXd A_t, A_dt, B_t, B_dt, C, I, I_t;
+    I.setZero(MODEL_DOF*2,MODEL_DOF*2);
+    I.setIdentity();
+    I_t.setZero(MODEL_DOF, MODEL_DOF);
+    I_t.setIdentity();
+    A_t.setZero(MODEL_DOF*2, MODEL_DOF*2);
+    A_dt.setZero(MODEL_DOF*2, MODEL_DOF*2);
+    B_t.setZero(MODEL_DOF*2, MODEL_DOF);
+    B_dt.setZero(MODEL_DOF*2, MODEL_DOF);
+    C.setZero(MODEL_DOF, MODEL_DOF*2);
+
+    A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
+    A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
+    A_t.topRightCorner(MODEL_DOF, MODEL_DOF) = I_t;
+    B_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF);
+    C.bottomLeftCorner(MODEL_DOF, MODEL_DOF) = I_t*dt;
+    B_dt = B_t*dt;
+    A_dt = I-dt*A_dt;
+
+    
+    double L;
+    L = 0.005;
+
+    if(velEst == false)
+    {
+        q_est = q_;
+        q_dot_est = q_dot_;
+        velEst = true;
+    }
+
+    if(velEst = true)
+    {
+        Eigen::VectorQd q_temp;
+        Eigen::VectorVQd q_dot_virtual;
+        
+        q_dot_virtual = q_dot_virtual_;
+
+        q_temp = q_est;
+
+        q_est = q_est+ dt*q_dot_est + L*(q_ - q_est);  
+
+        q_dot_virtual.segment<MODEL_DOF>(6) = q_dot_est;
+
+        q_dot_est = (q_temp - q_est)*2000;
+
+        RigidBodyDynamics::Math::VectorNd tau_;
+        tau_.resize(model_.qdot_size);
+
+        RigidBodyDynamics::NonlinearEffects(model_, q_virtual_, q_dot_virtual, tau_);
+
+        q_dot_est = -(q_dot_est + B_dt.bottomRightCorner(MODEL_DOF, MODEL_DOF) * (dc.torque_desired - tau_.segment<MODEL_DOF>(6)));
+    }
+
+    dc.tocabi_.q_dot_est = q_dot_est;
 }
 
 void StateManager::SetPositionPDGainMatrix()

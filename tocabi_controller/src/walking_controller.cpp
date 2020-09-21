@@ -50,6 +50,8 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             comJacobianIK(Robot);
         }
         
+        desired_leg_q_prev = desired_leg_q;
+        
         //hipCompensator();
 
         momentumControl(Robot);
@@ -1053,12 +1055,14 @@ void Walking_controller::momentumControl(RobotData &Robot)
         q_rarmd.setZero();
         q_larmd.setZero();
         qd_prev.setZero();
+        desired_leg_q_dot.setZero();
     }
     else
     {   
         q_waistd.setZero();
         q_rarmd.setZero();
         q_larmd.setZero();
+        desired_leg_q_dot = (desired_leg_q-desired_leg_q_prev)*Hz_;
 
         for(int i = 0; i < 3; i++)
         {
@@ -1068,21 +1072,22 @@ void Walking_controller::momentumControl(RobotData &Robot)
         q_larmd(1) = q_dm(3);
     }
 
-    H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * Robot.q_dot_.segment(12,3) + Ag_armL * Robot.q_dot_.segment(15,8) + Ag_armR * Robot.q_dot_.segment(25,8);
-   // H_leg = Ag_leg * Robot.q_dot_.head(12) + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
+   H_leg = Ag_leg * Robot.q_dot_est.head(12) + Ag_waist * Robot.q_dot_est.segment(12,3) + Ag_armL * Robot.q_dot_est.segment(15,8) + Ag_armR * Robot.q_dot_est.segment(25,8);
+   //H_leg = Ag_leg *desired_leg_q_dot + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
  
+
     Eigen::MatrixXd Ag_temp;
     Eigen::Matrix5d I;
 
     double beta, beta1;
     beta = 0.2;
     beta1 = 0.1;
-
+ 
     I.setIdentity();
 
     for(int i = 0; i<5; i++)
     {
-        if(i>2)
+        if(i>=2)
         {
             I(i,i) = beta1 * I(i,i);
             qd_prev(i) = 2*beta1*qd_prev(i);

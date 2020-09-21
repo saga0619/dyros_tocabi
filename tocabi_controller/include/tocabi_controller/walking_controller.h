@@ -32,6 +32,8 @@ public:
     Eigen::Vector12d desired_leg_q;
     Eigen::Vector12d desired_leg_q_NC;
     Eigen::VectorQd desired_init_leg_q;
+    Eigen::Vector12d desired_leg_q_prev;
+    Eigen::Vector12d desired_leg_q_dot;
 
     CQuadraticProgram QP_m;
 

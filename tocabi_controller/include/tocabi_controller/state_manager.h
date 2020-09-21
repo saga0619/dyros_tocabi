@@ -52,7 +52,9 @@ public:
 
   void stateEstimate();
   //private functions
-  
+
+  void jointVelocityEstimate();
+
   //advertise informations to ROS
   void adv2ROS();
 
@@ -85,8 +87,10 @@ public:
   Eigen::VectorQd q_;
   Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
+  Eigen::VectorQd q_est;
   Eigen::VectorQd q_dot_;
   Eigen::VectorQd q_dot_before_;
+  Eigen::VectorQd q_dot_est;
   Eigen::VectorQd q_ddot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
@@ -98,6 +102,8 @@ public:
   Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;
   Eigen::VectorVQd tau_nonlinear_;
+
+  bool velEst = false;
 
   Eigen::VectorQVQd q_virtual_local_;
   Eigen::VectorVQd q_dot_virtual_local_;

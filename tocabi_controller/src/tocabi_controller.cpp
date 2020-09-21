@@ -362,18 +362,19 @@ void TocabiController::dynamicsThreadHigh()
                     tocabi_.q_init_ = tocabi_.q_;
                     set_q_init = false;
                 }
+
                 if (dc.positionGravControl)
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) + dc.tocabi_.Kvs[i] * (tocabi_.q_dot_desired_(i) - tocabi_.q_dot_(i));
                     }
                 }
                 else
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_(i));
+                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) + dc.tocabi_.Kvs[i] * (tocabi_.q_dot_desired_(i) -tocabi_.q_dot_(i));
                     }
                 }
 
