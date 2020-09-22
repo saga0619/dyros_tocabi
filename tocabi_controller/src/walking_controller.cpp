@@ -39,6 +39,8 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             ankleOriControl(Robot);
         }
 
+        desired_leg_q_prev = desired_leg_q;
+
         /////InverseKinematics//////
         if(ik_mode == 0)
         {
@@ -49,8 +51,6 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             comJacobianState(Robot);
             comJacobianIK(Robot);
         }
-        
-        desired_leg_q_prev = desired_leg_q;
         
         //hipCompensator();
 
@@ -1062,26 +1062,30 @@ void Walking_controller::momentumControl(RobotData &Robot)
         q_waistd.setZero();
         q_rarmd.setZero();
         q_larmd.setZero();
-        desired_leg_q_dot = (desired_leg_q-desired_leg_q_prev)*Hz_;
-
+        for(int i = 0; i <12; i++)
+        {
+            desired_leg_q_dot(i) = (desired_leg_q(i)-desired_leg_q_prev(i))*Hz_;
+        }
+        
         for(int i = 0; i < 3; i++)
         {
             q_waistd(i) = q_dm(i);
         }        
         q_rarmd(1) = q_dm(4);
+
         q_larmd(1) = q_dm(3);
     }
 
    H_leg = Ag_leg * Robot.q_dot_est.head(12) + Ag_waist * Robot.q_dot_est.segment(12,3) + Ag_armL * Robot.q_dot_est.segment(15,8) + Ag_armR * Robot.q_dot_est.segment(25,8);
-   //H_leg = Ag_leg *desired_leg_q_dot + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
+  // H_leg = Ag_leg *desired_leg_q_dot + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
  
 
     Eigen::MatrixXd Ag_temp;
     Eigen::Matrix5d I;
-
+/*
     double beta, beta1;
     beta = 0.2;
-    beta1 = 0.1;
+    beta1 = 0.2;
  
     I.setIdentity();
 
@@ -1092,20 +1096,19 @@ void Walking_controller::momentumControl(RobotData &Robot)
             I(i,i) = beta1 * I(i,i);
             qd_prev(i) = 2*beta1*qd_prev(i);
         }
-        else
-        {
+        elsej
             I(i,i) = beta * I(i,i);   
             qd_prev(i) = 2*beta*qd_prev(i);
         }
     }
-
+*/
     Ag_temp.resize(3, 5);
     Ag_temp.block<3,3>(0,0) = Ag_waist;
     Ag_temp.block<3,1>(0,3) = Ag_armL.block<3,1>(0,1);
     Ag_temp.block<3,1>(0,4) = Ag_armR.block<3,1>(0,1);
-    
-    H = Ag_temp.transpose()*Ag_temp + I;
-    g = 2*Ag_temp.transpose()*H_leg - qd_prev;
+   
+    H = Ag_temp.transpose()*Ag_temp;// + I;
+    g = 2*Ag_temp.transpose()*H_leg;//- qd_prev;
 
 /*
 std::cout << "Ag_armL" << std::endl;
@@ -1120,8 +1123,8 @@ std::cout << Ag_armR << std::endl;
 
     for(int i=0; i<5; i++)
     {   
-        lbA(i) = (-0.4 - q_w(i))*Hz_;
-        ubA(i) = (0.4 - q_w(i))*Hz_;
+        lbA(i) = (-0.2 - q_w(i))*Hz_;
+        ubA(i) = (0.2 - q_w(i))*Hz_;
     }
 
     lbA(3) = (0.15 - q_w(3))*Hz_;

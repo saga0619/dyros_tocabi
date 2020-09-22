@@ -1263,8 +1263,9 @@ void StateManager::jointVelocityEstimate()
     A_dt = I-dt*A_dt;
 
     
-    double L;
+    double L, L1;
     L = 0.005;
+    L1 = 0.005;
 
     if(velEst == false)
     {
@@ -1293,7 +1294,7 @@ void StateManager::jointVelocityEstimate()
 
         RigidBodyDynamics::NonlinearEffects(model_, q_virtual_, q_dot_virtual, tau_);
 
-        q_dot_est = -(q_dot_est + B_dt.bottomRightCorner(MODEL_DOF, MODEL_DOF) * (dc.torque_desired - tau_.segment<MODEL_DOF>(6)));
+        q_dot_est = -(q_dot_est + B_dt.bottomRightCorner(MODEL_DOF, MODEL_DOF) * (dc.torque_desired + L1*(q_ - q_est)- tau_.segment<MODEL_DOF>(6)));
     }
 
     dc.tocabi_.q_dot_est = q_dot_est;
