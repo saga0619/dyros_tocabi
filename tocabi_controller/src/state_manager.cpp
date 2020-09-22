@@ -123,9 +123,9 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         link_[Left_Foot].contact_point << 0.03, 0, -0.1585;
         link_[Left_Foot].sensor_point << 0.0, 0.0, -0.09;
 
-        link_[Right_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Right_Hand].contact_point << 0, 0.0, -0.035;
         link_[Right_Hand].sensor_point << 0.0, 0.0, 0.0;
-        link_[Left_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Left_Hand].contact_point << 0, 0.0, -0.035;
         link_[Left_Hand].sensor_point << 0.0, 0.0, 0.0;
 
         for (int i = 0; i < LINK_NUMBER; i++)

@@ -1604,9 +1604,16 @@ void RealRobotInterface::imuThread()
             imu_quat(2) = imu_msg.orientation.z;
             imu_quat(3) = imu_msg.orientation.w;
 
-            imu_ang_vel(0) = imu_msg.angular_velocity.x;
-            imu_ang_vel(1) = imu_msg.angular_velocity.y;
-            imu_ang_vel(2) = imu_msg.angular_velocity.z;
+            Vector3d ang_vel;
+            ang_vel(0) = imu_msg.angular_velocity.x;
+            ang_vel(0) = imu_msg.angular_velocity.y;
+            ang_vel(0) = imu_msg.angular_velocity.z;
+            Vector3d ang_vel_lpf;
+            static Vector3d ang_vel_lpf_before;
+            ang_vel_lpf = DyrosMath::lpf(ang_vel,ang_vel_lpf_before,1000,15);
+            ang_vel_lpf_before = ang_vel_lpf;
+
+            imu_ang_vel = ang_vel_lpf;
 
             imu_lin_acc(0) = imu_msg.linear_acceleration.x;
             imu_lin_acc(1) = imu_msg.linear_acceleration.y;

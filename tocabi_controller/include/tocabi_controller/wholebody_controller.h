@@ -55,6 +55,8 @@ public:
   //update gravity compensation torque
   VectorQd gravity_compensation_torque(RobotData &Robot, bool fixed = false, bool redsvd = false);
 
+  VectorQd gravity_compensation_torque_QP(RobotData &Robot);
+
   //get contact redistribution torque with Quadratic programing
   VectorQd contact_torque_calc_from_QP(RobotData &Robot, VectorQd command_torque);
 

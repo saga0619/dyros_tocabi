@@ -1847,7 +1847,7 @@
         xyz="0.00063 0.0636 0.00178"
         rpy="0 0 0" />
       <mass
-        value="0.001" />
+        value="0.1" />
       <inertia
         ixx="0.000865450"
         ixy="0"
@@ -1858,10 +1858,10 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0.025 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.02 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
       <material
         name="">
@@ -1871,10 +1871,10 @@
     </visual>
 	<collision>
       <origin
-        xyz="0 0.025 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.02 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
     </collision>
   </link>
@@ -1883,7 +1883,7 @@
     type="revolute">
     <origin
       xyz="0 0.046 0"
-      rpy="0 0 0" />
+      rpy="1.5708 3.1415 0" />
     <parent
       link="L_Wrist1_Link" />
     <child
@@ -2338,7 +2338,7 @@
         xyz="0.00063 -0.0636 0.00178"
         rpy="0 0 0" />
       <mass
-        value="0.001" />
+        value="0.1" />
       <inertia
         ixx="0.000865450"
         ixy="0"
@@ -2349,10 +2349,10 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 -0.025 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.02 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
       <material
         name="">
@@ -2362,10 +2362,10 @@
     </visual>
     <collision>
       <origin
-        xyz="0 -0.025 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.02 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
     </collision>
   </link>
@@ -2374,7 +2374,7 @@
     type="revolute">
     <origin
       xyz="0 -0.046 0"
-      rpy="0 0 0" />
+      rpy="-1.5708 3.1415 0" />
     <parent
       link="R_Wrist1_Link" />
     <child
