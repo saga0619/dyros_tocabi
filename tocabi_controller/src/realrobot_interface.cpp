@@ -1383,7 +1383,7 @@ void RealRobotInterface::ethercatThread()
                                 }
                                 else
                                 {
-                                    checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
+                                    checkSafety(i, MAX_VEL[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                                 }
                                 checkJointLimit(i);
                             }
