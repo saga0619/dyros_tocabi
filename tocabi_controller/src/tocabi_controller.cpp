@@ -1397,10 +1397,16 @@ void TocabiController::dynamicsThreadLow()
                     support_foot = -1;
                     swing_foot = -1;
                 }
-                if ((cp_current - cp_desired).norm() < 0.01)
+                if ((cp_current - cp_desired).norm() < 0.02)
                 {
                     next_step = true;
                 }
+                else if(elapsed_step_time > step_time)
+                {
+                    next_step = true;
+                }
+
+
 
                 if (next_step)
                 {
@@ -1602,7 +1608,7 @@ void TocabiController::dynamicsThreadLow()
                 if (step_cnt > 0)
                 {
                     if (elapsed_step_time > 0.45 * step_time)
-                        force_desired_(11) = force_desired_(11) + DyrosMath::minmax_cut((elapsed_step_time - 0.45 * step_time) / (0.45 * step_time), 0, 1) * -15.0;
+                        force_desired_(11) = force_desired_(11) + DyrosMath::minmax_cut((elapsed_step_time - 0.45 * step_time) / (0.4 * step_time), 0, 1) * -65.0;
                 }
 
                 VectorQd torque_task_initial = wbc_.task_control_torque_with_gravity(tocabi_, tocabi_.J_task, force_desired_, true); //wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
@@ -1663,8 +1669,8 @@ void TocabiController::dynamicsThreadLow()
 
                 ZMP_command.setZero();
 
-                p_gain << 0.3, 0.3, 0;
-                i_gain << 0.8, 0.8, 0;
+                p_gain << 0.5, 0.5, 0;
+                i_gain << 1.0, 1.0, 0;
 
                 p_control(0) = p_gain(0) * zmp_error_id(0);
                 p_control(1) = p_gain(1) * zmp_error_id(1);
