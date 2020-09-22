@@ -1384,7 +1384,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     VectorXd f_star_qp_;
 
     //VectorQd gravity_torque = gravity_compensation_torque(Robot, dc.fixedgravity);
-    double friction_ratio = 0.1;
+    double friction_ratio = 0.04;
     double friction_ratio_z = 0.01;
 
     Robot.task_dof = J_task.rows();
@@ -1473,7 +1473,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     // Ea minimization ::
 
-    double ea_weight = 2.0;
+    double ea_weight = 20.0;
     //W = Robot.Slc_k * Robot.N_C.transpose() * Robot.A_matrix_inverse * N_task.transpose() * Robot.A_matrix * N_task * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; // + 0.1*Robot.Slc_k * Robot.A_matrix_inverse * Robot.Slc_k_T;
     //g.segment(0, MODEL_DOF) = -ea_weight * Robot.Slc_k * Robot.N_C.transpose() * Robot.A_matrix_inverse * N_task.transpose() * Robot.A_matrix * N_task * Robot.A_matrix_inverse * Robot.N_C * Robot.G;
     W = Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; // + 0.1*Robot.Slc_k * Robot.A_matrix_inverse * Robot.Slc_k_T;
@@ -1510,9 +1510,9 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         {
             Fsl(6 * i + 0, 6 * i + 0) = 0.0001 * ratioFoots[i];
             Fsl(6 * i + 1, 6 * i + 1) = 0.0001 * ratioFoots[i];
-            Fsl(6 * i + 3, 6 * i + 3) = 0.05 * ratioFoots[i];
-            Fsl(6 * i + 4, 6 * i + 4) = 0.05 * ratioFoots[i];
-            Fsl(6 * i + 5, 6 * i + 5) = 0.05 * ratioFoots[i];
+            Fsl(6 * i + 3, 6 * i + 3) = 0.01 * ratioFoots[i];
+            Fsl(6 * i + 4, 6 * i + 4) = 0.01 * ratioFoots[i];
+            Fsl(6 * i + 5, 6 * i + 5) = 0.01 * ratioFoots[i];
         }
     }
 
