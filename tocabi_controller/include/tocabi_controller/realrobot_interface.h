@@ -120,10 +120,10 @@ const double MAX_VEL[ELMO_DOF] =
      2.0, //arm
      2.0, //arm
      2.0, //shoulder3
-     2.0, //Elbow
-     2.0, //Forearm
-     2.0, //Forearm
-     2.0, //Elbow
+     10.0, //Elbow
+     10.0, //Forearm
+     10.0, //Forearm
+     10.0, //Elbow
      3.5, //shoulder1
      3.5, //shoulder2
      3.5, //shoulder2
@@ -148,10 +148,10 @@ const double NM2CNT[ELMO_DOF] =
     {         //Elmo 순서
         95.0, //head
         95.0,
-        30.0, //wrist
-        30.0,
-        30.0,
-        30.0,
+        95.0, //wrist
+        95.0,
+        95.0,
+        95.0,
         15.5, //shoulder3
         15.5, //arm
         15.5, //arm

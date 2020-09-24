@@ -1608,7 +1608,7 @@ void TocabiController::dynamicsThreadLow()
                 if (step_cnt > 0)
                 {
                     if (elapsed_step_time > 0.45 * step_time)
-                        force_desired_(11) = force_desired_(11) + DyrosMath::minmax_cut((elapsed_step_time - 0.45 * step_time) / (0.4 * step_time), 0, 1) * -65.0;
+                        force_desired_(11) = force_desired_(11) + DyrosMath::minmax_cut((elapsed_step_time - 0.45 * step_time) / (0.4 * step_time), 0, 1) * -45.0;
                 }
 
                 VectorQd torque_task_initial = wbc_.task_control_torque_with_gravity(tocabi_, tocabi_.J_task, force_desired_, true); //wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);

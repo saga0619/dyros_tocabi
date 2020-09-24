@@ -17,6 +17,13 @@ bool elmo_init_upper = false;
 bool elmo_waiting_upperinit_commnad = false;
 bool elmo_waiting_lowinit_command = false;
 
+int roundtoint(double x)
+{
+    if (x >= 0)
+        return (int)(x + 0.5);
+    return (int)(x - 0.5);
+}
+
 RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global), StateManager(dc_global)
 {
     gainSubscriber = dc.nh.subscribe("/tocabi/gain_command", 100, &RealRobotInterface::gainCallback, this);
@@ -885,6 +892,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                         }
+                                        
                                         txPDO[slave - 1]->maxTorque = (uint16)1000; // originaly 1000
                                         ElmoMode[slave - 1] = EM_TORQUE;
                                         torqueDemandElmo[slave - 1] = 0.0;
@@ -1357,8 +1365,9 @@ void RealRobotInterface::ethercatThread()
                                     }
                                     else
                                     {
-                                        txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
+                                        txPDO[i]->targetTorque = (roundtoint)(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
                                     }
+                                    
                                 }
                                 else if (ElmoMode[i] == EM_COMMUTATION)
                                 {
@@ -1400,6 +1409,11 @@ void RealRobotInterface::ethercatThread()
 
                             //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
                             ec_send_processdata();
+
+                            for(int i=0;i<ec_slavecount;i++)
+                            {
+                                dc.torqueElmo[i] = roundtoint(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
+                            }
 
                             positionDesiredElmo_Before = positionDesiredElmo;
                             if (dc.disableSafetyLock)
@@ -1610,7 +1624,7 @@ void RealRobotInterface::imuThread()
             ang_vel(0) = imu_msg.angular_velocity.z;
             Vector3d ang_vel_lpf;
             static Vector3d ang_vel_lpf_before;
-            ang_vel_lpf = DyrosMath::lpf(ang_vel,ang_vel_lpf_before,1000,15);
+            ang_vel_lpf = DyrosMath::lpf(ang_vel, ang_vel_lpf_before, 1000, 15);
             ang_vel_lpf_before = ang_vel_lpf;
 
             imu_ang_vel = ang_vel_lpf;
