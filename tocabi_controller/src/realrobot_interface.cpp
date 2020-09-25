@@ -179,11 +179,6 @@ void RealRobotInterface::checkJointLimit(int slv_number)
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
 {
     bool damping_mode = false;
-    if(slv_number == 5)
-    {
-        std::cout << "maxvel" << std::endl;
-        std::cout << max_vel <<std::endl;
-    }
     if (ElmoSafteyMode[slv_number] == 0)
     {
         if (checkPosSafety[slv_number])

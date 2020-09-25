@@ -1264,8 +1264,8 @@ void StateManager::jointVelocityEstimate()
 
     
     double L, L1;
-    L = 0.005;
-    L1 = 0.005;
+    L = 0.002;
+    L1 = 0.1;
 
     if(velEst == false)
     {

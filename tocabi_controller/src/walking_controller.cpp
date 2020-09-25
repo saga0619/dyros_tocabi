@@ -1076,32 +1076,11 @@ void Walking_controller::momentumControl(RobotData &Robot)
         q_larmd(1) = q_dm(3);
     }
 
-   H_leg = Ag_leg * Robot.q_dot_est.head(12) + Ag_waist * Robot.q_dot_est.segment(12,3) + Ag_armL * Robot.q_dot_est.segment(15,8) + Ag_armR * Robot.q_dot_est.segment(25,8);
-  // H_leg = Ag_leg *desired_leg_q_dot + Ag_waist * q_waistd + Ag_armL * q_larmd + Ag_armR * q_rarmd;
- 
+    H_leg = Ag_leg * Robot.q_dot_est.head(12) + Ag_waist * Robot.q_dot_est.segment(12,3) + Ag_armL * Robot.q_dot_est.segment(15,8) + Ag_armR * Robot.q_dot_est.segment(25,8);
 
     Eigen::MatrixXd Ag_temp;
     Eigen::Matrix5d I;
-/*
-    double beta, beta1;
-    beta = 0.2;
-    beta1 = 0.2;
- 
-    I.setIdentity();
 
-    for(int i = 0; i<5; i++)
-    {
-        if(i>=2)
-        {
-            I(i,i) = beta1 * I(i,i);
-            qd_prev(i) = 2*beta1*qd_prev(i);
-        }
-        elsej
-            I(i,i) = beta * I(i,i);   
-            qd_prev(i) = 2*beta*qd_prev(i);
-        }
-    }
-*/
     Ag_temp.resize(3, 5);
     Ag_temp.block<3,3>(0,0) = Ag_waist;
     Ag_temp.block<3,1>(0,3) = Ag_armL.block<3,1>(0,1);
@@ -1110,15 +1089,6 @@ void Walking_controller::momentumControl(RobotData &Robot)
     H = Ag_temp.transpose()*Ag_temp;// + I;
     g = 2*Ag_temp.transpose()*H_leg;//- qd_prev;
 
-/*
-std::cout << "Ag_armL" << std::endl;
-
-std::cout << Ag_armL << std::endl;
-
-std::cout << "Ag_armR" << std::endl;
-
-std::cout << Ag_armR << std::endl;
-*/
     A.setIdentity();
 
     for(int i=0; i<5; i++)
