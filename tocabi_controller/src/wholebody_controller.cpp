@@ -950,7 +950,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     VectorXd f_star_qp_;
 
     //VectorQd gravity_torque = gravity_compensation_torque(Robot, dc.fixedgravity);
-    double friction_ratio = 0.1;
+    double friction_ratio[4] = {0.1, 0.1, 0.025, 0.025};
     double friction_ratio_z = 0.01;
     //qptest
     double foot_x_length = 0.12;
@@ -1215,7 +1215,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -20;
+        ub(MODEL_DOF + 6 * i + 2) = -5;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
@@ -1233,7 +1233,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     QP_torque.UpdateSubjectToX(lb, ub);
     VectorXd qpres;
     //if()
-    if (QP_torque.SolveQPoases(100, qpres))
+    if (QP_torque.SolveQPoases(200, qpres))
     {
         task_torque = qpres.segment(0, MODEL_DOF);
     }

@@ -314,7 +314,7 @@ void StateManager::adv2ROS(void)
     {
         joint_state_msg.position[i] = q_virtual_local_[i + 6];
         joint_state_msg.velocity[i] = q_dot_virtual_local_[i + 6];
-        joint_state_msg.effort[i] = q_ddot_virtual_lpf_[i + 6];
+        joint_state_msg.effort[i] = dc.tocabi_.q_desired_[i]-q_virtual_local_[i + 6];
         acc_dif_info_msg.motorinfo1[i] = dc.tocabi_.q_ddot_estimate_[i];
     }
 
@@ -489,13 +489,13 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[12].y = dc.tocabi_.CP_(1);
     pointpub_msg.polygon.points[12].z = dc.tocabi_.ZMP_ft(2);
 
-    pointpub_msg.polygon.points[13].x = Real_Pos(0);
-    pointpub_msg.polygon.points[13].y = Real_Pos(1);
-    pointpub_msg.polygon.points[13].z = Real_Pos(2);
+    pointpub_msg.polygon.points[13].x = dc.tocabi_.link_[Right_Hand].x_traj(0);
+    pointpub_msg.polygon.points[13].y = dc.tocabi_.link_[Right_Hand].x_traj(1);
+    pointpub_msg.polygon.points[13].z = dc.tocabi_.link_[Right_Hand].x_traj(2);
 
-    pointpub_msg.polygon.points[14].x = Real_Vel(0);
-    pointpub_msg.polygon.points[14].y = Real_Vel(1);
-    pointpub_msg.polygon.points[14].z = Real_Vel(2);
+    pointpub_msg.polygon.points[14].x = dc.tocabi_.link_[Right_Hand].xpos(0);
+    pointpub_msg.polygon.points[14].y = dc.tocabi_.link_[Right_Hand].xpos(1);
+    pointpub_msg.polygon.points[14].z = dc.tocabi_.link_[Right_Hand].xpos(2);
 
     //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
