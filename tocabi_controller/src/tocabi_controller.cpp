@@ -277,6 +277,17 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tocabi_.link_[Upper_Body].Set_initpos();
     tocabi_.link_[COM_id].Set_initpos();
 
+    tc.maintain_last_control = msg.maintain_lc;
+
+    if (tc.maintain_last_control)
+    {
+        tocabi_.link_[COM_id].x_init = tocabi_.link_[COM_id].x_desired;
+        tocabi_.link_[Pelvis].x_init = tocabi_.link_[Pelvis].x_desired;
+        tocabi_.link_[Upper_Body].x_init = tocabi_.link_[Upper_Body].x_desired;
+        tocabi_.link_[Pelvis].rot_init = tocabi_.link_[Pelvis].rot_desired;
+        tocabi_.link_[Upper_Body].rot_init = tocabi_.link_[Upper_Body].rot_desired;
+    }
+
     if (false)
     {
         std::cout << "Set init by TaskCommand" << std::endl;
@@ -978,18 +989,21 @@ void TocabiController::dynamicsThreadLow()
                 wbc_.set_contact(tocabi_, 1, 1, 1, 1);
                 //torque_grav = wbc_.gravity_compensation_torque(tocabi_);
 
-                int task_number = 3;
+                int task_number = 6;
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
                 tocabi_.J_task.block(0, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac.block(0, 0, 3, MODEL_DOF_VIRTUAL);
+                tocabi_.J_task.block(3, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
 
                 tocabi_.link_[COM_id].x_desired = tocabi_.link_[COM_id].x_init;
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].x_desired(0) = tocabi_.link_[COM_id].x_desired(0) + tc.ratio;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
-
+                tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX((tc.roll) * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
+                tocabi_.link_[Upper_Body].Set_Trajectory_rotation(control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
                 tocabi_.f_star.segment(0, 3) = wbc_.getfstar_tra(tocabi_, COM_id);
+                tocabi_.f_star.segment(3, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
 
@@ -2206,11 +2220,11 @@ void TocabiController::getState()
     tocabi_.control_time_ = dc.time;
     tocabi_.q_ = dc.q_;
     tocabi_.q_virtual_ = dc.q_virtual_;
-    tocabi_.q_dot_ = dc.q_dot_;
+    tocabi_.q_dot_ = dc.q_dot_virtual_.segment(6, MODEL_DOF);
     tocabi_.q_dot_virtual_ = dc.q_dot_virtual_;
     tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
     tocabi_.q_dot_diff_ = tocabi_.q_dot_ - tocabi_.q_dot_before_;
-    tocabi_.q_dot_ = tocabi_.q_dot_before_;
+    tocabi_.q_dot_before_ = tocabi_.q_dot_;
     tocabi_.q_dot_virtual_lpf_ = dc.q_dot_virtual_lpf;
 
     static bool first_run = true;

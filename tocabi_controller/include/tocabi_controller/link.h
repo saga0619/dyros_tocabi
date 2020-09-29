@@ -45,6 +45,8 @@ struct TaskCommand
   double r_pitch;
   double r_yaw;
 
+  bool maintain_last_control;
+
   int solver;
   int contactredis;
 
@@ -290,6 +292,8 @@ public:
   Eigen::Vector3d xpos;
   Eigen::Vector3d sensor_xpos;
   Eigen::Matrix3d rotm;
+  double friction_ratio;
+  double friction_ratio_z;
   double cs_x_length;
   double cs_y_length;
   bool contact = false;
@@ -339,6 +343,7 @@ public:
   Eigen::VectorQd q_ddot_estimate_;
 
   Eigen::VectorXd ContactForce;
+  Eigen::VectorXd ContactForce_qp;
   Eigen::Vector12d ContactForce_FT;
   Eigen::Vector12d ContactForce_FT_raw;
   Eigen::Vector6d LH_FT, RH_FT;

@@ -538,6 +538,17 @@ void StateManager::adv2ROS(void)
     ft_viz_msg.markers[1].points[1].z = LF_FT(2) / 100.0;
 
     ft_viz_pub.publish(ft_viz_msg);
+
+    if (dc.tocabi_.ContactForce_qp.size() == 24)
+    {
+        std::cout << "ContactForce_qp : " << std::endl
+                  << dc.tocabi_.ContactForce_qp[12] << std::endl
+                  << dc.tocabi_.ContactForce_qp[13] << std::endl
+                  << dc.tocabi_.ContactForce_qp[14] << std::endl
+                  << dc.tocabi_.ContactForce_qp[18] << std::endl
+                  << dc.tocabi_.ContactForce_qp[19] << std::endl
+                  << dc.tocabi_.ContactForce_qp[20] << std::endl;
+    }
 }
 void StateManager::initYaw()
 {
@@ -856,13 +867,16 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     link_p[COM_id].Jac.setZero(6, MODEL_DOF + 6);
 
-    link_p[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6) / com_.mass;
-    link_p[COM_id].Jac.block(2, 0, 4, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(2, 0, 4, MODEL_DOF + 6);
+    //link_p[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6) / com_.mass;
+    //link_p[COM_id].Jac.block(2, 0, 4, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(2, 0, 4, MODEL_DOF + 6);
+
+    link_p[COM_id].Jac.block(0, 0, 3, MODEL_DOF + 6) = jacobian_com.block(0, 0, 3, MODEL_DOF + 6) / com_.mass;
+    link_p[COM_id].Jac.block(3, 0, 3, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(3, 0, 3, MODEL_DOF + 6);
 
     link_p[COM_id].Jac_COM_p = jacobian_com / com_.mass;
 
     link_p[COM_id].xpos = com_.pos;
-    link_p[COM_id].xpos(2) = link_p[Pelvis].xpos(2);
+    //link_p[COM_id].xpos(2) = link_p[Pelvis].xpos(2);
     link_p[COM_id].Rotm = link_p[Pelvis].Rotm;
 
     for (int i = 0; i < LINK_NUMBER + 1; i++)

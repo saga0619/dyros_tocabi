@@ -10,6 +10,8 @@ float64 yaw
 uint32 solver
 uint32 contactredis
 
+bool maintain_lc
+
 # Contact 
 bool left
 bool right
