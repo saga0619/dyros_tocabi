@@ -223,7 +223,7 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd &leg_q)
 
     for (int i = 0; i < MODEL_DOF; i++)
     {
-        leg_q(i) = DyrosMath::cubic(walking_tick, 0.0, 6.0 * Hz_, q_init(i), q_target(i), 0.0, 0.0);
+        leg_q(i) = DyrosMath::QuinticSpline(walking_tick, 0.0, 6.0 * Hz_, q_init(i), 0.0, 0.0, q_target(i), 0.0, 0.0)(0);
     }
 }
 
@@ -596,18 +596,18 @@ void Walking_controller::hipCompensator()
         if (foot_step(current_step_num, 6) == 1) //left support foot
         {
             if (walking_tick < t_start + t_total - t_rest_last - t_double2 - temp_time)
-                left_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, left_hip_angle_first_step, 0.0, 0.0);
+                left_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, 0.0, 0.0, left_hip_angle_first_step, 0.0, 0.0)(0);
             else if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - temp_time)
-                left_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, left_hip_angle_first_step, 0.0, 0.0, 0.0);
+                left_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, left_hip_angle_first_step, 0.0, 0.0, 0.0, 0.0, 0.0)(0);
             else
                 left_hip_angle_temp = 0.0 * DEG2RAD;
         }
         else if (foot_step(current_step_num, 6) == 0) // right support foot
         {
             if (walking_tick < t_start + t_total - t_rest_last - t_double2 - temp_time)
-                right_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, right_hip_angle_first_step, 0.0, 0.0);
+                right_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, 0.0, 0.0, right_hip_angle_first_step, 0.0, 0.0)(0);
             else if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - temp_time)
-                right_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, right_hip_angle_first_step, 0.0, 0.0, 0.0);
+                right_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, right_hip_angle_first_step, 0.0, 0.0, 0.0, 0.0, 0.0)(0);
             else
                 right_hip_angle_temp = 0.0 * DEG2RAD;
         }
@@ -622,18 +622,18 @@ void Walking_controller::hipCompensator()
         if (foot_step(current_step_num, 6) == 1)
         {
             if (walking_tick < t_start + t_total - t_rest_last - t_double2 - temp_time)
-                left_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, left_hip_angle, 0.0, 0.0);
+                left_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, 0.0, 0.0, left_hip_angle, 0.0, 0.0)(0);
             else if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - temp_time)
-                left_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, left_hip_angle, 0.0, 0.0, 0.0);
+                left_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, left_hip_angle, 0.0, 0.0, 0.0, 0.0, 0.0)(0);
             else
                 left_hip_angle_temp = 0.0 * DEG2RAD;
         }
         else if (foot_step(current_step_num, 6) == 0)
         {
             if (walking_tick < t_start + t_total - t_rest_last - t_double2 - temp_time)
-                right_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, right_hip_angle, 0.0, 0.0);
+                right_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + temp_time, 0.0 * DEG2RAD, 0.0, 0.0, right_hip_angle, 0.0, 0.0)(0);
             else if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - temp_time)
-                right_hip_angle_temp = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, left_hip_angle, 0.0, 0.0, 0.0);
+                right_hip_angle_temp = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last - t_double2 - temp_time, t_start + t_total - t_rest_last, left_hip_angle, 0.0, 0.0, 0.0, 0.0, 0.0)(0);
             else
                 right_hip_angle_temp = 0.0 * DEG2RAD;
         }
@@ -686,11 +686,11 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
                 }
                 else if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - compliantTick && walking_tick < t_start + t_total - t_rest_last - t_double2)
                 {
-                    dobGain = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last - t_double2 - compliantTick, t_start + t_total - t_rest_last - t_double2, defaultGain, compliantGain, 0.0, 0.0);
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last - t_double2 - compliantTick, t_start + t_total - t_rest_last - t_double2, defaultGain, 0.0, 0.0, compliantGain, 0.0, 0.0)(0);
                 }
                 else
                 {
-                    dobGain = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last, t_start + t_total, compliantGain, defaultGain, 0.0, 0.0);
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last, t_start + t_total, compliantGain, 0.0, 0.0, defaultGain, 0.0, 0.0)(0);
                 }
                 
             }            
@@ -713,11 +713,11 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
                 }
                 else if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - compliantTick && walking_tick < t_start + t_total - t_rest_last - t_double2)
                 {
-                    dobGain = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last - t_double2 - compliantTick, t_start + t_total - t_rest_last - t_double2, defaultGain, compliantGain, 0.0, 0.0);
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last - t_double2 - compliantTick, t_start + t_total - t_rest_last - t_double2, defaultGain, 0.0, 0.0, compliantGain, 0.0, 0.0)(0);
                 }
                 else
                 {
-                    dobGain = DyrosMath::cubic(walking_tick, t_start + t_total - t_rest_last, t_start + t_total, compliantGain, defaultGain, 0.0, 0.0);
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start + t_total - t_rest_last, t_start + t_total, compliantGain, 0.0, 0.0, defaultGain, 0.0, 0.0)(0);
                 }
             }
             else
