@@ -175,7 +175,6 @@ public:
   bool Check_name(RigidBodyDynamics::Model &model_);
 
   void Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D);
-
   
   //constant variables
   int id;
@@ -332,6 +331,7 @@ public:
   Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
+  Eigen::VectorQd q_dot_est;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
@@ -399,6 +399,8 @@ public:
   Eigen::MatrixVVd A_matrix;
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_matrix_inverse;
+  Eigen::Matrix6Qd Ag_;
+  Eigen::MatrixQQd Cor_;
 
   Eigen::MatrixVVd Motor_inertia;
   Eigen::MatrixVVd Motor_inertia_inverse;

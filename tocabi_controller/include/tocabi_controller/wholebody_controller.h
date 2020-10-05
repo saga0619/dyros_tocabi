@@ -79,7 +79,6 @@ public:
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int mode);
 
   VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
-
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 
@@ -109,6 +108,7 @@ public:
   void zmp_feedback_control(Vector3d desired_zmp);
 
   //Utility functions
+
 
   //Get contact force from command torque
   VectorXd get_contact_force(RobotData &Robot, VectorQd command_torque);

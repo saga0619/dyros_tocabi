@@ -25,6 +25,8 @@
 #define MAX_DOF 50U
 #define RAD2DEG 1 / DEG2RAD
 
+#define INERITA_SIZE 198
+
 namespace Eigen
 {
 // Eigen default type definition
@@ -65,8 +67,15 @@ namespace Eigen
 
   typedef Matrix<rScalar, 6, MODEL_DOF_VIRTUAL> Matrix6Vd;
   typedef Matrix<rScalar, 3, MODEL_DOF_VIRTUAL> Matrix3Vd;
+  typedef Matrix<rScalar, 6, 12> Matrix6x12d;
+  typedef Matrix<rScalar, 6, 8> Matrix6x8d;
+  typedef Matrix<rScalar, 6, 3> Matrix6x3d;
+  typedef Matrix<rScalar, 3, 12> Matrix3x12d;
+  typedef Matrix<rScalar, 3, 8> Matrix3x8d;
+  typedef Matrix<rScalar, 3, 3> Matrix3x3d;
 
   typedef Matrix<rScalar, 6, MODEL_DOF> Matrix6Qd;
+  typedef Matrix<rScalar, MODEL_DOF, MODEL_DOF> MatrixQQd;
   typedef Matrix<rScalar, 3, MODEL_DOF> Matrix3Qd;
 
   //Complex
@@ -380,6 +389,7 @@ namespace DyrosMath
     gsl_vector_free(vec2);
     return svdU;
   }
+  
   static Eigen::Matrix3d Add_vel_to_Rotm(Eigen::Matrix3d Rotm, Eigen::Vector3d Rot_Vel, double d_time_)
   {
     Eigen::Quaterniond qtemp(Rotm);

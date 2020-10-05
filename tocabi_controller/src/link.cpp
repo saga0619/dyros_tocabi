@@ -27,7 +27,6 @@ void Link::pos_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd 
     xpos = RigidBodyDynamics::CalcBodyToBaseCoordinates(model_, q_virtual_, id, Eigen::Vector3d::Zero(), false);
     xipos = RigidBodyDynamics::CalcBodyToBaseCoordinates(model_, q_virtual_, id, COM_position, false);
     Rotm = (RigidBodyDynamics::CalcBodyWorldOrientation(model_, q_virtual_, id, false)).transpose();
-
     mtx_rbdl.unlock();
     // COM_position =
     // RigidBodyDynamics::CalcBaseToBodyCoordinates(model_,q_virtual_,link_[i])

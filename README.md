@@ -112,5 +112,3 @@ roslaunch tocabi_description display.launch
 ```sh
 roslaunch tocabi_description display_with_joint_pub.launch
 ```
-
-

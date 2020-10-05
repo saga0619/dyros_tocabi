@@ -134,24 +134,6 @@ public:
     Eigen::Isometry3d Framereference;
     Eigen::Isometry3d Debug_Iso;
 
-    //Com Jacobian
-    Eigen::Vector3d r_c1;
-    Eigen::Matrix3d r_c1_skew;
-    Eigen::Matrix6d J_l;
-    Eigen::Matrix6d J_r;
-    Eigen::Matrix6d J_lc;
-    Eigen::Matrix6d J_rc;
-    Eigen::Matrix6d X21;
-    Eigen::Vector6d Xdot;
-    Eigen::Vector6d LFDotTraj;
-    Eigen::Vector6d LFDotPrevTraj;
-    Eigen::Vector6d RFDotTraj;
-    Eigen::Vector6d RFDotPrevTraj;
-    Eigen::Vector6d COMDotTraj;
-    Eigen::Vector6d SFerr;
-    Eigen::Vector3d Cfsemd;
-    Eigen::Matrix<double, 3, 6> Jfsem;
-
     //User WalkingParameter
     int desired_foot_step_num;
     int t_rest_init;
@@ -168,6 +150,36 @@ public:
     double t_imp;
     double foot_height;
     int current_step_num; // temp
+
+    //Com Jacobian
+    Eigen::Vector3d r_c1;
+    Eigen::Matrix3d r_c1_skew;
+    Eigen::MatrixXd J;
+    Eigen::Matrix6d J_l;
+    Eigen::Matrix6d J_r;
+    Eigen::Matrix6d J_lc;
+    Eigen::Matrix6d J_rc;
+    Eigen::Matrix6d X21;
+    Eigen::Vector6d Xdot;
+    Eigen::Vector6d LFDotTraj;
+    Eigen::Vector6d LFDotPrevTraj;
+    Eigen::Vector6d RFDotTraj;
+    Eigen::Vector6d RFDotPrevTraj;
+    Eigen::Vector6d COMDotTraj;
+    Eigen::Vector6d SFerr;
+    Eigen::Vector3d Cfsemd;
+    Eigen::Matrix<double, 3, 6> Jfsem;
+    
+
+    //MomentumControl
+    Eigen::VectorXd q_w;
+    Eigen::Vector3d H_leg;
+    Eigen::VectorXd q_dm;
+    Eigen::Matrix3x12d Ag_leg;
+    Eigen::Matrix3x8d Ag_armR;
+    Eigen::Matrix3x8d Ag_armL;
+    Eigen::Matrix3x3d Ag_waist;
+    Eigen::Vector5d qd_prev; 
 
     // Walking
     int walking_tick;

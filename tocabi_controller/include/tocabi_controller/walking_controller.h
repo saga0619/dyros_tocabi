@@ -3,6 +3,8 @@
 
 #include "tocabi_controller/walking_pattern.h"
 #include "tocabi_controller/link.h"
+#include "tocabi_controller/qp.h"
+#include <qpOASES.hpp>
 
 struct WalkingCommand
 {
@@ -30,6 +32,10 @@ public:
     Eigen::Vector12d desired_leg_q;
     Eigen::Vector12d desired_leg_q_NC;
     Eigen::VectorQd desired_init_leg_q;
+    Eigen::Vector12d desired_leg_q_prev;
+    Eigen::Vector12d desired_leg_q_dot;
+
+    CQuadraticProgram QP_m;
 
     void walkingCompute(RobotData &Robot);
     void inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);
@@ -50,8 +56,8 @@ public:
     void inverseKinematicsdob(RobotData &Robot);
     void comJacobianState(RobotData &Robot);
     void comJacobianIK(RobotData &Robot);
+    void momentumControl(RobotData &Robot);
 
 private:
 };
-
 #endif

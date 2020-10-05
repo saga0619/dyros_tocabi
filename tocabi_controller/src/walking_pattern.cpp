@@ -734,11 +734,11 @@ void WalkingPattern::setComTrajectory()
     {
         com_desired(0) = xd(0);
         com_desired(1) = yd(0);
-        com_desired(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), PELV_support_init.translation()(2), 0, 0);
+        com_desired(2) = DyrosMath::QuinticSpline(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), 0.0, 0.0, PELV_support_init.translation()(2), 0, 0)(0);
 
         com_dot_desired(0) = xd(1);
         com_dot_desired(1) = yd(1);
-        com_dot_desired(2) = DyrosMath::cubicDot(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), PELV_support_init.translation()(2), 0, 0, Hz_);
+        com_dot_desired(2) = DyrosMath::QuinticSpline(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), 0.0, 0.0, PELV_support_init.translation()(2), 0, 0)(1);
 
         p_ref(0) = xd(1)+com_gain*(xd(0)-COM_support_current.translation()(0));
         p_ref(1) = yd(1)+com_gain*(yd(0)-COM_support_current.translation()(1));
@@ -749,11 +749,11 @@ void WalkingPattern::setComTrajectory()
     {
         com_desired(0) = xd(0);
         com_desired(1) = yd(0);
-        com_desired(2) = DyrosMath::cubic(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), PELV_support_init.translation()(2), 0, 0);
+        com_desired(2) = DyrosMath::QuinticSpline(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), 0.0, 0.0, PELV_support_init.translation()(2), 0, 0)(0);
 
         com_dot_desired(0) = xd(1);
         com_dot_desired(1) = yd(1);
-        com_dot_desired(2) = DyrosMath::cubicDot(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), PELV_support_init.translation()(2), 0, 0, Hz_);
+        com_dot_desired(2) = DyrosMath::QuinticSpline(walking_tick, t_start, t_start_real, PELV_support_init.translation()(2), 0.0, 0.0, PELV_support_init.translation()(2), 0, 0)(1);
 
         p_ref(0) = xd(1)+com_gain*(xd(0)-COM_support_current.translation()(0));
         p_ref(1) = yd(1)+com_gain*(yd(0)-COM_support_current.translation()(1));
@@ -784,9 +784,9 @@ void WalkingPattern::setPelvisTrajectory()
         {
             double temp_time = 0.1*Hz_;
             if(walking_tick < t_start_real)
-                pelvis_offsetx = DyrosMath::cubic(walking_tick, t_start+temp_time,t_start_real-temp_time,0.0,0.02,0.0,0.0);
+                pelvis_offsetx = DyrosMath::QuinticSpline(walking_tick, t_start+temp_time,t_start_real-temp_time,0.0,0.0,0.0,0.02,0.0,0.0)(0);
             else
-                pelvis_offsetx = DyrosMath::                                                 cubic(walking_tick, t_start+t_total-t_rest_last+temp_time,t_start+t_total-temp_time,0.02,0.0,0.0,0.0);
+                pelvis_offsetx = DyrosMath::QuinticSpline(walking_tick, t_start+t_total-t_rest_last+temp_time,t_start+t_total-temp_time,0.02,0.0,0.0,0.0,0.0,0.0)(0);
         }
         PELV_trajectory_support.translation()(0) = PELV_support_current.translation()(0) + 1.0*(com_desired(0)-COM_support_current.translation()(0));
         PELV_trajectory_support.translation()(1) = PELV_support_current.translation()(1) + 1.0*(com_desired(1)-COM_support_current.translation()(1));
@@ -799,7 +799,7 @@ void WalkingPattern::setPelvisTrajectory()
     if(walking_tick < t_start_real + t_double1)
     {
         for(int i=0; i<2; i++)
-            PELV_trajectory_euler(i) = DyrosMath::cubic(walking_tick, t_start, t_start_real+t_double1, PELV_support_euler_init(i),0.0,0.0,0.0);;
+            PELV_trajectory_euler(i) = DyrosMath::QuinticSpline(walking_tick, t_start, t_start_real+t_double1, PELV_support_euler_init(i),0.0,0.0,0.0,0.0,0.0)(0);
         PELV_trajectory_euler(2) = PELV_support_euler_init(2);
     }
     else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
@@ -810,7 +810,7 @@ void WalkingPattern::setPelvisTrajectory()
         if(foot_step(current_step_num,6) == 2)
         PELV_trajectory_euler(2) = PELV_support_euler_init(2);
         else
-        PELV_trajectory_euler(2) = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start + t_total - t_double2 - t_rest_last, PELV_support_euler_init(2), z_rot/2.0, 0.0,0.0);
+        PELV_trajectory_euler(2) = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1, t_start + t_total - t_double2 - t_rest_last, PELV_support_euler_init(2), 0.0, 0.0, z_rot/2.0, 0.0,0.0)(0);
     }
     else
     {
@@ -935,7 +935,7 @@ void WalkingPattern::setFootTrajectory()
         {
             if(walking_tick < t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp)/2.0) // the period for lifting the right foot
             {
-                RF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2),(PELV_first_init.inverse()*RF_fisrt_init).translation()(2)+foot_height,0.0,0.0);
+                RF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2),0.0,0.0,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(0);
                 if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(RF_trajectory_float.translation()(2)) - (PELV_first_init.inverse()*RF_fisrt_init).translation()(2) > 0.001)
                 {
                     contactMode = 2;
@@ -943,7 +943,7 @@ void WalkingPattern::setFootTrajectory()
             } // the period for lifting the right foot
             else
             {
-                RF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2)+foot_height,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2),0.0,0.0);
+                RF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2)+foot_height, 0.0,0.0,(PELV_first_init.inverse()*RF_fisrt_init).translation()(2),0.0,0.0)(0);
                 if(walking_tick < t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp)
                 {
                     contactMode = 2;
@@ -955,24 +955,24 @@ void WalkingPattern::setFootTrajectory()
             } // the period for putting the right foot
             if(current_step_num == 0)
             {
-                RF_trajectory_float.translation()(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(0),foot_step(current_step_num,0),0.0,0.0);   
-                RF_trajectory_float.translation()(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(1),foot_step(current_step_num,1),0.0,0.0); 
+                RF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
+                RF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0); 
             }
             else if(current_step_num == 1)
             {
-                RF_trajectory_float.translation()(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(0),foot_step(current_step_num,0),0.0,0.0);           
-                RF_trajectory_float.translation()(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(1),foot_step(current_step_num,1),0.0,0.0);
+                RF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);           
+                RF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*RF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0);
             }
             else
             {
-                RF_trajectory_float.translation()(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),foot_step(current_step_num,0),0.0,0.0);   
+                RF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
             }
         }
         else
         {
             if(walking_tick < t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0)
             {
-                LF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2),(PELV_first_init.inverse()*LF_fisrt_init).translation()(2)+foot_height,0.0,0.0);
+                LF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2),0.0,0.0,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(0);
                 if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(LF_trajectory_float.translation()(2)) - (PELV_first_init.inverse()*LF_fisrt_init).translation()(2) > 0.001)
                 {
                     contactMode = 3;
@@ -980,7 +980,7 @@ void WalkingPattern::setFootTrajectory()
             }
             else
             {
-                LF_trajectory_float.translation()(2) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2)+foot_height,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2),0.0,0.0);
+                LF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2)+foot_height,0.0,0.0,(PELV_first_init.inverse()*LF_fisrt_init).translation()(2),0.0,0.0)(0);
                 if(walking_tick < t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp)
                 {
                     contactMode = 3;
@@ -992,19 +992,19 @@ void WalkingPattern::setFootTrajectory()
             }
             if(current_step_num == 0)
             {
-                LF_trajectory_float.translation()(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(0),foot_step(current_step_num,0),0.0,0.0);   
-                LF_trajectory_float.translation()(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(1),foot_step(current_step_num,1),0.0,0.0);
+                LF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
+                LF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0);
             }
             else if(current_step_num == 1)
             {
           
-                LF_trajectory_float.translation()(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(0),foot_step(current_step_num,0),0.0,0.0);           
-                LF_trajectory_float.translation()(1) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(1),foot_step(current_step_num,1),0.0,0.0);
+                LF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);           
+                LF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(PELV_first_init.inverse()*LF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0);
             }
             else
             {
                 RF_trajectory_support.translation()(0) = 0.0;
-                LF_trajectory_float.translation()(0) = DyrosMath::cubic(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),foot_step(current_step_num,0),0.0,0.0);   
+                LF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
             }
         }
         if(current_step_num == 0)

@@ -191,7 +191,6 @@ void RealRobotInterface::checkJointLimit(int slv_number)
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
 {
     bool damping_mode = false;
-
     if (ElmoSafteyMode[slv_number] == 0)
     {
         if (checkPosSafety[slv_number])
@@ -1328,7 +1327,6 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
                             }
-
                             if (torqueCCEnable)
                             {
                                 if ((control_time_ >= torqueCC_recvt) && (control_time_ < (torqueCC_recvt + torqueCC_comt)))
@@ -1345,9 +1343,7 @@ void RealRobotInterface::ethercatThread()
                                     torqueCCEnable = false;
                                 }
                             }
-
                             //ECAT JOINT COMMAND
-
                             for (int i = 0; i < ec_slavecount; i++)
                             {
                                 if (ElmoMode[i] == EM_POSITION)
@@ -1367,7 +1363,6 @@ void RealRobotInterface::ethercatThread()
                                     {
                                         txPDO[i]->targetTorque = (roundtoint)(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
                                     }
-                                    
                                 }
                                 else if (ElmoMode[i] == EM_COMMUTATION)
                                 {
@@ -1392,7 +1387,7 @@ void RealRobotInterface::ethercatThread()
                                 }
                                 else
                                 {
-                                    checkSafety(i, MAX_VEL[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
+                                    checkSafety(i, dc.safety_limit[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                                 }
                                 checkJointLimit(i);
                             }
@@ -1736,10 +1731,9 @@ void RealRobotInterface::ftsensorThread()
                 dc.ft_state = 2.0;
             }
         }
-
         if (dc.print_ft_info_tofile)
-        {
-            //    ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
+        { 
+
         }
     }
     std::cout << "FTsensor Thread End!" << std::endl;
@@ -1768,24 +1762,22 @@ void RealRobotInterface::handftsensorThread()
 
     //////OPTOFORCE//////
 
-    printf("ssssss");
     ft_upper.InitDriver();
     dc.ftcalib = true;
-    printf("ssssss");
+    
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
 
         ft_upper.DAQSensorData();
-
         if (dc.ftcalib) //enabled by gui
         {
             if (ft_calib_init == false)
             {
                 ft_cycle_count = cycle_count;
                 ft_calib_init = true;
-                //               pub_to_gui(dc, "ft sensor : calibration ... ");
+                //pub_to_gui(dc, "ft sensor : calibration ... ");
             }
             if (cycle_count < 5 * SAMPLE_RATE + ft_cycle_count)
             {
@@ -1799,15 +1791,15 @@ void RealRobotInterface::handftsensorThread()
         }
         else
         {
-            //            pub_to_gui(dc, "initreq");
+//            pub_to_gui(dc, "initreq");
         }
 
         if (ft_calib_finish == true)
         {
             if (ft_calib_ui == false)
             {
-                //                pub_to_gui(dc, "ft sensor : calibration finish ");
-                //                pub_to_gui(dc, "ftgood");
+                //pub_to_gui(dc, "ft sensor : calibration finish ");
+                //pub_to_gui(dc, "ftgood");
                 ft_calib_ui = true;
             }
         }

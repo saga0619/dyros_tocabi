@@ -10,6 +10,7 @@
 #include "tocabi_controller/VelocityCommand.h"
 #include "geometry_msgs/PolygonStamped.h"
 #include "visualization_msgs/MarkerArray.h"
+#include "tocabi_controller/model.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
@@ -53,6 +54,8 @@ public:
   void stateEstimate();
   //private functions
 
+  void jointVelocityEstimate();
+
   //advertise informations to ROS
   void adv2ROS();
 
@@ -85,8 +88,10 @@ public:
   Eigen::VectorQd q_;
   Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
+  Eigen::VectorQd q_est;
   Eigen::VectorQd q_dot_;
   Eigen::VectorQd q_dot_before_;
+  Eigen::VectorQd q_dot_est;
   Eigen::VectorQd q_ddot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
@@ -100,6 +105,8 @@ public:
   Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;
   Eigen::VectorVQd tau_nonlinear_;
+
+  bool velEst = false;
 
   Eigen::VectorQVQd q_virtual_local_;
   Eigen::VectorVQd q_dot_virtual_local_;
@@ -175,8 +182,8 @@ public:
   geometry_msgs::PolygonStamped pointpub_msg;
 
   void CommandCallback(const std_msgs::StringConstPtr &msg);
+  void PinocchioCallback(const tocabi_controller::model &msg);
   //void TaskCommandCallback(const dyros_red_msgs::TaskCommandConstPtr &msg);
-
   //Terminate Signal Handler
   //static void sigintHandler(int sig);
 };
