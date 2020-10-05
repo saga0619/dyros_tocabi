@@ -9,9 +9,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 {
     //signal(SIGINT, StateManager::sigintHandler);
 
-    gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
-    tocabi_pinocchio = dc.nh.subscribe("/tocabi/pinocchio", 1, &StateManager::PinocchioCallback, this);
-
+    gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this); 
     joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 1);
     time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 1);
     motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 1);
@@ -1306,25 +1304,6 @@ void StateManager::SetPositionPDGainMatrix()
     {
         dc.tocabi_.Kps[i] = dc.tocabi_.vector_kp[i];
         dc.tocabi_.Kvs[i] = dc.tocabi_.vector_kv[i];
-    }
-}
-
-void StateManager::PinocchioCallback(const tocabi_controller::model &msg)
-{
-    for (int i = 0; i<6; i++)
-    {
-        for(int j=0; j<MODEL_DOF; j++)
-        {   
-            dc.tocabi_.Ag_(i,j) = msg.CMM[33*i+j];
-        }
-    }
-    
-    for(int i = 0; i<MODEL_DOF; i++)
-    {
-        for(int j=0; j<MODEL_DOF; j++)
-        {   
-            dc.tocabi_.Cor_(i,j) = msg.COR[33*i+j];
-        }
     }
 }
 

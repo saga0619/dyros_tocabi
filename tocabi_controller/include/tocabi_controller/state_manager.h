@@ -152,7 +152,6 @@ public:
   //Communication Subscriber!
 
   ros::Subscriber gui_command;
-  ros::Subscriber tocabi_pinocchio;
   //ros::Subscriber task_command;
   ros::Publisher joint_states_pub;
   ros::Publisher time_pub;
