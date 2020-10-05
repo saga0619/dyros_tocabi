@@ -19,6 +19,10 @@
       <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_with_head.urdf"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
       <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_positionPDgain.yaml" />
+<<<<<<< HEAD
+=======
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_parameters.yaml" />
+>>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
     </node>
   </group>
 

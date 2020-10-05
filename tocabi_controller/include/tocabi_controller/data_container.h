@@ -10,7 +10,6 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Int32MultiArray.h>
-#include <std_msgs/Float64MultiArray.h>
 #include <mujoco_ros_msgs/SensorState.h>
 #include <mujoco_ros_msgs/JointSet.h>
 #include <sensor_msgs/JointState.h>
@@ -86,9 +85,9 @@ public:
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
   Eigen::VectorVQd q_dot_virtual_;
+  Eigen::VectorVQd q_dot_virtual_lpf;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd q_ext_;
-  
   //Kinematics Information :
   Link link_[LINK_NUMBER + 1];
 
@@ -96,6 +95,8 @@ public:
 
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
+  Eigen::MatrixVVd Motor_inertia;
+  Eigen::MatrixVVd Motor_inertia_inverse;
 
   Com com_;
 
@@ -158,6 +159,8 @@ public:
   bool checkfreqency = true; // check running frequency of state thread and dynamics thread.
 
   bool testmode = false; // switch for controller test mode.
+
+  bool disableLowerBody = false;
 
   //Controller switch
 

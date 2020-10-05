@@ -427,6 +427,53 @@ void Walking_controller::modelFrameToLocal(RobotData &Robot)
     com_temp(3) = 1.0;
 }
 
+void Walking_controller::calcRobotState(RobotData &Robot)
+{
+    modelFrameToLocal(Robot);
+
+    if(walking_tick == 0)
+    {
+        com_support_temp = -1 * COM_support_current.translation();
+        com_support_temp_prev = -1 * COM_support_current.translation();
+    }
+
+    if (walking_tick < t_start) //+t_double1)
+    {
+        COM = COM_support_current.translation() + com_support_temp_prev;
+    }
+    else
+    {
+        COM = COM_support_current.translation() + com_support_temp;
+    }
+
+    if (walking_tick == t_last && current_step_num <= total_step_num)
+    {
+        com_support_temp_prev(1) = com_support_temp(1);
+        com_support_temp(0) = com_support_temp(0) + COM_support_current.translation()(0);
+        com_support_temp(1) = COM_support_current.translation()(1) - COM(1);
+        com_support_temp(2) = 0.0;
+    }
+
+    if (walking_tick == 0)
+    {
+        COM_prev = COM;
+    }
+
+    for (int i = 0; i < 3; i++)
+    {
+        CP(i) = COM(i) + (COM(i) - COM_prev(i)) * Hz_ / lipm_w;
+    }
+
+    COM_prev = COM;
+}
+
+void Walking_controller::modelFrameToLocal(RobotData &Robot)
+{
+    Eigen::Vector4d com_temp;
+    //com_temp.head(3) = R.com_.pos;
+    com_temp(3) = 1.0;
+}
+
 void Walking_controller::setRobotStateInitialize()
 {
     RF_float_current.linear().setIdentity();
@@ -1154,19 +1201,3 @@ void Walking_controller::updateInitTime()
 {
     walking_tick++;
 }
-
-/*
-Kp: [2000.0, 3200.0, 2000.0, 3700.0, 3200.0, 3200.0, 
-     2000.0, 3200.0, 2000.0, 3700.0, 3200.0, 3200.0, 
-     4000.0, 4000.0, 4000.0,  
-     400.0, 400.0, 400.0, 400.0, 400.0, 400.0, 400.0, 400.0, 
-     400.0, 200.0,
-     400.0, 400.0, 400.0, 400.0, 400.0, 400.0, 400.0, 400.0] 
-Kv: [15.0, 24.0, 15.0, 25.0, 24.0, 24.0, 
-     15.0, 24.0, 15.0, 25.0, 24.0, 24.0,
-     100.0, 100.0, 100.0, 
-     10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 
-     10.0, 5.0,
-     10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
-s
-*/

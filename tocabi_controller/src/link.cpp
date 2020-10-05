@@ -11,16 +11,13 @@ void Link::initialize(RigidBodyDynamics::Model &model_, int id_, std::string nam
     inertia.setZero();
     contact_point.setZero();
     model = &model_;
-
     inertia = model->mBodies[id_].mInertia;
-
     Jac.setZero();
     Jac_COM.setZero();
     Jac_COM_p.setZero();
     Jac_COM_r.setZero();
     Jac_Contact.setZero();
     Jac_point.setZero();
-
     j_temp.setZero(6, MODEL_DOF_VIRTUAL);
 }
 
@@ -66,6 +63,18 @@ void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQ
     mtx_rbdl.unlock();
     Jac.block<3, MODEL_DOF + 6>(0, 0) = j_temp.block<3, MODEL_DOF + 6>(3, 0);
     Jac.block<3, MODEL_DOF + 6>(3, 0) = j_temp.block<3, MODEL_DOF + 6>(0, 0);
+}
+
+void Link::Set_Jacobian_custom(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position)
+{
+    j_temp.setZero();
+
+    mtx_rbdl.lock();
+    RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, Jacobian_position, j_temp, false);
+
+    mtx_rbdl.unlock();
+    Jac_point.block<3, MODEL_DOF + 6>(0, 0) = j_temp.block<3, MODEL_DOF + 6>(3, 0);
+    Jac_point.block<3, MODEL_DOF + 6>(3, 0) = j_temp.block<3, MODEL_DOF + 6>(0, 0);
 }
 
 void Link::Set_Contact(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position)

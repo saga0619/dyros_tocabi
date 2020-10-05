@@ -6,7 +6,7 @@
     name="Pelvis_Link">
     <inertial>
       <origin
-        xyz="-0.01591 0 0.01985"
+        xyz="0.09408 0 0.03985"
         rpy="0 0 0"/>
       <mass
         value="12.19525" />
@@ -20,7 +20,7 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0 0"
+        xyz="0.11 0 0.02"
         rpy="0 0 0" />
       <geometry>
         <mesh
@@ -34,7 +34,7 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0.019"
+        xyz="0.11 0 0.039"
         rpy="0 0 0" />
       <geometry>
 		<cylinder length="0.088" radius="0.045"/>
@@ -42,7 +42,7 @@
     </collision>
 	<collision>
       <origin
-        xyz="0 0.1025 0.03"
+        xyz="0.11 0.1025 0.05"
         rpy="0 0 0" />
       <geometry>
 		<cylinder length="0.11" radius="0.045"/>
@@ -50,7 +50,7 @@
     </collision>
 	<collision>
       <origin
-        xyz="0 -0.1025 0.03"
+        xyz="0.11 -0.1025 0.05"
         rpy="0 0 0" />
       <geometry>
 		<cylinder length="0.11" radius="0.045"/>
@@ -58,7 +58,7 @@
     </collision>
 	<collision>
       <origin
-        xyz="-0.0205 0 0"
+        xyz="-0.0895 0 0.02"
         rpy="0 0 0" />
       <geometry>
 		<box size="0.141 0.305 0.05"/>
@@ -132,7 +132,7 @@
     name="R_HipYaw_Joint"
     type="revolute">
     <origin
-      xyz="0 -0.1025 -0.1225"
+      xyz="0.11 -0.1025 -0.1025"
       rpy="0 0 0" />
     <parent
       link="Pelvis_Link" />
@@ -586,7 +586,7 @@
     name="L_HipYaw_Joint"
     type="revolute">
     <origin
-      xyz="0 0.1025 -0.1225"
+      xyz="0.11 0.1025 -0.1025"
       rpy="0 0 0" />
     <parent
       link="Pelvis_Link" />
@@ -1055,7 +1055,7 @@
     name="Waist1_Joint"
     type="revolute">
     <origin
-      xyz="0 0 0.1779"
+      xyz="0.11 0 0.1979"
       rpy="0 0 0" />
     <parent
       link="Pelvis_Link" />
@@ -1847,7 +1847,7 @@
         xyz="0.00063 0.0636 0.00178"
         rpy="0 0 0" />
       <mass
-        value="0.001" />
+        value="0.1" />
       <inertia
         ixx="0.000865450"
         ixy="0"
@@ -1858,10 +1858,10 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0.057 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
       <material
         name="">
@@ -1871,10 +1871,10 @@
     </visual>
 	<collision>
       <origin
-        xyz="0 0.057 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
     </collision>
   </link>
@@ -1883,7 +1883,7 @@
     type="revolute">
     <origin
       xyz="0 0.046 0"
-      rpy="0 0 0" />
+      rpy="1.5708 3.1415 0" />
     <parent
       link="L_Wrist1_Link" />
     <child
@@ -2338,7 +2338,7 @@
         xyz="0.00063 -0.0636 0.00178"
         rpy="0 0 0" />
       <mass
-        value="0.001" />
+        value="0.1" />
       <inertia
         ixx="0.000865450"
         ixy="0"
@@ -2349,10 +2349,10 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 -0.057 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
       <material
         name="">
@@ -2362,10 +2362,10 @@
     </visual>
     <collision>
       <origin
-        xyz="0 -0.057 0"
+        xyz="0 0 -0.025"
         rpy="0 0 0" />
       <geometry>
-        <box size="0.06 0.07 0.06"/>
+        <box size="0.06 0.06 0.02"/>
       </geometry>
     </collision>
   </link>
@@ -2374,7 +2374,7 @@
     type="revolute">
     <origin
       xyz="0 -0.046 0"
-      rpy="0 0 0" />
+      rpy="-1.5708 3.1415 0" />
     <parent
       link="R_Wrist1_Link" />
     <child

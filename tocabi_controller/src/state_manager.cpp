@@ -12,7 +12,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this); 
     joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 1);
     time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 1);
-    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 1);
+    motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 100);
     tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi/torquegain", 100);
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
@@ -122,9 +122,9 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         link_[Left_Foot].contact_point << 0.03, 0, -0.1585;
         link_[Left_Foot].sensor_point << 0.0, 0.0, -0.09;
 
-        link_[Right_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Right_Hand].contact_point << 0, 0.0, -0.035;
         link_[Right_Hand].sensor_point << 0.0, 0.0, 0.0;
-        link_[Left_Hand].contact_point << 0, 0.092, 0.0;
+        link_[Left_Hand].contact_point << 0, 0.0, -0.035;
         link_[Left_Hand].sensor_point << 0.0, 0.0, 0.0;
 
         for (int i = 0; i < LINK_NUMBER; i++)
@@ -142,6 +142,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         // J_temp=RigidBodyDynamics::Joint(RigidBodyDynamics::JointTypeEulerXYZ);
         // model_.mJoints[2] = J_temp;
         std::cout << "Total Mass : " << total_mass << std::endl; // mass without head -> 83.6 kg
+        dc.tocabi_.total_mass = total_mass;
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
@@ -157,13 +158,14 @@ void StateManager::stateThread(void)
         if (shutdown_tocabi_bool)
             break;
     }
-    q_dot_virtual_before.setZero();
     std::chrono::microseconds cycletime(dc.ctime);
     int cycle_count = 0;
     if (!shutdown_tocabi_bool)
     {
+        std::cout << "State thread start! " << std::endl;
+
         while (!shutdown_tocabi_bool)
-        {       
+        {
             std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
             updateState();
             //imuCompenstation();
@@ -214,7 +216,6 @@ void StateManager::stateThread(void)
             {
                 dc.tocabi_.signal_yaw_init = false;
             }
-            
             dc.firstcalcdone = true;
             cycle_count++;
         }
@@ -225,10 +226,10 @@ void StateManager::stateThread(void)
 void StateManager::testThread()
 {
     std::chrono::high_resolution_clock::time_point StartTime = std::chrono::high_resolution_clock::now();
-    std::chrono::seconds sec1[1];
+    std::chrono::seconds sec10(1);
     std::chrono::milliseconds ms(50);
 
-    std::chrono::duration<double> e_s[1];
+    std::chrono::duration<double> e_s(0);
     ROS_INFO("state Test Thread START");
     int ThreadCount = 0;
 
@@ -247,7 +248,6 @@ void StateManager::testThread()
             q_virtual_(i) = 0.0;
         q_virtual_(MODEL_DOF_VIRTUAL) = 1.0;
         q_ = q_virtual_.segment(6, MODEL_DOF);
-    
 
         t[1] = std::chrono::high_resolution_clock::now();
         updateKinematics(model_, link_local, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
@@ -266,7 +266,7 @@ void StateManager::testThread()
         dur[1] = t[2] - t[1];
         dur[2] = t[3] - t[2];
 
-        if (t[3] > (StartTime + sec1[0] * wait_t))
+        if (t[3] > (StartTime + sec10 * wait_t))
         {
             printf("state thread calc, up.state %f up.kin. %f st.state %f \n", dur[0].count() * 1000, dur[1].count() * 1000, dur[2].count() * 1000);
             wait_t++;
@@ -310,11 +310,13 @@ void StateManager::adv2ROS(void)
     joint_state_msg.header.stamp = ros::Time::now();
     for (int i = 0; i < MODEL_DOF; i++)
     {
-        joint_state_msg.position[i] = q_[i];
-        joint_state_msg.velocity[i] = dc.q_dot_[i];
-        joint_state_msg.effort[i] = dc.torque_desired[i];
+        joint_state_msg.position[i] = q_virtual_local_[i + 6];
+        joint_state_msg.velocity[i] = q_dot_virtual_local_[i + 6];
+        joint_state_msg.effort[i] = dc.tocabi_.q_desired_[i]-q_virtual_local_[i + 6];
+        acc_dif_info_msg.motorinfo1[i] = dc.tocabi_.q_ddot_estimate_[i];
     }
 
+    motor_acc_dif_info_pub.publish(acc_dif_info_msg);
     joint_states_pub.publish(joint_state_msg);
     time_msg.data = control_time_;
     time_pub.publish(time_msg);
@@ -391,9 +393,13 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[10].y = dc.q_(7) - dc.q_ext_(7);
     //pointpub_msg.polygon.points[10].z = rtr * mod / dc.torque_desired[7];
 
-    pointpub_msg.polygon.points[10].x = dc.tocabi_.link_[Pelvis].v(0);
-    pointpub_msg.polygon.points[10].y = dc.tocabi_.link_[Pelvis].v(1);
-    pointpub_msg.polygon.points[10].z = dc.tocabi_.link_[Pelvis].v(2);
+    pointpub_msg.polygon.points[10].x = dc.tocabi_.ZMP_ft(0);
+    pointpub_msg.polygon.points[10].y = dc.tocabi_.ZMP_ft(1);
+    pointpub_msg.polygon.points[10].z = dc.tocabi_.ZMP_ft(2);
+
+    pointpub_msg.polygon.points[11].x = dc.tocabi_.ZMP_desired(0);
+    pointpub_msg.polygon.points[11].y = dc.tocabi_.ZMP_desired(1);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.ZMP_desired2(1);
 
     Matrix6d adt;
 
@@ -430,7 +436,7 @@ void StateManager::adv2ROS(void)
 
     Vector6d RsForce;
 
-    RsForce = Rs_ * dc.tocabi_.ContactForce;
+    //RsForce = Rs_ * dc.tocabi_.ContactForce;
 
     //pointpub_msg.polygon.points[10].z = RsForce(3) / RsForce(2); // + dc.tocabi_.link_[Pelvis].xpos(1);
     //pointpub_msg.polygon.points[10].x = -RsForce(1) / dc.tocabi_.com_.mass;
@@ -459,10 +465,6 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[11].y = dc.q_ext_(7);
     //pointpub_msg.polygon.points[11].z = dc.tocabi_.imu_pos_(2);
 
-    pointpub_msg.polygon.points[11].x = RF_CP_est(0);
-    pointpub_msg.polygon.points[11].y = RF_CP_est(1);
-    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[COM_id].a_traj(1);
-
     /*
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * link_[Left_Foot].xpos;
 
@@ -481,31 +483,31 @@ void StateManager::adv2ROS(void)
 */
     temp = DyrosMath::rotateWithZ(-dc.tocabi_.yaw) * dc.tocabi_.ZMP_ft;
 
-    pointpub_msg.polygon.points[12].x = LF_CP_est(0);
-    pointpub_msg.polygon.points[12].y = LF_CP_est(1);
+    pointpub_msg.polygon.points[12].x = dc.tocabi_.CP_desired(1);
+    pointpub_msg.polygon.points[12].y = dc.tocabi_.CP_(1);
     pointpub_msg.polygon.points[12].z = dc.tocabi_.ZMP_ft(2);
 
-    pointpub_msg.polygon.points[13].x = Real_Pos(0);
-    pointpub_msg.polygon.points[13].y = Real_Pos(1);
-    pointpub_msg.polygon.points[13].z = Real_Pos(2);
+    pointpub_msg.polygon.points[13].x = dc.tocabi_.link_[Right_Hand].x_traj(0);
+    pointpub_msg.polygon.points[13].y = dc.tocabi_.link_[Right_Hand].x_traj(1);
+    pointpub_msg.polygon.points[13].z = dc.tocabi_.link_[Right_Hand].x_traj(2);
 
-    pointpub_msg.polygon.points[14].x = Real_Vel(0);
-    pointpub_msg.polygon.points[14].y = Real_Vel(1);
-    pointpub_msg.polygon.points[14].z = Real_Vel(2);
+    pointpub_msg.polygon.points[14].x = dc.tocabi_.link_[Right_Hand].xpos(0);
+    pointpub_msg.polygon.points[14].y = dc.tocabi_.link_[Right_Hand].xpos(1);
+    pointpub_msg.polygon.points[14].z = dc.tocabi_.link_[Right_Hand].xpos(2);
 
     //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = dc.tocabi_.link_[COM_id].x_traj(0);
-    pointpub_msg.polygon.points[15].y = dc.tocabi_.link_[COM_id].x_traj(1);
-    pointpub_msg.polygon.points[15].z = dc.tocabi_.link_[COM_id].x_traj(2);
+    pointpub_msg.polygon.points[15].x = link_local[Right_Foot].v(0);
+    pointpub_msg.polygon.points[15].y = link_local[Right_Foot].v(1);
+    pointpub_msg.polygon.points[15].z = link_local[Right_Foot].v(2);
 
     dc.tocabi_.ZMP_command = dc.tocabi_.com_.pos - dc.tocabi_.com_.pos(2) / 9.81 * dc.tocabi_.link_[COM_id].a_traj;
 
-    pointpub_msg.polygon.points[16].x = dc.tocabi_.link_[COM_id].v_traj(0);
-    pointpub_msg.polygon.points[16].y = dc.tocabi_.link_[COM_id].v_traj(1);
-    pointpub_msg.polygon.points[16].z = dc.tocabi_.link_[COM_id].v_traj(2);
+    pointpub_msg.polygon.points[16].x = link_local[Right_Foot].xpos(0);
+    pointpub_msg.polygon.points[16].y = link_local[Right_Foot].xpos(1);
+    pointpub_msg.polygon.points[16].z = link_local[Right_Foot].xpos(2);
 
     pointpub_msg.polygon.points[17].x = dc.tocabi_.ContactForce(3) / dc.tocabi_.ContactForce(2);
     pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce(3 + 6) / dc.tocabi_.ContactForce(2 + 6);
@@ -534,6 +536,18 @@ void StateManager::adv2ROS(void)
     ft_viz_msg.markers[1].points[1].z = LF_FT(2) / 100.0;
 
     ft_viz_pub.publish(ft_viz_msg);
+}
+void StateManager::initYaw()
+{
+    tf2::Quaternion q(q_virtual_local_(3), q_virtual_local_(4), q_virtual_local_(5), q_virtual_local_(MODEL_DOF_VIRTUAL));
+    tf2::Matrix3x3 m(q);
+    m.getRPY(roll, pitch, yaw);
+
+    if (dc.tocabi_.signal_yaw_init)
+    {
+        std::cout << "Yaw Initialized" << std::endl;
+        dc.tocabi_.yaw_init = yaw;
+    }
 }
 void StateManager::initYaw()
 {
@@ -604,6 +618,7 @@ void StateManager::initialize()
 
     A_.setZero();
     A_temp_.setZero(MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL);
+    Motor_inertia_.setZero();
     q_.setZero();
     q_dot_.setZero();
 
@@ -611,6 +626,7 @@ void StateManager::initialize()
     q_dot_virtual_.setZero();
     q_ddot_virtual_.setZero();
     q_dot_virtual_lpf_.setZero();
+    q_dot_virtual_lpf_before.setZero();
     q_dot_virtual_raw_.setZero();
     q_ddot_virtual_lpf_.setZero();
     q_dot_before_.setZero();
@@ -638,9 +654,10 @@ void StateManager::storeState()
     dc.time = control_time_;
     dc.sim_time = sim_time_;
 
-    dc.q_ = q_virtual_.segment(6,MODEL_DOF);
-    dc.q_dot_ = q_dot_virtual_.segment(6,MODEL_DOF);
+    dc.q_ = q_virtual_.segment(6, MODEL_DOF);
+    dc.q_dot_ = q_dot_virtual_.segment(6, MODEL_DOF);
     dc.q_dot_virtual_ = q_dot_virtual_;
+    dc.q_dot_virtual_lpf = q_dot_virtual_lpf_;
     dc.q_virtual_ = q_virtual_;
     dc.q_ddot_virtual_ = q_ddot_virtual_;
     dc.q_ext_ = q_ext_;
@@ -653,9 +670,13 @@ void StateManager::storeState()
 
     dc.A_ = A_;
     dc.A_inv = A_inv;
+    dc.Motor_inertia = Motor_inertia_;
+    dc.Motor_inertia_inverse = Motor_inertia_inv;
 
     dc.tocabi_.ContactForce_FT.segment(0, 6) = LF_CF_FT;
     dc.tocabi_.ContactForce_FT.segment(6, 6) = RF_CF_FT;
+    dc.tocabi_.ContactForce_FT_raw.segment(0, 6) = LF_FT;
+    dc.tocabi_.ContactForce_FT_raw.segment(6, 6) = RF_FT;
 
     Eigen::Matrix6d Rotm;
     Rotm.setZero();
@@ -702,6 +723,35 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     A_ = A_temp_;
     A_inv = A_.inverse();
+    for (int i = 0; i < 6; ++i)
+    {
+        Motor_inertia_(i, i) = 10.0;
+    }
+    for (int i = 0; i < 2; ++i)
+    {
+        Motor_inertia_(6 + 6 * i, 6 + 6 * i) = 0.56;
+        Motor_inertia_(7 + 6 * i, 7 + 6 * i) = 0.8;
+        Motor_inertia_(8 + 6 * i, 8 + 6 * i) = 1.08;
+        Motor_inertia_(9 + 6 * i, 9 + 6 * i) = 1.08;
+        Motor_inertia_(10 + 6 * i, 10 + 6 * i) = 1.08;
+        Motor_inertia_(11 + 6 * i, 11 + 6 * i) = 0.306;
+
+        Motor_inertia_(21 + 10 * i, 21 + 10 * i) = 0.185;
+        Motor_inertia_(22 + 10 * i, 22 + 10 * i) = 0.184;
+        Motor_inertia_(23 + 10 * i, 23 + 10 * i) = 0.192;
+        Motor_inertia_(24 + 10 * i, 24 + 10 * i) = 0.184;
+        Motor_inertia_(25 + 10 * i, 25 + 10 * i) = 0.056;
+        Motor_inertia_(26 + 10 * i, 26 + 10 * i) = 0.05;
+        Motor_inertia_(27 + 10 * i, 27 + 10 * i) = 0.015;
+        Motor_inertia_(28 + 10 * i, 28 + 10 * i) = 0.015;
+    }
+    Motor_inertia_(18, 18) = 1.01;
+    Motor_inertia_(19, 19) = 1.01;
+    Motor_inertia_(20, 20) = 1.27;
+    Motor_inertia_(29, 29) = 0.015;
+    Motor_inertia_(30, 30) = 0.015;
+
+    Motor_inertia_inv = Motor_inertia_.inverse();
 
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
@@ -817,13 +867,16 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     link_p[COM_id].Jac.setZero(6, MODEL_DOF + 6);
 
+    //link_p[COM_id].Jac.block(0, 0, 2, MODEL_DOF + 6) = jacobian_com.block(0, 0, 2, MODEL_DOF + 6) / com_.mass;
+    //link_p[COM_id].Jac.block(2, 0, 4, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(2, 0, 4, MODEL_DOF + 6);
+
     link_p[COM_id].Jac.block(0, 0, 3, MODEL_DOF + 6) = jacobian_com.block(0, 0, 3, MODEL_DOF + 6) / com_.mass;
     link_p[COM_id].Jac.block(3, 0, 3, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(3, 0, 3, MODEL_DOF + 6);
 
     link_p[COM_id].Jac_COM_p = jacobian_com / com_.mass;
 
     link_p[COM_id].xpos = com_.pos;
-    link_p[COM_id].xpos(2) = link_p[Pelvis].xpos(2);
+    //link_p[COM_id].xpos(2) = link_p[Pelvis].xpos(2);
     link_p[COM_id].Rotm = link_p[Pelvis].Rotm;
 
     for (int i = 0; i < LINK_NUMBER + 1; i++)
@@ -858,11 +911,11 @@ void StateManager::handleFT()
     rotrf.block(3, 3, 3, 3) = link_local[Right_Foot].Rotm;
     Vector3d RF_com(-0.0162, 0.00008, -0.1209);
 
-    Vector3d com2cp = link_local[Right_Foot].contact_point - RF_com;
+    Vector3d com2cp = link_local[Right_Foot].sensor_point - RF_com;
 
     Matrix6d adt2;
-    adt.setIdentity();
-    adt.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+    adt2.setIdentity();
+    adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
 
     Vector6d Wrench_foot_plate;
     Wrench_foot_plate.setZero();
@@ -883,8 +936,8 @@ void StateManager::handleFT()
 
     com2cp = link_local[Left_Foot].contact_point - LF_com;
 
-    adt.setIdentity();
-    adt.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+    adt2.setIdentity();
+    adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
     Wrench_foot_plate.setZero();
     Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
 
@@ -977,20 +1030,28 @@ void StateManager::qdotLPF()
             std::cout << "q_dot lowpassfilter On" << std::endl;
         }
         dc.enable_lpf = false;
+        q_dot_virtual_lpf_before = q_dot_virtual_local_;
     }
 
     if (dc.switch_lpf)
     {
-        q_dot_virtual_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_before, 2000, 15);
-        q_dot_virtual_.segment(0, 6) = q_dot_virtual_local_.segment(0, 6);
-        q_dot_virtual_before = q_dot_virtual_;
+        q_dot_virtual_lpf_ = DyrosMath::lpf(q_dot_virtual_local_, q_dot_virtual_lpf_before, 2000, 200);
+        q_dot_virtual_lpf_.segment(0, 3).setZero();
+        q_dot_virtual_lpf_before = q_dot_virtual_lpf_;
+
+        q_ddot_virtual_local_ = (q_dot_virtual_lpf_ - q_dot_virtual_before) * 2000;
+
+        q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 200);
+
+        q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
+
+        //q_dot_virtual_local_ = q_dot_virtual_lpf_;
+        q_dot_virtual_ = q_dot_virtual_local_;
     }
     else
     {
         q_dot_virtual_ = q_dot_virtual_local_;
     }
-
-    q_dot_ = q_dot_virtual_.segment(6,MODEL_DOF);
 }
 
 void StateManager::sendStateToGui()
@@ -1110,16 +1171,13 @@ void StateManager::stateEstimate()
         {
             RF_contact_pos_holder(2) = 0.0; // - RF_contactpoint_internal_pos(2);
             LF_contact_pos_holder(2) = 0.0; // - LF_contactpoint_internal_pos(2);
-
             RF_contact_pos_mod.setZero();
             LF_contact_pos_mod.setZero();
-
             RF_CP_est_before.setZero();
             LF_CP_est_before.setZero();
             dc.semode_init = false;
             pelv_v_before.setZero();
             pelv_x_before.setZero();
-
             imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
         }
 
@@ -1214,7 +1272,7 @@ void StateManager::stateEstimate()
         pelv_v = alpha * (imu_acc_dat * dt + pelv_v_before) + (1 - alpha) * mod_base_vel;
         pelv_v_before = pelv_v;
         q_virtual_ = q_virtual_local_;
-        q_dot_virtual_ = q_dot_virtual_local_;
+        //q_dot_virtual_ = q_dot_virtual_local_;
 
         pelv_x = alpha * (pelv_v * dt + imu_acc_dat * dt * dt * 0.5 + pelv_x_before) + (1 - alpha) * (-mod_base_pos);
         pelv_x_before = pelv_x;
@@ -1225,11 +1283,11 @@ void StateManager::stateEstimate()
         }
 
         //acceleration calculation!
-        q_ddot_virtual_ = (q_dot_virtual_ - q_dot_virtual_before) / ((double)dc.ctime / 1000000.0);
-        q_dot_virtual_before = q_dot_virtual_;
+        //q_ddot_virtual_ = (q_dot_virtual_ - q_dot_virtual_before) / ((double)dc.ctime / 1000000.0);
+        //q_dot_virtual_before = q_dot_virtual_;
     }
     else
-    { 
+    {
         q_virtual_ = q_virtual_local_;
         q_dot_virtual_ = q_dot_virtual_local_;
         q_ddot_virtual_ = q_ddot_virtual_local_;
@@ -1535,6 +1593,18 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         else
         {
             std::cout << "State Estimate by Ft : OFF" << std::endl;
+        }
+    }
+    else if (msg->data == "disablelower")
+    {
+        dc.disableLowerBody = !dc.disableLowerBody;
+        if (dc.disableLowerBody)
+        {
+            std::cout << "Disable LowerBody" << std::endl;
+        }
+        else
+        {
+            std::cout << "Enable LowerBody" << std::endl;
         }
     }
 }

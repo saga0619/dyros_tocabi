@@ -4,11 +4,12 @@
 #include "tocabi_controller/data_container.h"
 #include "tocabi_controller/terminal.h"
 #include "tocabi_controller/MotorInfo.h"
-#include "geometry_msgs/PolygonStamped.h"
-#include "visualization_msgs/MarkerArray.h"
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/TaskCommandQue.h"
 #include "tocabi_controller/TaskGainCommand.h"
+#include "tocabi_controller/VelocityCommand.h"
+#include "geometry_msgs/PolygonStamped.h"
+#include "visualization_msgs/MarkerArray.h"
 #include "tocabi_controller/model.h"
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -94,10 +95,12 @@ public:
   Eigen::VectorQd q_ddot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
+  Eigen::VectorVQd q_dot_virtual_lpf_before;
   Eigen::VectorVQd q_dot_virtual_raw_;
   Eigen::VectorVQd q_dot_virtual_before;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_lpf_;
+  Eigen::VectorVQd q_ddot_virtual_before_;
   Eigen::VectorQd torque_;
   Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;
@@ -116,6 +119,9 @@ public:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
   Eigen::MatrixXd A_temp_;
+
+  Eigen::MatrixVVd Motor_inertia_;
+  Eigen::MatrixVVd Motor_inertia_inv;
 
   Eigen::Vector3d gravity_;
 
@@ -178,7 +184,6 @@ public:
   void CommandCallback(const std_msgs::StringConstPtr &msg);
   void PinocchioCallback(const tocabi_controller::model &msg);
   //void TaskCommandCallback(const dyros_red_msgs::TaskCommandConstPtr &msg);
-  
   //Terminate Signal Handler
   //static void sigintHandler(int sig);
 };

@@ -5,6 +5,7 @@
 // constexpr size_t MAX_DOF=50;
 
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <Eigen/SVD>
 #include <iostream>
@@ -12,6 +13,7 @@
 #include <gsl/gsl_linalg.h>
 #include <chrono>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4
@@ -316,6 +318,17 @@ namespace DyrosMath
     return angle;
   }
 
+  static Eigen::Matrix3d Euler2rot_tf(Eigen::Vector3d eulr)
+  {
+    //tf2::Quaternion q(eulr(2), eulr(1), eulr(0));
+    //tf2::Matrix3x3 m(q);
+
+    Eigen::Matrix3d Mat_temp;
+
+    //tf2::
+    return Mat_temp;
+  }
+
   static Eigen::Vector4d rot2Axis(Eigen::Matrix3d Rot)
   {
     double theta;
@@ -376,6 +389,16 @@ namespace DyrosMath
     gsl_vector_free(vec2);
     return svdU;
   }
+  
+  static Eigen::Matrix3d Add_vel_to_Rotm(Eigen::Matrix3d Rotm, Eigen::Vector3d Rot_Vel, double d_time_)
+  {
+    Eigen::Quaterniond qtemp(Rotm);
+    Eigen::Quaterniond res;
+    Eigen::Quaterniond angvel_(1, Rot_Vel(0) * d_time_ * 0.5, Rot_Vel(1) * d_time_ * 0.5, Rot_Vel(2) * d_time_ * 0.5);
+    res = angvel_* qtemp;
+    Rotm = res.normalized().toRotationMatrix();
+    return Rotm;
+  }
 
   static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, double epsilon = std::numeric_limits<double>::epsilon())
   {
@@ -400,7 +423,6 @@ namespace DyrosMath
     Eigen::MatrixXd svdU, svdV;
     Eigen::VectorXd svdS;
     svdS.resize(size_col);
-
     svdU.resize(size_row, size_col);
     svdV.resize(size_col, size_col);
     for (int i = 0; i < size_row; i++)

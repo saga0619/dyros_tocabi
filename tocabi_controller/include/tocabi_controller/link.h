@@ -10,6 +10,14 @@
 
 extern std::mutex mtx_rbdl;
 
+struct VelCommand
+{
+  int link_;
+  Eigen::Vector6d des_vel;
+  
+  bool used_;
+};
+
 struct TaskCommand
 {
   double command_time;
@@ -36,6 +44,8 @@ struct TaskCommand
   double r_roll;
   double r_pitch;
   double r_yaw;
+
+  bool maintain_last_control;
 
   int solver;
   int contactredis;
@@ -113,6 +123,9 @@ public:
 
   // update Jacobian matrix of local position at link.
   void Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
+  
+  // update Point Jacobian matrix of local position at link.
+  void Set_Jacobian_custom(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
 
   // update link velocity(6D, translation and rotation) from jacobian matrix Jac.
   void vw_Update(const Eigen::VectorVQd &q_dot_virtual);
@@ -155,12 +168,14 @@ public:
   // set link initial position and rotation. initial position for task control.
   void Set_initpos();
 
+  void Set_initpos_local();
+
   void Set_initTask();
 
   bool Check_name(RigidBodyDynamics::Model &model_);
 
   void Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D);
-
+  
   //constant variables
   int id;
   double Mass;
@@ -230,10 +245,20 @@ public:
   Eigen::Matrix3d r_traj;
   Eigen::Vector3d w_traj;
 
+  Eigen::Vector3d x_traj_local;
+  Eigen::Vector3d v_traj_local;
+  Eigen::Matrix3d r_traj_local;
+  Eigen::Vector3d w_traj_local;
+
   Eigen::Vector3d x_init;
   Eigen::Vector3d v_init;
   Eigen::Matrix3d rot_init;
   Eigen::Vector3d w_init;
+
+  Eigen::Vector3d x_init_local;
+  Eigen::Vector3d v_init_local;
+  Eigen::Matrix3d rot_init_local;
+  Eigen::Vector3d w_init_local;
 
   Eigen::Vector3d x_task_init;
   Eigen::Vector3d v_task_init;
@@ -250,6 +275,9 @@ public:
   Eigen::Vector3d rot_d_gain;
   Eigen::Vector3d acc_p_gain;
 
+  Eigen::Vector3d max_p_acc_;
+  Eigen::Vector3d max_p_vel_;
+
   RigidBodyDynamics::Model *model;
 
 private:
@@ -263,6 +291,8 @@ public:
   Eigen::Vector3d xpos;
   Eigen::Vector3d sensor_xpos;
   Eigen::Matrix3d rotm;
+  double friction_ratio;
+  double friction_ratio_z;
   double cs_x_length;
   double cs_y_length;
   bool contact = false;
@@ -286,11 +316,14 @@ public:
   double orientation;
   double roll, pitch, yaw;
   double yaw_init = 0.0;
+  double total_mass;
 
   //PositionPDGain
   double Kps[MODEL_DOF];
   double Kvs[MODEL_DOF];
   std::vector<double> vector_kp, vector_kv, vector_NM2CNT;
+  std::vector<double> v_com_kp, v_com_kv, v_up_kp, v_up_kv, v_pelv_kp, v_pelv_kv, v_hand_kp, v_hand_kv, v_foot_kp, v_foot_kv;
+
 
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
@@ -301,10 +334,18 @@ public:
   Eigen::VectorQd q_dot_est;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
+  Eigen::VectorVQd q_dot_virtual_lpf_;
   Eigen::VectorQd q_ext_;
 
+  Eigen::VectorQd q_dot_before_;
+  Eigen::VectorQd q_dot_diff_;
+  
+  Eigen::VectorQd q_ddot_estimate_;
+
   Eigen::VectorXd ContactForce;
+  Eigen::VectorXd ContactForce_qp;
   Eigen::Vector12d ContactForce_FT;
+  Eigen::Vector12d ContactForce_FT_raw;
   Eigen::Vector6d LH_FT, RH_FT;
   Eigen::Vector3d ZMP;
   Eigen::Vector3d ZMP_local;
@@ -315,7 +356,10 @@ public:
   Eigen::Vector3d ZMP_eqn_calc;
   Eigen::Vector3d ZMP_command;
   Eigen::Vector3d ZMP_mod;
-
+  Eigen::Vector3d ZMP_r;
+  Eigen::Vector3d ZMP_l;
+  Eigen::Vector3d CP_;
+  Eigen::Vector3d CP_desired;
   Eigen::VectorXd TaskForce;
 
   bool zmp_feedback_control = false;
@@ -341,7 +385,7 @@ public:
   double end_time_[4];
   bool target_arrived_[4];
   bool debug;
-
+  bool lambda_calc = false;
   int Right = 0;
   int Left = 1;
 

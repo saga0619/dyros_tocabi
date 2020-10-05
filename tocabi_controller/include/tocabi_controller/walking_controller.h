@@ -60,5 +60,4 @@ public:
 
 private:
 };
-
 #endif
