@@ -54,43 +54,6 @@ void TocabiController::VelocityCommandCallback(const tocabi_controller::Velocity
     {
         vc.des_vel[i] = msg->des_vel[i];
     }
-    else if (msg->mode == 6)
-    {
-        //R foot
-        link_id = Right_Foot;
-        std::cout << "Set Right_Foot Task Gain" << std::endl;
-    }
-    else if (msg->mode == 7)
-    {
-        //L foot
-        link_id = Left_Foot;
-        std::cout << "Set Left_Foot Task Gain" << std::endl;
-    }
-    else if (msg->mode == 8)
-    {
-        //R hand
-        link_id = Right_Hand;
-        std::cout << "Set Right_Hand Task Gain" << std::endl;
-    }
-    else if (msg->mode == 9)
-    {
-        //L hand
-        link_id = Left_Hand;
-        std::cout << "Set Left_Hand Task Gain" << std::endl;
-    }
-
-    if (link_id != 99)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            dc.tocabi_.link_[link_id].pos_p_gain(i) = msg->pgain[i];
-            dc.tocabi_.link_[link_id].pos_d_gain(i) = msg->dgain[i];
-            dc.tocabi_.link_[link_id].rot_p_gain(i) = msg->pgain[i + 3];
-            dc.tocabi_.link_[link_id].rot_d_gain(i) = msg->dgain[i + 3];
-        }
-
-        if (msg->mode != 0)
-        {
 
     vc.used_ = false;
 }

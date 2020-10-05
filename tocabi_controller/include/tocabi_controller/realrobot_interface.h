@@ -109,16 +109,6 @@ const double EXTRAD2CNT[ELMO_DOF] =
         EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
         EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46};
 
-<<<<<<< HEAD
-const double NM2CNT[ELMO_DOF] =
-    {       //Elmo 순서
-        95, //head
-        95,
-        95, //wrist
-        95,
-        95,
-        95,
-=======
 const double MAX_VEL[ELMO_DOF] =
     {10.0, //head
      10.0,
@@ -162,7 +152,6 @@ const double NM2CNT[ELMO_DOF] =
         95.0,
         95.0,
         95.0,
->>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
         15.5, //shoulder3
         15.5, //arm
         15.5, //arm
@@ -261,11 +250,7 @@ const double Kv[ELMO_DOF] =
 
 //Axis correction parameter.
 const double Dr[ELMO_DOF] =
-<<<<<<< HEAD
-    {1, -1, 1, 1, 1, 1,
-=======
     {1, -1, 1, -1, 1, 1,
->>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
      1, 1, 1, -1, -1, 1,
      1, -1, 1, 1, 1, 1,
      1, 1, -1, -1, -1, -1,
@@ -470,13 +455,10 @@ public:
 
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];
-<<<<<<< HEAD
-=======
 
     bool torqueCCEnable;
     double torqueCC_recvt;
     double torqueCC_comt;
->>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
 
     bool hommingElmo[ELMO_DOF];
     bool hommingElmo_before[ELMO_DOF];

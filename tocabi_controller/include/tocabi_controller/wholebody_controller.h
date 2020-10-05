@@ -71,22 +71,14 @@ public:
   */
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
 
-<<<<<<< HEAD
-  VectorQd task_control_torque_with_gravity(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
-=======
   VectorQd task_control_torque_with_gravity(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, bool force_control = false);
 
   // desired force  = lambda_task * f_star
   VectorQd task_control_torque_force_control(RobotData &Robot, MatrixXd J_task, VectorXd desiredForce);
->>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
 
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int mode);
 
   VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
-<<<<<<< HEAD
-=======
-
->>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 
@@ -126,11 +118,7 @@ public:
   Vector3d GetZMPpos_fromFT(RobotData &Robot, bool Local = false);
   Vector3d GetZMPpos(RobotData &Robot, VectorXd ContactForce, bool Local = false);
 
-<<<<<<< HEAD
-  VectorQd footRotateAssist(RobotData &Robot);
-=======
   VectorQd footRotateAssist(RobotData &Robot, bool left = true, bool right = true);
->>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
 
   //Eigen::Vector6d Getfstar( );
   Vector3d getfstar(RobotData &Robot, Vector3d kp, Vector3d kd, Vector3d p_desired, Vector3d p_now, Vector3d d_desired, Vector3d d_now);
@@ -248,10 +236,6 @@ class CapturePointPattern
 {
 public:
   void init(RobotData &Robot, int StepNumber, double foot_x_dis, double stepTime);
-<<<<<<< HEAD
-
-=======
->>>>>>> 20d5964b20b41e1aa987531c313120a2da27cee8
 };
 
 #endif // WALKING_CONTROLLER_H

@@ -548,18 +548,6 @@ void StateManager::initYaw()
         std::cout << "Yaw Initialized" << std::endl;
         dc.tocabi_.yaw_init = yaw;
     }
-}
-void StateManager::initYaw()
-{
-    tf2::Quaternion q(q_virtual_local_(3), q_virtual_local_(4), q_virtual_local_(5), q_virtual_local_(MODEL_DOF_VIRTUAL));
-    tf2::Matrix3x3 m(q);
-    m.getRPY(roll, pitch, yaw);
-
-    if (dc.tocabi_.signal_yaw_init)
-    {
-        std::cout << "Yaw Initialized" << std::endl;
-        dc.tocabi_.yaw_init = yaw;
-    }
 
     //const tf2Scalar& r_,p_,y_;
 

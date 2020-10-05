@@ -18,9 +18,6 @@ public:
   WholebodyController wbc_;
   Walking_controller wkc_;
 
-  WholebodyController wbc_;
-  Walking_controller wkc_;
-
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
