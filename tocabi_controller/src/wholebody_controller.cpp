@@ -1041,7 +1041,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     H.block(0, 0, MODEL_DOF, MODEL_DOF) = ea_weight * W; // + 0.01 * MatrixXd::Identity(MODEL_DOF,MODEL_DOF);
 
     //fstar regulation ::
-    double fstar_weight = 100.0;
+    double fstar_weight = 20.0;
     H.block(MODEL_DOF + contact_dof, MODEL_DOF + contact_dof, task_dof, task_dof) = fstar_weight * MatrixXd::Identity(task_dof, task_dof);
     g.segment(MODEL_DOF + contact_dof, task_dof) = -fstar_weight * f_star_;
 
@@ -1055,12 +1055,12 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     Fsl.setZero(contact_dof, contact_dof);
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Fsl(6 * i + 0, 6 * i + 0) = 0.0001;
-        Fsl(6 * i + 1, 6 * i + 1) = 0.0001;
+        Fsl(6 * i + 0, 6 * i + 0) = 0.003;
+        Fsl(6 * i + 1, 6 * i + 1) = 0.003;
         Fsl(6 * i + 2, 6 * i + 2) = 0.0001;
-        Fsl(6 * i + 3, 6 * i + 3) = 0.001;
-        Fsl(6 * i + 4, 6 * i + 4) = 0.001;
-        Fsl(6 * i + 5, 6 * i + 5) = 0.00001;
+        Fsl(6 * i + 3, 6 * i + 3) = 0.01;
+        Fsl(6 * i + 4, 6 * i + 4) = 0.01;
+        Fsl(6 * i + 5, 6 * i + 5) = 0.01;
     }
 
     double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
@@ -1073,51 +1073,19 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         if (Robot.qp2nd)
         {
             //std::cout << "left : " << rr << "\t right : " << rl << std::endl;
-            Fsl(0, 0) = 0.0001 * rr;
-            Fsl(1, 1) = 0.0001 * rr;
+            Fsl(0, 0) = 0.003 * rr;
+            Fsl(1, 1) = 0.003 * rr;
 
-            Fsl(3, 3) = 0.001 * rr;
-            Fsl(4, 4) = 0.001 * rr;
+            Fsl(3, 3) = 0.01 * rr;
+            Fsl(4, 4) = 0.01 * rr;
 
-            Fsl(6, 6) = 0.0001 * rl;
-            Fsl(7, 7) = 0.0001 * rl;
+            Fsl(6, 6) = 0.003 * rl;
+            Fsl(7, 7) = 0.003 * rl;
 
-            Fsl(9, 9) = 0.001 * rl;
-            Fsl(10, 10) = 0.001 * rl;
+            Fsl(9, 9) = 0.01 * rl;
+            Fsl(10, 10) = 0.01 * rl;
         }
     }
-
-    /*
-
-    Vector3d P_right = Robot.link_[Right_Foot].xpos - Robot.com_.pos;
-    Vector3d P_left = Robot.link_[Left_Foot].xpos - Robot.com_.pos;
-
-    double pr = sqrt(P_right(0) * P_right(0) + P_right(1) * P_right(1));
-    double pl = sqrt(P_left(0) * P_left(0) + P_left(1) * P_left(1));
-
-    double prr = pr / (pl + pr);
-    double pll = pl / (pl + pr);
-
-    prr = DyrosMath::minmax_cut(prr, 0.1, 0.9);
-    pll = DyrosMath::minmax_cut(pll, 0.1, 0.9);
-
-    bool hr_v = false;
-    if (hr_v)
-    {
-        Fsl(3, 3) = 0.001 * pll;
-        Fsl(4, 4) = 0.001 * pll;
-
-        Fsl(9, 9) = 0.001 * prr;
-        Fsl(10, 10) = 0.001 * prr;
-    }
-    else
-    {
-        Fsl(3, 3) = 0.001;
-        Fsl(4, 4) = 0.001;
-
-        Fsl(9, 9) = 0.001;
-        Fsl(10, 10) = 0.001;
-    } */
 
     H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = Fsl.transpose() * Fsl;
 
@@ -1148,29 +1116,19 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         A(task_dof + contact_dof + i * constraint_per_contact + 3, MODEL_DOF + 3 + 6 * i) = 1.0;
 
         A(task_dof + contact_dof + i * constraint_per_contact + 4, MODEL_DOF + 0 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 4, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 4, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
         A(task_dof + contact_dof + i * constraint_per_contact + 5, MODEL_DOF + 0 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 5, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 5, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
 
         A(task_dof + contact_dof + i * constraint_per_contact + 6, MODEL_DOF + 1 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 6, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 6, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
         A(task_dof + contact_dof + i * constraint_per_contact + 7, MODEL_DOF + 1 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 7, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 7, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
 
-        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 3 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 3 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-
-        A(task_dof + contact_dof + i * constraint_per_contact + 10, MODEL_DOF + 4 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 10, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 4 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-
-        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 5 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
-        A(task_dof + contact_dof + i * constraint_per_contact + 13, MODEL_DOF + 5 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 13, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
+        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 5 + 6 * i) = 1.0;
+        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
+        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 5 + 6 * i) = -1.0;
+        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
 
         //May cause error for hand contact!
         for (int j = 0; j < constraint_per_contact; j++)
@@ -1202,7 +1160,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -20;
+        ub(MODEL_DOF + 6 * i + 2) = -5;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
@@ -1220,7 +1178,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
     QP_torque.UpdateSubjectToX(lb, ub);
     VectorXd qpres;
     //if()
-    if (QP_torque.SolveQPoases(100, qpres))
+    if (QP_torque.SolveQPoases(200, qpres))
     {
         task_torque = qpres.segment(0, MODEL_DOF);
     }
@@ -1231,145 +1189,6 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
         task_torque = gravity_compensation_torque(Robot);
     }
 
-    /*
-    VectorXd fc = qpres.segment(MODEL_DOF, contact_dof);
-
-    //std::cout << "calc done!" << std::endl;
-    if (false)
-    {
-        Fsl(0, 0) = Fsl(0, 0) * fc(8) / (fc(2) + fc(8));
-        Fsl(1, 1) = Fsl(1, 1) * fc(8) / (fc(2) + fc(8));
-
-        Fsl(3, 3) = Fsl(3, 3) * fc(8) / (fc(2) + fc(8));
-        Fsl(4, 4) = Fsl(4, 4) * fc(8) / (fc(2) + fc(8));
-
-        Fsl(6, 6) = Fsl(6, 6) * fc(2) / (fc(2) + fc(8));
-        Fsl(7, 7) = Fsl(7, 7) * fc(2) / (fc(2) + fc(8));
-
-        Fsl(9, 9) = Fsl(9, 9) * fc(2) / (fc(2) + fc(8));
-        Fsl(10, 10) = Fsl(10, 10) * fc(2) / (fc(2) + fc(8));
-
-        H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = Fsl.transpose() * Fsl;
-
-        QP_torque.UpdateMinProblem(H, g);
-        //tic = getCPUtime();
-        qpres = QP_torque.SolveQPoases(100);
-        //toc = getCPUtime();
-
-        task_torque = qpres.segment(0, MODEL_DOF);
-        fc = qpres.segment(MODEL_DOF, contact_dof);
-    }
-    
-    MatrixXd W_fr;
-
-    if (Robot.ee_[0].contact && Robot.ee_[1].contact)
-    {
-        W_fr.setZero(6, 12);
-        W_fr.block(0, 0, 3, 3) = Robot.link_[Left_Foot].Rotm;
-        W_fr.block(3, 3, 3, 3) = Robot.link_[Left_Foot].Rotm;
-        W_fr.block(3, 0, 3, 3) = Robot.link_[Left_Foot].Rotm * DyrosMath::skm(Robot.link_[Left_Foot].xpos_contact - Robot.com_.pos);
-
-        W_fr.block(0, 6, 3, 3) = Robot.link_[Right_Foot].Rotm;
-        W_fr.block(3, 9, 3, 3) = Robot.link_[Right_Foot].Rotm;
-        W_fr.block(3, 6, 3, 3) = Robot.link_[Right_Foot].Rotm * DyrosMath::skm(Robot.link_[Right_Foot].xpos_contact - Robot.com_.pos);
-    }
-    else if (Robot.ee_[0].contact)
-    {
-        W_fr.setZero(6, 6);
-        W_fr.block(0, 0, 3, 3) = Robot.link_[Left_Foot].Rotm;
-        W_fr.block(3, 3, 3, 3) = Robot.link_[Left_Foot].Rotm;
-        W_fr.block(3, 0, 3, 3) = Robot.link_[Left_Foot].Rotm * DyrosMath::skm(Robot.link_[Left_Foot].xpos_contact - Robot.com_.pos);
-    }
-    else if (Robot.ee_[1].contact)
-    {
-        W_fr.setZero(6, 6);
-        W_fr.block(0, 0, 3, 3) = Robot.link_[Right_Foot].Rotm;
-        W_fr.block(3, 3, 3, 3) = Robot.link_[Right_Foot].Rotm;
-        W_fr.block(3, 0, 3, 3) = Robot.link_[Right_Foot].Rotm * DyrosMath::skm(Robot.link_[Right_Foot].xpos_contact - Robot.com_.pos);
-    }
-    //std::cout << "calc done!" << std::endl;
-    
-    VectorXd fr = W_fr * fc;
-
-    Vector3d r_zmp = GetZMPpos(Robot, fc);
-    qpt_info = false;
-    if (qpt_info)
-    {
-        std::cout << "##########################" << std::endl;
-        std::cout << "contact info ! " << std::endl
-                  //<< "fc result : " << std::endl
-                  //<< fc << std::endl
-                  //<< "fc local : " << std::endl
-                  //<< Robot.link_[Left_Foot].Rotm.transpose() * fc.segment(0, 3) << std::endl
-                  //<< Robot.link_[Left_Foot].Rotm.transpose() * fc.segment(3, 3) << std::endl
-                  //<< Robot.link_[Right_Foot].Rotm.transpose() * fc.segment(6, 3) << std::endl
-                  //<< Robot.link_[Right_Foot].Rotm.transpose() * fc.segment(9, 3) << std::endl
-                  //<< "qp fz : " << fc(2) + fc(8) << std::endl
-                  //<< " fstar*lambda = " << (Robot.lambda * qpres.segment(MODEL_DOF + contact_dof, task_dof))(2) << std::endl
-                  //<< " qp + lambda f* : " << (Robot.lambda * qpres.segment(MODEL_DOF + contact_dof, task_dof))(2) + fc(2) + fc(8) << std::endl
-                  //<< " fstar desired : " << std::endl
-                  //<< f_star_ << std::endl
-                  //<< "fstar qp : " << std::endl
-                  //<< qpres.segment(MODEL_DOF + contact_dof, task_dof) << std::endl
-                  << "ft fz : " << Robot.ContactForce_FT(2) + Robot.ContactForce_FT(8) << std::endl
-                  << "resultant fz : " << std::endl
-                  << fr << std::endl
-                  << "resultant zmp x : " << r_zmp(0) << "\t y : " << r_zmp(1) << std::endl
-                  << "estimate zmp x : " << zmp_com_e_x << "\t y : " << zmp_com_e_y << std::endl
-                  << "com pos x : " << Robot.com_.pos(0) << "\t y : " << Robot.com_.pos(1) << std::endl
-                  << "zmp result : " << std::endl
-                  << "Left foot  x :" << fc(4) / fc(2) << "\t y :" << fc(3) / fc(2) << std::endl
-                  << "Right foot x :" << fc(10) / fc(8) << "\t y :" << fc(9) / fc(8) << std::endl
-
-                  << "fstar com induced : " << std::endl
-                  << fstar_com << std::endl
-                  << "fstar from torque : " << std::endl
-                  << J_com * Robot.A_matrix_inverse * Robot.N_C * (Robot.Slc_k_T * task_torque - Robot.G) << std::endl;
-    }
-
-    fc.segment(0, 3) = Robot.link_[Left_Foot].Rotm.transpose() * fc.segment(0, 3);
-    fc.segment(3, 3) = Robot.link_[Left_Foot].Rotm.transpose() * fc.segment(3, 3);
-    fc.segment(6, 3) = Robot.link_[Right_Foot].Rotm.transpose() * fc.segment(6, 3);
-    fc.segment(9, 3) = Robot.link_[Right_Foot].Rotm.transpose() * fc.segment(9, 3);
-
-    double ft_zmp_l = Robot.ContactForce_FT(3) / Robot.ContactForce_FT(2);
-    double ft_zmp_r = Robot.ContactForce_FT(9) / Robot.ContactForce_FT(8);
-
-    if (abs(ft_zmp_l) > 0.04)
-    {
-        //std::cout << "lf zmp over limit : " << ft_zmp_l << std::endl;
-    }
-    if (abs(ft_zmp_r) > 0.04)
-    {
-        //std::cout << "rf zmp over limit : " << ft_zmp_r << std::endl;
-    }
-
-    Robot.ContactForce = fc;
-
-    qpt_info = false;
-    if (qpt_info)
-    {
-        std::cout << "##########################" << std::endl
-                  << "fc result : " << std::endl
-                  << fc << std::endl
-                  << "zmp result : " << std::endl
-                  << "Left foot  x :" << fc(4) / fc(2) << "\t y :" << fc(3) / fc(2) << std::endl
-                  << "Right foot x :" << fc(10) / fc(8) << "\t y :" << fc(9) / fc(8) << std::endl
-                  << "L/(L+R) : " << fc(2) / (fc(2) + fc(8)) << std::endl
-                  //<< "pl/(pl+pr) : " << pr / (pl + pr) << std::endl
-
-                  << "zmp from ft : " << std::endl
-                  << "Left foot  x :" << Robot.ContactForce_FT(4) / Robot.ContactForce_FT(2) << "\t y :" << Robot.ContactForce_FT(3) / Robot.ContactForce_FT(2) << std::endl
-                  << "Right foot x :" << Robot.ContactForce_FT(10) / Robot.ContactForce_FT(8) << "\t y :" << Robot.ContactForce_FT(9) / Robot.ContactForce_FT(8) << std::endl
-
-                  << "com acc induce : " << std::endl;
-        MatrixXd Jcom = Robot.link_[COM_id].Jac_COM_p;
-        MatrixXd QQ = Jcom * Robot.A_matrix_inverse * Jcom.transpose() * (Jcom * Robot.A_matrix_inverse * Robot.N_C * Jcom.transpose()).inverse() * Jcom * Robot.A_matrix_inverse * Robot.N_C;
-
-        std::cout << QQ * Robot.Slc_k_T * task_torque << std::endl;
-        std::cout << "com acc - grav induce " << std::endl
-                  << QQ * (Robot.Slc_k_T * task_torque - Robot.G) << std::endl;
-    }*/
     return task_torque; // + gravity_torque;
 }
 
@@ -1430,7 +1249,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     ratio_l = dist_r / (dist_l + dist_r);
 
     static int task_dof, contact_dof;
-    int constraint_per_contact = 14;
+    int constraint_per_contact = 10;
     bool qpt_info = false;
 
     if ((task_dof != Robot.task_dof) || (contact_dof != 6 * Robot.contact_index))
@@ -1490,8 +1309,8 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     Fsl.setZero(contact_dof, contact_dof);
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Fsl(6 * i + 0, 6 * i + 0) = 0.0001;
-        Fsl(6 * i + 1, 6 * i + 1) = 0.0001;
+        Fsl(6 * i + 0, 6 * i + 0) = 0.003;
+        Fsl(6 * i + 1, 6 * i + 1) = 0.003;
         Fsl(6 * i + 2, 6 * i + 2) = 0.0001;
         Fsl(6 * i + 3, 6 * i + 3) = 0.01;
         Fsl(6 * i + 4, 6 * i + 4) = 0.01;
@@ -1508,11 +1327,11 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     {
         for (int i = 0; i < Robot.contact_index; i++)
         {
-            Fsl(6 * i + 0, 6 * i + 0) = 0.0001 * ratioFoots[i];
-            Fsl(6 * i + 1, 6 * i + 1) = 0.0001 * ratioFoots[i];
+            Fsl(6 * i + 0, 6 * i + 0) = 0.003 * ratioFoots[i];
+            Fsl(6 * i + 1, 6 * i + 1) = 0.003 * ratioFoots[i];
             Fsl(6 * i + 3, 6 * i + 3) = 0.01 * ratioFoots[i];
             Fsl(6 * i + 4, 6 * i + 4) = 0.01 * ratioFoots[i];
-            Fsl(6 * i + 5, 6 * i + 5) = 0.01 * ratioFoots[i];
+            Fsl(6 * i + 5, 6 * i + 5) = 0.05 * ratioFoots[i];
         }
     }
 
@@ -1551,29 +1370,19 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         A(task_dof + contact_dof + i * constraint_per_contact + 3, MODEL_DOF + 3 + 6 * i) = 1.0;
 
         A(task_dof + contact_dof + i * constraint_per_contact + 4, MODEL_DOF + 0 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 4, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 4, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
         A(task_dof + contact_dof + i * constraint_per_contact + 5, MODEL_DOF + 0 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 5, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 5, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
 
         A(task_dof + contact_dof + i * constraint_per_contact + 6, MODEL_DOF + 1 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 6, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 6, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
         A(task_dof + contact_dof + i * constraint_per_contact + 7, MODEL_DOF + 1 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 7, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
+        A(task_dof + contact_dof + i * constraint_per_contact + 7, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
 
-        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 3 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 3 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-
-        A(task_dof + contact_dof + i * constraint_per_contact + 10, MODEL_DOF + 4 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 10, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 4 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 11, MODEL_DOF + 2 + 6 * i) = -friction_ratio;
-
-        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 5 + 6 * i) = 1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 12, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
-        A(task_dof + contact_dof + i * constraint_per_contact + 13, MODEL_DOF + 5 + 6 * i) = -1.0;
-        A(task_dof + contact_dof + i * constraint_per_contact + 13, MODEL_DOF + 2 + 6 * i) = -friction_ratio_z;
+        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 5 + 6 * i) = 1.0;
+        A(task_dof + contact_dof + i * constraint_per_contact + 8, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
+        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 5 + 6 * i) = -1.0;
+        A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
 
         //May cause error for hand contact!
         for (int j = 0; j < constraint_per_contact; j++)
@@ -1618,7 +1427,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     QP_torque.UpdateSubjectToX(lb, ub);
     VectorXd qpres;
     //if()
-    if (QP_torque.SolveQPoases(100, qpres))
+    if (QP_torque.SolveQPoases(200, qpres))
     {
         task_torque = qpres.segment(0, MODEL_DOF);
     }
@@ -2123,8 +1932,8 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
         M.setZero(6 * Robot.contact_index, 6 * Robot.contact_index);
         for (int i = 0; i < Robot.contact_index; i++)
         {
-            M(6 * i, 6 * i) = 10;
-            M(6 * i + 1, 6 * i + 1) = 10;
+            M(6 * i, 6 * i) = 50;
+            M(6 * i + 1, 6 * i + 1) = 50;
             M(6 * i + 2, 6 * i + 2) = 0.0;
             M(6 * i + 3, 6 * i + 3) = 1000;
             M(6 * i + 4, 6 * i + 4) = 1000;
@@ -2152,14 +1961,14 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
             A(6 + i * constraint_per_contact + 3, 3 + 6 * i) = 1.0;
 
             A(6 + i * constraint_per_contact + 4, 0 + 6 * i) = 1.0;
-            A(6 + i * constraint_per_contact + 4, 2 + 6 * i) = -friction_ratio;
+            A(6 + i * constraint_per_contact + 4, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
             A(6 + i * constraint_per_contact + 5, 0 + 6 * i) = -1.0;
-            A(6 + i * constraint_per_contact + 5, 2 + 6 * i) = -friction_ratio;
+            A(6 + i * constraint_per_contact + 5, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
 
             A(6 + i * constraint_per_contact + 6, 1 + 6 * i) = 1.0;
-            A(6 + i * constraint_per_contact + 6, 2 + 6 * i) = -friction_ratio;
+            A(6 + i * constraint_per_contact + 6, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
             A(6 + i * constraint_per_contact + 7, 1 + 6 * i) = -1.0;
-            A(6 + i * constraint_per_contact + 7, 2 + 6 * i) = -friction_ratio;
+            A(6 + i * constraint_per_contact + 7, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
         }
 
         VectorXd force_res = A.block(0, 0, 6, Robot.contact_index * 6) * ContactForce__;
@@ -3868,7 +3677,7 @@ Vector3d WholebodyController::GetZMPpos_fromFT(RobotData &Robot, bool Local)
     static Vector3d zmp_pos_max = (Eigen::Vector3d() << 0, 0, 0).finished();
     static Vector3d zmp_pos_min = (Eigen::Vector3d() << 0, 0, 0).finished();
 
-    if (Local)t5 
+    if (Local)
     {
         zmp_pos(0) = (-Robot.ContactForce_FT(4) - (Robot.ee_[0].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(0) + Robot.ee_[0].sensor_xpos(0) * Robot.ContactForce_FT(2) - Robot.ContactForce_FT(10) - (Robot.ee_[1].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(6) + Robot.ee_[1].sensor_xpos(0) * Robot.ContactForce_FT(8)) / (Robot.ContactForce_FT(2) + Robot.ContactForce_FT(8));
         zmp_pos(1) = (Robot.ContactForce_FT(3) - (Robot.ee_[0].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(1) + Robot.ee_[0].sensor_xpos(1) * Robot.ContactForce_FT(2) + Robot.ContactForce_FT(9) - (Robot.ee_[1].sensor_xpos(2) - P_(2)) * Robot.ContactForce_FT(7) + Robot.ee_[1].sensor_xpos(1) * Robot.ContactForce_FT(8)) / (Robot.ContactForce_FT(2) + Robot.ContactForce_FT(8));

@@ -1,4 +1,6 @@
 <mujoco model="scene_test">
+    <option timestep='0.001' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9" />
+    
     <include file="dyros_tocabi.xml"/>
 
     <worldbody>
