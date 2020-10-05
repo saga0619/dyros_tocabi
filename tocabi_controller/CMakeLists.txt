@@ -92,7 +92,6 @@ target_link_libraries(tocabi_controller_lib
   -lmscl
   -lrbdl
   -lrbdl_urdfreader
-  -lurdfdom_model
   -lboost_system 
   -lrt
   -lqpOASES
