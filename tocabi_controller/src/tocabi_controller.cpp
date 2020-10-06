@@ -1001,6 +1001,15 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX((tc.roll) * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                Vector6d f_star_acc;
+
+                f_star_acc.segment(0,3) = wbc_.getfstar_acc_tra(tocabi_,COM_id);
+                f_star_acc.segment(3,3) = wbc_.getfstar_acc_rot(tocabi_,COM_id);
+
+                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, 0);
+                
+
                 tocabi_.f_star.segment(0, 3) = wbc_.getfstar_tra(tocabi_, COM_id);
                 tocabi_.f_star.segment(3, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 

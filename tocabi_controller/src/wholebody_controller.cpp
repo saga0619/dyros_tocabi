@@ -1320,7 +1320,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
     double rl = DyrosMath::minmax_cut(ratio_l / ratio_r * 10, 1, 10);
 
-
     double ratioFoots[4] = {rr, rl, 1, 1};
 
     if (Robot.qp2nd)
@@ -1418,7 +1417,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
-
 
     //std::cout << "calc done!" << std::endl;
     QP_torque.EnableEqualityCondition(0.0001);
@@ -2904,6 +2902,41 @@ MatrixXd WholebodyController::GetTaskLambda(RobotData &Robot, MatrixXd J_task)
     return Robot.lambda;
 }
 
+VectorXd WholebodyController::fstar_regulation(RobotData &Robot, VectorXd f_star)
+{
+    //Check Feedback f_star is over limit 
+    //think fstar as desired acceleration
+    //only for COM
+    //if desired COM is over 
+    //support polygon check 
+
+}
+
+VectorQd WholebodyController::task_control_torque_with_acc_cr(RobotData &Robot, MatrixXd J_task, VectorXd f_star_acc, VectorXd f_star_feedback)
+{
+
+    Robot.task_dof = J_task.rows();
+    Robot.J_task_T = Robot.J_task.transpose();
+
+    Robot.lambda_inv = J_task * Robot.A_matrix_inverse * Robot.N_C * J_task.transpose();
+    Robot.lambda = Robot.lambda_inv.inverse();
+
+    Robot.J_task_inv_T = Robot.lambda * J_task * Robot.A_matrix_inverse * Robot.N_C;
+    Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
+    Robot.Q_T_ = Robot.Q.transpose();
+    Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
+    Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
+
+    VectorQd torque_task_acc;
+    VectorQd torque_task;
+    VectorQd torque_contact;
+    torque_task_acc = Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * Robot.lambda * f_star_acc + gravity_compensation_torque(Robot);
+    torque_contact = contact_torque_calc_from_QP(Robot, torque_task);
+    torque_task = torque_task_acc + torque_contact + Robot.W_inv * Robot.Q_T_ * Robot.Q_temp_inv * Robot.lambda * f_star_feedback;
+
+    return torque_task;
+}
+
 VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, bool force_control)
 {
     Robot.task_dof = J_task.rows();
@@ -3275,7 +3308,7 @@ Vector3d WholebodyController::getfstar_rot(RobotData &Robot, int link_id)
 
     for (int i = 0; i < 3; i++)
     {
-        fstar_(i) = (Robot.link_[link_id].rot_p_gain(i) * angle_d_global(i) - Robot.link_[link_id].rot_d_gain(i) * Robot.link_[link_id].w(i));
+        fstar_(i) = (Robot.link_[link_id].rot_p_gain(i) * angle_d_global(i) + Robot.link_[link_id].rot_d_gain(i) * (Robot.link_[link_id].w_traj(i) - Robot.link_[link_id].w(i)));
     }
     /*
     std::cout << "fstar check " << std::endl
@@ -3309,6 +3342,27 @@ Vector6d WholebodyController::getfstar6d(RobotData &Robot, int link_id)
     f_star.segment(0, 3) = getfstar_tra(Robot, link_id);
     f_star.segment(3, 3) = getfstar_rot(Robot, link_id);
     return f_star;
+}
+
+Vector3d WholebodyController::getfstar_acc_tra(RobotData &Robot, int link_id)
+{
+    Vector3d fstar_;
+
+    for (int i = 0; i < 3; i++)
+    {
+        fstar_(i) = Robot.link_[link_id].a_traj(i);
+    }
+
+    return fstar_;
+}
+Vector3d WholebodyController::getfstar_acc_rot(RobotData &Robot, int link_id)
+{
+    Vector3d fstar_;
+    for (int i = 0; i < 3; i++)
+    {
+        fstar_(i) = Robot.link_[link_id].ra_traj(i);
+    }
+    return fstar_;
 }
 
 VectorQd WholebodyController::contact_force_custom(RobotData &Robot, VectorQd command_torque, Eigen::VectorXd contact_force_now, Eigen::VectorXd contact_force_desired)
