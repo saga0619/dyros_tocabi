@@ -165,11 +165,22 @@ void WholebodyController::set_contact(RobotData &Robot)
     Robot.ee_[0].cs_y_length = 0.04;
     Robot.ee_[1].cs_x_length = 0.12;
     Robot.ee_[1].cs_y_length = 0.04;
-    Robot.ee_[2].cs_x_length = 0.02;
-    Robot.ee_[2].cs_y_length = 0.02;
-    Robot.ee_[3].cs_x_length = 0.02;
-    Robot.ee_[3].cs_y_length = 0.02;
+    Robot.ee_[2].cs_x_length = 0.013;
+    Robot.ee_[2].cs_y_length = 0.013;
+    Robot.ee_[3].cs_x_length = 0.013;
+    Robot.ee_[3].cs_y_length = 0.013;
 
+
+    Robot.ee_[0].friction_ratio = 0.04;
+    Robot.ee_[1].friction_ratio = 0.04;
+    Robot.ee_[2].friction_ratio = 0.02;
+    Robot.ee_[3].friction_ratio = 0.02;
+    
+    Robot.ee_[0].friction_ratio_z = 0.01;
+    Robot.ee_[1].friction_ratio_z = 0.01;
+    Robot.ee_[2].friction_ratio_z = 0.01;
+    Robot.ee_[3].friction_ratio_z = 0.01;
+    
     Robot.Lambda_c = (Robot.J_C * Robot.A_matrix_inverse * (Robot.J_C.transpose())).inverse();
     Robot.J_C_INV_T = Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse;
     Robot.N_C.setZero(MODEL_DOF + 6, MODEL_DOF + 6);
@@ -1930,8 +1941,8 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
         M.setZero(6 * Robot.contact_index, 6 * Robot.contact_index);
         for (int i = 0; i < Robot.contact_index; i++)
         {
-            M(6 * i, 6 * i) = 50;
-            M(6 * i + 1, 6 * i + 1) = 50;
+            M(6 * i, 6 * i) = 10;
+            M(6 * i + 1, 6 * i + 1) = 10;
             M(6 * i + 2, 6 * i + 2) = 0.0;
             M(6 * i + 3, 6 * i + 3) = 1000;
             M(6 * i + 4, 6 * i + 4) = 1000;
