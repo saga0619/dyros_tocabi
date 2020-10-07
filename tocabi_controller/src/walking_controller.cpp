@@ -44,6 +44,15 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         /////InverseKinematics//////
         if(ik_mode == 0)
         {
+        /*    PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.11;
+            PELV_trajectory_float.translation()(2) = PELV_trajectory_float.translation()(2) - 0.02;
+            
+            LF_trajectory_float.translation()(0) = LF_trajectory_float.translation()(0) - 0.11;
+            LF_trajectory_float.translation()(2) = LF_trajectory_float.translation()(2) - 0.02;
+            
+            RF_trajectory_float.translation()(0) = RF_trajectory_float.translation()(0) - 0.11;
+            RF_trajectory_float.translation()(2) = RF_trajectory_float.translation()(2) - 0.02;
+*/
             inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
         }
         else
@@ -100,12 +109,12 @@ void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transfor
     Eigen::Vector3d ld, rd;
     ld.setZero();
     rd.setZero();
-    ld(0) = 0;
+    ld(0) = 0.11;
     ld(1) = 0.1025;
-    ld(2) = -0.1225;
-    rd(0) = 0;
+    ld(2) = -0.1025;
+    rd(0) = 0.11;
     rd(1) = -0.1025;
-    rd(2) = -0.1225;
+    rd(2) = -0.1025;
 
     ld = PELF_rotation.transpose() * ld;
     rd = PERF_rotation.transpose() * rd;
