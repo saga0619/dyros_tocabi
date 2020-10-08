@@ -44,7 +44,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         /////InverseKinematics//////
         if(ik_mode == 0)
         {
-        /*    PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.11;
+            /*PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.11;
             PELV_trajectory_float.translation()(2) = PELV_trajectory_float.translation()(2) - 0.02;
             
             LF_trajectory_float.translation()(0) = LF_trajectory_float.translation()(0) - 0.11;
@@ -116,6 +116,14 @@ void Walking_controller::inverseKinematics(Eigen::Isometry3d PELV_float_transfor
     rd(1) = -0.1025;
     rd(2) = -0.1025;
 
+/*
+    ld(0) = 0;
+    ld(1) = 0.1025;
+    ld(2) = -0.1225;
+    rd(0) = 0;
+    rd(1) = -0.1025;
+    rd(2) = -0.1225;
+*/
     ld = PELF_rotation.transpose() * ld;
     rd = PERF_rotation.transpose() * rd;
 
@@ -225,6 +233,8 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd &leg_q)
     {
         Eigen::VectorQd q_temp;
         q_temp << 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1.0, 0, 1.0, 0;
+       
+       //q_temp.setZero();
         //q_target = Robot.q_;
         q_target = q_temp;
         walkingInitialize(Robot);
@@ -298,9 +308,10 @@ void Walking_controller::getRobotState(RobotData &Robot)
     Ag_armR = Robot.Ag_.block(3, 25, 3, 8);
     Ag_armL = Robot.Ag_.block(3, 15, 3, 8);
     Ag_waist = Robot.Ag_.block(3, 12, 3, 3);
-/*    std::cout << "Ag_leg" <<std::endl;
-    std::cout <<Ag_leg << std::endl;
-*//*
+
+ //   std::cout << "Ag_leg" <<std::endl;
+  //  std::cout <<Ag_leg << std::endl;
+/*
 std::cout << "Ag_armR" <<std::endl;
     std::cout <<Ag_armR << std::endl;
 
@@ -539,6 +550,7 @@ void Walking_controller::updateNextStepTime()
 
     if (walking_tick >= t_start_real + t_double1 + t_rest_temp - 300 && walking_tick <= t_start_real + t_double1 + t_rest_temp)
     {
+
         phaseChange = true;
         double2Single_pre = t_start_real + t_double1 + t_rest_temp - 300;
         double2Single = t_start_real + t_double1 + t_rest_temp;
@@ -1078,11 +1090,11 @@ void Walking_controller::momentumControl(RobotData &Robot)
         
         for(int i = 0; i < 3; i++)
         {
-            q_waistd(i) = q_dm(i);
+           q_waistd(i) = q_dm(i);
         }        
         q_rarmd(1) = q_dm(4);
 
-        q_larmd(1) = q_dm(3);
+	q_larmd(1) = q_dm(3);
     }
 
     H_leg = Ag_leg * Robot.q_dot_est.head(12) + Ag_waist * Robot.q_dot_est.segment(12,3) + Ag_armL * Robot.q_dot_est.segment(15,8) + Ag_armR * Robot.q_dot_est.segment(25,8);
@@ -1122,8 +1134,8 @@ void Walking_controller::momentumControl(RobotData &Robot)
 
     ub(3) = 0.5;
     ub(4) = 0.5;
-
-  //  std::cout << lb << std::endl;
+//std::cout << "q_dot_est" << Robot.q_dot_est<<std::endl; 
+//  std::cout << lb << std::endl;
     QP_m.EnableEqualityCondition(0.001);
     QP_m.UpdateMinProblem(H, g);
     QP_m.UpdateSubjectToAx(A, lbA, ubA);
