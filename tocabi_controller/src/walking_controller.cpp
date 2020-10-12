@@ -44,15 +44,6 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         /////InverseKinematics//////
         if(ik_mode == 0)
         {
-            /*PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.11;
-            PELV_trajectory_float.translation()(2) = PELV_trajectory_float.translation()(2) - 0.02;
-            
-            LF_trajectory_float.translation()(0) = LF_trajectory_float.translation()(0) - 0.11;
-            LF_trajectory_float.translation()(2) = LF_trajectory_float.translation()(2) - 0.02;
-            
-            RF_trajectory_float.translation()(0) = RF_trajectory_float.translation()(0) - 0.11;
-            RF_trajectory_float.translation()(2) = RF_trajectory_float.translation()(2) - 0.02;
-*/
             inverseKinematics(PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
         }
         else
@@ -62,9 +53,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         }
         
         //hipCompensator();
-
-        momentumControl(Robot);
-
+        
         if(walking_tick == 0)
         {
             q_w(0) = desired_init_leg_q(12);
@@ -75,12 +64,16 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             q_w(4) = desired_init_leg_q(26);
         }
 
-        q_w(0) = q_w(0) + q_dm(0)/Hz_;
-        q_w(1) = q_w(1) + q_dm(1)/Hz_;
-        q_w(2) = q_w(2) + q_dm(2)/Hz_;
+	if(mom == true)
+	{
+	    momentumControl(Robot);
 
-        q_w(3) = q_w(3) + q_dm(3)/Hz_;
-        q_w(4) = q_w(4) + q_dm(4)/Hz_;
+	    q_w(0) = q_w(0) + q_dm(0)/Hz_;
+            q_w(1) = q_w(1) + q_dm(1)/Hz_;
+            q_w(2) = q_w(2) + q_dm(2)/Hz_;
+            q_w(3) = q_w(3) + q_dm(3)/Hz_;
+            q_w(4) = q_w(4) + q_dm(4)/Hz_;
+	}
 
         if(dob == 1)
         {
@@ -563,7 +556,7 @@ void Walking_controller::updateNextStepTime()
     walking_tick++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, RobotData &Robot)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, bool mom_walk, RobotData &Robot)
 {
     ik_mode = ikmode;
     walking_pattern = walkingpattern;
@@ -585,6 +578,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     com_control = walkingpattern2;
     dob = dob_walk;
     imu = imu_walk;
+    mom = mom_walk;
     Hz_ = controller_Hz;
     dt = 1 / Hz_;
     walking_enable = walkingenable;
@@ -603,7 +597,10 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
         pelvis_dgain = 0.5;
         com_gain = 100.0;
     }
-    std::cout << "ik mode " << ik_mode << std::endl; 
+    std::cout << "ik mode " << ik_mode << std::endl;
+    std::cout << "dob" << dob << std::endl;
+    std::cout << "imu" << imu << std::endl; 
+    std::cout << "mom" << mom << std::endl;
     setWalkingParameter(Robot);
 }
 
