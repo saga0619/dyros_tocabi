@@ -42,6 +42,7 @@ uint32 pattern2
 uint32 ik_mode
 bool dob
 bool imu
+bool mom
 uint32 first_foot_step
 float32 x
 float32 y

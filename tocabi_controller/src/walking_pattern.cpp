@@ -329,7 +329,7 @@ void WalkingPattern::footStepTotal()
   {
       if(foot_step(i,6) == 1)
       {
-         foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
+          foot_step(i,0) = foot_step(i,0) + (temp_.inverse()*RF_fisrt_init).translation()(0);
           foot_step(i,1) = (temp_.inverse()*RF_fisrt_init).translation()(1);
       }
       else
@@ -552,20 +552,18 @@ void WalkingPattern::setCpPosition()
     {
         capturePoint_ox(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
         capturePoint_oy(0) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
-
-        capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1) + 0.05;
+        capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1) + 0.04 - 0.11;
         capturePoint_oy(total_step_num + 1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
-        capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2) + 0.05;
+        capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2) + 0.04 - 0.11;
         capturePoint_oy(total_step_num + 2) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
     }
     else
     {
         capturePoint_ox(0) = (PELV_first_init.inverse()*COM_float_init).translation()(0);
         capturePoint_oy(0) = (PELV_first_init.inverse()*COM_float_init).translation()(1);
-
-        capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1) + 0.05;
+        capturePoint_ox(total_step_num + 1) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 1) + 0.04- 0.11;
         capturePoint_oy(total_step_num + 1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
-        capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2) + 0.05;
+        capturePoint_ox(total_step_num + 2) = (foot_step(total_step_num-1,0)+foot_step(total_step_num-2,0))/2 + capturePoint_offsetx(total_step_num + 2) + 0.04- 0.11;
         capturePoint_oy(total_step_num + 2) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - foot_distance(1)/2;
     }
 
@@ -576,19 +574,19 @@ void WalkingPattern::setCpPosition()
         {
             if(i == 0)
             {
-                capturePoint_ox(1) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(0) + capturePoint_offsetx(1) + 0.05;
+                capturePoint_ox(1) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(0) + capturePoint_offsetx(1) + 0.04- 0.11;
                 capturePoint_oy(1) = (PELV_first_init.inverse()*RF_fisrt_init).translation()(1) + capturePoint_offsety(1);
             }
             else
             {
                 if(i % 2 == 0)
                 {
-                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.05;
+                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.04- 0.11;
                     capturePoint_oy(i+1) = foot_step(i-1,1) + capturePoint_offsety(i+1);
                 }
                 else
                 {
-                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.05;
+                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.04- 0.11;
                     capturePoint_oy(i+1) = foot_step(i-1,1) - capturePoint_offsety(i+1);
                 }
             }
@@ -597,19 +595,19 @@ void WalkingPattern::setCpPosition()
         {
             if(i == 0)
             {
-                capturePoint_ox(1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(0) + capturePoint_offsetx(1) + 0.05;
+                capturePoint_ox(1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(0) + capturePoint_offsetx(1) + 0.04- 0.11;
                 capturePoint_oy(1) = (PELV_first_init.inverse()*LF_fisrt_init).translation()(1) - capturePoint_offsety(1);
             }
             else
             {
                 if(i % 2 == 0)
                 {
-                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.05;
+                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.04- 0.11;
                     capturePoint_oy(i+1) = foot_step(i-1,1) - capturePoint_offsety(i+1);
                 }      
                 else
                 {
-                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.05;
+                    capturePoint_ox(i+1) = foot_step(i-1,0) + capturePoint_offsetx(i+1) + 0.04- 0.11;
                     capturePoint_oy(i+1) = foot_step(i-1,1) + capturePoint_offsety(i+1);
                 }
             }
@@ -638,8 +636,8 @@ void WalkingPattern::cptoComTrajectory()
         {   
             if(com_control == 0)
             {
-                com_refx(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(0);
-                com_refy(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);
+                com_refx(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(0); 
+                com_refy(i) = (PELV_float_init.inverse()*PELV_float_init).translation()(1);    
             }
             else
             {
@@ -836,7 +834,6 @@ void WalkingPattern::setFootTrajectory()
             I = PELV_first_init.linear();
             LF_temp =  DyrosMath::rotationCubic(walking_tick, 0, t_temp*2/3, LF_fisrt_init.linear(), I);
             RF_temp =  DyrosMath::rotationCubic(walking_tick, 0, t_temp*2/3, RF_fisrt_init.linear(), I);
-          //  PELV_temp = DyrosMath::rotationCubic(walking_tick, 0, t_temp*2/3, PELV_first_init.linear(), I);
             LF_trajectory_float.linear() = LF_temp;
             RF_trajectory_float.linear() = RF_temp;
         }
