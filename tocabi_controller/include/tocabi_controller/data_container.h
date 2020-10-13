@@ -126,6 +126,7 @@ public:
   Eigen::VectorQd torqueElmo;
   Eigen::VectorQd torqueDemandElmo;
   Eigen::VectorQd positionDesired;
+  Eigen::VectorQd positionDesiredExt;
   Eigen::VectorQd accel_dif;
   Eigen::VectorQd accel_obsrvd;
   Eigen::VectorQd currentGain;
@@ -190,6 +191,10 @@ public:
   int ecat_state = 0; //0 not ok 1 ok 2 commutation
   int se_state = 0; //se state. 0: off 1: on
   int tc_state = 3; //task control state 0 : on 1 : warn 2: error 3: off
+
+  bool position_command_ext = false;
+  double position_command_time;
+  double position_traj_time;
 
   //Simulation mode
   bool simulationMode;

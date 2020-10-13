@@ -23,6 +23,7 @@
 
 #include "tocabi_controller/state_manager.h"
 #include "tocabi_controller/GainCommand.h"
+#include "tocabi_controller/torqueCommand.h"
 
 #define NSEC_PER_SEC 1000000000
 
@@ -514,7 +515,9 @@ private:
 
     ros::Subscriber gainSubscriber;
     ros::Subscriber commandSubscriber;
+    ros::Subscriber torquecommandSubscriber;
     Eigen::VectorQd CustomGain;
+    void torqueCommandCallback(const tocabi_controller::torqueCommandConstPtr &msg);
     void gainCallback(const std_msgs::Float32MultiArrayConstPtr &msg);
     void tcommandCallback(const std_msgs::Float32MultiArrayConstPtr &msg);
 

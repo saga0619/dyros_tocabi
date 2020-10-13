@@ -90,7 +90,7 @@ public:
   VectorQd task_control_torque_QP_gravity(RobotData &Robot);
   VectorQd task_control_torque_with_acc_cr(RobotData &Robot, MatrixXd J_task, VectorXd f_star_acc, VectorXd f_star_feedback);
   VectorXd check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
-  VectorXd fstar_regulation(RobotData &Robot, VectorXd f_star);
+  Vector2d fstar_regulation(RobotData &Robot, Vector3d f_star);
   /*
   * Get Task Control Torque 
   * task jacobian and f_star must be defined. 

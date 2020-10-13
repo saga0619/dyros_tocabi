@@ -1,6 +1,7 @@
 #include "tocabi_controller/dynamics_manager.h"
 #include "tocabi_controller/mujoco_interface.h"
 #include "tocabi_controller/realrobot_interface.h"
+#include "tocabi_controller/positionCommand.h"
 #include "custom_controller.h"
 
 extern volatile bool shutdown_tocabi_bool;
@@ -27,6 +28,7 @@ public:
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
   void TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg);
+  void PositionCommandCallback(const tocabi_controller::positionCommandConstPtr &msg);
   void VelocityCommandCallback(const tocabi_controller::VelocityCommandConstPtr &msg);
   void ContinuityChecker(double data);
   void ZMPmonitor();
@@ -34,11 +36,13 @@ public:
   void customgainhandle();
   void CPpatternGen();
   Eigen::Vector3d velRegulation(Eigen::Vector3d traj_before, Eigen::Vector3d traj_now, Eigen::Vector3d acc_max);
+  VectorQd positionCommandExt(double control_time, double traj_time, VectorQd current_pos, VectorQd desired_pos);
 
   ros::Subscriber task_command;
   ros::Subscriber task_command_que;
   ros::Subscriber taskgain_sub;
   ros::Subscriber vel_command_sub;
+  ros::Subscriber position_command_sub;
 
   tocabi_controller::TaskCommandQue tque_msg;
 
