@@ -6,6 +6,7 @@
 #include "tocabi_controller/redsvd.h"
 #include "tocabi_controller/qp.h"
 #include <qpOASES.hpp>
+#include "tocabi_controller/osqp_rapper.h"
 
 using namespace Eigen;
 using namespace std;
@@ -59,6 +60,7 @@ public:
 
   //get contact redistribution torque with Quadratic programing
   VectorQd contact_torque_calc_from_QP(RobotData &Robot, VectorQd command_torque);
+  VectorQd contact_torque_calc_from_QP2(RobotData &Robot, VectorQd command_torque);
 
   // Get Contact Redistribution Torque with QP. Wall contact mode.
   //VectorQd contact_torque_calc_from_QP_wall(VectorQd command_torque, double wall_friction_ratio);
@@ -227,6 +229,7 @@ public:
   CQuadraticProgram QP_test;
   CQuadraticProgram QP_mpc;
   CQuadraticProgram QP_torque;
+  osQuadraticProgram QP_contact;
   VectorXd result_temp;
 
 private:
