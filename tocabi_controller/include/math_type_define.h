@@ -964,26 +964,32 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
     }
     return idx;
   }
-  static bool isInPolygon(Eigen::Vector2d point, std::vector<Eigen::Vector2d> polygon)
+
+  static bool isInPolygon(Eigen::Vector2d point, Eigen::MatrixXd polygon)
   {
-    int line_number = polygon.size() - 1;
-    if (polygon[0] != polygon[line_number])
+    if (polygon.rows() == 2)
     {
-      std::cout << "polygon is not closed" << std::endl;
-      return false;
-    }
-    else
-    {
-      bool check = true;
-      for (int i = 0; i < line_number; i++)
+      int line_number = polygon.cols() - 1;
+
+      if (polygon.block(0, 0, 2, 1) != polygon.block(0, line_number, 2, 1))
       {
-        check = check && (0 < getOrientation2d(polygon[i + 1] - polygon[i], point - polygon[i]));
+        std::cout << "polygon is not closed" << std::endl;
+        return false;
       }
-      if (check)
+      else
       {
-        return true;
+        bool check = true;
+        for (int i = 0; i < line_number; i++)
+        {
+          check = check && (0 < getOrientation2d(polygon.block(0, i + 1, 2, 1) - polygon.block(0, i, 2, 1), point - polygon.block(0, i, 2, 1)));
+        }
+        if (check)
+        {
+          return true;
+        }
       }
     }
+    return false;
   }
 
   static Eigen::Vector2d getIntersectPoint(Eigen::Vector2d p1, Eigen::Vector2d p2, Eigen::Vector2d q1, Eigen::Vector2d q2)
