@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
+find_package(osqp REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -85,12 +86,14 @@ add_library(tocabi_controller_lib
   src/wholebody_controller.cpp
   ${CC_PATH}/custom_controller.cpp
   src/mx5_imu.cpp
+  src/osqp_rapper.cpp
 )
 
 add_executable(tocabi_controller src/base.cpp)
 
 target_link_libraries(tocabi_controller_lib
   ${catkin_LIBRARIES}
+  -losqp
   -lmscl
   -lrbdl
   -lrbdl_urdfreader

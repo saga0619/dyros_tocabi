@@ -16,6 +16,7 @@ while true; do
     echo "5 : Install qpOASES";
     echo "6 : Install linuxCAN";
     echo "7 : Install GLS";
+    echo "8 : Install osqp";
     read -p "Select Number : " yn
     case $yn in
         [1]* ) echo "Starting Install ... all prerequistes";
@@ -44,6 +45,15 @@ while true; do
 
               git clone https://github.com/saga0619/qpoases
               cd qpoases
+              mkdir build
+              cd build
+              cmake ..
+              make all
+              sudo make install
+              cd ../..
+
+              git clone https://github.com/saga0619/osqp
+              cd osqp
               mkdir build
               cd build
               cmake ..
@@ -138,6 +148,19 @@ while true; do
               make
               sudo make install              
               cd ../..
+              rm -rf Temp
+              exit;;
+        [8]* ) echo "Starting Install ... osqp";
+              mkdir Temp
+              cd Temp
+              git clone https://github.com/saga0619/osqp
+              cd osqp
+              mkdir build
+              cd build
+              cmake ..
+              make all
+              sudo make install
+              cd ../../..
               rm -rf Temp
               exit;;
         [Nn]* ) echo "Aborting ...";

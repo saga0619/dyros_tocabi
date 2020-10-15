@@ -29,8 +29,8 @@ public:
   void PrintSubjectTox();
   void EnableEqualityCondition(const double Tolerance);
   void DisableEqualityCondition();
-  VectorXd SolveQPoases(const int &num_max_iter);
-  int SolveQPoases(const int &num_max_iter, VectorXd &solv);
+  VectorXd SolveQPoases(const int &num_max_iter, bool MPC = true);
+  int SolveQPoases(const int &num_max_iter, VectorXd &solv, bool MPC = true);
 
 private:
   SQProblem _QPprob;

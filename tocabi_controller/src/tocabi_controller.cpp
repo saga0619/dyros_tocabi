@@ -346,8 +346,10 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.step_length_y = msg.step_length_y;
     tc.step_length_x = msg.step_length_x;
     tc.dob = msg.dob;
+    tc.mom = msg.mom;
     tc.imu_walk = msg.imu;
     tc.walking_enable = msg.walking_enable;
+
     if (tc.walking_enable == 1.0 || tc.walking_enable == 3.0)
     {
         tc.mode = 11;
@@ -403,16 +405,15 @@ void TocabiController::dynamicsThreadHigh()
                 {
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_lpf_(i + 6));
+                        torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
                 else if (dc.position_command_ext)
                 {
                     //torqueOn delay
 
-                    if(dc.torqueOn && dc.torqueOnTime>3.0)
+                    if (dc.torqueOn && dc.torqueOnTime > 3.0)
                     {
-
                     }
 
                     for (int i = 0; i < MODEL_DOF; i++)
@@ -427,7 +428,7 @@ void TocabiController::dynamicsThreadHigh()
 
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_lpf_(i + 6));
+                        torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
 
@@ -835,6 +836,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
                 tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
+                tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 torque_grav.setZero();
             }
@@ -877,7 +879,6 @@ void TocabiController::dynamicsThreadLow()
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
                 wbc_.set_contact(tocabi_, 1, 1);
-                torque_grav = wbc_.gravity_compensation_torque(tocabi_);
 
                 int task_number = 9;
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
@@ -901,7 +902,14 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
 
-                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+                //(tocabi_.lambda * tocabi_.f_star)
+
+                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver); // + wbc_.contact_torque_calc_from_QP(tocabi_, torque_grav);
+
+                //wbc_.contact_torque_calc_from_QP(tocabi_, torque_task);
+
+                // std::cout << "ContactForce Without : " << std::endl
+                //          << (wbc_.get_contact_force(tocabi_, torque_task)).transpose() << std::endl;
 
                 torque_grav.setZero();
             }
@@ -1038,6 +1046,8 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.f_star.segment(0, 3) = wbc_.getfstar_tra(tocabi_, COM_id);
                 tocabi_.f_star.segment(3, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
+
+                tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
 
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
 
@@ -1982,6 +1992,9 @@ void TocabiController::dynamicsThreadLow()
         //VectorXd contactforce_custom = Robot.J_C_INV_T * Robot.Slc_k_T * torque_desired - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
 
         tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
+
+        //std::cout << "Contact Force With : " << std::endl
+        //          << tocabi_.ContactForce.transpose() << std::endl;
         tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
         double qddot_err_size = (tocabi_.q_ddot_estimate_ - tocabi_.q_ddot_virtual_.segment(6, MODEL_DOF)).norm();
         //std::cout << control_time_ << "qddot error : " << tocabi_.q_dot_diff_(5) / 0.0005 << " q_ddot from sim : " << tocabi_.q_ddot_virtual_(5) << " qddotes size : " << tocabi_.q_ddot_estimate_(5) << std::endl;
