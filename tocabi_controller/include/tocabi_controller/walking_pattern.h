@@ -43,6 +43,21 @@ public:
     Eigen::Vector3d p_ref;
     Eigen::Vector3d l_ref;
 
+    //////VibrationControl//////
+    Eigen::Vector2d x_vib;
+    Eigen::Vector2d x_vib_est;
+    Eigen::Vector3d y_vib;
+    Eigen::Vector3d y_vibm;
+    Eigen::Vector2d k_vib;
+    Eigen::Vector2d c_vib;
+    Eigen::Matrix2d A_vib;
+    Eigen::Vector2d B_vib;
+    Eigen::Vector3d D_vib;
+    Eigen::MatrixXd C_vib;
+    double m;
+    double u_vib;
+    bool vib_est;
+
     //////Capture Point//////
     Eigen::VectorXd capturePoint_ox;
     Eigen::VectorXd capturePoint_oy;
@@ -76,6 +91,7 @@ public:
     Eigen::Isometry3d RF_trajectory_support;
     Eigen::Isometry3d PELV_float_current;
     Eigen::Isometry3d PELV_float_init;
+    Eigen::Isometry3d PELV_float_init1;
     Eigen::Isometry3d PELV_trajectory_support;
     Eigen::Isometry3d COM_float_current;
     Eigen::Isometry3d COM_float_init;
