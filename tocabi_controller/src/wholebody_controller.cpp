@@ -1970,8 +1970,8 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
         M.setZero(6 * Robot.contact_index, 6 * Robot.contact_index);
         for (int i = 0; i < Robot.contact_index; i++)
         {
-            M(6 * i, 6 * i) = 1.0;
-            M(6 * i + 1, 6 * i + 1) = 1.0;
+            M(6 * i, 6 * i) = 5.0;
+            M(6 * i + 1, 6 * i + 1) = 5.0;
             M(6 * i + 2, 6 * i + 2) = 0.2;
             M(6 * i + 3, 6 * i + 3) = 5.0;
             M(6 * i + 4, 6 * i + 4) = 5.0;
@@ -2108,7 +2108,28 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
                 */
                 print_data_qp_ = false;
             }
-            //std::cout<<"############################################"<<std::endl;
+
+            std::cout << "qp error .... 2nd easy trial ..." << std::endl;
+
+            for (int i = 0; i < Robot.contact_index; i++)
+            {
+                lbA(6 + i * constraint_per_contact + 4) = -1000.0;
+                lbA(6 + i * constraint_per_contact + 5) = -1000.0;
+                lbA(6 + i * constraint_per_contact + 6) = -1000.0;
+                lbA(6 + i * constraint_per_contact + 7) = -1000.0;
+            }
+            setup_result = QP_contact.setup(H, g, A, lbA, ubA, lb, ub);
+            solve_result = QP_contact.solve(force_redistribute);
+
+            if (solve_result == 1)
+            {
+                std::cout << "second trial success" << std::endl;
+            }
+            else
+            {
+                std::cout << "second trial failed" << std::endl;
+
+            } //std::cout<<"############################################"<<std::endl;
             //QP_test.PrintMinProb();
             //QP_test.PrintSubjectToAx();
             //QP_test.PrintSubjectTox();
@@ -3094,12 +3115,6 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
 
         ep.erase(ep.begin() + idx);
     }
-    /*
-    std::cout << "edgepoint list : " << std::endl;
-    for (int i = 0; i < edge_point_list.size(); i++)
-    {
-        std::cout << "x : " << edge_point_list[i](0) << "  y : " << edge_point_list[i](1) << std::endl;
-    }*/
 
     //current com position
     f_star(2) = 0;
@@ -3119,23 +3134,35 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
     }
     else
     {
+        std::cout << Robot.control_time_ << "////// fstar regulation activate ////// " << std::endl;
+        std::cout << "x : ";
+        for (int i = 0; i < edge_point_list.size(); i++)
+        {
+            std::cout << edge_point_list[i](0) << "\t";
+        }
+        std::cout << std::endl
+                  << "y : ";
+        for (int i = 0; i < edge_point_list.size(); i++)
+        {
+            std::cout << edge_point_list[i](1) << "\t";
+        }
+        std::cout << std::endl;
+
         for (int i = 0; i < ep_size; i++)
         {
             if (DyrosMath::checkIntersect(edge_point_list[i], edge_point_list[i + 1], p_com, zmp_by_fstar))
             {
                 zmp_r = DyrosMath::getIntersectPoint(edge_point_list[i], edge_point_list[i + 1], p_com, zmp_by_fstar);
-                /*
-            std::cout << "found at " << i << std::endl;
-            std::cout << "p1 x : " << edge_point_list[i](0) << "  y : " << edge_point_list[i](1) << std::endl;
-            std::cout << "p2 x : " << edge_point_list[i + 1](0) << "  y : " << edge_point_list[i + 1](1) << std::endl;
-            std::cout << "q1 x : " << p_com(0) << "  y : " << p_com(1) << std::endl;
-            std::cout << "q2 x : " << zmp_by_fstar(0) << "  y : " << zmp_by_fstar(1) << std::endl;
-            std::cout << "ip x : " << fstar_regulated(0) << "  y : " << fstar_regulated(1) << std::endl;*/
+
+                std::cout << "found at " << i << std::endl;
+                std::cout << "com pos x : " << p_com(0) << "  y : " << p_com(1) << std::endl;
+                std::cout << "zmp fstar x : " << zmp_by_fstar(0) << "  y : " << zmp_by_fstar(1) << std::endl;
+                std::cout << "ip x : " << zmp_r(0) << "  y : " << zmp_r(1) << std::endl;
             }
         }
         fstar_regulated = (f_star(2) + 9.81) / Robot.com_.pos(2) * (p_com - zmp_r);
 
-        std::cout << Robot.control_time_ << " org x : " << zmp_by_fstar(0) << " y : " << zmp_by_fstar(1) << " reg x : " << zmp_r(0) << " y : " << zmp_r(1) << std::endl;
+        //std::cout << Robot.control_time_ << " org x : " << zmp_by_fstar(0) << " y : " << zmp_by_fstar(1) << " reg x : " << zmp_r(0) << " y : " << zmp_r(1) << std::endl;
     }
 
     return fstar_regulated;

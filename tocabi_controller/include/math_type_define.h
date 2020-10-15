@@ -1001,17 +1001,17 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
 
       if (abs(a1) > 1000)
       {
-        std::cout << "a1 over " << a1 << std::endl;
+        //std::cout << "a1 over " << a1 << std::endl;
         v1(0) = p1(0);
 
-        std::cout << "a2 : " << a2 << "  b2 : " << b2 << std::endl;
+        //std::cout << "a2 : " << a2 << "  b2 : " << b2 << std::endl;
         v1(1) = a2 * v1(0) + b2;
       }
       else if (abs(a2) > 1000)
       {
-        std::cout << "a2 over " << a2 << std::endl;
+        //std::cout << "a2 over " << a2 << std::endl;
         v1(0) = q1(0);
-        std::cout << "a1 : " << a1 << "  b1 : " << b1 << std::endl;
+        //std::cout << "a1 : " << a1 << "  b1 : " << b1 << std::endl;
         v1(1) = a1 * v1(0) + b1;
       }
       else

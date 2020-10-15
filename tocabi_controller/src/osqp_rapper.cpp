@@ -92,7 +92,6 @@ int osQuadraticProgram::solve(VectorXd &primal_solution)
     }
     else
     {
-        std::cout << "Solve Failed" << std::endl;
     }
 
     return work->info->status_val;
