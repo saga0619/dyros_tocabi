@@ -3034,8 +3034,8 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
     //if desired COM is over
     //support polygon check
     int contact_index = Robot.contact_index;
-    std::vector<Vector2d> ep;
-    std::vector<Vector2d> ep_origin;
+    std::vector<Eigen::Vector2d> ep;
+    std::vector<Eigen::Vector2d> ep_origin;
     std::vector<double> angle_list;
     ep.resize(contact_index * 4);
     //std::cout << "contact points : " << std::endl;
@@ -3088,7 +3088,7 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
     //std::cout << "start p  x : " << startPoint(0) << "  y : " << startPoint(1) << std::endl;
     //std::cout << "end p  x : " << endPoint(0) << "  y : " << endPoint(1) << std::endl;
 
-    vector<Vector2d> edge_point_list;
+    std::vector<Eigen::Vector2d> edge_point_list;
 
     edge_point_list.push_back(zeroPoint);
     edge_point_list.push_back(startPoint);
