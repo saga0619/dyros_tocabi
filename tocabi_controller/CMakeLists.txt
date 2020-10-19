@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(tocabi_controller)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11 -O3)
+add_compile_options(-std=c++17 -O3)
 
 ADD_DEFINITIONS(-DBOOST_MPL_LIMIT_LIST_SIZE=40)
 ADD_DEFINITIONS(-DBOOST_MPL_LIMIT_VECTOR_SIZE=40)
@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
+find_package(osqp REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -36,6 +37,8 @@ add_message_files(
   TaskCommand.msg
   TaskCommandQue.msg
   TaskGainCommand.msg
+  positionCommand.msg
+  torqueCommand.msg
   model.msg
   VelocityCommand.msg
 )
@@ -83,12 +86,14 @@ add_library(tocabi_controller_lib
   src/wholebody_controller.cpp
   ${CC_PATH}/custom_controller.cpp
   src/mx5_imu.cpp
+  src/osqp_rapper.cpp
 )
 
 add_executable(tocabi_controller src/base.cpp)
 
 target_link_libraries(tocabi_controller_lib
   ${catkin_LIBRARIES}
+  -losqp
   -lmscl
   -lrbdl
   -lrbdl_urdfreader

@@ -246,6 +246,7 @@ public:
 
   Eigen::Matrix3d r_traj;
   Eigen::Vector3d w_traj;
+  Eigen::Vector3d ra_traj;
 
   Eigen::Vector3d x_traj_local;
   Eigen::Vector3d v_traj_local;

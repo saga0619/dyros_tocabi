@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+
 volatile bool shutdown_tocabi_bool = false;
 
 void terminate_signal(int sig)
@@ -19,7 +20,6 @@ void terminate_signal(int sig)
 int main(int argc, char **argv)
 {
     signal(SIGINT, &terminate_signal);
-
     ros::init(argc, argv, "tocabi_controller");
     DataContainer dc;
 

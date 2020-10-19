@@ -277,6 +277,7 @@ void Link::Set_Trajectory_rotation(double current_time, double start_time, doubl
     rmat = Eigen::AngleAxisd(c_a, axis);
     r_traj = rot_init * rmat;
     w_traj = quintic(1) * axis;
+    ra_traj = quintic(2) * axis;
 }
 
 void Link::Set_Trajectory_rotation(double current_time, double start_time, double end_time, Eigen::Matrix3d rot_desired_, bool local_)

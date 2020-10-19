@@ -238,6 +238,7 @@ public:
     double step_length_y;
     bool dob;
     bool imu;
+    bool mom;
     Eigen::Vector4d target;
     int vibration_control;
     bool com_control_mode;

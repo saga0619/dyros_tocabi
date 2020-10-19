@@ -91,10 +91,10 @@ void Walking_controller::walkingCompute(RobotData &Robot)
 	    momentumControl(Robot);
 
 	    q_w(0) = q_w(0) + q_dm(0)/Hz_;
-        q_w(1) = q_w(1) + q_dm(1)/Hz_;
-        q_w(2) = q_w(2) + q_dm(2)/Hz_;
-        q_w(3) = q_w(3) + q_dm(3)/Hz_;
-        q_w(4) = q_w(4) + q_dm(4)/Hz_;
+      q_w(1) = q_w(1) + q_dm(1)/Hz_;
+      q_w(2) = q_w(2) + q_dm(2)/Hz_;
+      q_w(3) = q_w(3) + q_dm(3)/Hz_;
+      q_w(4) = q_w(4) + q_dm(4)/Hz_;
 	}
 
         if(dob == 1)
@@ -316,12 +316,10 @@ void Walking_controller::getRobotState(RobotData &Robot)
     yx_vibm(0) = Robot.ZMP(0);
     yx_vibm(1) = Robot.link_[Pelvis].xipos(0);
     yx_vibm(2) = Robot.link_[Pelvis].v(0);
-
-
+  
     yy_vibm(0) = Robot.ZMP(1);
     yy_vibm(1) = Robot.link_[Pelvis].xipos(1);
     yy_vibm(2) = Robot.link_[Pelvis].v(1);
-
 
     calcRobotState(Robot);
 }
@@ -646,6 +644,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     std::cout << "imu" << imu << std::endl; 
     std::cout << "mom" << mom << std::endl;
     std::cout << "vibration" << vibration_control << std::endl;
+
     setWalkingParameter(Robot);
 }
 

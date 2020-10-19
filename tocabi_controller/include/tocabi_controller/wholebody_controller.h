@@ -6,6 +6,7 @@
 #include "tocabi_controller/redsvd.h"
 #include "tocabi_controller/qp.h"
 #include <qpOASES.hpp>
+#include "tocabi_controller/osqp_rapper.h"
 
 using namespace Eigen;
 using namespace std;
@@ -59,6 +60,7 @@ public:
 
   //get contact redistribution torque with Quadratic programing
   VectorQd contact_torque_calc_from_QP(RobotData &Robot, VectorQd command_torque);
+  VectorQd contact_torque_calc_from_QP2(RobotData &Robot, VectorQd command_torque);
 
   // Get Contact Redistribution Torque with QP. Wall contact mode.
   //VectorQd contact_torque_calc_from_QP_wall(VectorQd command_torque, double wall_friction_ratio);
@@ -88,7 +90,9 @@ public:
   VectorQd task_control_torque_QP3(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP2_with_contactforce_feedback(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP_gravity(RobotData &Robot);
+  VectorQd task_control_torque_with_acc_cr(RobotData &Robot, MatrixXd J_task, VectorXd f_star_acc, VectorXd f_star_feedback);
   VectorXd check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  Vector2d fstar_regulation(RobotData &Robot, Vector3d f_star);
   /*
   * Get Task Control Torque 
   * task jacobian and f_star must be defined. 
@@ -109,7 +113,6 @@ public:
 
   //Utility functions
 
-
   //Get contact force from command torque
   VectorXd get_contact_force(RobotData &Robot, VectorQd command_torque);
   MatrixXd GetTaskLambda(RobotData &Robot, MatrixXd J_task);
@@ -129,6 +132,9 @@ public:
   Vector3d getfstar_rot(RobotData &Robot, int link_id);
   Vector6d getfstar6d(RobotData &Robot, int link_id, Vector3d kpt, Vector3d kdt, Vector3d kpa, Vector3d kda);
   Vector6d getfstar6d(RobotData &Robot, int link_id);
+  Vector3d getfstar_acc_tra(RobotData &Robot, int link_id);
+  Vector3d getfstar_acc_rot(RobotData &Robot, int link_id);
+  
 
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
 
@@ -223,6 +229,7 @@ public:
   CQuadraticProgram QP_test;
   CQuadraticProgram QP_mpc;
   CQuadraticProgram QP_torque;
+  osQuadraticProgram QP_contact;
   VectorXd result_temp;
 
 private:

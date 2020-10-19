@@ -142,7 +142,7 @@ void CQuadraticProgram::DisableEqualityCondition()
 {
     _options.enableEqualities = BT_FALSE;
 }
-int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv)
+int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, bool MPC)
 {
     //translate eigen to real_t formulation
     real_t H_realt[_num_var * _num_var]; // H in min eq 1/2x'Hx + x'g
@@ -209,9 +209,10 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv)
     int_t nWSR = num_max_iter;
 
     //_options.printLevel = PL_NONE;
-    _options.setToMPC();
+    if (MPC)
+        _options.setToMPC();
 
-    _options.boundTolerance = 1E-6;
+    //_options.boundTolerance = 1E-6;
     _options.boundRelaxation = 1E-6;
     _options.printLevel = PL_LOW;
     _QPprob.setOptions(_options);
@@ -260,6 +261,9 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv)
     if (m_status != SUCCESSFUL_RETURN)
     {
         std::cout << "QP solve error from hotstart" << std::endl;
+        PrintMinProb();
+        PrintSubjectToAx();
+        PrintSubjectTox();
     }
 
     real_t Xopt_realt[_num_var];
@@ -292,7 +296,7 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv)
     }
 
     solv = Xopt;
-    
+
     if ((m_status == SUCCESSFUL_RETURN) && (scs == SUCCESSFUL_RETURN))
     {
         return 1;
@@ -303,7 +307,7 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv)
     }
 }
 
-VectorXd CQuadraticProgram::SolveQPoases(const int &num_max_iter)
+VectorXd CQuadraticProgram::SolveQPoases(const int &num_max_iter, bool MPC)
 {
     //translate eigen to real_t formulation
     real_t H_realt[_num_var * _num_var]; // H in min eq 1/2x'Hx + x'g
@@ -370,11 +374,12 @@ VectorXd CQuadraticProgram::SolveQPoases(const int &num_max_iter)
     int_t nWSR = num_max_iter;
 
     //_options.printLevel = PL_NONE;
-    _options.setToMPC();
+    if (MPC)
+        _options.setToMPC();
 
-    _options.boundTolerance = 1E-6;
-    _options.boundRelaxation = 1E-6;
-    _options.printLevel = PL_LOW;
+    //_options.boundTolerance = 1E-6;
+    //_options.boundRelaxation = 1E-6;
+    _options.printLevel = PL_DEBUG_ITER;
     _QPprob.setOptions(_options);
 
     returnValue m_status;

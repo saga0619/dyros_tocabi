@@ -48,6 +48,7 @@ public:
     void updateNextStepTime();
     void updateInitTime();
     void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, bool mom_walk, int vibration, RobotData &Robot);
+
     void setWalkingParameter(RobotData &Robot);
 
     void calcRobotState(RobotData &Robot);
