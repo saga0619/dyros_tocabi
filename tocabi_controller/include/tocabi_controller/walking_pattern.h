@@ -43,21 +43,6 @@ public:
     Eigen::Vector3d p_ref;
     Eigen::Vector3d l_ref;
 
-    //////VibrationControl//////
-    Eigen::Vector2d x_vib;
-    Eigen::Vector2d x_vib_est;
-    Eigen::Vector3d y_vib;
-    Eigen::Vector3d y_vibm;
-    Eigen::Vector2d k_vib;
-    Eigen::Vector2d c_vib;
-    Eigen::Matrix2d A_vib;
-    Eigen::Vector2d B_vib;
-    Eigen::Vector3d D_vib;
-    Eigen::MatrixXd C_vib;
-    double m;
-    double u_vib;
-    bool vib_est;
-
     //////Capture Point//////
     Eigen::VectorXd capturePoint_ox;
     Eigen::VectorXd capturePoint_oy;
@@ -91,7 +76,6 @@ public:
     Eigen::Isometry3d RF_trajectory_support;
     Eigen::Isometry3d PELV_float_current;
     Eigen::Isometry3d PELV_float_init;
-    Eigen::Isometry3d PELV_float_init1;
     Eigen::Isometry3d PELV_trajectory_support;
     Eigen::Isometry3d COM_float_current;
     Eigen::Isometry3d COM_float_init;
@@ -150,23 +134,6 @@ public:
     Eigen::Isometry3d Framereference;
     Eigen::Isometry3d Debug_Iso;
 
-    //User WalkingParameter
-    int desired_foot_step_num;
-    int t_rest_init;
-    int t_rest_last;
-    int t_double1;
-    int t_double2;
-    int t_total;
-    int t_temp;
-    int t_last;
-    int t_start;
-    int t_start_real;
-    int t_rest_temp;
-    int com_control;
-    double t_imp;
-    double foot_height;
-    int current_step_num; // temp
-
     //Com Jacobian
     Eigen::Vector3d r_c1;
     Eigen::Matrix3d r_c1_skew;
@@ -186,7 +153,6 @@ public:
     Eigen::Vector3d Cfsemd;
     Eigen::Matrix<double, 3, 6> Jfsem;
     
-
     //MomentumControl
     Eigen::VectorXd q_w;
     Eigen::Vector3d H_leg;
@@ -195,7 +161,60 @@ public:
     Eigen::Matrix3x8d Ag_armR;
     Eigen::Matrix3x8d Ag_armL;
     Eigen::Matrix3x3d Ag_waist;
-    Eigen::Vector5d qd_prev; 
+    Eigen::Vector5d qd_prev;  
+    
+    //vibrationcontrol
+    Eigen::Matrix2d Ax_vib;
+    Eigen::Vector2d Bx_vib;
+    Eigen::MatrixXd Cx_vib;
+    Eigen::Vector3d Dx_vib;
+    Eigen::Vector2d kx_vib;
+    Eigen::Vector2d cx_vib;
+    Eigen::Vector2d xx_vib;
+    Eigen::Vector2d xx_vib_est;
+    Eigen::Vector3d yx_vib;
+    Eigen::Vector3d yx_vibm;
+    Eigen::Vector2d final_posx;
+
+    Eigen::Matrix2d Ay_vib;
+    Eigen::Vector2d By_vib;
+    Eigen::MatrixXd Cy_vib;
+    Eigen::Vector3d Dy_vib;
+    Eigen::Vector2d ky_vib;
+    Eigen::Vector2d cy_vib;
+    Eigen::Vector2d xy_vib;
+    Eigen::Vector2d xy_vib_est;
+    Eigen::Vector3d yy_vib;
+    Eigen::Vector3d yy_vibm;
+    Eigen::Vector2d final_posy;
+
+
+    Eigen::Isometry3d PELV_float_init1;
+    
+    double ux_vib;
+    double uy_vib;
+
+    double m;
+    bool vib_est;
+    
+
+    //User WalkingParameter
+    int desired_foot_step_num;
+    int t_rest_init;
+    int t_rest_last;
+    int t_double1;
+    int t_double2;
+    int t_total;
+    int t_temp;
+    int t_last;
+    int t_start;
+    int t_start_real;
+    int t_rest_temp;
+    int com_control;
+    double t_imp;
+    double foot_height;
+    bool mom;
+    int current_step_num; // temp
 
     // Walking
     int walking_tick;
@@ -219,8 +238,8 @@ public:
     double step_length_y;
     bool dob;
     bool imu;
-    bool mom;
     Eigen::Vector4d target;
+    int vibration_control;
     bool com_control_mode;
     bool gyro_frame_flag;
     double com_gain;

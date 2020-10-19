@@ -322,6 +322,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.ik_mode = msg.ik_mode;
     tc.walking_pattern = msg.pattern;
     tc.walking_pattern2 = msg.pattern2;
+    tc.vibration_control = msg.comcontrol;
     tc.foot_step_dir = msg.first_foot_step;
     tc.target_x = msg.x;
     tc.target_y = msg.y;

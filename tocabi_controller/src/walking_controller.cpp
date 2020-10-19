@@ -40,7 +40,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         }
 
         desired_leg_q_prev = desired_leg_q;
-/*
+
         if(walking_tick == 0)
         {
             PELV_trajectory_float.linear()= Robot.link_[Pelvis].Rotm;
@@ -56,9 +56,12 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             RF_trajectory_float.translation() = Robot.link_[Right_Foot].xpos;
             
         }
-*/
 
-        comVibrationController();
+        if(vibration_control != 0)
+        {
+            comVibrationController();
+        }
+
 
         /////InverseKinematics//////
         if(ik_mode == 0)
@@ -241,7 +244,7 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd &leg_q)
     if (walking_tick == 0)
     {
         Eigen::VectorQd q_temp;
-        q_temp << 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, -0.24, 0.6, -0.36, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1.0, 0, 1.0, 0;
+        q_temp << 0.0, 0.0, -0.55, 1.1, -0.55, 0.0, 0.0, 0.0, -0.55, 1.1, -0.55, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1.0, 0, 1.0, 0;
        
        //q_temp.setZero();
         //q_target = Robot.q_;
@@ -310,9 +313,15 @@ void Walking_controller::getRobotState(RobotData &Robot)
     Ag_armL = Robot.Ag_.block(3, 15, 3, 8);
     Ag_waist = Robot.Ag_.block(3, 12, 3, 3);
 
-    y_vibm(0) = Robot.ZMP(0);
-    y_vibm(1) = Robot.link_[Pelvis].xipos(0);
-    y_vibm(2) = Robot.link_[Pelvis].v(0);
+    yx_vibm(0) = Robot.ZMP(0);
+    yx_vibm(1) = Robot.link_[Pelvis].xipos(0);
+    yx_vibm(2) = Robot.link_[Pelvis].v(0);
+
+
+    yy_vibm(0) = Robot.ZMP(1);
+    yy_vibm(1) = Robot.link_[Pelvis].xipos(1);
+    yy_vibm(2) = Robot.link_[Pelvis].v(1);
+
 
     calcRobotState(Robot);
 }
@@ -517,31 +526,37 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
     COM_support_init(3, 3) = 1.0;
     pelvis_offsetx = 0.0;
     target.setZero();
-
-    C_vib.resize(3,2);
         
-    k_vib(0) = 17417.76;
-    c_vib(0) = 144.9;
+    kx_vib(0) = 17417.76;
+    cx_vib(0) = 144.9;
+
+    ky_vib(0) = 8276.02;
+    cy_vib(0) = 130.1744;
 
     m = 9.81 * Robot.total_mass;
 
-    A_vib(0,0) = 0.0;
-    A_vib(0,1) = 1.0;
-    A_vib(1,0) = 9.81 - k_vib(0)/Robot.total_mass;
-    A_vib(1,1) = -c_vib(0)/Robot.total_mass;
+    Ax_vib(0,0) = 0.0;
+    Ax_vib(0,1) = 1.0;
+    Ax_vib(1,0) = 9.81 - kx_vib(0)/Robot.total_mass;
+    Ax_vib(1,1) = -cx_vib(0)/Robot.total_mass;
 
-    B_vib(0) = 0;
-    B_vib(1) = k_vib(0)/Robot.total_mass;
+    Bx_vib(0) = 0;
+    Bx_vib(1) = kx_vib(0)/Robot.total_mass;
 
-    C_vib(0,0) = k_vib(0)/m;
-    C_vib(0,1) = c_vib(0)/m;
-    C_vib(1,0) = 1.0;
-    C_vib(1,1) = 0.0; 
-    C_vib(2,0) = 0.0;
-    C_vib(2,1) = 1.0;
+    Dx_vib.setZero();
+    Dx_vib(0) = - kx_vib(0)/m;
 
-    D_vib.setZero();
-    D_vib(0) = - k_vib(0)/m;
+    Ay_vib(0,0) = 0.0;
+    Ay_vib(0,1) = 1.0;
+    Ay_vib(1,0) = 9.81 - ky_vib(0)/Robot.total_mass;
+    Ay_vib(1,1) = -cy_vib(0)/Robot.total_mass;
+
+    By_vib(0) = 0;
+    By_vib(1) = ky_vib(0)/Robot.total_mass;
+
+    Dy_vib.setZero();
+    Dy_vib(0) = - ky_vib(0)/m;
+    
     vib_est = false;
 
     J.resize(INERITA_SIZE, MODEL_DOF);
@@ -584,7 +599,7 @@ void Walking_controller::updateNextStepTime()
     walking_tick++;
 }
 
-void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, bool mom_walk, RobotData &Robot)
+void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingenable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, bool mom_walk, int vibration, RobotData &Robot)
 {
     ik_mode = ikmode;
     walking_pattern = walkingpattern;
@@ -601,6 +616,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     target(2) = target_z;
     target(3) = theta;
     height = targetheight;
+    vibration_control = vibration;
     step_length_y = steplength_y;
     step_length_x = steplength_x;
     com_control = walkingpattern2;
@@ -629,6 +645,7 @@ void Walking_controller::getUiWalkingParameter(int controller_Hz, int walkingena
     std::cout << "dob" << dob << std::endl;
     std::cout << "imu" << imu << std::endl; 
     std::cout << "mom" << mom << std::endl;
+    std::cout << "vibration" << vibration_control << std::endl;
     setWalkingParameter(Robot);
 }
 
@@ -768,34 +785,6 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
             desired_leg_q(i) = desired_leg_q(i) - dobGain * dob_hat(i);
         }
     }
-
-    /*  if(walking_tick >= t_start_real + t_double1 && walking_tick <= t_start_real + t_double1 + 0.01*Hz_)
-    {
-        K = DyrosMath::cubic(walking_tick, t_start_real + t_double1, t_start_real + t_double1 + 0.01*Hz_, 0.0, 0.9, 0.0, 0.0);
-    }
-    else if(walking_tick >= t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp - 0.01*Hz_)
-    {
-        K = DyrosMath::cubic(walking_tick, t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp - 0.01*Hz_, t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp, 0.9, 0.0, 0.0, 0.0);
-    }
-    else if(walking_tick>=t_start_real + t_double1 + 0.01*Hz_ && walking_tick <= t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp - 0.01*Hz_)
-    {
-        K = 0.9;
-    }*/
-
-    /* if(foot_step(current_step_num,6) == 1)
-    {
-        if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last) // the period for lifting the right foot
-        {
-            desired_leg_q(11) = desired_leg_q(11) - K*DyrosMath::rot2Euler((Robot.link_[Right_Foot].Rotm))(0); 
-        }
-    }
-    else
-    {
-        if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last) // the period for lifting the right foot
-        {
-            desired_leg_q(5) = desired_leg_q(5) - K*DyrosMath::rot2Euler((Robot.link_[Left_Foot].Rotm))(0);
-        }
-    }*/
 }
 
 void Walking_controller::ankleOriControl(RobotData &Robot)
@@ -1167,46 +1156,101 @@ void Walking_controller::momentumControl(RobotData &Robot)
 
 void Walking_controller::comVibrationController()
 {
-        if(walking_tick ==0)
+    if(vibration_control == 1)
+    {
+        if (current_step_num != total_step_num - 1 && walking_tick < t_total + t_last - 3)
         {
-            x_vib(0) = com_refx(walking_tick);
-            x_vib(1) = 0.0;
+            if(walking_tick ==0)
+            {
+                xx_vib(0) = com_refx(walking_tick);
+                xx_vib(1) = 0.0;
+                xy_vib(0) = com_refy(walking_tick);
+                xy_vib(1) = 0.0;
+            }
+                
+            if(vib_est == false)
+            {
+                xx_vib_est = xx_vib;
+                xy_vib_est = xy_vib;
+                ux_vib = PELV_first_init.translation()(0);
+                uy_vib = PELV_first_init.translation()(1);
+                vib_est = true;
+            }
+                
+            Eigen::MatrixXd L1, L2;
+            L1.resize(2,3); 
+            L2.resize(2,3);
+
+          //  L1(0,0) = 0.0353;
+            L1(0,1) = 0.6480;
+            L1(0,2) = 1.3826;
+            L1(1,0) = -9.7031;
+            L1(1,1) = 1.3826;
+            L1(1,2) = 10.8382;
+
+            L2(0,0) = 0.0751;
+            L2(0,1) = 0.6530;
+            L2(0,2) = 1.3531;
+            L2(1,0) = -9.5172;
+            L2(1,1) = 1.3531;
+            L2(1,2) = 10.6833;
+
+            Cx_vib.resize(3,2);
+            Cy_vib.resize(3,2);
+
+            Cx_vib(0,0) = kx_vib(0)/m;
+            Cx_vib(0,1) = cx_vib(0)/m;
+            Cx_vib(1,0) = 1.0;
+            Cx_vib(1,1) = 0.0; 
+            Cx_vib(2,0) = 0.0;
+            Cx_vib(2,1) = 1.0;
+
+            Cy_vib(0,0) = ky_vib(0)/m;
+            Cy_vib(0,1) = cy_vib(0)/m;
+            Cy_vib(1,0) = 1.0;
+            Cy_vib(1,1) = 0.0; 
+            Cy_vib(2,0) = 0.0;
+            Cy_vib(2,1) = 1.0;
+
+            if(vib_est = true)
+            {
+                yx_vib = Cx_vib * xx_vib_est + Dx_vib*ux_vib;
+
+                xx_vib_est = Ax_vib*xx_vib_est/Hz_ + xx_vib_est + Bx_vib*ux_vib/Hz_ + L1*(yx_vibm-yx_vib)/Hz_;
+               
+                ux_vib = xx_vib_est(0);
+
+                yy_vib = Cy_vib * xy_vib_est + Dy_vib*uy_vib;
+
+                xy_vib_est = Ay_vib*xy_vib_est/Hz_ + xy_vib_est + By_vib*uy_vib/Hz_ + L2*(yy_vibm-yy_vib)/Hz_;
+               
+
+            }
+
+            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 2.0 * (xx_vib_est(0)-com_refx(walking_tick));
+           // PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(walking_tick));
+            
+            final_posx(0) = PELV_trajectory_float.translation()(0);
+            final_posy(0) = PELV_trajectory_float.translation()(1);
         }
-    
-        if(vib_est == false)
+        else
         {
-            x_vib_est = x_vib;
-            u_vib = PELV_first_init.translation()(0);
-            vib_est = true;
+            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 2.0 * (xx_vib_est(0)-com_refx(t_total + t_last - 4));
+           // PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(t_total + t_last - 4));;
         }
-    
-        Eigen::MatrixXd L;
-        L.resize(2,3);
-        L(0,0) = 0.0353;
-        L(0,1) = 0.6480;
-        L(0,2) = 1.3826;
-        L(1,0) = -9.7031;
-        L(1,1) = 1.3826;
-        L(1,2) = 10.8382;
-
-        if(vib_est = true)
-        {
-            y_vib = C_vib * x_vib_est + D_vib*u_vib;
-
-            x_vib_est = A_vib*x_vib_est/Hz_ + x_vib_est + B_vib*u_vib/Hz_ + L*(y_vibm-y_vib)/Hz_;
-            u_vib = x_vib_est(0);
-        }
-
-        PELV_trajectory_float.translation()(0) = PELV_first_init.translation()(0);
-        PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 1 * (x_vib_est(0)-PELV_first_init.translation()(0))-com_refx(walking_tick));
-
+        
+    }
+    else
+    {
+        PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) + 3.0*(PELV_float_current.translation()(0) - PELV_first_init.translation()(0));        
+    }    
 }
 
 void Walking_controller::setWalkingParameter(RobotData &Robot)
 {
     desired_foot_step_num = 8;
     walking_tick = 0;
-   t_rest_init = 0.1 * Hz_;
+    t_rest_init = 0.1 * Hz_;
     t_rest_last = 0.1 * Hz_;
     t_double1 = 0.1 * Hz_;
     t_double2 = 0.1 * Hz_;

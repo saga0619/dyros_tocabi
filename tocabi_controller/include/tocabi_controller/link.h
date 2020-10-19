@@ -57,6 +57,7 @@ struct TaskCommand
   int ik_mode;
   int walking_pattern;
   int walking_pattern2;
+  int vibration_control;
   int foot_step_dir;
   double target_x;
   double target_y;
