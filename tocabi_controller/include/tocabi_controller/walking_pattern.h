@@ -29,6 +29,23 @@ public:
 public:
     double Hz_;
     double dt;
+
+    //User WalkingParameter
+    int desired_foot_step_num;
+    int t_rest_init;
+    int t_rest_last;
+    int t_double1;
+    int t_double2;
+    int t_total;
+    int t_temp;
+    int t_last;
+    int t_start;
+    int t_start_real;
+    int t_rest_temp;
+    int com_control;
+    double t_imp;
+    double foot_height;
+    int current_step_num; // temp
     
     //////Foot Step//////
     Eigen::MatrixXd foot_step;
@@ -196,25 +213,6 @@ public:
 
     double m;
     bool vib_est;
-    
-
-    //User WalkingParameter
-    int desired_foot_step_num;
-    int t_rest_init;
-    int t_rest_last;
-    int t_double1;
-    int t_double2;
-    int t_total;
-    int t_temp;
-    int t_last;
-    int t_start;
-    int t_start_real;
-    int t_rest_temp;
-    int com_control;
-    double t_imp;
-    double foot_height;
-    bool mom;
-    int current_step_num; // temp
 
     // Walking
     int walking_tick;
@@ -229,6 +227,7 @@ public:
     double rate;
 
     //Ui WalkingParameter
+    
     int ik_mode;
     int walking_pattern;
     int foot_step_dir;
