@@ -1,6 +1,6 @@
 <mujoco model="dyros_tocabi_description">
     <compiler angle="radian" meshdir="../meshes/" balanceinertia="true"/>
-    <size njmax="500" nconmax="100" />
+    <size njmax="500" nconmax="200" />
     <default>
         <motor ctrllimited="true" ctrlrange="-300 300"/>
         <default class="viz">
@@ -26,7 +26,6 @@
         </default>
     </default>
 
-    <option timestep='0.0005' iterations="100" tolerance="1e-11" solver="Newton" jacobian="dense" cone="elliptic" noslip_iterations="75" noslip_tolerance="1e-9" />
     <visual>
         <quality shadowsize="2048" offsamples="16"/>
         <map stiffness="10" znear="0.05"/>
