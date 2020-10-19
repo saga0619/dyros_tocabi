@@ -44,15 +44,17 @@ public:
     void modelFrameToLocal(RobotData &Robot);
     void getRobotInitState(RobotData &Robot);
     void walkingInitialize(RobotData &Robot);
-    void setRobotStateInitialize();
+    void setRobotStateInitialize(RobotData &Robot);
     void updateNextStepTime();
     void updateInitTime();
-    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, bool mom_walk, RobotData &Robot);
+    void getUiWalkingParameter(int controller_Hz, int walking_enable, int ikmode, int walkingpattern, int walkingpattern2, int footstepdir, double target_x, double target_y, double target_z, double theta, double targetheight, double steplength_x, double steplength_y, int dob_walk, int imu_walk, bool mom_walk, int vibration, RobotData &Robot);
+
     void setWalkingParameter(RobotData &Robot);
 
     void calcRobotState(RobotData &Robot);
     void hipCompensator();
     void ankleOriControl(RobotData &Robot);
+    void comVibrationController();
     void inverseKinematicsdob(RobotData &Robot);
     void comJacobianState(RobotData &Robot);
     void comJacobianIK(RobotData &Robot);

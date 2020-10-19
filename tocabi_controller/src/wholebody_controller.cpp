@@ -3128,7 +3128,14 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
     Vector2d fstar_regulated;
     Vector2d zmp_r;
 
-    if (DyrosMath::isInPolygon(zmp_by_fstar, edge_point_list))
+    Eigen::MatrixXd edgePointMat(2, edge_point_list.size());
+
+    for (int i = 0; i < edge_point_list.size(); i++)
+    {
+        edgePointMat.block(0, i, 2, 1) = edge_point_list[i];
+    }
+
+    if (DyrosMath::isInPolygon(zmp_by_fstar, edgePointMat))
     {
         fstar_regulated = f_star.segment(0, 2);
     }

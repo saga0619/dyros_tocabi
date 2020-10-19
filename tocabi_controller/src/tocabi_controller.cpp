@@ -337,6 +337,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.ik_mode = msg.ik_mode;
     tc.walking_pattern = msg.pattern;
     tc.walking_pattern2 = msg.pattern2;
+    tc.vibration_control = msg.comcontrol;
     tc.foot_step_dir = msg.first_foot_step;
     tc.target_x = msg.x;
     tc.target_y = msg.y;
@@ -411,7 +412,6 @@ void TocabiController::dynamicsThreadHigh()
                 else if (dc.position_command_ext)
                 {
                     //torqueOn delay
-
                     if (dc.torqueOn && dc.torqueOnTime > 3.0)
                     {
                     }
@@ -419,13 +419,12 @@ void TocabiController::dynamicsThreadHigh()
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
 
-                        torque_desired(i) = dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) +
+                        torque_desired(i) = torque_grav[i] +  dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) +
                                             dc.tocabi_.Kvs[i] * (DyrosMath::cubicDot(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0, 2000) - tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
                 else
                 {
-
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
                         torque_desired(i) = dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));

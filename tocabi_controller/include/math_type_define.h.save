@@ -14,7 +14,7 @@
 #include <chrono>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <vector>
+//#include <vector>
 
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4
@@ -964,32 +964,26 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
     }
     return idx;
   }
-
-  static bool isInPolygon(Eigen::Vector2d point, Eigen::MatrixXd polygon)
+  static bool isInPolygon(Eigen::Vector2d point, std::vector<Eigen::Vector2d> polygon)
   {
-    if (polygon.rows() == 2)
+    int line_number = polygon.size() - 1;
+    if (polygon[0] != polygon[line_number])
     {
-      int line_number = polygon.cols() - 1;
-
-      if (polygon.block(0, 0, 2, 1) != polygon.block(0, line_number, 2, 1))
+      std::cout << "polygon is not closed" << std::endl;
+      return false;
+    }
+    else
+    {
+      bool check = true;
+      for (int i = 0; i < line_number; i++)
       {
-        std::cout << "polygon is not closed" << std::endl;
-        return false;
+        check = check && (0 < getOrientation2d(polygon[i + 1] - polygon[i], point - polygon[i]));
       }
-      else
+      if (check)
       {
-        bool check = true;
-        for (int i = 0; i < line_number; i++)
-        {
-          check = check && (0 < getOrientation2d(polygon.block(0, i + 1, 2, 1) - polygon.block(0, i, 2, 1), point - polygon.block(0, i, 2, 1)));
-        }
-        if (check)
-        {
-          return true;
-        }
+        return true;
       }
     }
-    return false;
   }
 
   static Eigen::Vector2d getIntersectPoint(Eigen::Vector2d p1, Eigen::Vector2d p2, Eigen::Vector2d q1, Eigen::Vector2d q2)
@@ -1007,17 +1001,17 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
 
       if (abs(a1) > 1000)
       {
-        //std::cout << "a1 over " << a1 << std::endl;
+        std::cout << "a1 over " << a1 << std::endl;
         v1(0) = p1(0);
 
-        //std::cout << "a2 : " << a2 << "  b2 : " << b2 << std::endl;
+        std::cout << "a2 : " << a2 << "  b2 : " << b2 << std::endl;
         v1(1) = a2 * v1(0) + b2;
       }
       else if (abs(a2) > 1000)
       {
-        //std::cout << "a2 over " << a2 << std::endl;
+        std::cout << "a2 over " << a2 << std::endl;
         v1(0) = q1(0);
-        //std::cout << "a1 : " << a1 << "  b1 : " << b1 << std::endl;
+        std::cout << "a1 : " << a1 << "  b1 : " << b1 << std::endl;
         v1(1) = a1 * v1(0) + b1;
       }
       else
