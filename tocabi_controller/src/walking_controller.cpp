@@ -62,7 +62,6 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             comVibrationController();
         }
 
-
         /////InverseKinematics//////
         if(ik_mode == 0)
         {
@@ -524,9 +523,12 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
     COM_support_init(3, 3) = 1.0;
     pelvis_offsetx = 0.0;
     target.setZero();
-        
+       
     kx_vib(0) = 17417.76;
     cx_vib(0) = 144.9;
+
+//    kx_vib(0) = 918.22;
+//    cx_vib(0) = 7788.16;
 
     ky_vib(0) = 8276.02;
     cy_vib(0) = 130.1744;
@@ -1157,7 +1159,7 @@ void Walking_controller::comVibrationController()
 {
     if(vibration_control == 1)
     {
-        if (current_step_num != total_step_num - 1 && walking_tick < t_total + t_last - 3)
+        if (current_step_num != total_step_num && walking_tick < t_total + t_last - 3)
         {
             if(walking_tick ==0)
             {
@@ -1226,7 +1228,7 @@ void Walking_controller::comVibrationController()
 
             }
 
-            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 2.0 * (xx_vib_est(0)-com_refx(walking_tick));
+            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 1.0 * (xx_vib_est(0)-com_refx(walking_tick));
            // PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(walking_tick));
             
             final_posx(0) = PELV_trajectory_float.translation()(0);
@@ -1234,7 +1236,7 @@ void Walking_controller::comVibrationController()
         }
         else
         {
-            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 2.0 * (xx_vib_est(0)-com_refx(t_total + t_last - 4));
+            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 1.0 * (xx_vib_est(0)-com_refx(t_total + t_last - 4));
            // PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(t_total + t_last - 4));;
         }
         
