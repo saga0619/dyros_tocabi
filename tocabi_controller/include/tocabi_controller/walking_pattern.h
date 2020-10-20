@@ -205,7 +205,8 @@ public:
     Eigen::Vector3d yy_vibm;
     Eigen::Vector2d final_posy;
 
-
+    Eigen::Isometry3d HLR_float_init;
+    Eigen::Isometry3d HRR_float_init;
     Eigen::Isometry3d PELV_float_init1;
     
     double ux_vib;
@@ -227,7 +228,6 @@ public:
     double rate;
 
     //Ui WalkingParameter
-    
     int ik_mode;
     int walking_pattern;
     int foot_step_dir;
