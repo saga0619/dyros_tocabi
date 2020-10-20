@@ -43,7 +43,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
 
         if(walking_tick == 0)
         {
-            PELV_trajectory_float.linear()= Robot.link_[Pelvis].Rotm;
+        /*    PELV_trajectory_float.linear()= Robot.link_[Pelvis].Rotm;
 
             PELV_trajectory_float.translation() = Robot.link_[Pelvis].xipos;
 
@@ -54,7 +54,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             RF_trajectory_float.linear()= Robot.link_[Right_Foot].Rotm;
 
             RF_trajectory_float.translation() = Robot.link_[Right_Foot].xpos;
-            
+          */  
         }
 
         if(vibration_control != 0)
