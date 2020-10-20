@@ -61,8 +61,8 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         {
             comVibrationController();
         }
-
-        ///InverseKinematics//////
+      
+        ///InverseKinematics/////
         if(ik_mode == 0)
         {
             inverseKinematics(Robot, PELV_trajectory_float, LF_trajectory_float, RF_trajectory_float, desired_leg_q);
@@ -526,7 +526,7 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
     COM_support_init(3, 3) = 1.0;
     pelvis_offsetx = 0.0;
     target.setZero();
-        
+       
     kx_vib(0) = 17417.76;
     cx_vib(0) = 144.9;
 
@@ -534,6 +534,9 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
     kx_vib(0) = 918.22;
     cx_vib(0) = 7788.16;
 */
+//    kx_vib(0) = 918.22;
+//    cx_vib(0) = 7788.16;
+
     ky_vib(0) = 8276.02;
     cy_vib(0) = 130.1744;
 

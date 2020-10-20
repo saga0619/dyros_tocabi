@@ -51,7 +51,7 @@ void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandC
 void TocabiController::PositionCommandCallback(const tocabi_controller::positionCommandConstPtr &msg)
 {
     dc.positionControl = true;
-    set_q_init = true;
+    dc.set_q_init = true;
     for (int i = 0; i < MODEL_DOF; i++)
         dc.positionDesiredExt(i) = msg->position[i];
     dc.position_command_time = control_time_;
@@ -396,11 +396,11 @@ void TocabiController::dynamicsThreadHigh()
 
             if (dc.positionControl)
             {
-                if (set_q_init)
+                if (dc.set_q_init)
                 {
                     tocabi_.q_desired_ = tocabi_.q_;
                     tocabi_.q_init_ = tocabi_.q_;
-                    set_q_init = false;
+                    dc.set_q_init = false;
                 }
                 if (dc.positionGravControl)
                 {
@@ -419,8 +419,8 @@ void TocabiController::dynamicsThreadHigh()
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
 
-                        torque_desired(i) = torque_grav(i) + dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) -
-                                            dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_lpf_(i + 6));
+                        torque_desired(i) = torque_grav[i] +  dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) +
+                                            dc.tocabi_.Kvs[i] * (DyrosMath::cubicDot(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0, 2000) - tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
                 else
@@ -2369,8 +2369,6 @@ void TocabiController::initialize()
 {
     torque_desired.setZero();
     torque_grav.setZero();
-
-    set_q_init = true;
 
     tocabi_.ee_[0].contact = true;
     tocabi_.ee_[1].contact = true;

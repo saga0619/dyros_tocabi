@@ -57,6 +57,7 @@ public:
   bool print_data_ready = false;
   bool imu_ignore = false;
   bool sebyft = false;
+  bool set_q_init = false;
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;

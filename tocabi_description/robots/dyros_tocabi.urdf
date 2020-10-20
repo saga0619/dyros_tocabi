@@ -1889,7 +1889,7 @@
     <child
       link="L_Wrist2_Link" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 1 0" />
     <limit
       lower="-2.094"
       upper="2.094"
@@ -2380,7 +2380,7 @@
     <child
       link="R_Wrist2_Link" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 -1 0" />
     <limit
       lower="-2.094"
       upper="2.094"
