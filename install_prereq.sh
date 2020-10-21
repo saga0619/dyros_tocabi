@@ -23,7 +23,7 @@ while true; do
               mkdir Temp
               cd Temp
               wget https://github.com/LORD-MicroStrain/MSCL/releases/download/v52.2.1/c++-mscl_52.2.1_amd64.deb
-              dpkg -i c++-mscl_52.2.1_amd64.deb
+              sudo dpkg -i c++-mscl_52.2.1_amd64.deb
               
               git clone https://github.com/saga0619/SOEM
               cd SOEM

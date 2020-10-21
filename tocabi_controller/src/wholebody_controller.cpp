@@ -175,8 +175,8 @@ void WholebodyController::set_contact(RobotData &Robot)
 
     Robot.ee_[0].friction_ratio = 0.1;
     Robot.ee_[1].friction_ratio = 0.1;
-    Robot.ee_[2].friction_ratio = 0.05;
-    Robot.ee_[3].friction_ratio = 0.05;
+    Robot.ee_[2].friction_ratio = 0.1;
+    Robot.ee_[3].friction_ratio = 0.1;
 
     Robot.ee_[0].friction_ratio_z = 0.01;
     Robot.ee_[1].friction_ratio_z = 0.01;
@@ -2066,7 +2066,13 @@ VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, Vect
                 std::cout << "############################################" << std::endl;
                 //std::cout << "Eigen v : " << H.eigenvalues() << std::endl;
                 //std::cout << "setup res : " << setup_result << std::endl;
+
                 std::cout << "solve res : " << solve_result << std::endl;
+                std::cout << "Contact Force with torque : " << std::endl;
+                std::cout << ContactForce__.transpose() << std::endl;
+                std::cout << " lambda * fstar :" << std::endl;
+                std::cout << (Robot.lambda.block(0, 0, 3, 3) * Robot.f_star.segment(0, 3)).transpose() << std::endl;
+
                 std::cout << force_redistribute << std::endl;
 
                 std::cout << "############################################" << std::endl;

@@ -167,11 +167,20 @@ void StateManager::stateThread(void)
         while (!shutdown_tocabi_bool)
         {
             std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
-            updateState();
-            //imuCompenstation();
-            //q_dot_virtual_ = q_dot_virtual_raw_;
-            initYaw();
-            qdotLPF();
+
+            try
+            {
+                updateState();
+                //imuCompenstation();
+                //q_dot_virtual_ = q_dot_virtual_raw_;
+                initYaw();
+                qdotLPF();
+            }
+            catch (exception &e)
+            {
+                std::cout << "Error ar updateState : " << e.what() << std::endl;
+            }
+
             if (shutdown_tocabi_bool)
             {
                 std::cout << "shutdown signal received" << std::endl;
@@ -189,13 +198,20 @@ void StateManager::stateThread(void)
                 q_virtual_local_(MODEL_DOF + 6) = 1.0;
             }
 
-            updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
-            handleFT();
-            contactEstimate();
-            stateEstimate();
-            //lowpass filter for q_dot
-            updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-            jointVelocityEstimate();
+            try
+            {
+                updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
+                handleFT();
+                contactEstimate();
+                stateEstimate();
+                //lowpass filter for q_dot
+                updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+                jointVelocityEstimate();
+            }
+            catch (exception &e)
+            {
+                std::cout << "Error ar updateKinematics : " << e.what() << std::endl;
+            }
 
             storeState();
 
@@ -203,13 +219,27 @@ void StateManager::stateThread(void)
             {
                 if (control_time_ > 1.0)
                 {
-                    adv2ROS();
+                    try
+                    {
+                        adv2ROS();
+                    }
+                    catch (exception &e)
+                    {
+                        std::cout << "Error ar adv2ROS : " << e.what() << std::endl;
+                    }
                 }
             }
 
             if ((cycle_count % 200) == 0)
             {
-                sendStateToGui();
+                try
+                {
+                    sendStateToGui();
+                }
+                catch (exception &e)
+                {
+                    std::cout << "Error ar sendStateToGui : " << e.what() << std::endl;
+                }
             }
 
             if (dc.tocabi_.signal_yaw_init)
@@ -389,7 +419,6 @@ void StateManager::adv2ROS(void)
 
     // use points below :)
 
-
     pointpub_msg.polygon.points[10].x = LF_CF_FT(0);
     pointpub_msg.polygon.points[10].y = LF_CF_FT(1);
     pointpub_msg.polygon.points[10].z = LF_CF_FT(2);
@@ -397,7 +426,7 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[11].x = LF_CF_FT(3);
     pointpub_msg.polygon.points[11].y = LF_CF_FT(4);
     pointpub_msg.polygon.points[11].z = LF_CF_FT(5);
-    
+
     pointpub_msg.polygon.points[12].x = RF_CF_FT(0);
     pointpub_msg.polygon.points[12].y = RF_CF_FT(1);
     pointpub_msg.polygon.points[12].z = RF_CF_FT(2);
@@ -405,8 +434,6 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[13].x = RF_CF_FT(3);
     pointpub_msg.polygon.points[13].y = RF_CF_FT(4);
     pointpub_msg.polygon.points[13].z = RF_CF_FT(5);
-
-
 
     pointpub_msg.polygon.points[14].x = dc.tocabi_.link_[Right_Hand].xpos(0);
     pointpub_msg.polygon.points[14].y = dc.tocabi_.link_[Right_Hand].xpos(1);
@@ -443,7 +470,7 @@ void StateManager::adv2ROS(void)
     ft_viz_msg.markers[0].points[1].x = LF_CF_FT(3);
     ft_viz_msg.markers[0].points[1].y = LF_CF_FT(4);
     ft_viz_msg.markers[0].points[1].z = LF_CF_FT(5);
-    
+
     ft_viz_msg.markers[1].points[0].x = RF_CF_FT(0);
     ft_viz_msg.markers[1].points[0].y = RF_CF_FT(1);
     ft_viz_msg.markers[1].points[0].z = RF_CF_FT(2);
