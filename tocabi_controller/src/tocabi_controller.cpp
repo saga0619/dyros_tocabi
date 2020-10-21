@@ -419,7 +419,7 @@ void TocabiController::dynamicsThreadHigh()
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
 
-                        torque_desired(i) = torque_grav[i] +  dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) +
+                        torque_desired(i) = torque_grav[i] + dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) +
                                             dc.tocabi_.Kvs[i] * (DyrosMath::cubicDot(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0, 2000) - tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
@@ -1889,7 +1889,14 @@ void TocabiController::dynamicsThreadLow()
                     tc_command = false;
                 }
                 torque_grav.setZero();
-                mycontroller.computeSlow();
+                try
+                {
+                    mycontroller.computeSlow();
+                }
+                catch (exception &e)
+                {
+                    std::cout << "Error Thrown from customcontroller::computeSlow : " << e.what() << std::endl;
+                }
             }
 
             Eigen::Matrix3d tm;
@@ -2353,9 +2360,14 @@ void TocabiController::trajectoryplannar()
                     mycontroller.taskCommandToCC(tc);
                     tc_command = false;
                 }
-
-                mycontroller.computePlanner();
-
+                try
+                {
+                    mycontroller.computePlanner();
+                }
+                catch (exception &e)
+                {
+                    std::cout << "exception Thrown from customcontroller::computePlanner : " << e.what() << std::endl;
+                }
                 if (dc.positionControl)
                 {
                     tocabi_.q_desired_ = mycontroller.getControl();
