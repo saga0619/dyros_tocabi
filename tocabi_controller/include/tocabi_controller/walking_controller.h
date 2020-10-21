@@ -38,7 +38,7 @@ public:
     CQuadraticProgram QP_m;
 
     void walkingCompute(RobotData &Robot);
-    void inverseKinematics(Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);
+    void inverseKinematics(RobotData &Robot, Eigen::Isometry3d PELV_float_transform, Eigen::Isometry3d LF_float_transform, Eigen::Isometry3d RF_float_transform, Eigen::Vector12d& leg_q);
     void setInitPose(RobotData &Robot, Eigen::VectorQd& leg_q);
     void getRobotState(RobotData &Robot);
     void modelFrameToLocal(RobotData &Robot);
