@@ -540,7 +540,8 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.00;
+        capturePoint_offsety(i) = 0.02;
+    //    capturePoint_offsetx(i) = 0.04;
         capturePoint_offsetx(i) = 0.00;
     }
 
@@ -572,13 +573,13 @@ void WalkingPattern::setCpPosition()
             {    
                 if(com_control == 0)
                 {
-                    capturePoint_ox(1) = (PELV_float_init).translation()(0) + capturePoint_offsetx(1);
-                    capturePoint_oy(1) = (RF_fisrt_init).translation()(1) + capturePoint_offsety(1);    
+                    capturePoint_ox(1) = (PELV_float_init).translation()(0);// + capturePoint_offsetx(1);
+                    capturePoint_oy(1) = (RF_fisrt_init).translation()(1);// + capturePoint_offsety(1);    
                 }
                 else
                 {
-                    capturePoint_ox(1) = (COM_float_init).translation()(0) + capturePoint_offsetx(1);
-                    capturePoint_oy(1) = (RF_fisrt_init).translation()(1) + capturePoint_offsety(1);   
+                    capturePoint_ox(1) = (COM_float_init).translation()(0);// + capturePoint_offsetx(1);
+                    capturePoint_oy(1) = (RF_fisrt_init).translation()(1);// + capturePoint_offsety(1);   
                 }
             }
             else
@@ -601,13 +602,13 @@ void WalkingPattern::setCpPosition()
             {
                 if(com_control == 0)
                 {
-                    capturePoint_ox(1) = (PELV_float_init).translation()(0) + capturePoint_offsetx(1);
-                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1) + capturePoint_offsety(1);    
+                    capturePoint_ox(1) = (PELV_float_init).translation()(0);// + capturePoint_offsetx(1);
+                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1);// - capturePoint_offsety(1);    
                 }
                 else
                 {
-                    capturePoint_ox(1) = (COM_float_init).translation()(0) + capturePoint_offsetx(1);
-                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1) + capturePoint_offsety(1);   
+                    capturePoint_ox(1) = (COM_float_init).translation()(0);// + capturePoint_offsetx(1);
+                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1);// - capturePoint_offsety(1);   
                 }                
             }
             else
