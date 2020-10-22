@@ -32,6 +32,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     //pack_path = ros::package::getPath("tocabi_controller");
     zp_path = dc.homedir + "/zeropoint";
     zplog_path = dc.homedir + "/elmostart_log";
+    ft_init_path = dc.homedir + "/ftinit_log";
 
     torque_desired.setZero();
 
@@ -1649,6 +1650,7 @@ void RealRobotInterface::ftsensorThread()
     bool ft_calib_init = false;
     bool ft_calib_finish = false;
     bool ft_calib_ui = false;
+    bool ft_init_write = false;
 
     int SAMPLE_RATE = 1000;
 
@@ -1656,6 +1658,7 @@ void RealRobotInterface::ftsensorThread()
 
     /////SENSORYA826 & ATI/////
     is_ft_board_ok = ft.open();
+
     if (is_ft_board_ok == 1)
     {
         pub_to_gui(dc, "initreq");
@@ -1691,9 +1694,12 @@ void RealRobotInterface::ftsensorThread()
             }
         }
         else
-        {
-            pub_to_gui(dc, "initreq");
-            dc.ft_state = 1;
+        {   
+            if(ft_calib_finish == false)
+            {
+                pub_to_gui(dc, "initreq");
+                dc.ft_state = 1;          
+            }
         }
 
         if (ft_calib_finish == true)
@@ -1704,6 +1710,23 @@ void RealRobotInterface::ftsensorThread()
                 pub_to_gui(dc, "ft sensor : calibration finish ");
                 pub_to_gui(dc, "ftgood");
                 ROS_INFO("calibration finish");
+
+                ft_init_log.open(ft_init_path, ios_base::out);
+
+                if(ft_init_log.is_open())
+                {
+                    for(int i = 0; i<6; i++)
+                    {
+                        ft_init_log << ft.leftFootBias[i] <<"\n";                   
+                    }
+
+                    for(int i = 0; i<6; i++)
+                    {
+                        ft_init_log << ft.rightFootBias[i] <<"\n";                 
+                    }
+                }
+
+                ft_init_log.close();
                 dc.ft_state = 2;
                 ft_calib_ui = true;
             }

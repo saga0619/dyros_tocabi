@@ -204,6 +204,7 @@ public:
     Eigen::Vector3d yy_vib;
     Eigen::Vector3d yy_vibm;
     Eigen::Vector2d final_posy;
+    Eigen::MatrixXd L1, L2;
 
     Eigen::Isometry3d HLR_float_init;
     Eigen::Isometry3d HRR_float_init;

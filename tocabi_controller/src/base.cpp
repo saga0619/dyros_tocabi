@@ -264,9 +264,9 @@ int main(int argc, char **argv)
 
         thread[0] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
-        thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
+      //  thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 1; i++)
         {
             thread[i].join();
         }

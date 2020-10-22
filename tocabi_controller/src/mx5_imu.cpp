@@ -38,7 +38,6 @@ void MX5IMU::initIMU()
 void MX5IMU::resetEFIMU()
 {
     node.resetFilter();
-
 }
 
 sensor_msgs::Imu MX5IMU::getIMU()
@@ -113,14 +112,16 @@ sensor_msgs::Imu MX5IMU::getIMU()
                 {
                     count++;
                     tf2::Quaternion q(dataPoint.as_Vector().as_floatAt(1), dataPoint.as_Vector().as_floatAt(2), dataPoint.as_Vector().as_floatAt(3), dataPoint.as_Vector().as_floatAt(0));
-                    tf2::Quaternion q_rot, q_rot2;
+                    tf2::Quaternion q_rot, q_rot2, q_new;
 
                     q_rot.setRPY(M_PI, 0, M_PI / 2);
 
-                    //q_rot2.setRPY(M_PI, M_PI, M_PI / 2);
-                    q = q_rot * q;// * q_rot2;
 
-                    imu_pub_msg.orientation = tf2::toMsg(q);
+                    //Angle bias modifier :::::
+                    q_rot2.setRPY(-0.00262, -0.00262,-M_PI / 2);
+                    q_new = q_rot * q * q_rot2; // * q_rot2;
+
+                    imu_pub_msg.orientation = tf2::toMsg(q_new);
                     imu_pub_msg.header.stamp = ros::Time::now();
                     imu_pub_msg.header.frame_id = "imu";
                 }
@@ -456,16 +457,19 @@ void MX5IMU::parseData_custum(mscl::InertialNode &node)
                 if (dataPoint.channelName() == "estOrientQuaternion")
                 {
                     count++;
-                    tf2::Quaternion q(dataPoint.as_Vector().as_floatAt(1), dataPoint.as_Vector().as_floatAt(2), dataPoint.as_Vector().as_floatAt(3), dataPoint.as_Vector().as_floatAt(0));
-                    tf2::Quaternion q_rot, q_rot2;
+                    tf2::Quaternion q_orig(dataPoint.as_Vector().as_floatAt(1), dataPoint.as_Vector().as_floatAt(2), dataPoint.as_Vector().as_floatAt(3), dataPoint.as_Vector().as_floatAt(0));
+                    tf2::Quaternion q_new, q_rot, q_rot2;
                     tf2::Transform transform;
 
-                    q_rot.setRPY(M_PI, 0, M_PI / 2);
+                    q_rot.setRPY(0, 0, M_PI_2);
+                    tf2::Matrix3x3 rotm(q_orig);
+                    double i_roll, i_pitch, i_yaw;
+                    rotm.getRPY(i_roll, i_pitch, i_yaw);
+                    std::cout << i_roll << "\t" << i_pitch << "\t" << i_yaw << std::endl;
 
-                    //q_rot2.setRPY(0, M_PI, 0);
-                    q = q_rot * q;// * q_rot2;
+                    q_new.setRPY(i_pitch, i_roll, i_yaw);
 
-                    transform.setRotation(q);
+                    transform.setRotation(q_new);
 
                     static tf2_ros::TransformBroadcaster br;
                     geometry_msgs::TransformStamped transformStamped;
@@ -473,13 +477,13 @@ void MX5IMU::parseData_custum(mscl::InertialNode &node)
                     transformStamped.header.stamp = ros::Time::now();
                     transformStamped.header.frame_id = "world";
                     transformStamped.child_frame_id = "Pelvis_Link";
-                    transformStamped.transform.rotation.x = q.x();
-                    transformStamped.transform.rotation.y = q.y();
-                    transformStamped.transform.rotation.z = q.z();
-                    transformStamped.transform.rotation.w = q.w();
+                    transformStamped.transform.rotation.x = q_new.x();
+                    transformStamped.transform.rotation.y = q_new.y();
+                    transformStamped.transform.rotation.z = q_new.z();
+                    transformStamped.transform.rotation.w = q_new.w();
                     br.sendTransform(transformStamped);
 
-                    imu_pub_msg.orientation = tf2::toMsg(q);
+                    imu_pub_msg.orientation = tf2::toMsg(q_new);
                     imu_pub_msg.header.stamp = ros::Time::now();
                     imu_pub_msg.header.frame_id = "imu";
                 }

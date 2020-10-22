@@ -417,6 +417,8 @@ public:
     fstream ft_sensor;
     fstream elmo_zp;
     fstream elmo_zp_log;
+    fstream ft_init_log;
+    std::string ft_init_path;
     std::string zp_path, zplog_path, pack_path;
 
     int checkfirst = -1;
