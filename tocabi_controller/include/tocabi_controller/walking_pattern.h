@@ -89,6 +89,8 @@ public:
     Eigen::Isometry3d LF_support_init;
     Eigen::Isometry3d LF_trajectory_float;
     Eigen::Isometry3d RF_trajectory_float;
+    Eigen::Isometry3d LFD_trajectory_float;
+    Eigen::Isometry3d RFD_trajectory_float;
     Eigen::Isometry3d LF_trajectory_support;
     Eigen::Isometry3d RF_trajectory_support;
     Eigen::Isometry3d PELV_float_current;
@@ -103,6 +105,7 @@ public:
     Eigen::Isometry3d PELV_support_current;
     Eigen::Isometry3d PELV_support_init;
     Eigen::Isometry3d PELV_trajectory_float;
+    Eigen::Isometry3d PELVD_trajectory_float;
     Eigen::Isometry3d COM_support_current;
     Eigen::Isometry3d COM_support_init;
     
