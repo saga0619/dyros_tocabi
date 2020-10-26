@@ -496,6 +496,22 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
     PELV_trajectory_support.translation().setZero();
     COM_support_current.translation().setZero();
     COM_support_init.translation().setZero();
+    
+    PELV_trajectory_float.translation() = Robot.link_[Pelvis].xipos;
+    RF_trajectory_float.translation() = Robot.link_[Right_Foot].xpos;
+    LF_trajectory_float.translation() = Robot.link_[Left_Foot].xpos;
+    PELV_trajectory_float.linear() = Robot.link_[Pelvis].Rotm;
+    RF_trajectory_float.linear() = Robot.link_[Right_Foot].Rotm;
+    LF_trajectory_float.linear() = Robot.link_[Left_Foot].Rotm;
+
+    PELVD_trajectory_float.translation().setZero();
+    RFD_trajectory_float.translation().setZero();
+    LFD_trajectory_float.translation().setZero();
+    PELVD_trajectory_float.linear().setIdentity();
+    RFD_trajectory_float.linear().setIdentity();
+    LFD_trajectory_float.linear().setIdentity();
+
+
     PELV_trajectory_euler.setZero();
     com_desired.setZero();
     zmp_desired.setZero();
