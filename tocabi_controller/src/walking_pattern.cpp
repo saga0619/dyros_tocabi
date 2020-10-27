@@ -1028,6 +1028,7 @@ void WalkingPattern::setFootTrajectory()
             LF_trajectory_float.translation()(2) = (LF_fisrt_init).translation()(2);
             RFD_trajectory_float.translation()(2) = 0.0;
             LFD_trajectory_float.translation()(2) = 0.0;
+            contactMode = 1;
         }
 
         if(foot_height == 0.0)
