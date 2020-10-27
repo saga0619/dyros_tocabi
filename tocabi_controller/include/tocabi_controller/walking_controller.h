@@ -4,7 +4,6 @@
 #include "tocabi_controller/walking_pattern.h"
 #include "tocabi_controller/link.h"
 #include "tocabi_controller/qp.h"
-#include <mutex>
 #include <qpOASES.hpp>
 
 struct WalkingCommand
