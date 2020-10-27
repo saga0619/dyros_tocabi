@@ -625,8 +625,8 @@ void Walking_controller::updateNextStepTime()
     {
         phaseChange = true;
         double2Single_pre = t_start_real + t_double1 + t_rest_temp - 100;
-        double2Single = t_start_real + t_double1 + t_rest_temp + 48;
-        time_temp = t_start_real + t_double1 + t_rest_temp + 48;
+        double2Single = t_start_real + t_double1 + t_rest_temp + 49;
+        time_temp = t_start_real + t_double1 + t_rest_temp + 49;
     }
     else
     {
