@@ -27,7 +27,6 @@ void Link::pos_Update(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd 
     xpos = RigidBodyDynamics::CalcBodyToBaseCoordinates(model_, q_virtual_, id, Eigen::Vector3d::Zero(), false);
     xipos = RigidBodyDynamics::CalcBodyToBaseCoordinates(model_, q_virtual_, id, COM_position, false);
     Rotm = (RigidBodyDynamics::CalcBodyWorldOrientation(model_, q_virtual_, id, false)).transpose();
-
     mtx_rbdl.unlock();
     // COM_position =
     // RigidBodyDynamics::CalcBaseToBodyCoordinates(model_,q_virtual_,link_[i])
@@ -64,6 +63,18 @@ void Link::Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQ
     mtx_rbdl.unlock();
     Jac.block<3, MODEL_DOF + 6>(0, 0) = j_temp.block<3, MODEL_DOF + 6>(3, 0);
     Jac.block<3, MODEL_DOF + 6>(3, 0) = j_temp.block<3, MODEL_DOF + 6>(0, 0);
+}
+
+void Link::Set_Jacobian_custom(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position)
+{
+    j_temp.setZero();
+
+    mtx_rbdl.lock();
+    RigidBodyDynamics::CalcPointJacobian6D(model_, q_virtual_, id, Jacobian_position, j_temp, false);
+
+    mtx_rbdl.unlock();
+    Jac_point.block<3, MODEL_DOF + 6>(0, 0) = j_temp.block<3, MODEL_DOF + 6>(3, 0);
+    Jac_point.block<3, MODEL_DOF + 6>(3, 0) = j_temp.block<3, MODEL_DOF + 6>(0, 0);
 }
 
 void Link::Set_Contact(RigidBodyDynamics::Model &model_, Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Contact_position)
@@ -266,6 +277,7 @@ void Link::Set_Trajectory_rotation(double current_time, double start_time, doubl
     rmat = Eigen::AngleAxisd(c_a, axis);
     r_traj = rot_init * rmat;
     w_traj = quintic(1) * axis;
+    ra_traj = quintic(2) * axis;
 }
 
 void Link::Set_Trajectory_rotation(double current_time, double start_time, double end_time, Eigen::Matrix3d rot_desired_, bool local_)

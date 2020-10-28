@@ -6,6 +6,7 @@
 #include "tocabi_controller/redsvd.h"
 #include "tocabi_controller/qp.h"
 #include <qpOASES.hpp>
+#include "tocabi_controller/osqp_rapper.h"
 
 using namespace Eigen;
 using namespace std;
@@ -55,8 +56,11 @@ public:
   //update gravity compensation torque
   VectorQd gravity_compensation_torque(RobotData &Robot, bool fixed = false, bool redsvd = false);
 
+  VectorQd gravity_compensation_torque_QP(RobotData &Robot);
+
   //get contact redistribution torque with Quadratic programing
   VectorQd contact_torque_calc_from_QP(RobotData &Robot, VectorQd command_torque);
+  VectorQd contact_torque_calc_from_QP2(RobotData &Robot, VectorQd command_torque);
 
   // Get Contact Redistribution Torque with QP. Wall contact mode.
   //VectorQd contact_torque_calc_from_QP_wall(VectorQd command_torque, double wall_friction_ratio);
@@ -69,16 +73,14 @@ public:
   */
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
 
-  VectorQd task_control_torque_with_gravity(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  VectorQd task_control_torque_with_gravity(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, bool force_control = false);
 
-  // desired force  = lambda_task * f_star 
+  // desired force  = lambda_task * f_star
   VectorQd task_control_torque_force_control(RobotData &Robot, MatrixXd J_task, VectorXd desiredForce);
-  
+
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int mode);
 
   VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
-  
-  
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 
@@ -89,7 +91,9 @@ public:
   VectorQd task_control_torque_QP3(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP2_with_contactforce_feedback(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP_gravity(RobotData &Robot);
+  VectorQd task_control_torque_with_acc_cr(RobotData &Robot, MatrixXd J_task, VectorXd f_star_acc, VectorXd f_star_feedback);
   VectorXd check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  Vector2d fstar_regulation(RobotData &Robot, Vector3d f_star);
   /*
   * Get Task Control Torque 
   * task jacobian and f_star must be defined. 
@@ -112,13 +116,13 @@ public:
 
   //Get contact force from command torque
   VectorXd get_contact_force(RobotData &Robot, VectorQd command_torque);
-
+  MatrixXd GetTaskLambda(RobotData &Robot, MatrixXd J_task);
   //Get ZMP position from contact forces and both foot position
   Vector3d GetZMPpos(RobotData &Robot, bool Local = false);
   Vector3d GetZMPpos_fromFT(RobotData &Robot, bool Local = false);
   Vector3d GetZMPpos(RobotData &Robot, VectorXd ContactForce, bool Local = false);
 
-  VectorQd footRotateAssist(RobotData &Robot);
+  VectorQd footRotateAssist(RobotData &Robot, bool left = true, bool right = true);
 
   //Eigen::Vector6d Getfstar( );
   Vector3d getfstar(RobotData &Robot, Vector3d kp, Vector3d kd, Vector3d p_desired, Vector3d p_now, Vector3d d_desired, Vector3d d_now);
@@ -129,6 +133,9 @@ public:
   Vector3d getfstar_rot(RobotData &Robot, int link_id);
   Vector6d getfstar6d(RobotData &Robot, int link_id, Vector3d kpt, Vector3d kdt, Vector3d kpa, Vector3d kda);
   Vector6d getfstar6d(RobotData &Robot, int link_id);
+  Vector3d getfstar_acc_tra(RobotData &Robot, int link_id);
+  Vector3d getfstar_acc_rot(RobotData &Robot, int link_id);
+  
 
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
 
@@ -223,6 +230,7 @@ public:
   CQuadraticProgram QP_test;
   CQuadraticProgram QP_mpc;
   CQuadraticProgram QP_torque;
+  osQuadraticProgram QP_contact;
   VectorXd result_temp;
 
 private:

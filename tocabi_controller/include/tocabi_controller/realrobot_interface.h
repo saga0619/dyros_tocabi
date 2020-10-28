@@ -23,6 +23,7 @@
 
 #include "tocabi_controller/state_manager.h"
 #include "tocabi_controller/GainCommand.h"
+#include "tocabi_controller/torqueCommand.h"
 
 #define NSEC_PER_SEC 1000000000
 
@@ -109,22 +110,57 @@ const double EXTRAD2CNT[ELMO_DOF] =
         EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46,
         EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46, EXT_RAD_TO_CNT_46};
 
+const double MAX_VEL[ELMO_DOF] =
+    {10.0, //head
+     10.0,
+     10.0, //wrist
+     10.0,
+     10.0,
+     10.0,
+     2.0, //shoulder3
+     2.0, //arm
+     2.0, //arm
+     2.0, //shoulder3
+     10.0, //Elbow
+     10.0, //Forearm
+     10.0, //Forearm
+     10.0, //Elbow
+     3.5, //shoulder1
+     3.5, //shoulder2
+     3.5, //shoulder2
+     3.5, //shoulder1
+     3.3,  //Waist
+     3.3,
+     3.0, //rightLeg
+     4.3,
+     3.8,
+     3.46,
+     4.5,
+     2.33,
+     3.3, //upperbody
+     3.0, //leftLeg
+     4.3,
+     3.8,
+     3.46,
+     4.5,
+     2.33};
+
 const double NM2CNT[ELMO_DOF] =
-    {       //Elmo 순서
-        95, //head
-        95,
-        95, //wrist
-        95,
-        95,
-        95,
+    {         //Elmo 순서
+        95.0, //head
+        95.0,
+        95.0, //wrist
+        95.0,
+        95.0,
+        95.0,
         15.5, //shoulder3
         15.5, //arm
         15.5, //arm
         15.5, //shoulder3
-        42,   //Elbow
-        42,   //Forearm
-        42,   //Forearm
-        42,   //Elbow
+        42.0, //Elbow
+        42.0, //Forearm
+        42.0, //Forearm
+        42.0, //Elbow
         15.5, //shoulder1
         15.5, //shoulder2
         15.5, //shoulder2
@@ -215,7 +251,7 @@ const double Kv[ELMO_DOF] =
 
 //Axis correction parameter.
 const double Dr[ELMO_DOF] =
-    {1, -1, 1, 1, 1, 1,
+    {1, -1, 1, -1, 1, 1,
      1, 1, 1, -1, -1, 1,
      1, -1, 1, 1, 1, 1,
      1, 1, -1, -1, -1, -1,
@@ -412,6 +448,7 @@ public:
     Eigen::VectorQd positionZeroModElmo;
     Eigen::VectorQd initTimeElmo;
     Eigen::VectorQd positionSafteyHoldElmo;
+    Eigen::VectorQd torqueCustomCommand;
 
     Eigen::VectorQd rq_;
     Eigen::VectorQd rq_ext_;
@@ -419,6 +456,10 @@ public:
 
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];
+
+    bool torqueCCEnable;
+    double torqueCC_recvt;
+    double torqueCC_comt;
 
     bool hommingElmo[ELMO_DOF];
     bool hommingElmo_before[ELMO_DOF];
@@ -473,8 +514,12 @@ private:
     Eigen::VectorQd getCommand();
 
     ros::Subscriber gainSubscriber;
+    ros::Subscriber commandSubscriber;
+    ros::Subscriber torquecommandSubscriber;
     Eigen::VectorQd CustomGain;
-    void gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg);
+    void torqueCommandCallback(const tocabi_controller::torqueCommandConstPtr &msg);
+    void gainCallback(const std_msgs::Float32MultiArrayConstPtr &msg);
+    void tcommandCallback(const std_msgs::Float32MultiArrayConstPtr &msg);
 
     double elmoJointMove(double init, double angle, double start_time, double traj_time);
 

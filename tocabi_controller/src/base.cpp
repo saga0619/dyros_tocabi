@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+
 volatile bool shutdown_tocabi_bool = false;
 
 void terminate_signal(int sig)
@@ -19,7 +20,6 @@ void terminate_signal(int sig)
 int main(int argc, char **argv)
 {
     signal(SIGINT, &terminate_signal);
-
     ros::init(argc, argv, "tocabi_controller");
     DataContainer dc;
 
@@ -31,6 +31,7 @@ int main(int argc, char **argv)
     dc.nh.param<std::string>("/tocabi_controller/sim_mode", dc.sim_mode, "torque");
     dc.nh.getParam("/tocabi_controller/Kp", dc.tocabi_.vector_kp);
     dc.nh.getParam("/tocabi_controller/Kv", dc.tocabi_.vector_kv);
+    dc.nh.getParam("/tocabi_controller/vellimit", dc.safety_limit);
     dc.nh.getParam("/tocabi_controller/NM2CNT", dc.tocabi_.vector_NM2CNT);
 
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);

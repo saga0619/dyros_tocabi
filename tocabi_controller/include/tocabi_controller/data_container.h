@@ -88,7 +88,6 @@ public:
   Eigen::VectorVQd q_dot_virtual_lpf;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd q_ext_;
-
   //Kinematics Information :
   Link link_[LINK_NUMBER + 1];
 
@@ -99,6 +98,8 @@ public:
   
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
+  Eigen::MatrixVVd Motor_inertia;
+  Eigen::MatrixVVd Motor_inertia_inverse;
 
   Com com_;
 
@@ -128,6 +129,7 @@ public:
   Eigen::VectorQd torqueElmo;
   Eigen::VectorQd torqueDemandElmo;
   Eigen::VectorQd positionDesired;
+  Eigen::VectorQd positionDesiredExt;
   Eigen::VectorQd accel_dif;
   Eigen::VectorQd accel_obsrvd;
   Eigen::VectorQd currentGain;
@@ -135,7 +137,7 @@ public:
   
   int elmo_cnt;
 
-  std::ofstream f_out;
+  std::ofstream f_out;  
 
   //Gui Command
   std::string command;
@@ -154,6 +156,8 @@ public:
 
   bool elmo_Ready = false;
   //Simulation switch
+
+  std::vector<double  > safety_limit;
 
   bool pubmode = false;      // Publish mode of mujoco, integrated mode(basic), detached mode.
   bool checkfreqency = true; // check running frequency of state thread and dynamics thread.
@@ -191,6 +195,10 @@ public:
   int ecat_state = 0; //0 not ok 1 ok 2 commutation
   int se_state = 0; //se state. 0: off 1: on
   int tc_state = 3; //task control state 0 : on 1 : warn 2: error 3: off
+
+  bool position_command_ext = false;
+  double position_command_time;
+  double position_traj_time;
 
   //Simulation mode
   bool simulationMode;

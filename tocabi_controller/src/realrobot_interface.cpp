@@ -17,9 +17,17 @@ bool elmo_init_upper = false;
 bool elmo_waiting_upperinit_commnad = false;
 bool elmo_waiting_lowinit_command = false;
 
+int roundtoint(double x)
+{
+    if (x >= 0)
+        return (int)(x + 0.5);
+    return (int)(x - 0.5);
+}
+
 RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global), StateManager(dc_global)
 {
-    gainSubscriber = dc.nh.subscribe("/tocabi/gain_command", 100, &RealRobotInterface::gainCallbak, this);
+    gainSubscriber = dc.nh.subscribe("/tocabi/gain_command", 100, &RealRobotInterface::gainCallback, this);
+    commandSubscriber = dc.nh.subscribe("/tocabi/torquemanual", 100, &RealRobotInterface::tcommandCallback, this);
 
     //pack_path = ros::package::getPath("tocabi_controller");
     zp_path = dc.homedir + "/zeropoint";
@@ -62,7 +70,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     ft_sensor.open(dc.homedir + "/Ftsensorcheck.txt", ios_base::out);
     file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
-    fz_group1.resize(16);
+    fz_group1.resize(18);
     int i = 0;
     fz_group1[i++] = TOCABI::Neck_Joint;
     fz_group1[i++] = TOCABI::Head_Joint;
@@ -74,6 +82,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     fz_group1[i++] = TOCABI::R_Elbow_Joint;
     fz_group1[i++] = TOCABI::R_Forearm_Joint;
     fz_group1[i++] = TOCABI::R_Wrist1_Joint;
+    fz_group1[i++] = TOCABI::R_Wrist2_Joint;
 
     fz_group1[i++] = TOCABI::L_Shoulder1_Joint;
     fz_group1[i++] = TOCABI::L_Shoulder2_Joint;
@@ -82,6 +91,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     fz_group1[i++] = TOCABI::L_Elbow_Joint;
     fz_group1[i++] = TOCABI::L_Forearm_Joint;
     fz_group1[i++] = TOCABI::L_Wrist1_Joint;
+    fz_group1[i++] = TOCABI::L_Wrist2_Joint;
 
     elmofz[TOCABI::R_Armlink_Joint].init_direction = -1.0;
     elmofz[TOCABI::L_Armlink_Joint].init_direction = -1.0;
@@ -101,6 +111,9 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
 
     elmofz[TOCABI::R_Shoulder3_Joint].req_length = 0.03;
     elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.04;
+
+    elmofz[TOCABI::R_Wrist2_Joint].req_length = 0.05;
+    elmofz[TOCABI::L_Wrist2_Joint].req_length = 0.05;
 
     elmofz[TOCABI::Waist2_Joint].req_length = 0.07;
     elmofz[TOCABI::Waist2_Joint].init_direction = -1.0;
@@ -178,7 +191,6 @@ void RealRobotInterface::checkJointLimit(int slv_number)
 void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_dis)
 {
     bool damping_mode = false;
-
     if (ElmoSafteyMode[slv_number] == 0)
     {
         if (checkPosSafety[slv_number])
@@ -879,6 +891,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                         }
+                                        
                                         txPDO[slave - 1]->maxTorque = (uint16)1000; // originaly 1000
                                         ElmoMode[slave - 1] = EM_TORQUE;
                                         torqueDemandElmo[slave - 1] = 0.0;
@@ -1314,9 +1327,23 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
                             }
+                            if (torqueCCEnable)
+                            {
+                                if ((control_time_ >= torqueCC_recvt) && (control_time_ < (torqueCC_recvt + torqueCC_comt)))
+                                {
+                                    for (int i = 0; i < MODEL_DOF; i++)
+                                    {
+                                        ElmoMode[i] = EM_TORQUE;
+                                        torqueDesiredElmo[i] = torqueCustomCommand[i];
+                                    }
+                                }
 
+                                if (control_time_ > (torqueCC_recvt + torqueCC_comt))
+                                {
+                                    torqueCCEnable = false;
+                                }
+                            }
                             //ECAT JOINT COMMAND
-
                             for (int i = 0; i < ec_slavecount; i++)
                             {
                                 if (ElmoMode[i] == EM_POSITION)
@@ -1334,7 +1361,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                     else
                                     {
-                                        txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
+                                        txPDO[i]->targetTorque = (roundtoint)(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
                                     }
                                 }
                                 else if (ElmoMode[i] == EM_COMMUTATION)
@@ -1360,7 +1387,7 @@ void RealRobotInterface::ethercatThread()
                                 }
                                 else
                                 {
-                                    checkSafety(i, 2.0, 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
+                                    checkSafety(i, dc.safety_limit[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                                 }
                                 checkJointLimit(i);
                             }
@@ -1377,6 +1404,11 @@ void RealRobotInterface::ethercatThread()
 
                             //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
                             ec_send_processdata();
+
+                            for(int i=0;i<ec_slavecount;i++)
+                            {
+                                dc.torqueElmo[i] = roundtoint(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
+                            }
 
                             positionDesiredElmo_Before = positionDesiredElmo;
                             if (dc.disableSafetyLock)
@@ -1581,9 +1613,16 @@ void RealRobotInterface::imuThread()
             imu_quat(2) = imu_msg.orientation.z;
             imu_quat(3) = imu_msg.orientation.w;
 
-            imu_ang_vel(0) = imu_msg.angular_velocity.x;
-            imu_ang_vel(1) = imu_msg.angular_velocity.y;
-            imu_ang_vel(2) = imu_msg.angular_velocity.z;
+            Vector3d ang_vel;
+            ang_vel(0) = imu_msg.angular_velocity.x;
+            ang_vel(0) = imu_msg.angular_velocity.y;
+            ang_vel(0) = imu_msg.angular_velocity.z;
+            Vector3d ang_vel_lpf;
+            static Vector3d ang_vel_lpf_before;
+            ang_vel_lpf = DyrosMath::lpf(ang_vel, ang_vel_lpf_before, 1000, 15);
+            ang_vel_lpf_before = ang_vel_lpf;
+
+            imu_ang_vel = ang_vel_lpf;
 
             imu_lin_acc(0) = imu_msg.linear_acceleration.x;
             imu_lin_acc(1) = imu_msg.linear_acceleration.y;
@@ -1692,10 +1731,9 @@ void RealRobotInterface::ftsensorThread()
                 dc.ft_state = 2.0;
             }
         }
-
         if (dc.print_ft_info_tofile)
-        {
-            //    ft_sensor << ft.rightFootBias[0]<<"\t"<<RF_FT(0) << "\t" << RF_FT(1)<<"\t"<< RF_FT(2) << "\t"<< RF_FT(3) << "\t"<< RF_FT(4) << "\t"<< RF_FT(5) << "\t"<< LF_FT(0) << "\t"<< LF_FT(1) << "\t"<< LF_FT(2) << "\t"<< LF_FT(3) << "\t"<< LF_FT(4) << "\t"<< LF_FT(5) << endl;
+        { 
+
         }
     }
     std::cout << "FTsensor Thread End!" << std::endl;
@@ -1724,24 +1762,22 @@ void RealRobotInterface::handftsensorThread()
 
     //////OPTOFORCE//////
 
-    printf("ssssss");
     ft_upper.InitDriver();
     dc.ftcalib = true;
-    printf("ssssss");
+    
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
 
         ft_upper.DAQSensorData();
-
         if (dc.ftcalib) //enabled by gui
         {
             if (ft_calib_init == false)
             {
                 ft_cycle_count = cycle_count;
                 ft_calib_init = true;
-                //               pub_to_gui(dc, "ft sensor : calibration ... ");
+                //pub_to_gui(dc, "ft sensor : calibration ... ");
             }
             if (cycle_count < 5 * SAMPLE_RATE + ft_cycle_count)
             {
@@ -1755,15 +1791,15 @@ void RealRobotInterface::handftsensorThread()
         }
         else
         {
-            //            pub_to_gui(dc, "initreq");
+//            pub_to_gui(dc, "initreq");
         }
 
         if (ft_calib_finish == true)
         {
             if (ft_calib_ui == false)
             {
-                //                pub_to_gui(dc, "ft sensor : calibration finish ");
-                //                pub_to_gui(dc, "ftgood");
+                //pub_to_gui(dc, "ft sensor : calibration finish ");
+                //pub_to_gui(dc, "ftgood");
                 ft_calib_ui = true;
             }
         }
@@ -1818,7 +1854,7 @@ bool RealRobotInterface::controlWordGenerate(const uint16_t statusWord, uint16_t
     return false;
 }
 
-void RealRobotInterface::gainCallbak(const std_msgs::Float32MultiArrayConstPtr &msg)
+void RealRobotInterface::gainCallback(const std_msgs::Float32MultiArrayConstPtr &msg)
 {
     std::cout << "customgain Command received ! " << std::endl;
     for (int i = 0; i < MODEL_DOF; i++)
@@ -1828,4 +1864,49 @@ void RealRobotInterface::gainCallbak(const std_msgs::Float32MultiArrayConstPtr &
     }
     std::cout << std::endl;
     dc.customGain = true;
+}
+
+void RealRobotInterface::tcommandCallback(const std_msgs::Float32MultiArrayConstPtr &msg)
+{
+    if (msg->data.size() == 2)
+    {
+        if ((msg->data[0] >= MODEL_DOF) || (msg->data[0] < 0))
+        {
+            std::cout << "Joint Number Error :::\n Usage : \n 1 : joint number \n 2 : torque(NM) \n 3 : duration(option)" << std::endl;
+        }
+        else
+        {
+            std::cout << TOCABI::ELMO_NAME[(int)(msg->data[0])] << " : " << msg->data[1] << " NM for 1 seconds " << std::endl;
+            torqueCustomCommand.setZero();
+            torqueCustomCommand[(int)(msg->data[0])] = msg->data[1];
+            torqueCC_recvt = control_time_;
+            torqueCC_comt = 1.0;
+            torqueCCEnable = true;
+        }
+    }
+    else if (msg->data.size() == 3)
+    {
+        if ((msg->data[0] >= MODEL_DOF) || (msg->data[0] < 0))
+        {
+            std::cout << "Joint Number Error :::\n Usage : \n 1 : joint number \n 2 : torque(NM) \n 3 : duration(option)" << std::endl;
+        }
+        else
+        {
+            std::cout << TOCABI::ELMO_NAME[(int)(msg->data[0])] << " : " << msg->data[1] << " NM for " << msg->data[2] << " seconds " << std::endl;
+
+            torqueCustomCommand.setZero();
+            torqueCustomCommand[(int)(msg->data[0])] = msg->data[1];
+            torqueCC_recvt = control_time_;
+            torqueCC_comt = msg->data[2];
+            torqueCCEnable = true;
+        }
+    }
+    else if (msg->data.size() == MODEL_DOF)
+    {
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            torqueCustomCommand[i] = msg->data[i];
+        }
+        torqueCCEnable = true;
+    }
 }

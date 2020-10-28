@@ -14,6 +14,7 @@
 #include <chrono>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2_eigen/tf2_eigen.h>
+#include <vector>
 
 #define MODEL_DOF 33
 #define ENDEFFECTOR_NUMBER 4
@@ -24,6 +25,8 @@
 #define GRAVITY 9.80665
 #define MAX_DOF 50U
 #define RAD2DEG 1 / DEG2RAD
+
+#define INERITA_SIZE 198
 
 namespace Eigen
 {
@@ -65,8 +68,15 @@ namespace Eigen
 
   typedef Matrix<rScalar, 6, MODEL_DOF_VIRTUAL> Matrix6Vd;
   typedef Matrix<rScalar, 3, MODEL_DOF_VIRTUAL> Matrix3Vd;
+  typedef Matrix<rScalar, 6, 12> Matrix6x12d;
+  typedef Matrix<rScalar, 6, 8> Matrix6x8d;
+  typedef Matrix<rScalar, 6, 3> Matrix6x3d;
+  typedef Matrix<rScalar, 3, 12> Matrix3x12d;
+  typedef Matrix<rScalar, 3, 8> Matrix3x8d;
+  typedef Matrix<rScalar, 3, 3> Matrix3x3d;
 
   typedef Matrix<rScalar, 6, MODEL_DOF> Matrix6Qd;
+  typedef Matrix<rScalar, MODEL_DOF, MODEL_DOF> MatrixQQd;
   typedef Matrix<rScalar, 3, MODEL_DOF> Matrix3Qd;
 
   //Complex
@@ -380,12 +390,13 @@ namespace DyrosMath
     gsl_vector_free(vec2);
     return svdU;
   }
+
   static Eigen::Matrix3d Add_vel_to_Rotm(Eigen::Matrix3d Rotm, Eigen::Vector3d Rot_Vel, double d_time_)
   {
     Eigen::Quaterniond qtemp(Rotm);
     Eigen::Quaterniond res;
     Eigen::Quaterniond angvel_(1, Rot_Vel(0) * d_time_ * 0.5, Rot_Vel(1) * d_time_ * 0.5, Rot_Vel(2) * d_time_ * 0.5);
-    res = angvel_* qtemp;
+    res = angvel_ * qtemp;
     Rotm = res.normalized().toRotationMatrix();
     return Rotm;
   }
@@ -909,6 +920,117 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
   static inline double lowPassFilter(double input, double prev, double ts, double tau)
   {
     return (tau * prev + ts * input) / (tau + ts);
+  }
+
+  static double getOrientation2d(Eigen::Vector2d p1, Eigen::Vector2d p2)
+  {
+    return atan2(p1(0) * p2(1) - p1(1) * p2(0), p1(0) * p2(0) + p1(1) * p2(1));
+  }
+
+  static bool checkIntersect(Eigen::Vector2d p1, Eigen::Vector2d p2, Eigen::Vector2d q1, Eigen::Vector2d q2)
+  {
+    if ((getOrientation2d(p2 - p1, q1 - p1) * getOrientation2d(p2 - p1, q2 - p1)) < 0 && (getOrientation2d(q2 - q1, p1 - q1) * getOrientation2d(q2 - q1, p2 - q1)) < 0)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  static int findMinAdr(std::vector<double> ar)
+  {
+    int idx = 0;
+    for (int i = 0; i < ar.size(); i++)
+    {
+      if (ar[idx] > ar[i])
+      {
+        idx = i;
+      }
+    }
+    return idx;
+  }
+
+  static int findMaxAdr(std::vector<double> ar)
+  {
+    int idx = 0;
+    for (int i = 0; i < ar.size(); i++)
+    {
+      if (ar[idx] < ar[i])
+      {
+        idx = i;
+      }
+    }
+    return idx;
+  }
+
+  static bool isInPolygon(Eigen::Vector2d point, Eigen::MatrixXd polygon)
+  {
+    if (polygon.rows() == 2)
+    {
+      int line_number = polygon.cols() - 1;
+
+      if (polygon.block(0, 0, 2, 1) != polygon.block(0, line_number, 2, 1))
+      {
+        std::cout << "polygon is not closed" << std::endl;
+        return false;
+      }
+      else
+      {
+        bool check = true;
+        for (int i = 0; i < line_number; i++)
+        {
+          check = check && (0 < getOrientation2d(polygon.block(0, i + 1, 2, 1) - polygon.block(0, i, 2, 1), point - polygon.block(0, i, 2, 1)));
+        }
+        if (check)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static Eigen::Vector2d getIntersectPoint(Eigen::Vector2d p1, Eigen::Vector2d p2, Eigen::Vector2d q1, Eigen::Vector2d q2)
+  {
+    double a1, a2, b1, b2;
+    Eigen::Vector2d v1;
+    v1.setZero();
+    if (checkIntersect(p1, p2, q1, q2))
+    {
+      a1 = (p2(1) - p1(1)) / (p2(0) - p1(0));
+      b1 = p1(1) - a1 * p1(0);
+
+      a2 = (q2(1) - q1(1)) / (q2(0) - q1(0));
+      b2 = q1(1) - a2 * q1(0);
+
+      if (abs(a1) > 1000)
+      {
+        //std::cout << "a1 over " << a1 << std::endl;
+        v1(0) = p1(0);
+
+        //std::cout << "a2 : " << a2 << "  b2 : " << b2 << std::endl;
+        v1(1) = a2 * v1(0) + b2;
+      }
+      else if (abs(a2) > 1000)
+      {
+        //std::cout << "a2 over " << a2 << std::endl;
+        v1(0) = q1(0);
+        //std::cout << "a1 : " << a1 << "  b1 : " << b1 << std::endl;
+        v1(1) = a1 * v1(0) + b1;
+      }
+      else
+      {
+        v1(0) = (b2 - b1) / (a1 - a2);
+        v1(1) = a1 * v1(0) + b1;
+      }
+    }
+    else
+    {
+      std::cout << "given points are not intersect !";
+    }
+    return v1;
   }
 
   template <int N>

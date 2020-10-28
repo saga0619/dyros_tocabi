@@ -10,6 +10,8 @@ float64 yaw
 uint32 solver
 uint32 contactredis
 
+bool maintain_lc
+
 # Contact 
 bool left
 bool right
@@ -37,9 +39,11 @@ float64 r_yaw
 uint32 walking_enable
 uint32 pattern
 uint32 pattern2
+uint32 comcontrol
 uint32 ik_mode
 bool dob
 bool imu
+bool mom
 uint32 first_foot_step
 float32 x
 float32 y
