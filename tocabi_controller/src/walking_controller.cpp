@@ -1,4 +1,5 @@
 #include "tocabi_controller/walking_controller.h"
+
 void Walking_controller::walkingCompute(RobotData &Robot)
 {
     if (walking_enable == 1.0)
@@ -545,7 +546,7 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
 
     q_dm.resize(5);
        
-    kx_vib(0) = 1000;
+    kx_vib(0) = 800;
     cx_vib(0) = 5;
 
 /*
@@ -586,12 +587,12 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
     L1.resize(2,3); 
     L2.resize(2,3);
 
-    L1(0,0) = 0.3882;
-    L1(0,1) = 0.7718;
-    L1(0,2) = 1.2843;
-    L1(1,0) = -4.5791;
-    L1(1,1) = 1.2843;
-    L1(1,2) = 7.8140;
+    L1(0,0) = 0.3937;
+    L1(0,1) = 0.7886;
+    L1(0,2) = 1.3308;
+    L1(1,0) = -3.4718;
+    L1(1,1) = 1.3308;
+    L1(1,2) = 7.1365;
     
     vib_est = false;
 
@@ -620,16 +621,23 @@ void Walking_controller::updateNextStepTime()
         walking_enable = 2.0;
     }
 
-    if (walking_tick >= t_start_real + t_double1 + t_rest_temp - 300 && walking_tick <= t_start_real + t_double1 + t_rest_temp)
+    if (walking_tick >= t_start_real + t_double1 + t_rest_temp - 100 && walking_tick <= t_start_real + t_double1 + t_rest_temp && current_step_num !=0)
     {
-
         phaseChange = true;
-        double2Single_pre = t_start_real + t_double1 + t_rest_temp - 300;
-        double2Single = t_start_real + t_double1 + t_rest_temp;
+        double2Single_pre = t_start_real + t_double1 + t_rest_temp - 100;
+        double2Single = t_start_real + t_double1 + t_rest_temp + 49;
+        time_temp = t_start_real + t_double1 + t_rest_temp + 49;
     }
     else
     {
-        phaseChange = false;
+        if(walking_tick>time_temp)
+        {
+            phaseChange = false;
+        }
+        else
+        {
+            phaseChange = true;
+        }        
     }
 
     walking_tick++;
@@ -1262,16 +1270,16 @@ void Walking_controller::comVibrationController()
 
             }
 
-        //    PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(walking_tick));
-           // PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(walking_tick));
+      //      PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(walking_tick));
+     //       PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(walking_tick));
               final_posx(0) = PELV_trajectory_float.translation()(0) - 0.3* (xx_vib_est(0)-com_refx(walking_tick));
         //    final_posx(0) = PELV_trajectory_float.translation()(0);
         //    final_posy(0) = PELV_trajectory_float.translation()(1);
         }
         else
         {
-        //    PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(t_total + t_last - 4));
-           // PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(t_total + t_last - 4));;
+      //      PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(t_total + t_last - 4));
+      //      PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(t_total + t_last - 4));;
         }
         
     }
