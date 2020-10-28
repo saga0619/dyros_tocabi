@@ -39,6 +39,7 @@ int osQuadraticProgram::setup(const int variable_number, const int constraint_nu
 
 int osQuadraticProgram::setup(const MatrixXd &ObjectiveMatrix, const VectorXd &ObjectiveVector, const MatrixXd &ConstraintMatrix, const VectorXd &alb, const VectorXd &aub, const VectorXd &lb, const VectorXd &ub)
 {
+    osqp_cleanup(work);
 
     variable_number = ObjectiveVector.size();
 
@@ -84,8 +85,8 @@ int osQuadraticProgram::setup(const MatrixXd &ObjectiveMatrix, const VectorXd &O
 
     osqp_setup(&work, data, settings);
 
-    return 1;//work->info->status_val;
-}/*
+    return 1; //work->info->status_val;
+}
 int osQuadraticProgram::hotstart(const MatrixXd &ObjectiveMatrix, const VectorXd &ObjectiveVector, const MatrixXd &ConstraintMatrix, const VectorXd &alb, const VectorXd &aub, const VectorXd &lb, const VectorXd &ub)
 {
 
@@ -123,7 +124,7 @@ int osQuadraticProgram::hotstart(const MatrixXd &ObjectiveMatrix, const VectorXd
     {
         std::cout << "bound update error" << std::endl;
     }
-}
+} /*
 int osQuadraticProgram::warmstart(VectorXd &primal_solution)
 {
     //osqp_warm_start(work, primal_solution_p, dual_solution_p);
@@ -145,11 +146,15 @@ int osQuadraticProgram::warmstart(VectorXd &primal_solution)
 
 int osQuadraticProgram::solve(VectorXd &primal_solution)
 {
-    osqp_solve(work);
+    int solve_int = osqp_solve(work);
     primal_solution.resize(data->n);
+    //std::cout << "status_val : " << work->info->status_val << std::endl
+    //          << "solve val : " << solve_int << std::endl;
 
-    if (work->info->status_val == OSQP_SOLVED)
+    int status_val = work->info->status_val;
+    if (status_val == OSQP_SOLVED)
     { //todo. fix this line with memcopy or copy. allocation also needed.
+
         for (int i = 0; i < data->n; i++)
         {
             //primal_solution_p[i] = work->solution->x[i];
@@ -159,14 +164,13 @@ int osQuadraticProgram::solve(VectorXd &primal_solution)
         {
             //dual_solution_p[i] = work->solution->y[i];
         }
-
     }
     else
     {
     }
-    
-    osqp_cleanup(work);
-    return work->info->status_val;
+
+    //osqp_cleanup(work);
+    return status_val;
 }
 /*
 void osQuadraticProgram::test()

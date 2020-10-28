@@ -1398,39 +1398,46 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     //QP_torque.UpdateMinProblem(H, g);
     //QP_torque.UpdateSubjectToAx(A, lbA, ubA);
     //QP_torque.UpdateSubjectToX(lb, ub);
-
+    //std::cout << "Loop" << std::endl;
     VectorXd qpres;
     int setup_result;
     int solve_result;
-
+    bool qp_hots = false;
     if (qp_init_)
     {
         setup_result = QP_torque3_.setup(H, g, A, lbA, ubA, lb, ub);
         solve_result = QP_torque3_.solve(qpres);
 
-        //qp_init_ = false;
+        qp_init_ = false;
+        qp_hots = true;
+        //std::cout << "qpset" << std::endl;
+
+        //std::cout << solve_result << std::endl
+        //          << qpres.segment(0, MODEL_DOF).transpose() << std::endl;
     }
     else
     {
-        //setup_result = QP_torque3_.hotstart(H, g, A, lbA, ubA, lb, ub);
-        //solve_result = QP_torque3_.solve(qpres);
+        //std::cout << "qphots" << std::endl;
+        setup_result = QP_torque3_.hotstart(H, g, A, lbA, ubA, lb, ub);
+        solve_result = QP_torque3_.solve(qpres);
+
+        //std::cout << solve_result << std::endl
+        //          << qpres.segment(0, MODEL_DOF).transpose() << std::endl;
     }
 
     //QP_torque3_.setup()
 
-    if (solve_result == 1)
+    if (solve_result)
     {
         task_torque = qpres.segment(0, MODEL_DOF);
     }
     else
     {
-        std::cout << "qp3 solve failed. changing to gravity compensation" << std::endl;
-        Robot.task_control_switch = false;
-        Robot.contact_redistribution_mode = 0;
+        std::cout << solve_result << "qp3 solve failed. changing to gravity compensation" << std::endl;
+        //Robot.task_control_switch = false;
+        //Robot.contact_redistribution_mode = 0;
         task_torque = gravity_compensation_torque(Robot);
     }
-
-    
 
     return task_torque;
 }
