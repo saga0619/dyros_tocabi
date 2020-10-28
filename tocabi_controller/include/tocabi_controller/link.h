@@ -384,6 +384,8 @@ public:
   double control_time_pre_;
   double d_time_;
 
+  double friction_ratio;
+
   double start_time_[4];
   double end_time_[4];
   bool target_arrived_[4];

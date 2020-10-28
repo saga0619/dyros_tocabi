@@ -423,9 +423,9 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[10].y = dc.tocabi_.ZMP_ft(1);
     pointpub_msg.polygon.points[10].z = dc.tocabi_.ZMP_ft(2);
 
-    pointpub_msg.polygon.points[11].x = LF_CF_FT(3);
-    pointpub_msg.polygon.points[11].y = LF_CF_FT(4);
-    pointpub_msg.polygon.points[11].z = LF_CF_FT(5);
+    pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[Pelvis].v(0);
+    pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[Pelvis].v(1);
+    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[Pelvis].v(2);
 
     pointpub_msg.polygon.points[12].x = RF_CF_FT(0);
     pointpub_msg.polygon.points[12].y = RF_CF_FT(1);
@@ -1101,6 +1101,7 @@ void StateManager::stateEstimate()
 
         if (dc.semode_init)
         {
+            std::cout<<"state Estimation Initialized"<<std::endl;
             RF_contact_pos_holder(2) = 0.0; // - RF_contactpoint_internal_pos(2);
             LF_contact_pos_holder(2) = 0.0; // - LF_contactpoint_internal_pos(2);
             RF_contact_pos_mod.setZero();
@@ -1197,6 +1198,8 @@ void StateManager::stateEstimate()
         imu_acc_dat = link_local[Pelvis].Rotm * imu_lin_acc;
 
         imu_acc_dat = imu_acc_dat - imu_init;
+
+        
         double dt = 0.0005;
         double tau = 0.6;
         double alpha = tau / (tau + dt);
@@ -1205,6 +1208,8 @@ void StateManager::stateEstimate()
         pelv_v_before = pelv_v;
         q_virtual_ = q_virtual_local_;
         //q_dot_virtual_ = q_dot_virtual_local_;
+
+        //std::cout<<"pelv_v es : "<<pelv_v_before.transpose()<<" imu acc : "<<imu_acc_dat.transpose()<<"  imu init : "<<imu_init.transpose() <<" imu lin acc : "<<imu_lin_acc.transpose() <<" mod base : "<<mod_base_vel.transpose()<<std::endl;
 
         pelv_x = alpha * (pelv_v * dt + imu_acc_dat * dt * dt * 0.5 + pelv_x_before) + (1 - alpha) * (-mod_base_pos);
         pelv_x_before = pelv_x;
@@ -1426,6 +1431,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         else
         {
             std::cout << "State Estimation mode on" << std::endl;
+            dc.semode_init = true;
         }
         dc.semode = !dc.semode;
     }
