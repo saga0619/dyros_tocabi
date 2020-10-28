@@ -1,6 +1,5 @@
 <mujoco model="dyros_tocabi_description">
     <compiler angle="radian" meshdir="../meshes/" balanceinertia="true"/>
-    <size njmax="500" nconmax="200" />
     <default>
         <motor ctrllimited="true" ctrlrange="-300 300"/>
         <default class="viz">

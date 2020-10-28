@@ -45,6 +45,8 @@ public:
   void set_contact(RobotData &Robot);
   void set_contact(RobotData &Robot, bool left_foot, bool right_foot, bool left_hand = false, bool right_hand = false);
 
+  void set_robot_init(RobotData &Robot);
+
   //contact force redistribution by yisoolee method at 2 contact(both foot)
   VectorQd contact_force_redistribution_torque(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta);
 
@@ -134,7 +136,6 @@ public:
   Vector6d getfstar6d(RobotData &Robot, int link_id);
   Vector3d getfstar_acc_tra(RobotData &Robot, int link_id);
   Vector3d getfstar_acc_rot(RobotData &Robot, int link_id);
-  
 
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
 
@@ -230,6 +231,7 @@ public:
   CQuadraticProgram QP_mpc;
   CQuadraticProgram QP_torque;
   osQuadraticProgram QP_contact;
+  osQuadraticProgram QP_torque3_;
   VectorXd result_temp;
 
 private:

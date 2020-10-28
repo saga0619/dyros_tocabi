@@ -1,9 +1,17 @@
 #include "tocabi_controller/osqp_rapper.h"
 #include <iostream>
+
+static_assert(sizeof(OSQPSettings) == 176,
+              "The size of OSQPSettings has changed unexpectedly. Make sure "
+              "that the map between ::OSQPSettings and osqp::OsqpSettings "
+              "remains up to date.");
+
 osQuadraticProgram::osQuadraticProgram()
 {
+    settings = (OSQPSettings *)c_malloc(sizeof(OSQPSettings));
+    data = (OSQPData *)c_malloc(sizeof(OSQPData));
 }
-
+/*
 int osQuadraticProgram::setup(const int variable_number, const int constraint_number, const Eigen::SparseMatrix<double, Eigen::ColMajor, c_int> &ObjectiveMatrix, const VectorXd &ObjectiveVector, const Eigen::SparseMatrix<double, Eigen::ColMajor, c_int> &ConstraintMatrix, const VectorXd &alb, const VectorXd &aub)
 {
     SparseMatrix<double, Eigen::ColMajor, c_int> P_uppertriangle = ObjectiveMatrix.triangularView<Eigen::Upper>();
@@ -27,16 +35,17 @@ int osQuadraticProgram::setup(const int variable_number, const int constraint_nu
     //settings.alpha = 1.0; // Change alpha parameter
 
     return osqp_setup(&work, &data, &settings);
-}
+}*/
 
 int osQuadraticProgram::setup(const MatrixXd &ObjectiveMatrix, const VectorXd &ObjectiveVector, const MatrixXd &ConstraintMatrix, const VectorXd &alb, const VectorXd &aub, const VectorXd &lb, const VectorXd &ub)
 {
-    int variable_number = ObjectiveVector.size();
 
-    int constraint_a = alb.size();
-    int constraint_b = lb.size();
+    variable_number = ObjectiveVector.size();
 
-    int constraint_number = constraint_a + constraint_b;
+    constraint_a = alb.size();
+    constraint_b = lb.size();
+
+    constraint_number = constraint_a + constraint_b;
 
     Eigen::MatrixXd A_new(constraint_number, variable_number);
 
@@ -55,33 +64,70 @@ int osQuadraticProgram::setup(const MatrixXd &ObjectiveMatrix, const VectorXd &O
     cub.segment(0, constraint_a) = aub; //.cwiseMax(-OSQP_INFTY);
     cub.segment(constraint_a, variable_number) = ub;
 
-    data.n = variable_number;
-    data.m = constraint_number;
+    data->n = variable_number;
+    data->m = constraint_number;
 
-    ::csc objective_matrix = {P_uppertriangle.outerIndexPtr()[variable_number], variable_number, variable_number, const_cast<c_int *>(P_uppertriangle.outerIndexPtr()), const_cast<c_int *>(P_uppertriangle.innerIndexPtr()), const_cast<double *>(P_uppertriangle.valuePtr()), -1};
-    ::csc constraint_matrix = {ConstraintMatrix_s.outerIndexPtr()[variable_number], constraint_number, variable_number, const_cast<c_int *>(ConstraintMatrix_s.outerIndexPtr()), const_cast<c_int *>(ConstraintMatrix_s.innerIndexPtr()), const_cast<double *>(ConstraintMatrix_s.valuePtr()), -1};
+    objective_matrix = {P_uppertriangle.outerIndexPtr()[variable_number], variable_number, variable_number, const_cast<c_int *>(P_uppertriangle.outerIndexPtr()), const_cast<c_int *>(P_uppertriangle.innerIndexPtr()), const_cast<double *>(P_uppertriangle.valuePtr()), -1};
+    constraint_matrix = {ConstraintMatrix_s.outerIndexPtr()[variable_number], constraint_number, variable_number, const_cast<c_int *>(ConstraintMatrix_s.outerIndexPtr()), const_cast<c_int *>(ConstraintMatrix_s.innerIndexPtr()), const_cast<double *>(ConstraintMatrix_s.valuePtr()), -1};
 
-    data.P = &objective_matrix;
-    data.q = const_cast<double *>(ObjectiveVector.data());
-    data.A = &constraint_matrix;
-    data.l = clb.data();
-    data.u = cub.data();
-    OSQP_ERROR_MESSAGE;
+    data->P = &objective_matrix;
+    data->q = const_cast<double *>(ObjectiveVector.data());
+    data->A = &constraint_matrix;
+    data->l = clb.data();
+    data->u = cub.data();
+    //OSQP_ERROR_MESSAGE;
 
-    osqp_set_default_settings(&settings);
-    settings.eps_prim_inf = 1.0E-2;
-    settings.verbose = false;
-    settings.alpha = 1.0; // Change alpha parameter
+    osqp_set_default_settings(settings);
+    settings->eps_prim_inf = 1.0E-2;
+    settings->verbose = false;
+    settings->alpha = 1.0; // Change alpha parameter
 
-    osqp_setup(&work, &data, &settings);
-    return work->info->status_val;
-}
+    osqp_setup(&work, data, settings);
 
-int osQuadraticProgram::solve(VectorXd &primal_solution)
+    return 1;//work->info->status_val;
+}/*
+int osQuadraticProgram::hotstart(const MatrixXd &ObjectiveMatrix, const VectorXd &ObjectiveVector, const MatrixXd &ConstraintMatrix, const VectorXd &alb, const VectorXd &aub, const VectorXd &lb, const VectorXd &ub)
 {
-    osqp_solve(work);
-    primal_solution.resize(data.n);
 
+    Eigen::MatrixXd A_new(constraint_number, variable_number);
+
+    A_new.block(0, 0, constraint_a, variable_number) = ConstraintMatrix;
+    A_new.block(constraint_a, 0, variable_number, variable_number) = MatrixXd::Identity(variable_number, variable_number);
+
+    SparseMatrix<double, Eigen::ColMajor, c_int> ConstraintMatrix_s = A_new.sparseView();
+    SparseMatrix<double, Eigen::ColMajor, c_int> ObjectiveMatrix_s = ObjectiveMatrix.sparseView();
+    SparseMatrix<double, Eigen::ColMajor, c_int> P_uppertriangle = ObjectiveMatrix_s.triangularView<Eigen::Upper>();
+
+    VectorXd clb(constraint_number);
+    clb.segment(0, constraint_a) = alb; //.cwiseMax(-OSQP_INFTY);
+    clb.segment(constraint_a, variable_number) = lb;
+    VectorXd cub(constraint_number);
+    cub.segment(0, constraint_a) = aub; //.cwiseMax(-OSQP_INFTY);
+    cub.segment(constraint_a, variable_number) = ub;
+
+    c_int nnzp = P_uppertriangle.nonZeros();
+    if (osqp_update_lin_cost(work, ObjectiveVector.data()) != 0)
+    {
+        std::cout << "objective vector update error " << std::endl;
+    }
+    if (osqp_update_P(work, P_uppertriangle.valuePtr(), OSQP_NULL, nnzp) != 0)
+    {
+        std::cout << "P_uppertriangle update error " << std::endl;
+    }
+    c_int nnza = ConstraintMatrix_s.nonZeros();
+    if (osqp_update_A(work, ConstraintMatrix_s.valuePtr(), OSQP_NULL, nnza) != 0)
+    {
+        std::cout << "ConstraintMatrix_s update error " << std::endl;
+    }
+    if (osqp_update_bounds(work, clb.data(), cub.data()) != 0)
+    {
+        std::cout << "bound update error" << std::endl;
+    }
+}
+int osQuadraticProgram::warmstart(VectorXd &primal_solution)
+{
+    //osqp_warm_start(work, primal_solution_p, dual_solution_p);
+    primal_solution.resize(data.n);
 
     if (work->info->status_val == OSQP_SOLVED)
     {
@@ -89,16 +135,42 @@ int osQuadraticProgram::solve(VectorXd &primal_solution)
         {
             primal_solution[i] = work->solution->x[i];
         }
+        for (int i = 0; i < data.m; i++)
+        {
+        }
+    }
+
+    return work->info->status_val;
+}*/
+
+int osQuadraticProgram::solve(VectorXd &primal_solution)
+{
+    osqp_solve(work);
+    primal_solution.resize(data->n);
+
+    if (work->info->status_val == OSQP_SOLVED)
+    { //todo. fix this line with memcopy or copy. allocation also needed.
+        for (int i = 0; i < data->n; i++)
+        {
+            //primal_solution_p[i] = work->solution->x[i];
+            primal_solution[i] = work->solution->x[i];
+        }
+        for (int i = 0; i < data->m; i++)
+        {
+            //dual_solution_p[i] = work->solution->y[i];
+        }
+
     }
     else
     {
     }
-
+    
+    osqp_cleanup(work);
     return work->info->status_val;
 }
-
+/*
 void osQuadraticProgram::test()
-{ /*
+{ 
     c_float P_x[3] = {
         4.0,
         1.0,
@@ -207,5 +279,5 @@ void osQuadraticProgram::test()
     if (settings)
         delete (settings);
 
-    std::cout << "test2" << std::endl;*/
-}
+    std::cout << "test2" << std::endl;
+}*/
