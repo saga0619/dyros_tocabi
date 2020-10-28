@@ -230,6 +230,7 @@ public:
     double double2Single_pre;
     double current_time;
     double rate;
+    int time_temp;
 
     //Ui WalkingParameter
     
