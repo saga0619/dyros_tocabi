@@ -164,6 +164,7 @@ public:
   ros::Publisher motor_info_pub;
   ros::Publisher motor_acc_dif_info_pub;
   ros::Publisher point_pub;
+  ros::Publisher support_polygon_pub;
   ros::Publisher gui_state_pub;
 
   ros::Publisher ft_viz_pub;
@@ -172,6 +173,8 @@ public:
   Eigen::Vector3d rf_contactpoint;
   Eigen::Vector3d lf_contactpoint;
 
+
+  geometry_msgs::PolygonStamped supportpolygon;
   ros::Publisher tgainPublisher;
   std_msgs::Float32 tgain_p;
   std_msgs::Int32MultiArray syspub_msg;

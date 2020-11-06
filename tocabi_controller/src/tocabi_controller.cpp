@@ -29,23 +29,37 @@ void TocabiController::TaskQueCommandCallback(const tocabi_controller::TaskComma
 {
     //const tocabi_controller::TaskCommandConstPtr &tc_temp;
 
-    tque_msg.tque.resize(msg->tque.size());
-    for (int i = 0; i < tque_msg.tque.size(); i++)
+    if (dc.semode || dc.use_virtual_for_mujoco)
     {
-        tque_msg.tque[i] = msg->tque[i];
-    }
+        tque_msg.tque.resize(msg->tque.size());
+        for (int i = 0; i < tque_msg.tque.size(); i++)
+        {
+            tque_msg.tque[i] = msg->tque[i];
+        }
 
-    std::cout << "Task Que Received, " << tque_msg.tque.size() << " left" << std::endl;
-    tocabi_controller::TaskCommand tc_temp = tque_msg.tque[0];
-    tque_msg.tque.erase(tque_msg.tque.begin());
-    gettaskcommand(tc_temp);
-    task_que_switch = true;
+        std::cout << "Task Que Received, " << tque_msg.tque.size() << " left" << std::endl;
+        tocabi_controller::TaskCommand tc_temp = tque_msg.tque[0];
+        tque_msg.tque.erase(tque_msg.tque.begin());
+        gettaskcommand(tc_temp);
+        task_que_switch = true;
+    }
+    else
+    {
+        std::cout << "Warning ::: StateEstimation Off" << std::endl;
+    }
 }
 
 void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg)
 {
-    tocabi_controller::TaskCommand tc_temp = *msg;
-    gettaskcommand(tc_temp);
+    if (dc.semode || dc.use_virtual_for_mujoco)
+    {
+        tocabi_controller::TaskCommand tc_temp = *msg;
+        gettaskcommand(tc_temp);
+    }
+    else
+    {
+        std::cout << "Warning ::: StateEstimation Off" << std::endl;
+    }
 }
 
 void TocabiController::PositionCommandCallback(const tocabi_controller::positionCommandConstPtr &msg)
@@ -355,6 +369,12 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     {
         tc.mode = 11;
     }
+
+    tc.link_contact[0] = msg.left_foot;
+    tc.link_contact[1] = msg.right_foot;
+    tc.link_contact[2] = msg.left_hand;
+    tc.link_contact[3] = msg.right_hand;
+
     if (dc.print_data_ready)
     {
         dc.data_out << "###############  COMMAND RECEIVED  ###############" << control_time_ << std::endl;
@@ -879,12 +899,16 @@ void TocabiController::dynamicsThreadLow()
                 Use dyros_cc, CustomController for task control. */
                 wbc_.set_contact(tocabi_, 1, 1);
 
-                int task_number = 9;
+                int task_number = 21;
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
                 tocabi_.J_task.block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[COM_id].Jac;
                 tocabi_.J_task.block(6, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Upper_Body].Jac_COM_r;
+                tocabi_.J_task.block(9, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Hand].Jac_COM_p;
+                tocabi_.J_task.block(12, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Hand].Jac_COM_r;
+                tocabi_.J_task.block(15, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM_p;
+                tocabi_.J_task.block(18, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM_r;
 
                 tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
@@ -895,6 +919,11 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
+                tocabi_.f_star.segment(9, 3) = tocabi_.link_[Left_Hand].pos_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].v + tocabi_.link_[Pelvis].v);
+                tocabi_.f_star.segment(12, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Pelvis].w);
+                tocabi_.f_star.segment(15, 3) = tocabi_.link_[Right_Hand].pos_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].v + tocabi_.link_[Pelvis].v);
+                tocabi_.f_star.segment(18, 3) = tocabi_.link_[Right_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].w + tocabi_.link_[Pelvis].w);
 
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
@@ -1027,7 +1056,7 @@ void TocabiController::dynamicsThreadLow()
                 /* 
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
-                wbc_.set_contact(tocabi_, 1, 1, 1, 1);
+                wbc_.set_contact(tocabi_, tc.link_contact[0], tc.link_contact[1], tc.link_contact[2], tc.link_contact[3]);
                 //torque_grav = wbc_.gravity_compensation_torque(tocabi_);
 
                 int task_number = 6;
@@ -1039,6 +1068,7 @@ void TocabiController::dynamicsThreadLow()
 
                 tocabi_.link_[COM_id].x_desired = tocabi_.link_[COM_id].x_init;
                 tocabi_.link_[COM_id].x_desired(0) = tocabi_.link_[COM_id].x_desired(0) + tc.ratio;
+                tocabi_.link_[COM_id].x_desired(1) = tocabi_.link_[COM_id].x_desired(1) + tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX((tc.roll) * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0);
                 tocabi_.link_[Upper_Body].Set_Trajectory_rotation(control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
@@ -1393,6 +1423,8 @@ void TocabiController::dynamicsThreadLow()
                 //ZMP of right, left, all
 
                 //
+
+                /*
                 static int step_cnt = -1;
                 static int step_cnt_before = -1;
 
@@ -1791,7 +1823,7 @@ void TocabiController::dynamicsThreadLow()
                 //tocabi_.ZMP_desired2(0) = int_y;
                 zmp_desired_before.segment(0, 2) = zmp_desired;
                 first_loop = false;
-                step_cnt_before = step_cnt;
+                step_cnt_before = step_cnt;*/
             }
             else if (tc.mode == 9)
             {
@@ -1974,7 +2006,6 @@ void TocabiController::dynamicsThreadLow()
             TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
         tocabi_.torque_contact = TorqueContact;
-
         tp[5] = std::chrono::steady_clock::now();
         ///////////////////////////////////////////////////////////////////////////////////////
         //////////////////              Controller Code End             ///////////////////////
@@ -1999,7 +2030,6 @@ void TocabiController::dynamicsThreadLow()
         //VectorXd contactforce_custom = Robot.J_C_INV_T * Robot.Slc_k_T * torque_desired - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
 
         tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
-
         //std::cout << "Contact Force With : " << std::endl
         //          << tocabi_.ContactForce.transpose() << std::endl;
         tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
@@ -2018,7 +2048,6 @@ void TocabiController::dynamicsThreadLow()
         tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81;
         tocabi_.ZMP_eqn_calc(1) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81 + tocabi_.com_.angular_momentum(0) / (tocabi_.com_.mass * 9.81);
         tocabi_.ZMP_eqn_calc(2) = 0.0;
-
         //std::cout << "ZMP desired : " << tocabi_.ZMP_desired(1) << "\tZMP ft : " << tocabi_.ZMP_ft(1) << "\tZMP error : " << tocabi_.ZMP_error(1) << std::endl;
         //std::cout << "zmp error x : "<< zmp1(0) <<"  y : "<< zmp1(1)<<std::endl;
 

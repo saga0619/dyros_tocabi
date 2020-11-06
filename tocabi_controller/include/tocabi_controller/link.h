@@ -14,7 +14,7 @@ struct VelCommand
 {
   int link_;
   Eigen::Vector6d des_vel;
-  
+
   bool used_;
 };
 
@@ -69,6 +69,8 @@ struct TaskCommand
   bool dob;
   bool mom;
   bool imu_walk;
+
+  bool link_contact[4];
 
   //taskgain
   bool custom_taskgain;
@@ -125,7 +127,7 @@ public:
 
   // update Jacobian matrix of local position at link.
   void Set_Jacobian(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
-  
+
   // update Point Jacobian matrix of local position at link.
   void Set_Jacobian_custom(RigidBodyDynamics::Model &model_, const Eigen::VectorQVQd &q_virtual_, Eigen::Vector3d &Jacobian_position);
 
@@ -177,7 +179,7 @@ public:
   bool Check_name(RigidBodyDynamics::Model &model_);
 
   void Get_PointPos(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_virtual, Eigen::Vector3d &local_pos, Eigen::Vector3d &global_pos, Eigen::Vector6d &global_velocity6D);
-  
+
   //constant variables
   int id;
   double Mass;
@@ -327,7 +329,6 @@ public:
   std::vector<double> vector_kp, vector_kv, vector_NM2CNT;
   std::vector<double> v_com_kp, v_com_kv, v_up_kp, v_up_kv, v_pelv_kp, v_pelv_kv, v_hand_kp, v_hand_kv, v_foot_kp, v_foot_kv;
 
-
   Eigen::VectorQd q_desired_;
   Eigen::VectorQd q_dot_desired_;
   Eigen::VectorQd q_;
@@ -342,7 +343,7 @@ public:
 
   Eigen::VectorQd q_dot_before_;
   Eigen::VectorQd q_dot_diff_;
-  
+
   Eigen::VectorQd q_ddot_estimate_;
 
   Eigen::VectorXd ContactForce;
@@ -370,6 +371,9 @@ public:
   bool qp2nd = false;
   bool signal_yaw_init = false;
   Eigen::Vector3d fstar;
+
+  double com_vel_limit;
+  double com_acc_limit;
 
   //bool contact_[ENDEFFECTOR_NUMBER] = {true, true};
 
