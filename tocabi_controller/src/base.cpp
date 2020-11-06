@@ -33,6 +33,8 @@ int main(int argc, char **argv)
     dc.nh.getParam("/tocabi_controller/Kv", dc.tocabi_.vector_kv);
     dc.nh.getParam("/tocabi_controller/vellimit", dc.safety_limit);
     dc.nh.getParam("/tocabi_controller/NM2CNT", dc.tocabi_.vector_NM2CNT);
+    dc.nh.getParam("/tocabi_controller/opvellimit", dc.tocabi_.com_vel_limit);
+    dc.nh.getParam("/tocabi_controller/opacclimit", dc.tocabi_.com_acc_limit);
 
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");

@@ -17,6 +17,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
+    support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon",100);
     ft_viz_msg.markers.resize(4);
     syspub_msg.data.resize(6);
     imu_lin_acc_lpf.setZero();
@@ -376,9 +377,13 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[2].y = link_[Left_Foot].xpos(1);
     pointpub_msg.polygon.points[2].z = link_[Left_Foot].xpos(2);
 
-    pointpub_msg.polygon.points[3].x = dc.tocabi_.link_[Pelvis].xpos(0);
-    pointpub_msg.polygon.points[3].y = dc.tocabi_.link_[Pelvis].xpos(1);
-    pointpub_msg.polygon.points[3].z = dc.tocabi_.link_[Pelvis].xpos(2);
+    Eigen::Vector3d pelv_mod(0.11, 0, 0.02);
+    Eigen::Vector3d pelv_pos = dc.tocabi_.link_[Pelvis].xpos + dc.tocabi_.link_[Pelvis].Rotm * pelv_mod;
+    //dc.tocabi_.link_[Pelvis].Get_PointPos()
+
+    pointpub_msg.polygon.points[3].x = pelv_pos(0);
+    pointpub_msg.polygon.points[3].y = pelv_pos(1);
+    pointpub_msg.polygon.points[3].z = pelv_pos(2);
 
     pointpub_msg.polygon.points[4].x = dc.tocabi_.roll;
     pointpub_msg.polygon.points[4].y = dc.tocabi_.pitch;
@@ -1101,7 +1106,7 @@ void StateManager::stateEstimate()
 
         if (dc.semode_init)
         {
-            std::cout<<"state Estimation Initialized"<<std::endl;
+            std::cout << "state Estimation Initialized" << std::endl;
             RF_contact_pos_holder(2) = 0.0; // - RF_contactpoint_internal_pos(2);
             LF_contact_pos_holder(2) = 0.0; // - LF_contactpoint_internal_pos(2);
             RF_contact_pos_mod.setZero();
@@ -1199,7 +1204,6 @@ void StateManager::stateEstimate()
 
         imu_acc_dat = imu_acc_dat - imu_init;
 
-        
         double dt = 0.0005;
         double tau = 0.6;
         double alpha = tau / (tau + dt);

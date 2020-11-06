@@ -1,6 +1,14 @@
 #ifndef QUADRATICPROGRAM_H
 #define QUADRATICPROGRAM_H
 
+
+/*
+QPoases rapper 
+min   0.5 * x' * H * x + x' * g
+  x 
+    lbA < A x < ubA
+    lb < x < ub
+*/
 #include <iostream>
 #include "math_type_define.h"
 #include <Eigen/Dense>

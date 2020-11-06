@@ -140,7 +140,7 @@ public:
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
 
   Vector3d COM_traj_with_zmp(RobotData &Robot);
-
+  void getSupportPolygon(RobotData &Robot, std::vector<Eigen::Vector2d> &edge_point_list);
   //zmp controller
   void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
