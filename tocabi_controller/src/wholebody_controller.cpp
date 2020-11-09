@@ -194,10 +194,14 @@ void WholebodyController::set_contact(RobotData &Robot)
     //contact_set(contact_index, contact_part);
 
     Robot.J_C.setZero(Robot.contact_index * 6, MODEL_DOF_VIRTUAL);
+
+    Robot.link_[Left_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Foot].contact_point);
+    Robot.link_[Right_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Foot].contact_point);
+    Robot.link_[Left_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Hand].contact_point);
+    Robot.link_[Right_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Hand].contact_point);
+
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Robot.link_[Robot.contact_part[i]].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Robot.contact_part[i]].contact_point);
-        Robot.link_[Robot.contact_part[i]].Set_Sensor_Position(Robot.q_virtual_, Robot.link_[Robot.contact_part[i]].sensor_point);
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
     set_robot_init(Robot);
@@ -244,10 +248,15 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
     //contact_set(contact_index, contact_part);
 
     Robot.J_C.setZero(Robot.contact_index * 6, MODEL_DOF_VIRTUAL);
+
+
+    Robot.link_[Left_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Foot].contact_point);
+    Robot.link_[Right_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Foot].contact_point);
+    Robot.link_[Left_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Hand].contact_point);
+    Robot.link_[Right_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Hand].contact_point);
+
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Robot.link_[Robot.contact_part[i]].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Robot.contact_part[i]].contact_point);
-        Robot.link_[Robot.contact_part[i]].Set_Sensor_Position(Robot.q_virtual_, Robot.link_[Robot.contact_part[i]].sensor_point);
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
 
@@ -3299,16 +3308,16 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
     }
 
     Eigen::Vector3d com_f = Robot.total_mass * (fstar_regulated - Robot.Grav_ref);
-    if (abs(com_f(0)) > abs(com_f(2) * Robot.friction_ratio * 0.9))
+    if (abs(com_f(0)) > abs(com_f(2) * Robot.friction_ratio))
     {
         //std::cout << "original fx : " << fstar_regulated(0) << std::endl;
-        fstar_regulated(0) = fstar_regulated(0) / abs(com_f(0)) * abs(com_f(2) * Robot.friction_ratio * 0.9);
+        fstar_regulated(0) = fstar_regulated(0) / abs(com_f(0)) * abs(com_f(2) * Robot.friction_ratio );
         //std::cout << "modified fx : " << fstar_regulated(0) << std::endl;
     }
-    if (abs(com_f(1)) > abs(com_f(2) * Robot.friction_ratio * 0.9))
+    if (abs(com_f(1)) > abs(com_f(2) * Robot.friction_ratio))
     {
         //std::cout << "original fy : " << fstar_regulated(1) << std::endl;
-        fstar_regulated(1) = fstar_regulated(1) / abs(com_f(1)) * abs(com_f(2) * Robot.friction_ratio * 0.9);
+        fstar_regulated(1) = fstar_regulated(1) / abs(com_f(1)) * abs(com_f(2) * Robot.friction_ratio);
         //std::cout << "modified fy : " << fstar_regulated(1) << std::endl;
     }
 

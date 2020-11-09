@@ -194,36 +194,51 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
     bool damping_mode = false;
     if (ElmoSafteyMode[slv_number] == 0)
     {
-        if (checkPosSafety[slv_number])
+        if (dc.zp_state == 2)
         {
-            if (abs(positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) > max_dis * 10.0)
+            if (checkPosSafety[slv_number])
             {
-                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " trajectory discontinuity : " << (positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) << creset << std::endl;
-                pub_to_gui(dc, "Lock %d %s , traj err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
-                dc.safetyison = true;
-                ElmoSafteyMode[slv_number] = 1;
-                positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
+                if (abs(positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) > max_dis * 10.0)
+                {
+                    std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " trajectory discontinuity : " << (positionDesiredElmo(slv_number) - positionDesiredElmo_Before(slv_number)) << creset << std::endl;
+                    pub_to_gui(dc, "Lock %d %s , traj err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
+                    dc.safetyison = true;
+                    ElmoSafteyMode[slv_number] = 1;
+                    positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
+                }
             }
-        }
-        if (ElmoMode[slv_number] == EM_POSITION)
-        {
-            if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 10.0)
+            if (ElmoMode[slv_number] == EM_POSITION)
+            {
+                if (abs(positionDesiredElmo(slv_number) - positionElmo(slv_number)) > max_dis * 10.0)
+                {
+                    dc.safetyison = true;
+                    std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command discontinuity : " << (positionDesiredElmo(slv_number) - positionElmo(slv_number)) << creset << std::endl;
+                    pub_to_gui(dc, "Lock %d %s , command err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
+                    ElmoSafteyMode[slv_number] = 1;
+                    positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
+                }
+            }
+
+            if (abs(velocityElmo(slv_number)) > max_vel)
             {
                 dc.safetyison = true;
-                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Position Command discontinuity : " << (positionDesiredElmo(slv_number) - positionElmo(slv_number)) << creset << std::endl;
-                pub_to_gui(dc, "Lock %d %s , command err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
+                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Velocity Over Limit" << creset << std::endl;
+                pub_to_gui(dc, "Lock %d %s , velocity err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
                 ElmoSafteyMode[slv_number] = 1;
                 positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
             }
         }
 
-        if (abs(velocityElmo(slv_number)) > max_vel)
+        if (dc.zp_state == 2)
         {
-            dc.safetyison = true;
-            std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Velocity Over Limit" << creset << std::endl;
-            pub_to_gui(dc, "Lock %d %s , velocity err", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
-            ElmoSafteyMode[slv_number] = 1;
-            positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
+            if (((positionElmo[slv_number] - positionZeroElmo[slv_number]) > jointLimitUp[slv_number]) || ((positionElmo[slv_number] - positionZeroElmo[slv_number]) < jointLimitLow[slv_number]))
+            {
+                dc.safetyison = true;
+                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Joint Limit exceeded, " << rq_(slv_number) << creset << std::endl;
+                pub_to_gui(dc, "Lock %d %s , joint limit reached ", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
+                ElmoSafteyMode[slv_number] = 1;
+                positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
+            }
         }
     }
 
@@ -1383,14 +1398,8 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = false;
                                 }
 
-                                if (i == TOCABI::R_AnkleRoll_Joint || i == TOCABI::L_AnkleRoll_Joint)
-                                {
-                                }
-                                else
-                                {
-                                    checkSafety(i, dc.safety_limit[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
-                                }
-                                checkJointLimit(i);
+                                //checkJointLimit(i);
+                                checkSafety(i, dc.safety_limit[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                             }
 
                             //Torque off if emergency off received
@@ -1406,7 +1415,7 @@ void RealRobotInterface::ethercatThread()
                             //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
                             ec_send_processdata();
 
-                            for(int i=0;i<ec_slavecount;i++)
+                            for (int i = 0; i < ec_slavecount; i++)
                             {
                                 dc.torqueElmo[i] = roundtoint(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
                             }
@@ -1694,11 +1703,11 @@ void RealRobotInterface::ftsensorThread()
             }
         }
         else
-        {   
-            if(ft_calib_finish == false)
+        {
+            if (ft_calib_finish == false)
             {
                 pub_to_gui(dc, "initreq");
-                dc.ft_state = 1;          
+                dc.ft_state = 1;
             }
         }
 
@@ -1713,16 +1722,16 @@ void RealRobotInterface::ftsensorThread()
 
                 ft_init_log.open(ft_init_path, ios_base::out);
 
-                if(ft_init_log.is_open())
+                if (ft_init_log.is_open())
                 {
-                    for(int i = 0; i<6; i++)
+                    for (int i = 0; i < 6; i++)
                     {
-                        ft_init_log << ft.leftFootBias[i] <<"\n";                   
+                        ft_init_log << ft.leftFootBias[i] << "\n";
                     }
 
-                    for(int i = 0; i<6; i++)
+                    for (int i = 0; i < 6; i++)
                     {
-                        ft_init_log << ft.rightFootBias[i] <<"\n";                 
+                        ft_init_log << ft.rightFootBias[i] << "\n";
                     }
                 }
 
@@ -1755,8 +1764,7 @@ void RealRobotInterface::ftsensorThread()
             }
         }
         if (dc.print_ft_info_tofile)
-        { 
-
+        {
         }
     }
     std::cout << "FTsensor Thread End!" << std::endl;
@@ -1787,7 +1795,7 @@ void RealRobotInterface::handftsensorThread()
 
     ft_upper.InitDriver();
     dc.ftcalib = true;
-    
+
     while (!shutdown_tocabi_bool)
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
@@ -1814,7 +1822,7 @@ void RealRobotInterface::handftsensorThread()
         }
         else
         {
-//            pub_to_gui(dc, "initreq");
+            //            pub_to_gui(dc, "initreq");
         }
 
         if (ft_calib_finish == true)

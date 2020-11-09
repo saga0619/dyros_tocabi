@@ -425,13 +425,13 @@ void StateManager::adv2ROS(void)
 
     // use points below :)
 
-    pointpub_msg.polygon.points[10].x = dc.tocabi_.ZMP_ft(0);
-    pointpub_msg.polygon.points[10].y = dc.tocabi_.ZMP_ft(1);
-    pointpub_msg.polygon.points[10].z = dc.tocabi_.ZMP_ft(2);
+    pointpub_msg.polygon.points[10].x = LF_CF_FT(0);
+    pointpub_msg.polygon.points[10].y = LF_CF_FT(1);
+    pointpub_msg.polygon.points[10].z = LF_CF_FT(2);
 
-    pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[Pelvis].v(0);
-    pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[Pelvis].v(1);
-    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[Pelvis].v(2);
+    pointpub_msg.polygon.points[11].x = LF_CF_FT(3);
+    pointpub_msg.polygon.points[11].y = LF_CF_FT(4);
+    pointpub_msg.polygon.points[11].z = LF_CF_FT(5);
 
     pointpub_msg.polygon.points[12].x = RF_CF_FT(0);
     pointpub_msg.polygon.points[12].y = RF_CF_FT(1);

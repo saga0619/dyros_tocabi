@@ -546,8 +546,8 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
 
     q_dm.resize(5);
        
-    kx_vib(0) = 2353;
-    cx_vib(0) = 0.295;
+    kx_vib(0) = 800;
+    cx_vib(0) = 5;
 
 /*
     kx_vib(0) = 918.22;
@@ -556,8 +556,8 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
 //    kx_vib(0) = 918.22;
 //    cx_vib(0) = 7788.16;
 
-    ky_vib(0) = 8276.02;
-    cy_vib(0) = 130.1744;
+    ky_vib(0) = 500;
+    cy_vib(0) = 100;
 
     m = 9.81 * Robot.total_mass;
 
@@ -587,12 +587,12 @@ void Walking_controller::setRobotStateInitialize(RobotData &Robot)
     L1.resize(2,3); 
     L2.resize(2,3);
 
-    L1(0,0) = 0.0199;
-    L1(0,1) = 0.0579;
-    L1(0,2) = 1.9969;
-    L1(1,0) = -7.785;
-    L1(1,1) = 1.9969;
-    L1(1,2) = 114.3008;
+    L1(0,0) = 0.3937;
+    L1(0,1) = 0.7886;
+    L1(0,2) = 1.3308;
+    L1(1,0) = -3.4718;
+    L1(1,1) = 1.3308;
+    L1(1,2) = 7.1365;
     
     vib_est = false;
 
@@ -1270,22 +1270,22 @@ void Walking_controller::comVibrationController()
 
             }
 
-            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(walking_tick));
-            PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(walking_tick));
-        //      final_posx(0) = PELV_trajectory_float.translation()(0) - 0.3* (xx_vib_est(0)-com_refx(walking_tick));
+      //      PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(walking_tick));
+     //       PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(walking_tick));
+              final_posx(0) = PELV_trajectory_float.translation()(0) - 0.3* (xx_vib_est(0)-com_refx(walking_tick));
         //    final_posx(0) = PELV_trajectory_float.translation()(0);
         //    final_posy(0) = PELV_trajectory_float.translation()(1);
         }
         else
         {
-            PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(t_total + t_last - 4));
-            PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(t_total + t_last - 4));;
+      //      PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) - 0.1 * (xx_vib_est(0)-com_refx(t_total + t_last - 4));
+      //      PELV_trajectory_float.translation()(1) = PELV_trajectory_float.translation()(1) - 3.0 * (xy_vib_est(0)-com_refy(t_total + t_last - 4));;
         }
         
     }
     else
     {
-        PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) + 3.0*(PELV_float_current.translation()(0) - PELV_first_init.translation()(0));        
+      //  PELV_trajectory_float.translation()(0) = PELV_trajectory_float.translation()(0) + 3.0*(PELV_float_current.translation()(0) - PELV_first_init.translation()(0));        
     }    
 }
 
