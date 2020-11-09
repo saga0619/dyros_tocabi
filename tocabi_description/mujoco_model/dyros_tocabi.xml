@@ -280,6 +280,7 @@
                                                         <joint name="L_Wrist2_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.094 2.094" class="Upper"/>
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="cls"/>
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
+                                                        <site class="FTsensor" name="LH_FT" pos="0 0 -0.035"/>
                                                     </body>
                                                 </body>
                                             </body>
@@ -333,6 +334,7 @@
                                                         <joint name="R_Wrist2_Joint" pos="0 0 0" axis="0 -1 0" limited="true" range="-2.094 2.094" class="Upper"/>
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="cls" />
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
+                                                        <site class="FTsensor" name="RH_FT" pos="0 0 -0.035"/>
                                                     </body>
                                                 </body>
                                             </body>
@@ -394,6 +396,11 @@
         <torque name="LF_Torque_sensor" site="LF_FT"/>
         <force name="RF_Force_sensor" site="RF_FT"/>
         <torque name="RF_Torque_sensor" site="RF_FT"/>
+
+        <force name="LH_Force_sensor" site="LH_FT"/>
+        <torque name="LH_Torque_sensor" site="LH_FT"/>
+        <force name="RH_Force_sensor" site="RH_FT"/>
+        <torque name="RH_Torque_sensor" site="RH_FT"/>
 
         <accelerometer name="Acc_Pelvis_IMU" site="Pelvis_IMU"/>
         <gyro name="Gyro_Pelvis_IMU" site="Pelvis_IMU"/>

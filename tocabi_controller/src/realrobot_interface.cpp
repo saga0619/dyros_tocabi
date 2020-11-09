@@ -893,7 +893,7 @@ void RealRobotInterface::ethercatThread()
                                             hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                         }
                                         
-                                        txPDO[slave - 1]->maxTorque = (uint16)1000; // originaly 1000
+                                        txPDO[slave - 1]->maxTorque = (uint16)1500; // originaly 1000
                                         ElmoMode[slave - 1] = EM_TORQUE;
                                         torqueDemandElmo[slave - 1] = 0.0;
                                     }

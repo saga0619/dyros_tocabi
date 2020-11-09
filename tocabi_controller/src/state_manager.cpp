@@ -17,7 +17,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
-    support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon",100);
+    support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon", 100);
     ft_viz_msg.markers.resize(4);
     syspub_msg.data.resize(6);
     imu_lin_acc_lpf.setZero();
@@ -343,8 +343,9 @@ void StateManager::adv2ROS(void)
     {
         joint_state_msg.position[i] = q_virtual_local_[i + 6];
         joint_state_msg.velocity[i] = q_dot_virtual_local_[i + 6];
-        joint_state_msg.effort[i] = dc.torque_desired[i];
-        acc_dif_info_msg.motorinfo1[i] = dc.tocabi_.q_ddot_estimate_[i];
+        joint_state_msg.effort[i] = dc.q_dot_virtual_lpf[i + 6];
+        acc_dif_info_msg.motorinfo1[i] = dc.q_dot_virtual_lpf[i + 6];
+        acc_dif_info_msg.motorinfo2[i] = q_dot_est[i];
     }
 
     motor_acc_dif_info_pub.publish(acc_dif_info_msg);
@@ -598,6 +599,7 @@ void StateManager::storeState()
     dc.q_virtual_ = q_virtual_;
     dc.q_ddot_virtual_ = q_ddot_virtual_;
     dc.q_ext_ = q_ext_;
+    //dc.q_dot_est_ = q_dot_est;
 
     dc.tau_nonlinear_ = tau_nonlinear_;
 
@@ -1220,7 +1222,7 @@ void StateManager::stateEstimate()
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
-            q_dot_virtual_(i) = pelv_v(i);
+            q_dot_virtual_(i) = mod_base_vel(i);
         }
 
         //acceleration calculation!
