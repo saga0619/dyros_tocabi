@@ -51,6 +51,8 @@ public:
 
   void contactEstimate();
 
+  void pelvisPosMonitor();
+
   void stateEstimate();
   //private functions
 

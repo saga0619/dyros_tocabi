@@ -205,6 +205,7 @@ void StateManager::stateThread(void)
                 handleFT();
                 contactEstimate();
                 stateEstimate();
+                pelvisPosMonitor();
                 //lowpass filter for q_dot
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
                 jointVelocityEstimate();
@@ -548,6 +549,28 @@ void StateManager::updateState()
 void StateManager::sendCommand(Eigen::VectorQd command, double simt, int control_mode)
 {
     //overrid by simulation or red robot
+}
+
+void StateManager::pelvisPosMonitor()
+{
+
+    static Vector3d pelv_pos_before;
+
+    Vector3d currentPelvPos = q_virtual_.segment(0, 3);
+
+    Vector3d pos_err = currentPelvPos - pelv_pos_before;
+    bool problem_is_here = false;
+    for (int i = 0; i < 3; i++)
+    {
+        pos_err(i) * 2000 > 0.2;
+        problem_is_here = true;
+    }
+
+    if (problem_is_here)
+    {
+        std::cout << cred << "WARNING :: PELV POSITION TRACKING ERROR :: BEFORE : " << pelv_pos_before.transpose() << "  NOW : " << currentPelvPos.transpose() << creset << std::endl;
+    }
+    pelv_pos_before = currentPelvPos;
 }
 
 void StateManager::initialize()
