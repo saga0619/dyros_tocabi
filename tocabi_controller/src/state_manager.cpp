@@ -343,7 +343,7 @@ void StateManager::adv2ROS(void)
     {
         joint_state_msg.position[i] = q_virtual_local_[i + 6];
         joint_state_msg.velocity[i] = q_dot_virtual_local_[i + 6];
-        joint_state_msg.effort[i] = dc.torque_desired[i];
+        joint_state_msg.effort[i] = dc.q_dot_virtual_lpf[i+6];
         acc_dif_info_msg.motorinfo1[i] = dc.tocabi_.q_ddot_estimate_[i];
     }
 
@@ -424,13 +424,13 @@ void StateManager::adv2ROS(void)
 
     // use points below :)
 
-    pointpub_msg.polygon.points[10].x = dc.tocabi_.ZMP_ft(0);
-    pointpub_msg.polygon.points[10].y = dc.tocabi_.ZMP_ft(1);
-    pointpub_msg.polygon.points[10].z = dc.tocabi_.ZMP_ft(2);
+    pointpub_msg.polygon.points[10].x = LF_CF_FT(0);
+    pointpub_msg.polygon.points[10].y = LF_CF_FT(1);
+    pointpub_msg.polygon.points[10].z = LF_CF_FT(2);
 
-    pointpub_msg.polygon.points[11].x = dc.tocabi_.link_[Pelvis].v(0);
-    pointpub_msg.polygon.points[11].y = dc.tocabi_.link_[Pelvis].v(1);
-    pointpub_msg.polygon.points[11].z = dc.tocabi_.link_[Pelvis].v(2);
+    pointpub_msg.polygon.points[11].x = LF_CF_FT(3);
+    pointpub_msg.polygon.points[11].y = LF_CF_FT(4);
+    pointpub_msg.polygon.points[11].z = LF_CF_FT(5);
 
     pointpub_msg.polygon.points[12].x = RF_CF_FT(0);
     pointpub_msg.polygon.points[12].y = RF_CF_FT(1);
@@ -1220,7 +1220,7 @@ void StateManager::stateEstimate()
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
-            q_dot_virtual_(i) = pelv_v(i);
+            q_dot_virtual_(i) = mod_base_vel(i);
         }
 
         //acceleration calculation!

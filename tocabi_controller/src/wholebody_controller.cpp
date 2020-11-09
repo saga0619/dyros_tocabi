@@ -140,7 +140,7 @@ void WholebodyController::set_robot_init(RobotData &Robot)
     Robot.ee_[3].cs_x_length = 0.013;
     Robot.ee_[3].cs_y_length = 0.013;
 
-    Robot.friction_ratio = 0.3;
+    Robot.friction_ratio = 0.24;
 
     Robot.ee_[0].friction_ratio = Robot.friction_ratio;
     Robot.ee_[1].friction_ratio = Robot.friction_ratio;
@@ -194,10 +194,14 @@ void WholebodyController::set_contact(RobotData &Robot)
     //contact_set(contact_index, contact_part);
 
     Robot.J_C.setZero(Robot.contact_index * 6, MODEL_DOF_VIRTUAL);
+
+    Robot.link_[Left_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Foot].contact_point);
+    Robot.link_[Right_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Foot].contact_point);
+    Robot.link_[Left_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Hand].contact_point);
+    Robot.link_[Right_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Hand].contact_point);
+
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Robot.link_[Robot.contact_part[i]].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Robot.contact_part[i]].contact_point);
-        Robot.link_[Robot.contact_part[i]].Set_Sensor_Position(Robot.q_virtual_, Robot.link_[Robot.contact_part[i]].sensor_point);
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
     set_robot_init(Robot);
@@ -244,10 +248,15 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
     //contact_set(contact_index, contact_part);
 
     Robot.J_C.setZero(Robot.contact_index * 6, MODEL_DOF_VIRTUAL);
+
+
+    Robot.link_[Left_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Foot].contact_point);
+    Robot.link_[Right_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Foot].contact_point);
+    Robot.link_[Left_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Hand].contact_point);
+    Robot.link_[Right_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Hand].contact_point);
+
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Robot.link_[Robot.contact_part[i]].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Robot.contact_part[i]].contact_point);
-        Robot.link_[Robot.contact_part[i]].Set_Sensor_Position(Robot.q_virtual_, Robot.link_[Robot.contact_part[i]].sensor_point);
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
 
@@ -1328,7 +1337,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     lbA.segment(task_dof, contact_dof) = Robot.J_C_INV_T * Robot.G; // - Robot.J_C_INV_T * Robot.Slc_k_T * gravity_torque;
     ubA.segment(task_dof, contact_dof) = Robot.J_C_INV_T * Robot.G; // - Robot.J_C_INV_T * Robot.Slc_k_T * gravity_torque;
 
-
     //R.setZero(6 * Robot.contact_index, 6 * robot.contact_index);
 
     //std::cout << "calc done!" << std::endl;
@@ -1363,7 +1371,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 5 + 6 * i) = -1.0;
         A(task_dof + contact_dof + i * constraint_per_contact + 9, MODEL_DOF + 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
 
-        
         //May cause error for hand contact!
         for (int j = 0; j < constraint_per_contact; j++)
         {
@@ -1373,7 +1380,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
             A.block(task_dof + contact_dof + i * constraint_per_contact + j, MODEL_DOF + 6 * i + 3, 1, 3) = A.block(task_dof + contact_dof + i * constraint_per_contact + j, MODEL_DOF + 6 * i + 3, 1, 3) * Robot.ee_[Robot.ee_idx[i]].rotm.transpose();
         }
     }
-
 
     for (int i = 0; i < constraint_per_contact * Robot.contact_index; i++)
     {
@@ -1410,7 +1416,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     int solve_result;
     solve_result = QP_torque.SolveQPoases(200, qpres);
 
-    
     /*
     int setup_result;
     int solve_result;
@@ -1450,7 +1455,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         Robot.contact_redistribution_mode = 0;
         task_torque = gravity_compensation_torque(Robot);
         QP_torque.InitializeProblemSize(variable_size, constraint_size);
-
     }
 
     return task_torque;
@@ -3150,9 +3154,6 @@ void WholebodyController::getSupportPolygon(RobotData &Robot, std::vector<Eigen:
 
         ep.erase(ep.begin() + idx);
     }
-
-    
-
 }
 
 Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star)
@@ -3306,16 +3307,16 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
     }
 
     Eigen::Vector3d com_f = Robot.total_mass * (fstar_regulated - Robot.Grav_ref);
-    if (abs(com_f(0)) > abs(com_f(2) * Robot.friction_ratio * 0.9))
+    if (abs(com_f(0)) > abs(com_f(2) * Robot.friction_ratio))
     {
         //std::cout << "original fx : " << fstar_regulated(0) << std::endl;
-        fstar_regulated(0) = fstar_regulated(0) / abs(com_f(0)) * abs(com_f(2) * Robot.friction_ratio * 0.9);
+        fstar_regulated(0) = fstar_regulated(0) / abs(com_f(0)) * abs(com_f(2) * Robot.friction_ratio );
         //std::cout << "modified fx : " << fstar_regulated(0) << std::endl;
     }
-    if (abs(com_f(1)) > abs(com_f(2) * Robot.friction_ratio * 0.9))
+    if (abs(com_f(1)) > abs(com_f(2) * Robot.friction_ratio))
     {
         //std::cout << "original fy : " << fstar_regulated(1) << std::endl;
-        fstar_regulated(1) = fstar_regulated(1) / abs(com_f(1)) * abs(com_f(2) * Robot.friction_ratio * 0.9);
+        fstar_regulated(1) = fstar_regulated(1) / abs(com_f(1)) * abs(com_f(2) * Robot.friction_ratio);
         //std::cout << "modified fy : " << fstar_regulated(1) << std::endl;
     }
 
