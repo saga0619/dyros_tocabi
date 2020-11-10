@@ -118,7 +118,7 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
 
                     //Angle bias modifier :::::
-                    q_rot2.setRPY(-0.00262, -0.00262,-M_PI / 2);
+                    q_rot2.setRPY(0, 0,-M_PI / 2);
                     q_new = q_rot * q * q_rot2; // * q_rot2;
 
                     imu_pub_msg.orientation = tf2::toMsg(q_new);

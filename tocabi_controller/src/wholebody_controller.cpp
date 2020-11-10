@@ -1305,7 +1305,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     double ratioFoots[4] = {rr, rl, 1, 1};
 
-    if (Robot.qp2nd)
+    if (false)
     {
         for (int i = 0; i < Robot.contact_index; i++)
         {
@@ -1402,7 +1402,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -10;
+        ub(MODEL_DOF + 6 * i + 2) = -20;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }

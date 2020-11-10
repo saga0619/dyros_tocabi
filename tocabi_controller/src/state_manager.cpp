@@ -205,7 +205,11 @@ void StateManager::stateThread(void)
                 handleFT();
                 contactEstimate();
                 stateEstimate();
-                pelvisPosMonitor();
+                if (dc.single_foot_only == false)
+                {
+                    pelvisPosMonitor();
+                }
+
                 //lowpass filter for q_dot
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
                 jointVelocityEstimate();
@@ -553,24 +557,6 @@ void StateManager::sendCommand(Eigen::VectorQd command, double simt, int control
 
 void StateManager::pelvisPosMonitor()
 {
-
-    static Vector3d pelv_pos_before;
-
-    Vector3d currentPelvPos = q_virtual_.segment(0, 3);
-
-    Vector3d pos_err = currentPelvPos - pelv_pos_before;
-    bool problem_is_here = false;
-    for (int i = 0; i < 3; i++)
-    {
-        pos_err(i) * 2000 > 0.2;
-        problem_is_here = true;
-    }
-
-    if (problem_is_here)
-    {
-        std::cout << cred << "WARNING :: PELV POSITION TRACKING ERROR :: BEFORE : " << pelv_pos_before.transpose() << "  NOW : " << currentPelvPos.transpose() << creset << std::endl;
-    }
-    pelv_pos_before = currentPelvPos;
 }
 
 void StateManager::initialize()
@@ -1198,6 +1184,19 @@ void StateManager::stateEstimate()
         rf_s_ratio = dr / (dr + dl);
         lf_s_ratio = dl / (dl + dr);
 
+        lf_s_ratio = DyrosMath::minmax_cut(lf_s_ratio, 0, 1);
+        if (lf_s_ratio == 0)
+        {
+            rf_s_ratio = 1;
+        }
+        else if (lf_s_ratio == 1)
+        {
+            rf_s_ratio = 0;
+        }
+        else
+        {
+            rf_s_ratio = DyrosMath::minmax_cut(rf_s_ratio, 0, 1);
+        }
         //std::cout << " dr : " << dr << "  dl : " << dl << "  rf_s_ratio : " << rf_s_ratio << "  lf_s_ratio : " << lf_s_ratio << std::endl;
         if (contact_right && contact_left)
         {
@@ -1219,6 +1218,12 @@ void StateManager::stateEstimate()
         else
         {
             std::cout << "whatthefuck" << std::endl;
+        }
+
+        if (dc.single_foot_only)
+        {
+            mod_base_pos = rf_cp_m;
+            mod_base_vel = -RF_fixed_contact_vel.segment(3, 3);
         }
 
         //Pelvis Velocity Complementary filter
@@ -1251,6 +1256,54 @@ void StateManager::stateEstimate()
         //acceleration calculation!
         //q_ddot_virtual_ = (q_dot_virtual_ - q_dot_virtual_before) / ((double)dc.ctime / 1000000.0);
         //q_dot_virtual_before = q_dot_virtual_;
+
+        static Vector3d pelv_pos_before;
+
+        Vector3d currentPelvPos = q_virtual_.segment(0, 3);
+
+        Vector3d pos_err = currentPelvPos - pelv_pos_before;
+        static Vector3d rf1, rf2, rf3, rf4;
+        static bool rf_b, lf_b;
+        bool problem_is_here = false;
+        static VectorQVQd q_v_before;
+        static bool err_before = true;
+        if (dc.torqueOn && (control_time_ > (dc.torqueOnTime + 5.0)))
+        {
+            if (((currentPelvPos(0) == 0) && (currentPelvPos(1) == 0) && (currentPelvPos(2) == 0)) || ((pelv_pos_before(0) == 0) && (pelv_pos_before(1) == 0) && (pelv_pos_before(2) == 0)))
+            {
+            }
+            else
+            {
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (pos_err(i) * 2000 > 50.0)
+                        problem_is_here = true;
+                }
+            }
+        }
+        if (problem_is_here)
+        {
+            std::cout << cred << "WARNING :: PELV POSITION TRACKING ERROR :: BEFORE : " << pelv_pos_before.transpose() << "  NOW : " << currentPelvPos.transpose() << creset << std::endl;
+
+            std::cout << "INFO : " << -mod_base_pos.transpose() << " RF ratio : " << rf_s_ratio << " LF ratio : " << lf_s_ratio << " RF ratio bf : " << rf_b << " LF ratio bf : " << lf_b << std::endl;
+            std::cout << " RF fix cp : " << RF_fixed_contact_pos.transpose() << " RF cp hd : " << RF_contact_pos_holder.transpose() << " LF fix cp : " << LF_fixed_contact_pos.transpose() << " RF cp hdl : " << LF_contact_pos_holder.transpose() << std::endl;
+
+            std::cout << " RF fix cp : " << rf1.transpose() << " RF cp hd : " << rf2.transpose() << " LF fix cp : " << rf3.transpose() << " RF cp hdl : " << rf4.transpose() << std::endl;
+
+            std::cout << q_virtual_local_.transpose();
+            std::cout << q_v_before.transpose();
+            //q_virtual_.segment(0, 3) = pelv_pos_before;
+            //currentPelvPos = pelv_pos_before;
+        }
+        q_v_before = q_virtual_local_;
+        rf_b = rf_s_ratio;
+        lf_b = lf_s_ratio;
+        rf1 = RF_fixed_contact_pos;
+        rf2 = RF_contact_pos_holder;
+        rf3 = LF_fixed_contact_pos;
+        rf4 = LF_contact_pos_holder;
+        pelv_pos_before = currentPelvPos;
     }
     else
     {
@@ -1396,6 +1449,11 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
             dc.torqueOffTime = control_time_;
             dc.torqueOn = false;
             dc.torqueOff = true;
+            dc.signal_gravityCompensation = true;
+
+            dc.tocabi_.contact_redistribution_mode = 0;
+
+            dc.tc_state = 3;
         }
         else if (dc.torqueOff)
         {
@@ -1577,6 +1635,18 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         else
         {
             std::cout << "Enable LowerBody" << std::endl;
+        }
+    }
+    else if (msg->data == "singlefootonly")
+    {
+        dc.single_foot_only = !dc.single_foot_only;
+        if (dc.single_foot_only)
+        {
+            std::cout << "Single foot only disable" << std::endl;
+        }
+        else
+        {
+            std::cout << "single foot only enabled" << std::endl;
         }
     }
 }
