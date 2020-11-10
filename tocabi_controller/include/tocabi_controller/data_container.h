@@ -56,6 +56,7 @@ public:
   bool imu_ignore = false;
   bool sebyft = false;
   bool set_q_init = false;
+  bool single_foot_only = false;
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;
