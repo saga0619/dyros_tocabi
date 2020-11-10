@@ -1637,6 +1637,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         if (dc.disableLowerBody)
         {
             std::cout << "Disable LowerBody" << std::endl;
+            dc.q_hold_lower_ = dc.q_;
         }
         else
         {

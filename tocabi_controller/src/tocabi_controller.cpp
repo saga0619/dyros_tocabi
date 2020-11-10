@@ -470,6 +470,14 @@ void TocabiController::dynamicsThreadHigh()
                     }
                 }
             }
+
+            if(dc.disableLowerBody)
+            {
+                for(int i=0;i<15;i++)
+                {
+                    torque_desired(i) = dc.tocabi_.Kps[i] * (dc.q_hold_lower_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * tocabi_.q_dot_(i);
+                }
+            }
             mtx.lock();
             dc.torque_desired = torque_desired;
             s_.sendCommand(torque_desired, sim_time);

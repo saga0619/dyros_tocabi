@@ -1277,7 +1277,7 @@ void RealRobotInterface::ethercatThread()
                             {
                                 if (operation_ready)
                                 {
-                                    if (dc.disableLowerBody)
+                                    if (false)
                                     {
                                         for (int i = 0; i < 6; i++)
                                         {
