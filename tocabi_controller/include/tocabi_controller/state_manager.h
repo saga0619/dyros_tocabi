@@ -122,6 +122,8 @@ public:
   Eigen::MatrixVVd A_inv;
   Eigen::MatrixXd A_temp_;
 
+  Eigen::Vector7d q_virtual_hold;
+
   Eigen::MatrixVVd Motor_inertia_;
   Eigen::MatrixVVd Motor_inertia_inv;
 

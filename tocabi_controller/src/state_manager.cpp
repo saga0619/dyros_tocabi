@@ -188,7 +188,7 @@ void StateManager::stateThread(void)
                 break;
             }
 
-            if (dc.imu_ignore == true)
+            if (false)//dc.imu_ignore == true)
             {
                 for (int i = 0; i < 6; i++)
                 {
@@ -209,7 +209,11 @@ void StateManager::stateThread(void)
                 {
                     pelvisPosMonitor();
                 }
-
+                if(dc.imu_ignore)
+                {
+                    q_virtual_.segment(0,6) = q_virtual_hold.segment(0,6);
+                    q_virtual_(MODEL_DOF_VIRTUAL) = q_virtual_hold(6);
+                }
                 //lowpass filter for q_dot
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
                 jointVelocityEstimate();
@@ -1607,6 +1611,8 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         if (dc.imu_ignore)
         {
             std::cout << "imu ignore : on" << std::endl;
+            q_virtual_hold.segment(0,6) = q_virtual_.segment(0,6);
+            q_virtual_hold(6) = q_virtual_(MODEL_DOF_VIRTUAL); 
         }
         else
         {
