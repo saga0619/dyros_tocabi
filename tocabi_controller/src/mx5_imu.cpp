@@ -116,9 +116,8 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                     q_rot.setRPY(M_PI, 0, M_PI / 2);
 
-
                     //Angle bias modifier :::::
-                    q_rot2.setRPY(0, 0,-M_PI / 2);
+                    q_rot2.setRPY(0, 0, -M_PI / 2);
                     q_new = q_rot * q * q_rot2; // * q_rot2;
 
                     imu_pub_msg.orientation = tf2::toMsg(q_new);
@@ -531,4 +530,44 @@ void MX5IMU::parseData_custum(mscl::InertialNode &node)
     }
 
     imu_pub.publish(imu_pub_msg);
+}
+
+void MX5IMU::checkIMUData()
+{
+    //compare IMU QUAT
+
+    //compare IMU angular velocity
+
+    tf2::Quaternion qbefore(imu_pub_msg_before.orientation.x, imu_pub_msg_before.orientation.y, imu_pub_msg_before.orientation.z, imu_pub_msg_before.orientation.w);
+
+    tf2::Quaternion q(imu_pub_msg.orientation.x, imu_pub_msg.orientation.y, imu_pub_msg.orientation.z, imu_pub_msg.orientation.w);
+
+    double r1, p1, y1;
+    tf2::Matrix3x3(qbefore).getRPY(r1, p1, y1);
+
+    double r2, p2, y2;
+    tf2::Matrix3x3(q).getRPY(r2, p2, y2);
+
+    double w[3];
+
+    w[0] = r2 - r1;
+    w[1] = p2 - p1;
+    w[2] = y2 - y1;
+
+    if (abs(w[0]) > 0.3)
+    {
+        std::cout<<"roll error !"<<std::endl;
+    }
+    else if (abs(w[1]) > 0.3)
+    {
+        std::cout<<"pitch error !"<<std::endl;
+    }
+    else if (abs(w[2]) > 0.3)
+    {
+        std::cout<<"yaw error !"<<std::endl;
+    }
+
+    //imu_pub_msg_before.orientation.
+
+    imu_pub_msg_before = imu_pub_msg;
 }

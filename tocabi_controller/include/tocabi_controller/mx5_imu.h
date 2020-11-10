@@ -20,6 +20,7 @@ public:
 
     ros::Publisher imu_pub;
     sensor_msgs::Imu imu_pub_msg;
+    sensor_msgs::Imu imu_pub_msg_before;
 
     mscl::InertialNode *np;
 
@@ -29,6 +30,8 @@ public:
     bool rst_pub_once = true;
     bool rst_pub_once2 = true;
     tf2_ros::TransformBroadcaster br;
+
+    //Eigen::Vector4d 
 
     void initIMU();
     void resetEFIMU();
@@ -48,4 +51,6 @@ public:
     void parseData(mscl::InertialNode &node);
 
     void parseData_custum(mscl::InertialNode &node);
+
+    void checkIMUData();
 };

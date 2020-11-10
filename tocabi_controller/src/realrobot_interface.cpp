@@ -1618,6 +1618,8 @@ void RealRobotInterface::imuThread()
 
             imu_msg = mx5.getIMU();
 
+            mx5.checkIMUData();
+
             imu_quat(0) = imu_msg.orientation.x;
             imu_quat(1) = imu_msg.orientation.y;
             imu_quat(2) = imu_msg.orientation.z;
