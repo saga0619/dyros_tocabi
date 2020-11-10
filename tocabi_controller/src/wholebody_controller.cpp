@@ -249,7 +249,6 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
 
     Robot.J_C.setZero(Robot.contact_index * 6, MODEL_DOF_VIRTUAL);
 
-
     Robot.link_[Left_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Foot].contact_point);
     Robot.link_[Right_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Foot].contact_point);
     Robot.link_[Left_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Hand].contact_point);
@@ -1260,12 +1259,46 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     //QP initialize!
 
-    MatrixXd H, A, W;
+    MatrixXd H, A, W, R, MR;
     H.setZero(variable_size, variable_size);
     A.setZero(constraint_size, variable_size);
+    R.setZero(contact_dof, contact_dof);
+    MR.setZero(contact_dof, contact_dof);
+
+    Matrix3d RE[4];
+
+    Vector3d VXE[4], VYE[4], VZE[4];
+
+    VZE[0] = (Robot.link_[Left_Foot - 5].xpos - Robot.ee_[0].cp_);
+    VZE[1] = (Robot.link_[Right_Foot - 5].xpos - Robot.ee_[1].cp_);
+    VZE[2] = (Robot.link_[Left_Hand - 7].xpos - Robot.ee_[2].cp_);
+    VZE[3] = (Robot.link_[Right_Hand - 7].xpos - Robot.ee_[3].cp_);
+
+    //std::cout << VZE[0].transpose() << std::endl;
+    for (int i = 0; i < 4; i++)
+    {
+        VZE[i].normalize();
+        VXE[i] << 1, 0, -VZE[i](0) / VZE[i](2);
+        VXE[i].normalize();
+        VYE[i] = (VXE[i].cross(VZE[i]));
+        VYE[i].normalize();
+
+        RE[i] << VXE[i], -VYE[i], VZE[i];
+    }
+    //std::cout << VZE[0].transpose() << std::endl;
+
+    //std::cout << RE[0] << std::endl;
+
+    //RE[0].block(0, 1, 3, 1) = (Robot.link_)
+
+    for (int i = 0; i < Robot.contact_index; i++)
+    {
+        R.block(6 * i, 6 * i, 3, 3) = RE[i].transpose();
+        R.block(6 * i + 3, 6 + 3 * i, 3, 3) = RE[i].transpose();
+    }
+
     VectorXd g, lb, ub, lbA, ubA;
     g.setZero(variable_size);
-
     lb.setZero(variable_size);
     ub.setZero(variable_size);
     lbA.setZero(constraint_size);
@@ -1337,8 +1370,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     lbA.segment(task_dof, contact_dof) = Robot.J_C_INV_T * Robot.G; // - Robot.J_C_INV_T * Robot.Slc_k_T * gravity_torque;
     ubA.segment(task_dof, contact_dof) = Robot.J_C_INV_T * Robot.G; // - Robot.J_C_INV_T * Robot.Slc_k_T * gravity_torque;
 
-    //R.setZero(6 * Robot.contact_index, 6 * robot.contact_index);
-
     //std::cout << "calc done!" << std::endl;
     //Contact Force inequality constraint
     for (int i = 0; i < Robot.contact_index; i++)
@@ -1402,7 +1433,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -10;
+        ub(MODEL_DOF + 6 * i + 2) = -20;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
@@ -3311,7 +3342,7 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
     if (abs(com_f(0)) > abs(com_f(2) * Robot.friction_ratio))
     {
         //std::cout << "original fx : " << fstar_regulated(0) << std::endl;
-        fstar_regulated(0) = fstar_regulated(0) / abs(com_f(0)) * abs(com_f(2) * Robot.friction_ratio );
+        fstar_regulated(0) = fstar_regulated(0) / abs(com_f(0)) * abs(com_f(2) * Robot.friction_ratio);
         //std::cout << "modified fx : " << fstar_regulated(0) << std::endl;
     }
     if (abs(com_f(1)) > abs(com_f(2) * Robot.friction_ratio))
