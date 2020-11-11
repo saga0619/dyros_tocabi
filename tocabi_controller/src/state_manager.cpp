@@ -10,12 +10,12 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     //signal(SIGINT, StateManager::sigintHandler);
 
     gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
-    joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 1);
-    time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 1);
+    joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 100);
+    time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 100);
     motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 100);
     tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi/torquegain", 100);
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
-    ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 0);
+    ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 100);
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon", 100);
     ft_viz_msg.markers.resize(4);
@@ -43,7 +43,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 
     if (dc.mode == "realrobot")
     {
-        motor_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/motorinfo", 1);
+        motor_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/motorinfo", 100);
         motor_info_msg.motorinfo1.resize(MODEL_DOF);
         motor_info_msg.motorinfo2.resize(MODEL_DOF);
     }
@@ -175,7 +175,7 @@ void StateManager::stateThread(void)
                 //imuCompenstation();
                 //q_dot_virtual_ = q_dot_virtual_raw_;
                 initYaw();
-                qdotLPF();
+                //qdotLPF();
             }
             catch (exception &e)
             {
@@ -188,7 +188,7 @@ void StateManager::stateThread(void)
                 break;
             }
 
-            if (false)//dc.imu_ignore == true)
+            if (false) //dc.imu_ignore == true)
             {
                 for (int i = 0; i < 6; i++)
                 {
@@ -203,16 +203,11 @@ void StateManager::stateThread(void)
             {
                 updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
                 handleFT();
-                contactEstimate();
+                //contactEstimate();
                 stateEstimate();
                 if (dc.single_foot_only == false)
                 {
                     pelvisPosMonitor();
-                }
-                if(dc.imu_ignore)
-                {
-                    q_virtual_.segment(0,6) = q_virtual_hold.segment(0,6);
-                    q_virtual_(MODEL_DOF_VIRTUAL) = q_virtual_hold(6);
                 }
                 //lowpass filter for q_dot
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
@@ -496,8 +491,12 @@ void StateManager::adv2ROS(void)
 
     ft_viz_pub.publish(ft_viz_msg);
 }
+
 void StateManager::initYaw()
 {
+
+    q_virtual_local_yaw_initialized = q_virtual_local_;
+
     tf2::Quaternion q(q_virtual_local_(3), q_virtual_local_(4), q_virtual_local_(5), q_virtual_local_(MODEL_DOF_VIRTUAL));
     tf2::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
@@ -522,6 +521,8 @@ void StateManager::initYaw()
     q_virtual_local_(4) = q_mod.getY();
     q_virtual_local_(5) = q_mod.getZ();
     q_virtual_local_(MODEL_DOF_VIRTUAL) = q_mod.getW();
+
+    //q_virtual_local_ = q_virtual_local_yaw_initialized;
 }
 
 void StateManager::imuCompenstation()
@@ -1069,8 +1070,8 @@ void StateManager::stateEstimate()
         link_[Right_Foot].Get_PointPos(q_virtual_, q_dot_virtual_, RF_contactpoint_internal_pos, RF_global_contact_pos, RF_global_contact_vel);
         link_[Left_Foot].Get_PointPos(q_virtual_, q_dot_virtual_, LF_contactpoint_internal_pos, LF_global_contact_pos, LF_global_contact_vel);
 
-        link_local[Right_Foot].Get_PointPos(q_virtual_local_, q_dot_virtual_local_, RF_contactpoint_internal_pos, RF_fixed_contact_pos, RF_fixed_contact_vel);
-        link_local[Left_Foot].Get_PointPos(q_virtual_local_, q_dot_virtual_local_, LF_contactpoint_internal_pos, LF_fixed_contact_pos, LF_fixed_contact_vel);
+        link_local[Right_Foot].Get_PointPos(q_virtual_local_yaw_initialized, q_dot_virtual_local_, RF_contactpoint_internal_pos, RF_fixed_contact_pos, RF_fixed_contact_vel);
+        link_local[Left_Foot].Get_PointPos(q_virtual_local_yaw_initialized, q_dot_virtual_local_, LF_contactpoint_internal_pos, LF_fixed_contact_pos, LF_fixed_contact_vel);
 
         bool local_RF_Contact, local_LF_contact;
 
@@ -1176,19 +1177,23 @@ void StateManager::stateEstimate()
         {
             dl = 1;
         }
+        else
+        {
+            if (dl == 1)
+            {
+                dr = 0;
+            }
+            else if (dl == 0)
+            {
+                dr = 1;
+            }
+        }
 
-        if (dl == 1)
-        {
-            dr = 0;
-        }
-        else if (dl == 0)
-        {
-            dr = 1;
-        }
         rf_s_ratio = dr / (dr + dl);
         lf_s_ratio = dl / (dl + dr);
 
         lf_s_ratio = DyrosMath::minmax_cut(lf_s_ratio, 0, 1);
+
         if (lf_s_ratio == 0)
         {
             rf_s_ratio = 1;
@@ -1200,7 +1205,22 @@ void StateManager::stateEstimate()
         else
         {
             rf_s_ratio = DyrosMath::minmax_cut(rf_s_ratio, 0, 1);
+
+            if (rf_s_ratio == 0)
+            {
+                lf_s_ratio = 1;
+            }
+            else if (rf_s_ratio == 1)
+            {
+                lf_s_ratio = 0;
+            }
         }
+
+        if (rf_s_ratio + lf_s_ratio > 1)
+        {
+            // std::cout << "SSSIBAL " << rf_s_ratio << " \t " << lf_s_ratio << std::endl;
+        }
+
         //std::cout << " dr : " << dr << "  dl : " << dl << "  rf_s_ratio : " << rf_s_ratio << "  lf_s_ratio : " << lf_s_ratio << std::endl;
         if (contact_right && contact_left)
         {
@@ -1268,9 +1288,13 @@ void StateManager::stateEstimate()
         Vector3d pos_err = currentPelvPos - pelv_pos_before;
         static Vector3d rf1, rf2, rf3, rf4;
         static bool rf_b, lf_b;
+
+        static double rfzb, lfzb;
         bool problem_is_here = false;
         static VectorQVQd q_v_before;
         static bool err_before = true;
+
+        static Vector4d quat_before;
         if (dc.torqueOn && (control_time_ > (dc.torqueOnTime + 5.0)))
         {
             if (((currentPelvPos(0) == 0) && (currentPelvPos(1) == 0) && (currentPelvPos(2) == 0)) || ((pelv_pos_before(0) == 0) && (pelv_pos_before(1) == 0) && (pelv_pos_before(2) == 0)))
@@ -1295,8 +1319,14 @@ void StateManager::stateEstimate()
 
             std::cout << " RF fix cp : " << rf1.transpose() << " RF cp hd : " << rf2.transpose() << " LF fix cp : " << rf3.transpose() << " RF cp hdl : " << rf4.transpose() << std::endl;
 
-            std::cout << q_virtual_local_.transpose();
-            std::cout << q_v_before.transpose();
+            std::cout << q_virtual_local_.transpose() << std::endl;
+            std::cout << q_v_before.transpose() << std::endl;
+
+            std::cout << "imu now : " << imu_quat.transpose() << "\t imu before : " << quat_before.transpose() << std::endl;
+
+            std::cout << "lf z : " << LF_CF_FT(2) / (-com_.mass * GRAVITY) << "\t"
+                      << " rf z : " << RF_CF_FT(2) / (-com_.mass * GRAVITY) << " lfz before : " << lfzb << " rfz before : " << rfzb << std::endl;
+
             //q_virtual_.segment(0, 3) = pelv_pos_before;
             //currentPelvPos = pelv_pos_before;
         }
@@ -1308,6 +1338,9 @@ void StateManager::stateEstimate()
         rf3 = LF_fixed_contact_pos;
         rf4 = LF_contact_pos_holder;
         pelv_pos_before = currentPelvPos;
+        quat_before = imu_quat;
+        rfzb = RF_CF_FT(2) / (-com_.mass * GRAVITY);
+        lfzb = LF_CF_FT(2) / (-com_.mass * GRAVITY);
     }
     else
     {
@@ -1611,8 +1644,6 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         if (dc.imu_ignore)
         {
             std::cout << "imu ignore : on" << std::endl;
-            q_virtual_hold.segment(0,6) = q_virtual_.segment(0,6);
-            q_virtual_hold(6) = q_virtual_(MODEL_DOF_VIRTUAL); 
         }
         else
         {

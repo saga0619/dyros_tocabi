@@ -138,6 +138,7 @@ void RealRobotInterface::updateState()
 {
     //State is updated by main state loop of realrobot interface !
     ros::spinOnce();
+
     if (mtx_q.try_lock())
     {
         q_ = rq_;
@@ -151,12 +152,19 @@ void RealRobotInterface::updateState()
         q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
         q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
         q_virtual_local_.segment(6, MODEL_DOF) = q_;
+
         q_dot_virtual_local_.setZero();
         q_dot_virtual_local_.segment(3, 3) = imu_ang_vel;
         q_dot_virtual_local_.segment(6, MODEL_DOF) = q_dot_;
 
         q_ddot_virtual_local_.setZero();
         q_ddot_virtual_local_.segment(0, 3) = imu_lin_acc;
+    }
+    else
+    {
+        std::cout << "update state blocked since mtx_q is locked " << std::endl;
+        q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
+        q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
     }
 }
 
@@ -907,7 +915,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                         }
-                                        
+
                                         txPDO[slave - 1]->maxTorque = (uint16)1500; // originaly 1000
                                         ElmoMode[slave - 1] = EM_TORQUE;
                                         torqueDemandElmo[slave - 1] = 0.0;

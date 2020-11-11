@@ -12,7 +12,7 @@ MX5IMU::MX5IMU(DataContainer &dc_global, mscl::InertialNode &node_gl) : dc(dc_gl
 
 void MX5IMU::initIMU()
 {
-    imu_pub = dc.nh.advertise<sensor_msgs::Imu>("/tocabi/imu", 1);
+    imu_pub = dc.nh.advertise<sensor_msgs::Imu>("/tocabi/imu", 100);
 
     cout << "IMU : connection success " << std::endl;
     /*
@@ -554,15 +554,15 @@ void MX5IMU::checkIMUData()
     w[1] = p2 - p1;
     w[2] = y2 - y1;
 
-    if (abs(w[0]) > 0.3)
+    if (abs(w[0]) > 0.1)
     {
         std::cout<<"roll error !"<<std::endl;
     }
-    else if (abs(w[1]) > 0.3)
+    else if (abs(w[1]) > 0.1)
     {
         std::cout<<"pitch error !"<<std::endl;
     }
-    else if (abs(w[2]) > 0.3)
+    else if (abs(w[2]) > 0.1)
     {
         std::cout<<"yaw error !"<<std::endl;
     }

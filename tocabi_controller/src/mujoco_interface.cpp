@@ -14,7 +14,7 @@ MujocoInterface::MujocoInterface(DataContainer &dc_global) : dc(dc_global), Stat
         //mujoco_sensor_state_sub_ = nh.subscribe("/mujoco_ros_interface/sensor_states", 1, &MujocoInterface::sensorStateCallback, this, ros::TransportHints().tcpNoDelay(true));
     }
 
-    mujoco_joint_set_pub_ = nh.advertise<mujoco_ros_msgs::JointSet>("/mujoco_ros_interface/joint_set", 1);
+    mujoco_joint_set_pub_ = nh.advertise<mujoco_ros_msgs::JointSet>("/mujoco_ros_interface/joint_set", 100);
     mujoco_sim_command_pub_ = nh.advertise<std_msgs::String>("/mujoco_ros_interface/sim_command_con2sim", 100);
     mujoco_sim_command_sub_ = nh.subscribe("/mujoco_ros_interface/sim_command_sim2con", 100, &MujocoInterface::simCommandCallback, this);
     mujoco_joint_set_msg_.position.resize(MODEL_DOF);

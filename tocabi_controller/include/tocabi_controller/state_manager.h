@@ -111,6 +111,7 @@ public:
   bool velEst = false;
 
   Eigen::VectorQVQd q_virtual_local_;
+  Eigen::VectorQVQd q_virtual_local_yaw_initialized;
   Eigen::VectorVQd q_dot_virtual_local_;
   Eigen::VectorVQd q_ddot_virtual_local_;
 
