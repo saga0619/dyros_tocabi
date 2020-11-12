@@ -842,10 +842,10 @@ void RealRobotInterface::ethercatThread()
                         std::chrono::microseconds cycletime(dc.ctime);
                         int cycle_count = 0;
 
-                        std::chrono::steady_clock::time_point tp[6];
+                        std::chrono::steady_clock::time_point tp[7];
                         std::chrono::steady_clock::time_point time_until;
 
-                        std::chrono::duration<double> td[7];
+                        std::chrono::duration<double> td[8];
                         double to_ratio, to_calib;
 
                         double pwait_time = 1.0;
@@ -916,7 +916,7 @@ void RealRobotInterface::ethercatThread()
 
                             if (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                             {
-                                std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n EC_PROCESSDATA TIME : " << td[3].count() * 1E+6 << " us\n LAST LOOP :" << td[4].count() * 1E+6 << creset << std::endl;
+                                std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n RECV ELMO TIME : " << td[3].count() * 1E+6<<" us \t last tick : "<<td[5].count() <<" us \t last send process : " <<td[6].count()<<" us\n LAST LOOP :" << td[4].count() * 1E+6<<" us\n " <<creset << std::endl;
                                 dc.elmoinstability = true;
                                 if (dc.torqueOn)
                                 {
@@ -932,7 +932,7 @@ void RealRobotInterface::ethercatThread()
                                     cycle_count++;
                                 }
                             }
-
+                            td[5] = td[3];
                             if (wkc >= expectedWKC)
                             {
 
@@ -1481,8 +1481,9 @@ void RealRobotInterface::ethercatThread()
                             }
 
                             //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
+                            tp[6] = std::chrono::steady_clock::now();
                             ec_send_processdata();
-
+                            td[6] = std::chrono::steady_clock::now() - tp[6];
                             for (int i = 0; i < ec_slavecount; i++)
                             {
                                 dc.torqueElmo[i] = roundtoint(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
