@@ -577,12 +577,25 @@ void RealRobotInterface::findZeroPoint(int slv_number)
 
 void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time, int control_mode)
 {
+    double elmo_command[MODEL_DOF];
+
+    for (int i = 0; i < MODEL_DOF; i++)
+    {
+        for (int j = 0; j < MODEL_DOF; j++)
+        {
+            if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
+            {
+                elmo_command[i] = command[j];
+            }
+        }
+    }
+
     if (mtx_elmo_command.try_lock())
     {
-        torqueDesiredController = command;
-        torque_desired = command;
+        memcpy(ELMO_torquecommand, elmo_command, sizeof(elmo_command));
         mtx_elmo_command.unlock();
     }
+    torque_desired = command;
 }
 
 void RealRobotInterface::ethercatCheck()
@@ -1338,9 +1351,20 @@ void RealRobotInterface::ethercatThread()
                             //torqueDesiredController = getCommand();
                             if (operation_ready)
                             {
-                                torqueDesiredElmo = getCommand();
+                                //torqueDesiredElmo = getCommand();
+                                mtx_elmo_command.lock();
+                                memcpy(ELMO_torque, ELMO_torquecommand, sizeof(ELMO_torquecommand));
+                                mtx_elmo_command.unlock();
+
                                 zp_low_check = false;
                                 zp_upper_check = false;
+                            }
+                            else
+                            {
+                                for(int i=0;i<ELMO_DOF;i++)
+                                {
+                                    ELMO_torque[i] = 0.0;
+                                }
                             }
 
                             tp[6] = std::chrono::steady_clock::now();
@@ -1348,30 +1372,14 @@ void RealRobotInterface::ethercatThread()
                             {
                                 if (operation_ready)
                                 {
-                                    if (false)
-                                    {
-                                        for (int i = 0; i < 6; i++)
-                                        {
-                                            torqueDesiredElmo(TOCABI::R_HipYaw_Joint + i) = 0.0;
-                                            torqueDesiredElmo(TOCABI::L_HipYaw_Joint + i) = 0.0;
-                                        }
-                                    }
                                     if (dc.torqueOn)
                                     {
                                         //If torqueOn command received, torque will increases slowly, for rising_time, which is currently 3 seconds.
                                         to_ratio = DyrosMath::minmax_cut((control_time_ - dc.torqueOnTime) / rising_time, 0.0, 1.0);
                                         ElmoMode[i] = EM_TORQUE;
                                         dc.t_gain = to_ratio;
-                                        /*
-                                        if (dc.positionControl)
-                                        {
-                                            torqueDesiredElmo(i) = to_ratio * (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
-                                        }
-                                        else
-                                        {
-                                            torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
-                                        }*/
-                                        torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
+                                        
+                                        ELMO_torque[i] = to_ratio * ELMO_torque[i];
                                     }
                                     else if (dc.torqueOff)
                                     {
@@ -1388,21 +1396,13 @@ void RealRobotInterface::ethercatThread()
                                         to_ratio = DyrosMath::minmax_cut(1.0 - to_calib - (control_time_ - dc.torqueOffTime) / rising_time, 0.0, 1.0);
 
                                         dc.t_gain = to_ratio;
-                                        /*
-                                        if (dc.positionControl)
-                                        {
-                                            torqueDesiredElmo(i) = to_ratio * (Kp[i] * (positionDesiredElmo(i) - positionElmo(i))) + (Kv[i] * (0 - velocityElmo(i)));
-                                        }
-                                        else
-                                        {
-                                            torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
-                                        }*/
-                                        torqueDesiredElmo(i) = to_ratio * torqueDesiredElmo(i);
+
+                                        ELMO_torque[i] = to_ratio * ELMO_torque[i];
                                     }
                                     else
                                     {
                                         ElmoMode[i] = EM_TORQUE;
-                                        torqueDesiredElmo[i] = 0.0;
+                                        ELMO_torque[i] = 0.0;
                                     }
                                 }
                                 else
@@ -1410,7 +1410,7 @@ void RealRobotInterface::ethercatThread()
                                     if ((!zp_upper_check) && (!zp_low_check))
                                     {
                                         ElmoMode[i] = EM_TORQUE;
-                                        torqueDesiredElmo[i] = 0.0;
+                                        ELMO_torque[i] = 0.0;
                                     }
                                 }
                             }
@@ -1421,7 +1421,7 @@ void RealRobotInterface::ethercatThread()
                                     for (int i = 0; i < MODEL_DOF; i++)
                                     {
                                         ElmoMode[i] = EM_TORQUE;
-                                        torqueDesiredElmo[i] = torqueCustomCommand[i];
+                                        ELMO_torque[i] = torqueCustomCommand[i];
                                     }
                                 }
 
@@ -1444,11 +1444,11 @@ void RealRobotInterface::ethercatThread()
 
                                     if (dc.customGain)
                                     {
-                                        txPDO[i]->targetTorque = (int)(torqueDesiredElmo[i] * CustomGain[i] * Dr[i]);
+                                        txPDO[i]->targetTorque = (int)(ELMO_torque[i] * CustomGain[i] * Dr[i]);
                                     }
                                     else
                                     {
-                                        txPDO[i]->targetTorque = (roundtoint)(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
+                                        txPDO[i]->targetTorque = (roundtoint)(ELMO_torque[i] * ELMO_NM2CNT[i] * Dr[i]);
                                     }
                                 }
                                 else if (ElmoMode[i] == EM_COMMUTATION)
@@ -1489,7 +1489,7 @@ void RealRobotInterface::ethercatThread()
                             td[6] = std::chrono::steady_clock::now() - tp[7];
                             for (int i = 0; i < ec_slavecount; i++)
                             {
-                                dc.torqueElmo[i] = roundtoint(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
+                                dc.torqueElmo[i] = roundtoint(ELMO_torque[i] * ELMO_NM2CNT[i] * Dr[i]);
                             }
 
                             positionDesiredElmo_Before = positionDesiredElmo;
@@ -1513,15 +1513,15 @@ void RealRobotInterface::ethercatThread()
                             td[4] = tp[8] - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
                             if (td[4].count() * 1E+6 > 500)
                             {
-                                std::cout<<"Loop time exceeded : "<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count()<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[2] - tp[0]).count()<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[3] - tp[0]).count()<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[0]).count()<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[0]).count()<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[0]).count()<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[7] - tp[0]).count()<<std::endl;
-                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[8] - tp[0]).count()<<std::endl;
+                                std::cout << "Loop time exceeded : " << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count() << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[2] - tp[0]).count() << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[3] - tp[0]).count() << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[0]).count() << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[0]).count() << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[0]).count() << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[7] - tp[0]).count() << std::endl;
+                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[8] - tp[0]).count() << std::endl;
                             }
 
                             d_mean = d_mean + td[4].count();

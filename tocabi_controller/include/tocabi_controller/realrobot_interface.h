@@ -417,6 +417,9 @@ public:
     int ElmoMode[ELMO_DOF];
     bool checkPosSafety[ELMO_DOF];
 
+    double ELMO_torquecommand[ELMO_DOF];
+    double ELMO_torque[ELMO_DOF];
+
     double ELMO_NM2CNT[ELMO_DOF];
     //int ElmoState[ELMO_DOF];
     //int ElmoState_before[ELMO_DOF];
