@@ -842,7 +842,7 @@ void RealRobotInterface::ethercatThread()
                         std::chrono::microseconds cycletime(dc.ctime);
                         int cycle_count = 0;
 
-                        std::chrono::steady_clock::time_point tp[7];
+                        std::chrono::steady_clock::time_point tp[9];
                         std::chrono::steady_clock::time_point time_until;
 
                         std::chrono::duration<double> td[8];
@@ -1343,6 +1343,7 @@ void RealRobotInterface::ethercatThread()
                                 zp_upper_check = false;
                             }
 
+                            tp[6] = std::chrono::steady_clock::now();
                             for (int i = 0; i < ec_slavecount; i++)
                             {
                                 if (operation_ready)
@@ -1483,9 +1484,9 @@ void RealRobotInterface::ethercatThread()
                             }
 
                             //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
-                            tp[6] = std::chrono::steady_clock::now();
+                            tp[7] = std::chrono::steady_clock::now();
                             ec_send_processdata();
-                            td[6] = std::chrono::steady_clock::now() - tp[6];
+                            td[6] = std::chrono::steady_clock::now() - tp[7];
                             for (int i = 0; i < ec_slavecount; i++)
                             {
                                 dc.torqueElmo[i] = roundtoint(torqueDesiredElmo[i] * ELMO_NM2CNT[i] * Dr[i]);
@@ -1508,7 +1509,8 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = true;
                                 }
                             }
-                            td[4] = std::chrono::steady_clock::now() - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
+                            tp[8] = std::chrono::steady_clock::now();
+                            td[4] = tp[8] - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
                             if (td[4].count() * 1E+6 > 500)
                             {
                                 std::cout<<"Loop time exceeded : "<<std::endl;
@@ -1518,6 +1520,8 @@ void RealRobotInterface::ethercatThread()
                                 std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[0]).count()<<std::endl;
                                 std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[0]).count()<<std::endl;
                                 std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[0]).count()<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[7] - tp[0]).count()<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[8] - tp[0]).count()<<std::endl;
                             }
 
                             d_mean = d_mean + td[4].count();
