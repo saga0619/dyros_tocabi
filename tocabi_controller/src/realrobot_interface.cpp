@@ -916,7 +916,7 @@ void RealRobotInterface::ethercatThread()
 
                             if (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                             {
-                                std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n RECV ELMO TIME : " << td[3].count() * 1E+6<<" us \t last tick : "<<td[5].count() <<" us \t last send process : " <<td[6].count()<<" us\n LAST LOOP :" << td[4].count() * 1E+6<<" us\n " <<creset << std::endl;
+                                std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n RECV ELMO TIME : " << td[3].count() * 1E+6 << " us \t last tick : " << td[5].count() * 1E+6 << " us \t last send process : " << td[6].count() * 1E+6 << " us\n LAST LOOP :" << td[4].count() * 1E+6 << " us\n " << creset << std::endl;
                                 dc.elmoinstability = true;
                                 if (dc.torqueOn)
                                 {
@@ -992,7 +992,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
                             }
-
+                            tp[4] = std::chrono::steady_clock::now();
                             mtx_q.lock();
 
                             for (int i = 0; i < ec_slavecount; i++)
@@ -1333,6 +1333,8 @@ void RealRobotInterface::ethercatThread()
                                 }
                             }
 
+                            tp[5] = std::chrono::steady_clock::now();
+
                             //torqueDesiredController = getCommand();
                             if (operation_ready)
                             {
@@ -1507,6 +1509,17 @@ void RealRobotInterface::ethercatThread()
                                 }
                             }
                             td[4] = std::chrono::steady_clock::now() - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
+                            if (td[4].count() * 1E+6 > 500)
+                            {
+                                std::cout<<"Loop time exceeded : "<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count()<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[2] - tp[0]).count()<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[3] - tp[0]).count()<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[0]).count()<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[0]).count()<<std::endl;
+                                std::cout<<std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[0]).count()<<std::endl;
+                            }
+
                             d_mean = d_mean + td[4].count();
                             if (d_min > td[4].count())
                                 d_min = td[4].count();
