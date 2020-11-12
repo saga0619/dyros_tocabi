@@ -54,9 +54,6 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     positionSafteyHoldElmo.setZero();
     q_dot_before_.setZero();
 
-    rq_.setZero();
-    rq_dot_.setZero();
-
     positionZeroModElmo(8) = 15.46875 * DEG2RAD;
     positionZeroModElmo(7) = 16.875 * DEG2RAD;
     positionZeroModElmo(TOCABI::Waist1_Joint) = -15.0 * DEG2RAD;
@@ -141,10 +138,29 @@ void RealRobotInterface::updateState()
 
     if (mtx_q.try_lock())
     {
-        q_ = rq_;
-        q_dot_ = rq_dot_;
-        q_ext_ = rq_ext_;
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            rq_[i] = req_[i];
+            rq_dot_[i] = req_dot_[i];
+            rq_ext_[i] = req_ext_[i];
+        }
         mtx_q.unlock();
+
+        for (int i = 0; i < ec_slavecount; i++)
+        {
+            for (int j = 0; j < ec_slavecount; j++)
+            {
+                if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
+                {
+                    {
+                        q_[i] = rq_[j];
+                        q_dot_[i] = rq_dot_[j];
+                        q_ext_[i] = rq_ext_[j];
+                    }
+                }
+            }
+        }
+
         q_ddot_ = q_dot_ - q_dot_before_;
         q_dot_before_ = q_dot_;
 
@@ -162,9 +178,53 @@ void RealRobotInterface::updateState()
     }
     else
     {
-        std::cout << "update state blocked since mtx_q is locked " << std::endl;
-        q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
-        q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
+        std::this_thread::sleep_for(std::chrono::microseconds(5));
+        if (mtx_q.try_lock())
+        {
+            for (int i = 0; i < MODEL_DOF; i++)
+            {
+                rq_[i] = req_[i];
+                rq_dot_[i] = req_dot_[i];
+                rq_ext_[i] = req_ext_[i];
+            }
+            mtx_q.unlock();
+
+            for (int i = 0; i < ec_slavecount; i++)
+            {
+                for (int j = 0; j < ec_slavecount; j++)
+                {
+                    if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
+                    {
+                        {
+                            q_[i] = rq_[j];
+                            q_dot_[i] = rq_dot_[j];
+                            q_ext_[i] = rq_ext_[j];
+                        }
+                    }
+                }
+            }
+
+            q_ddot_ = q_dot_ - q_dot_before_;
+            q_dot_before_ = q_dot_;
+
+            q_virtual_local_.setZero();
+            q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
+            q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
+            q_virtual_local_.segment(6, MODEL_DOF) = q_;
+
+            q_dot_virtual_local_.setZero();
+            q_dot_virtual_local_.segment(3, 3) = imu_ang_vel;
+            q_dot_virtual_local_.segment(6, MODEL_DOF) = q_dot_;
+
+            q_ddot_virtual_local_.setZero();
+            q_ddot_virtual_local_.segment(0, 3) = imu_lin_acc;
+        }
+        else
+        {
+            std::cout << "2nd try failed update state blocked since mtx_q is locked " << std::endl;
+            q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
+            q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
+        }
     }
 }
 
@@ -242,7 +302,7 @@ void RealRobotInterface::checkSafety(int slv_number, double max_vel, double max_
             if (((positionElmo[slv_number] - positionZeroElmo[slv_number]) > jointLimitUp[slv_number]) || ((positionElmo[slv_number] - positionZeroElmo[slv_number]) < jointLimitLow[slv_number]))
             {
                 dc.safetyison = true;
-                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Joint Limit exceeded, " << rq_(slv_number) << creset << std::endl;
+                std::cout << cred << "WARNING MOTOR " << slv_number << " , " << TOCABI::ELMO_NAME[slv_number] << " Joint Limit exceeded, " << creset << std::endl;
                 pub_to_gui(dc, "Lock %d %s , joint limit reached ", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
                 ElmoSafteyMode[slv_number] = 1;
                 positionSafteyHoldElmo[slv_number] = positionElmo[slv_number];
@@ -839,7 +899,7 @@ void RealRobotInterface::ethercatThread()
                             //ec_send_processdata();
 
                             tp[2] = std::chrono::steady_clock::now();
-                            wkc = ec_receive_processdata(350);
+                            wkc = ec_receive_processdata(0);
 
                             tp[3] = std::chrono::steady_clock::now();
 
@@ -849,7 +909,7 @@ void RealRobotInterface::ethercatThread()
                             td[2] = tp[2] - tp[1];
                             td[3] = tp[3] - tp[2];
 
-                            if (td[3] > std::chrono::microseconds(350))
+                            if (td[3] > std::chrono::microseconds(250))
                             {
                                 oc_cnt++;
                             }
@@ -857,6 +917,7 @@ void RealRobotInterface::ethercatThread()
                             if (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                             {
                                 std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n EC_PROCESSDATA TIME : " << td[3].count() * 1E+6 << " us\n LAST LOOP :" << td[4].count() * 1E+6 << creset << std::endl;
+                                dc.elmoinstability = true;
                                 while (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                                 {
                                     cycle_count++;
@@ -924,24 +985,14 @@ void RealRobotInterface::ethercatThread()
                             }
 
                             mtx_q.lock();
+
                             for (int i = 0; i < ec_slavecount; i++)
                             {
-                                for (int j = 0; j < ec_slavecount; j++)
-                                {
-                                    if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
-                                    {
-                                        {
-                                            rq_[i] = positionElmo[j] - positionZeroElmo[j];
-                                            rq_dot_[i] = velocityElmo[j];
-                                            rq_ext_[i] = positionExternalElmo[j];
-                                            if (TOCABI::JOINT_NAME[i] == "L_HipYaw_Joint")
-                                            {
-                                                //    printf("position :%f \n", rq_[i]-positionExternalElmo(27));
-                                            }
-                                        }
-                                    }
-                                }
+                                req_[i] = positionElmo[i] - positionZeroElmo[i];
+                                req_dot_[i] = velocityElmo[i];
+                                req_ext_[i] = positionExternalElmo[i];
                             }
+
                             mtx_q.unlock();
 
                             //Get State Seqence End, user controller start
@@ -1498,12 +1549,6 @@ void RealRobotInterface::ethercatThread()
                                 d1_mean = 0;
 
                                 pwait_time = pwait_time + 1.0;
-                            }
-
-                            if (dc.print_elmo_info_tofile)
-                            {
-                                file_homming << hommingElmo[2] << "\t" << hommingElmo[3] << "\t" << hommingElmo[4] << "\t" << hommingElmo[5] << "\t" << hommingElmo[6] << "\t" << hommingElmo[7] << "\t" << hommingElmo[8] << "\t" << hommingElmo[9] << "\t" << hommingElmo[10] << "\t" << hommingElmo[11] << "\t" << hommingElmo[12] << "\t" << hommingElmo[13] << "\t" << hommingElmo[14] << "\t" << hommingElmo[15] << "\t" << hommingElmo[16] << "\t" << hommingElmo[17] << "\t" << hommingElmo[18] << "\t" << hommingElmo[19] << endl;
-                                file_homming << hommingElmo[18] << "\t" << positionElmo[18] << "\t" << hommingElmo[19] << "\t" << positionElmo[19] << "\t" << hommingElmo[26] << "\t" << positionElmo[26] << "\t" << endl;
                             }
 
                             cycle_count++;

@@ -471,9 +471,9 @@ void TocabiController::dynamicsThreadHigh()
                 }
             }
 
-            if(dc.disableLowerBody)
+            if (dc.disableLowerBody)
             {
-                for(int i=0;i<15;i++)
+                for (int i = 0; i < 15; i++)
                 {
                     torque_desired(i) = dc.tocabi_.Kps[i] * (dc.q_hold_lower_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * tocabi_.q_dot_(i);
                 }
@@ -2277,6 +2277,31 @@ void TocabiController::tuiThread()
                 dc.rgbPubMsg.data[2] = 0;
 
                 dc.rgbPubMsg.data[15] = 255;
+                dc.rgbPubMsg.data[16] = 0;
+                dc.rgbPubMsg.data[17] = 0;
+            }
+            dc.rgbPub.publish(dc.rgbPubMsg);
+        }
+
+        if (dc.elmoinstability)
+        {
+            if (((2 * control_time_ - floor(2 * control_time_)) - 0.5) >= 0)
+            {
+                dc.rgbPubMsg.data[0] = 255;
+                dc.rgbPubMsg.data[1] = 0;
+                dc.rgbPubMsg.data[2] = 0;
+
+                dc.rgbPubMsg.data[15] = 255;
+                dc.rgbPubMsg.data[16] = 0;
+                dc.rgbPubMsg.data[17] = 0;
+            }
+            else
+            {
+                dc.rgbPubMsg.data[0] = 0;
+                dc.rgbPubMsg.data[1] = 0;
+                dc.rgbPubMsg.data[2] = 0;
+
+                dc.rgbPubMsg.data[15] = 0;
                 dc.rgbPubMsg.data[16] = 0;
                 dc.rgbPubMsg.data[17] = 0;
             }
