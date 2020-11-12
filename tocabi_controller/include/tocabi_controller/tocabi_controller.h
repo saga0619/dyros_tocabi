@@ -1,8 +1,11 @@
 #include "tocabi_controller/dynamics_manager.h"
 #include "tocabi_controller/mujoco_interface.h"
-#include "tocabi_controller/realrobot_interface.h"
 #include "tocabi_controller/positionCommand.h"
 #include "custom_controller.h"
+
+#ifdef COMPILE_REALROBOT
+#include "tocabi_controller/realrobot_interface.h"
+#endif
 
 extern volatile bool shutdown_tocabi_bool;
 

@@ -1293,8 +1293,8 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        R.block(6 * i, 6 * i, 3, 3) = RE[i].transpose();
-        R.block(6 * i + 3, 6 + 3 * i, 3, 3) = RE[i].transpose();
+        R.block(6 * i, 6 * i, 3, 3) = RE[Robot.ee_idx[i]].transpose();
+        R.block(6 * i + 3, 6 + 3 * i, 3, 3) = RE[Robot.ee_idx[i]].transpose();
     }
 
     VectorXd g, lb, ub, lbA, ubA;
@@ -1325,9 +1325,9 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     Fsl.setZero(contact_dof, contact_dof);
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Fsl(6 * i + 0, 6 * i + 0) = 0.03;
-        Fsl(6 * i + 1, 6 * i + 1) = 0.03;
-        Fsl(6 * i + 2, 6 * i + 2) = 0.001;
+        Fsl(6 * i + 0, 6 * i + 0) = 0.3;
+        Fsl(6 * i + 1, 6 * i + 1) = 0.3;
+        Fsl(6 * i + 2, 6 * i + 2) = 0.01;
         Fsl(6 * i + 3, 6 * i + 3) = 0.01;
         Fsl(6 * i + 4, 6 * i + 4) = 0.01;
         Fsl(6 * i + 5, 6 * i + 5) = 0.01;
@@ -1350,7 +1350,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         }
     }
 
-    H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = Fsl.transpose() * Fsl;
+    H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = R * Fsl.transpose() * Fsl * R.transpose();
 
     //Rigid Body Dynamcis Equality Constraint
     Robot.Slc_k.setZero(MODEL_DOF, MODEL_DOF + 6);
@@ -1475,6 +1475,11 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }*/
 
     //QP_torque3_.setup()
+
+    std::cout << "////" << std::endl;
+    std::cout << qpres.segment(MODEL_DOF, contact_dof).transpose() << std::endl;
+    std::cout << (R * qpres.segment(MODEL_DOF, contact_dof)).transpose() << std::endl;
+    std::cout << (R.transpose() * qpres.segment(MODEL_DOF, contact_dof)).transpose() << std::endl;
 
     if (solve_result)
     {

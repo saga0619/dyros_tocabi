@@ -110,8 +110,9 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
+#ifdef COMPILE_REALROBOT      
     else if (dc.mode == "realrobot")
-    {
+    {  
         std::cout << "RealRobot Mode" << std::endl;
 
         RealRobotInterface rtm(dc);
@@ -273,7 +274,7 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
-
+#endif
     dc.rgbPubMsg.data = {0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0};
     dc.rgbPub.publish(dc.rgbPubMsg);
     std::cout << cgreen << "All threads are completely terminated !" << creset << std::endl;
