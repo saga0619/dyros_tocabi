@@ -1584,6 +1584,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         dc.disableSafetyLock = true;
         dc.safetycheckdisable = false;
         dc.safetyison = false;
+        dc.elmoinstability = false;
         std::cout << "Reset Safety mode" << std::endl;
     }
     else if (msg->data == "safetydisable")

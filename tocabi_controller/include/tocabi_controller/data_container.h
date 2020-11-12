@@ -176,7 +176,7 @@ public:
   bool qp2nd = false;
   bool enable_lpf = false;
   bool switch_lpf = false;
-
+  bool elmoinstability = false;
   bool spalarm = false; // support polygon alarm bool
   bool semode = false;  // state estimation running or not.
   bool semode_init = true;

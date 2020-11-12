@@ -459,9 +459,13 @@ public:
     Eigen::VectorQd positionSafteyHoldElmo;
     Eigen::VectorQd torqueCustomCommand;
 
-    Eigen::VectorQd rq_;
-    Eigen::VectorQd rq_ext_;
-    Eigen::VectorQd rq_dot_;
+    double rq_[MODEL_DOF];
+    double rq_ext_[MODEL_DOF];
+    double rq_dot_[MODEL_DOF];
+
+    double req_[MODEL_DOF];
+    double req_ext_[MODEL_DOF];
+    double req_dot_[MODEL_DOF];
 
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];

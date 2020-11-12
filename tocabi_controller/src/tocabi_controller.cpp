@@ -2276,6 +2276,31 @@ void TocabiController::tuiThread()
             dc.rgbPub.publish(dc.rgbPubMsg);
         }
 
+        if (dc.elmoinstability)
+        {
+            if (((2 * control_time_ - floor(2 * control_time_)) - 0.5) >= 0)
+            {
+                dc.rgbPubMsg.data[0] = 255;
+                dc.rgbPubMsg.data[1] = 0;
+                dc.rgbPubMsg.data[2] = 0;
+
+                dc.rgbPubMsg.data[15] = 255;
+                dc.rgbPubMsg.data[16] = 0;
+                dc.rgbPubMsg.data[17] = 0;
+            }
+            else
+            {
+                dc.rgbPubMsg.data[0] = 0;
+                dc.rgbPubMsg.data[1] = 0;
+                dc.rgbPubMsg.data[2] = 0;
+
+                dc.rgbPubMsg.data[15] = 0;
+                dc.rgbPubMsg.data[16] = 0;
+                dc.rgbPubMsg.data[17] = 0;
+            }
+            dc.rgbPub.publish(dc.rgbPubMsg);
+        }
+
         before_time = control_time_;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
         //std::cout<<control_time_<<"tui test"<<std::endl;
