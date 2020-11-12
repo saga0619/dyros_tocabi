@@ -918,6 +918,12 @@ void RealRobotInterface::ethercatThread()
                             {
                                 std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n EC_PROCESSDATA TIME : " << td[3].count() * 1E+6 << " us\n LAST LOOP :" << td[4].count() * 1E+6 << creset << std::endl;
                                 dc.elmoinstability = true;
+                                for (int i = 0; i < ec_slavecount; i++)
+                                {
+                                    positionSafteyHoldElmo[i] = positionElmo[i];
+                                    ElmoSafteyMode[i] = 1;
+                                }
+
                                 while (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                                 {
                                     cycle_count++;
