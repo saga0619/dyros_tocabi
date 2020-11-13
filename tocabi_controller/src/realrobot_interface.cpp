@@ -7,8 +7,8 @@
 
 const char *homedir;
 
-std::mutex mtx_elmo_command;
-std::mutex mtx_q;
+std::atomic_bool atb_q = true;
+std::atomic_bool atb_elmo = true;
 
 double rising_time = 3.0;
 bool elmo_init = true;
@@ -136,7 +136,7 @@ void RealRobotInterface::updateState()
     //State is updated by main state loop of realrobot interface !
     ros::spinOnce();
 
-    if (mtx_q.try_lock())
+    if (atb_q)
     {
         for (int i = 0; i < MODEL_DOF; i++)
         {
@@ -144,7 +144,6 @@ void RealRobotInterface::updateState()
             rq_dot_[i] = req_dot_[i];
             rq_ext_[i] = req_ext_[i];
         }
-        mtx_q.unlock();
 
         for (int i = 0; i < ec_slavecount; i++)
         {
@@ -171,7 +170,7 @@ void RealRobotInterface::updateState()
     else
     {
         std::this_thread::sleep_for(std::chrono::microseconds(5));
-        if (mtx_q.try_lock())
+        if (atb_q)
         {
             for (int i = 0; i < MODEL_DOF; i++)
             {
@@ -179,7 +178,6 @@ void RealRobotInterface::updateState()
                 rq_dot_[i] = req_dot_[i];
                 rq_ext_[i] = req_ext_[i];
             }
-            mtx_q.unlock();
 
             for (int i = 0; i < ec_slavecount; i++)
             {
@@ -213,7 +211,7 @@ void RealRobotInterface::updateState()
         }
         else
         {
-            std::cout << "2nd try failed update state blocked since mtx_q is locked " << std::endl;
+            std::cout << "2nd try failed update state blocked since atb_q is locked " << std::endl;
             q_virtual_local_.segment(3, 3) = imu_quat.segment(0, 3);
             q_virtual_local_(MODEL_DOF_VIRTUAL) = imu_quat(3);
         }
@@ -576,11 +574,8 @@ void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time, i
     for (int i = 0; i < MODEL_DOF; i++)
         elmo_command[TOCABI::JointMap[i]] = command[i];
 
-    if (mtx_elmo_command.try_lock())
-    {
+    if (atb_elmo)
         std::copy(elmo_command, elmo_command + MODEL_DOF, ELMO_torquecommand);
-        mtx_elmo_command.unlock();
-    }
     torque_desired = command;
 }
 
@@ -991,25 +986,28 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
                             }
-                            tp[4] = std::chrono::steady_clock::now();
-                            mtx_q.lock();
+                            //tp[4] = std::chrono::steady_clock::now();
+
+                            atb_q = false;
                             for (int i = 0; i < ec_slavecount; i++)
                                 req_[i] = positionElmo[i] - positionZeroElmo[i];
                             std::copy(velocityElmo.data(), velocityElmo.data() + ec_slavecount, req_dot_);
                             std::copy(positionExternalElmo.data(), positionExternalElmo.data() + ec_slavecount, req_ext_);
-                            mtx_q.unlock();
+                            atb_q = true;
 
                             //Get State Seqence End, user controller start
 
                             dc.torqueElmo = torqueElmo;
                             checkfirst = (stateElmo[19] & al);
 
-                            if (shutdown_tocabi_bool || !ros::ok() || shutdown_tocabi_bool)
+                            if (shutdown_tocabi_bool || shutdown_tocabi_bool)
                             {
                                 ElmoTerminate = true;
                                 //std::terminate();
                                 break;
                             }
+
+                            tp[4] = std::chrono::steady_clock::now();
 
                             if (commutation_check)
                             {
@@ -1334,9 +1332,9 @@ void RealRobotInterface::ethercatThread()
                             if (operation_ready)
                             {
                                 //torqueDesiredElmo = getCommand();
-                                mtx_elmo_command.lock();
+                                atb_elmo = false;
                                 std::copy(ELMO_torquecommand, ELMO_torquecommand + ec_slavecount, ELMO_torque);
-                                mtx_elmo_command.unlock();
+                                atb_elmo = true;
 
                                 zp_low_check = false;
                                 zp_upper_check = false;
