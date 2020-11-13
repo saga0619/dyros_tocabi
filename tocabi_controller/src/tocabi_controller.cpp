@@ -84,6 +84,8 @@ void TocabiController::PositionCommandCallback(const tocabi_controller::position
     dc.position_command_time = control_time_;
     dc.position_traj_time = msg->traj_time;
     dc.position_command_ext = true;
+    dc.pext_gravity = msg->gravity;
+
 }
 VectorQd TocabiController::positionCommandExt(double control_time, double traj_time, VectorQd current_pos, VectorQd desired_pos)
 {

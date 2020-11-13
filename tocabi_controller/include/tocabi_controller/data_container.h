@@ -197,6 +197,7 @@ public:
   int tc_state = 3; //task control state 0 : on 1 : warn 2: error 3: off
 
   bool position_command_ext = false;
+  bool pext_gravity = false;
   double position_command_time;
   double position_traj_time;
 
