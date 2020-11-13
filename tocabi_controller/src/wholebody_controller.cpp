@@ -1236,10 +1236,35 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     static int variable_size;
     static int constraint_size;
+
+    static bool contact_before[4];
+
     if ((task_dof != Robot.task_dof) || (contact_dof != 6 * Robot.contact_index))
     {
+        if (contact_dof != 6 * Robot.contact_index)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (contact_before[i] != Robot.ee_[i].contact)
+                {
+                    if (Robot.ee_[i].contact)
+                    {
+                        std::cout << " EE " << i << " Contact Enabled " << std::endl;
+                    }
+                    else
+                    {
+
+                        std::cout << " EE " << i << " Contact Disabled " << std::endl;
+                    }
+                }
+            }
+        }
         task_dof = Robot.task_dof;
         contact_dof = 6 * Robot.contact_index;
+        for (int i = 0; i < 4; i++)
+        {
+            contact_before[i] = Robot.ee_[i].contact;
+        }
         std::cout << "############################" << std::endl
                   << "QP3 initialize ! " << std::endl
                   << "Task Dof    = " << Robot.task_dof << std::endl
@@ -1350,7 +1375,9 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         }
     }
 
-    H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = R * Fsl.transpose() * Fsl * R.transpose();
+    //H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = R * Fsl.transpose() * Fsl * R.transpose();
+
+    H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = Fsl.transpose() * Fsl;
 
     //Rigid Body Dynamcis Equality Constraint
     Robot.Slc_k.setZero(MODEL_DOF, MODEL_DOF + 6);
@@ -1433,7 +1460,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -20;
+        ub(MODEL_DOF + 6 * i + 2) = -45;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
@@ -1476,10 +1503,10 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     //QP_torque3_.setup()
 
-    std::cout << "////" << std::endl;
-    std::cout << qpres.segment(MODEL_DOF, contact_dof).transpose() << std::endl;
-    std::cout << (R * qpres.segment(MODEL_DOF, contact_dof)).transpose() << std::endl;
-    std::cout << (R.transpose() * qpres.segment(MODEL_DOF, contact_dof)).transpose() << std::endl;
+    //std::cout << "////" << std::endl;
+    //std::cout << qpres.segment(MODEL_DOF, contact_dof).transpose() << std::endl;
+    //std::cout << (R * qpres.segment(MODEL_DOF, contact_dof)).transpose() << std::endl;
+    //std::cout << (R.transpose() * qpres.segment(MODEL_DOF, contact_dof)).transpose() << std::endl;
 
     if (solve_result)
     {
