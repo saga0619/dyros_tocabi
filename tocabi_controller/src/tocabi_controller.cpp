@@ -531,7 +531,7 @@ void TocabiController::testThread()
 
 void TocabiController::dynamicsThreadLow()
 {
-    std::cout << "DynamicsThreadLow : READY ?" << std::endl;
+    std::cout << "Dynamics Low Thread : READY ?" << std::endl;
     ros::Rate r(2000);
     int calc_count = 0;
     int ThreadCount = 0;
@@ -618,7 +618,7 @@ void TocabiController::dynamicsThreadLow()
     }
     //kd_(1) = 120;
 
-    std::cout << "DynamicsThreadLow : START" << std::endl;
+    std::cout << "Dynamics Low Thread : START" << std::endl;
     int dynthread_cnt = 0;
 
     //const char *file_name = "/home/saga/sim_data.txt";
@@ -751,7 +751,7 @@ void TocabiController::dynamicsThreadLow()
             }
             if (dc.print_delay_info)
             {
-                std::cout << "td1 : " << td[0].count() * 1000 << "  td2 : " << td[1].count() * 1000 << "  td3 : " << td[2].count() * 1000 << "  td4 : " << td[3].count() * 1000 << "  td5 : " << td[4].count() * 1000 << std::endl;
+                //std::cout << "td1 : " << td[0].count() * 1000 << "  td2 : " << td[1].count() * 1000 << "  td3 : " << td[2].count() * 1000 << "  td4 : " << td[3].count() * 1000 << "  td5 : " << td[4].count() * 1000 << std::endl;
             }
             dynthread_cnt = 0;
             est = 0;

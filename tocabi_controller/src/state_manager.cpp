@@ -163,7 +163,7 @@ void StateManager::stateThread(void)
     int cycle_count = 0;
     if (!shutdown_tocabi_bool)
     {
-        std::cout << "State thread start! " << std::endl;
+        std::cout << "State Thread : START " << std::endl;
 
         while (!shutdown_tocabi_bool)
         {
