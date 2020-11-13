@@ -19,7 +19,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon", 100);
     ft_viz_msg.markers.resize(4);
-    syspub_msg.data.resize(6);
+    syspub_msg.data.resize(7);
     imu_lin_acc_lpf.setZero();
     pelv_lin_acc.setZero();
     imu_lin_acc_before.setZero();
@@ -1017,6 +1017,7 @@ void StateManager::sendStateToGui()
         syspub_msg.data[3] = dc.ecat_state;
         syspub_msg.data[4] = dc.semode;
         syspub_msg.data[5] = dc.tc_state;
+        syspub_msg.data[6] = dc.dob_detect;
     }
     else if (dc.mode == "simulation")
     {
@@ -1026,6 +1027,7 @@ void StateManager::sendStateToGui()
         syspub_msg.data[3] = 3;
         syspub_msg.data[4] = dc.semode;
         syspub_msg.data[5] = dc.tc_state;
+        syspub_msg.data[6] = dc.dob_detect;
     }
     gui_state_pub.publish(syspub_msg);
 }

@@ -67,6 +67,8 @@ public:
   bool dynamics_end;
   int t_que = 0;
 
+  int dob_detect = -2;
+
   std::chrono::steady_clock::time_point start_time_point;
 
   double time;
