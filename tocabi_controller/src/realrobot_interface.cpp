@@ -148,17 +148,9 @@ void RealRobotInterface::updateState()
 
         for (int i = 0; i < ec_slavecount; i++)
         {
-            for (int j = 0; j < ec_slavecount; j++)
-            {
-                if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
-                {
-                    {
-                        q_[i] = rq_[j];
-                        q_dot_[i] = rq_dot_[j];
-                        q_ext_[i] = rq_ext_[j];
-                    }
-                }
-            }
+            q_[i] = rq_[TOCABI::JointMap[i]];
+            q_dot_[i] = rq_dot_[TOCABI::JointMap[i]];
+            q_ext_[i] = rq_ext_[TOCABI::JointMap[i]];
         }
 
         q_ddot_ = q_dot_ - q_dot_before_;
@@ -230,6 +222,7 @@ void RealRobotInterface::updateState()
 
 Eigen::VectorQd RealRobotInterface::getCommand()
 {
+    /*
     Eigen::VectorQd t1_, t2_;
 
     mtx_elmo_command.lock();
@@ -247,8 +240,9 @@ Eigen::VectorQd RealRobotInterface::getCommand()
             }
         }
     }
-    return t2_;
+    return t2_;*/
 }
+
 int RealRobotInterface::checkTrajContinuity(int slv_number)
 {
 }
@@ -580,19 +574,11 @@ void RealRobotInterface::sendCommand(Eigen::VectorQd command, double sim_time, i
     double elmo_command[MODEL_DOF];
 
     for (int i = 0; i < MODEL_DOF; i++)
-    {
-        for (int j = 0; j < MODEL_DOF; j++)
-        {
-            if (TOCABI::ELMO_NAME[i] == TOCABI::JOINT_NAME[j])
-            {
-                elmo_command[i] = command[j];
-            }
-        }
-    }
+        elmo_command[TOCABI::JointMap[i]] = command[i];
 
     if (mtx_elmo_command.try_lock())
     {
-        memcpy(ELMO_torquecommand, elmo_command, sizeof(elmo_command));
+        std::copy(elmo_command, elmo_command + MODEL_DOF, ELMO_torquecommand);
         mtx_elmo_command.unlock();
     }
     torque_desired = command;
@@ -1007,14 +993,10 @@ void RealRobotInterface::ethercatThread()
                             }
                             tp[4] = std::chrono::steady_clock::now();
                             mtx_q.lock();
-
                             for (int i = 0; i < ec_slavecount; i++)
-                            {
                                 req_[i] = positionElmo[i] - positionZeroElmo[i];
-                                req_dot_[i] = velocityElmo[i];
-                                req_ext_[i] = positionExternalElmo[i];
-                            }
-
+                            std::copy(velocityElmo.data(), velocityElmo.data() + ec_slavecount, req_dot_);
+                            std::copy(positionExternalElmo.data(), positionExternalElmo.data() + ec_slavecount, req_ext_);
                             mtx_q.unlock();
 
                             //Get State Seqence End, user controller start
@@ -1353,7 +1335,7 @@ void RealRobotInterface::ethercatThread()
                             {
                                 //torqueDesiredElmo = getCommand();
                                 mtx_elmo_command.lock();
-                                memcpy(ELMO_torque, ELMO_torquecommand, sizeof(ELMO_torquecommand));
+                                std::copy(ELMO_torquecommand, ELMO_torquecommand + ec_slavecount, ELMO_torque);
                                 mtx_elmo_command.unlock();
 
                                 zp_low_check = false;
@@ -1361,7 +1343,7 @@ void RealRobotInterface::ethercatThread()
                             }
                             else
                             {
-                                for(int i=0;i<ELMO_DOF;i++)
+                                for (int i = 0; i < ELMO_DOF; i++)
                                 {
                                     ELMO_torque[i] = 0.0;
                                 }
@@ -1378,7 +1360,7 @@ void RealRobotInterface::ethercatThread()
                                         to_ratio = DyrosMath::minmax_cut((control_time_ - dc.torqueOnTime) / rising_time, 0.0, 1.0);
                                         ElmoMode[i] = EM_TORQUE;
                                         dc.t_gain = to_ratio;
-                                        
+
                                         ELMO_torque[i] = to_ratio * ELMO_torque[i];
                                     }
                                     else if (dc.torqueOff)

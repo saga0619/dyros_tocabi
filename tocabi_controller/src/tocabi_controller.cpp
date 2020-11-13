@@ -15,6 +15,9 @@ std::mutex mtx_dc;
 std::mutex mtx_terminal;
 std::mutex mtx_ncurse;
 
+std::atomic_bool task_recv = false;
+std::atomic_bool taskque_recv = false;
+
 TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm) : dc(dc_global), s_(sm), d_(dm), tocabi_(dc_global.tocabi_), wbc_(dc_global.wbc_), mycontroller(*(new CustomController(dc_global, dc_global.tocabi_)))
 {
     initialize();
@@ -25,41 +28,51 @@ TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, D
     position_command_sub = dc.nh.subscribe("/tocabi/positioncommand", 100, &TocabiController::PositionCommandCallback, this);
 }
 
+void TocabiController::GetTaskCommand()
+{
+    if (task_recv)
+    {
+        if (dc.semode || dc.use_virtual_for_mujoco)
+        {
+            tocabi_controller::TaskCommand tc_temp = TaskCont;
+            gettaskcommand(tc_temp);
+        }
+        else
+        {
+            std::cout << "Warning ::: StateEstimation Off" << std::endl;
+        }
+        task_recv = false;
+    }
+    if (taskque_recv)
+    {
+        if (dc.semode || dc.use_virtual_for_mujoco)
+        {
+            tque_msg = TaskQueCont;
+            std::cout << "Task Que Received, " << tque_msg.tque.size() << " left" << std::endl;
+            tocabi_controller::TaskCommand tc_temp = tque_msg.tque[0];
+            tque_msg.tque.erase(tque_msg.tque.begin());
+            gettaskcommand(tc_temp);
+            task_que_switch = true;
+        }
+        else
+        {
+            std::cout << "Warning ::: StateEstimation Off" << std::endl;
+        }
+        taskque_recv = false;
+    }
+}
+
 void TocabiController::TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg)
 {
     //const tocabi_controller::TaskCommandConstPtr &tc_temp;
-
-    if (dc.semode || dc.use_virtual_for_mujoco)
-    {
-        tque_msg.tque.resize(msg->tque.size());
-        for (int i = 0; i < tque_msg.tque.size(); i++)
-        {
-            tque_msg.tque[i] = msg->tque[i];
-        }
-
-        std::cout << "Task Que Received, " << tque_msg.tque.size() << " left" << std::endl;
-        tocabi_controller::TaskCommand tc_temp = tque_msg.tque[0];
-        tque_msg.tque.erase(tque_msg.tque.begin());
-        gettaskcommand(tc_temp);
-        task_que_switch = true;
-    }
-    else
-    {
-        std::cout << "Warning ::: StateEstimation Off" << std::endl;
-    }
+    TaskQueCont = *msg;
+    taskque_recv = true;
 }
 
 void TocabiController::TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg)
 {
-    if (dc.semode || dc.use_virtual_for_mujoco)
-    {
-        tocabi_controller::TaskCommand tc_temp = *msg;
-        gettaskcommand(tc_temp);
-    }
-    else
-    {
-        std::cout << "Warning ::: StateEstimation Off" << std::endl;
-    }
+    TaskCont = *msg;
+    task_recv = true;
 }
 
 void TocabiController::PositionCommandCallback(const tocabi_controller::positionCommandConstPtr &msg)
@@ -438,8 +451,8 @@ void TocabiController::dynamicsThreadHigh()
 
                     for (int i = 0; i < MODEL_DOF; i++)
                     {
-//torque_grav(i) +  
-                        torque_desired(i) = torque_grav(i) +  dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) +
+                        //torque_grav(i) +
+                        torque_desired(i) = torque_grav(i) + dc.tocabi_.Kps[i] * (DyrosMath::cubic(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0) - tocabi_.q_(i)) +
                                             dc.tocabi_.Kvs[i] * (DyrosMath::cubicDot(control_time_, dc.position_command_time, dc.position_command_time + dc.position_traj_time, tocabi_.q_init_(i), dc.positionDesiredExt(i), 0, 0, 2000) - tocabi_.q_dot_virtual_(i + 6));
                     }
                 }
@@ -746,6 +759,7 @@ void TocabiController::dynamicsThreadLow()
         tp[0] = std::chrono::steady_clock::now();
         getState(); //link data override
         tp[1] = std::chrono::steady_clock::now();
+        GetTaskCommand();
 
         wbc_.update(tocabi_);
 
