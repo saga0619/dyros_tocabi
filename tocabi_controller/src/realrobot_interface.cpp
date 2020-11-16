@@ -181,17 +181,9 @@ void RealRobotInterface::updateState()
 
             for (int i = 0; i < ec_slavecount; i++)
             {
-                for (int j = 0; j < ec_slavecount; j++)
-                {
-                    if (TOCABI::JOINT_NAME[i] == TOCABI::ELMO_NAME[j].c_str())
-                    {
-                        {
-                            q_[i] = rq_[j];
-                            q_dot_[i] = rq_dot_[j];
-                            q_ext_[i] = rq_ext_[j];
-                        }
-                    }
-                }
+                q_[i] = rq_[TOCABI::JointMap[i]];
+                q_dot_[i] = rq_dot_[TOCABI::JointMap[i]];
+                q_ext_[i] = rq_ext_[TOCABI::JointMap[i]];
             }
 
             q_ddot_ = q_dot_ - q_dot_before_;
@@ -208,6 +200,7 @@ void RealRobotInterface::updateState()
 
             q_ddot_virtual_local_.setZero();
             q_ddot_virtual_local_.segment(0, 3) = imu_lin_acc;
+            std::cout << "2nd try success " << std::endl;
         }
         else
         {
@@ -629,7 +622,7 @@ void RealRobotInterface::ethercatCheck()
                         {
                             ec_slave[slave].islost = TRUE;
                             ConnectionUnstableBeforeStart = true;
-                            printf("%sERROR : slave %d lost%s\n", cred.c_str(), slave - 1, creset.c_str());
+                            printf("%sERROR : slave %d lost : %s%s\n", cred.c_str(), slave - 1, TOCABI::ELMO_NAME[slave - 1], creset.c_str());
                         }
                     }
                 }
@@ -1440,6 +1433,40 @@ void RealRobotInterface::ethercatThread()
                                     txPDO[i]->targetTorque = (int)0;
                                 }
                             }
+                            bool ecat_lost_before = dc.ecat_lost;
+                            dc.ecat_lost = false;
+                            for (int i = 0; i < ec_slavecount; i++)
+                            {
+                                if (ec_slave[i].islost)
+                                {
+                                    dc.ecat_lost = dc.ecat_lost || true;
+                                }
+                            }
+
+                            if ((ecat_lost_before) && (!dc.ecat_lost))
+                            {
+                                dc.ecat_recovered = true;
+                            }
+
+                            if (dc.ecat_lost)
+                            {
+                                for (int i = 0; i < ec_slavecount; i++)
+                                {
+                                    txPDO[i]->modeOfOperation = EtherCAT_Elmo::CyclicSynchronousTorquemode;
+                                    txPDO[i]->targetTorque = (int)0;
+                                }
+                            }
+
+                            if (dc.ecat_recovered)
+                            {
+                                //All joint To stay to joint
+                                std::cout << cred << "Tocabi Recoverd, Holding Current State" << creset << std::endl;
+                                for (int i = 0; i < MODEL_DOF; i++)
+                                {
+                                    ElmoSafteyMode[i] = 1;
+                                    positionSafteyHoldElmo[i] = positionElmo[i];
+                                }
+                            }
 
                             //Hold position if safety limit breached
                             for (int i = 0; i < ec_slavecount; i++)
@@ -1449,7 +1476,6 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = false;
                                 }
 
-                                //checkJointLimit(i);
                                 checkSafety(i, dc.safety_limit[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                             }
 

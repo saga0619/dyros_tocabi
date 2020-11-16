@@ -57,6 +57,8 @@ public:
   bool sebyft = false;
   bool set_q_init = false;
   bool single_foot_only = false;
+  bool ecat_lost = false;
+  bool ecat_recovered = false;
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;
