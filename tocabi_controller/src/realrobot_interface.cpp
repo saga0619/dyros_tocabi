@@ -1766,25 +1766,25 @@ void RealRobotInterface::ftsensorThread()
                     }
                     else
                     {
-                        ft.rightFootBias[i] = atof(tmp.c_str());
+                        ft.rightFootBias[i-6] = atof(tmp.c_str());
+
                     }
                     i++;
                 }
-                
                 ft_init_load = true;
                 ft_init_log.close();
                 pub_to_gui(dc, "ft bias loaded");
+                dc.ft_state = 2;
             }
             else
             {
                 pub_to_gui(dc, "ft bias load failed");
             }
-            
-
         }
 
         if (dc.ftcalib) //enabled by gui
         {
+            dc.ft_state = 1;
             if (ft_calib_init == false)
             {
                 ft_cycle_count = cycle_count;
@@ -1814,8 +1814,7 @@ void RealRobotInterface::ftsensorThread()
         {
             if (ft_calib_finish == false)
             {
-                pub_to_gui(dc, "initreq");
-                dc.ft_state = 1;
+                
             }
             else
             {
@@ -1829,7 +1828,7 @@ void RealRobotInterface::ftsensorThread()
             pub_to_gui(dc, "ft sensor : calibration finish ");
             pub_to_gui(dc, "ftgood");
             ROS_INFO("calibration finish");
-            
+
             ft_init_log.open(ft_init_path, ios_base::out);
             if (ft_init_log.is_open())
             {

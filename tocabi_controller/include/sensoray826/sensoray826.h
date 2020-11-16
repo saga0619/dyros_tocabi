@@ -237,7 +237,7 @@ public:
 
     void computeFTData(bool ft_calib_finish)
     {
-        if(ft_calib_finish == false)
+    /*    if(ft_calib_finish == false)
         {
             for(int i=0; i<6; i++)
             {
@@ -274,6 +274,25 @@ public:
                 leftFootAxisData_prev[i] = leftFootAxisData[i];
                 rightFootAxisData_prev[i] = rightFootAxisData[i];
             }
-        }
+        }*/
+            for(int i=0; i<6; i++)
+            {
+                double _lf = 0.0;
+                double _rf = 0.0;
+                for(int j=0; j<6; j++)
+                {
+                    _lf += calibrationMatrixLFoot[i][j] * adcVoltages[j + LEFT_FOOT];
+                    _rf += calibrationMatrixRFoot[i][j] * adcVoltages[j + RIGHT_FOOT];
+                }
+
+                _lf -= leftFootBias[i];
+                _rf -= rightFootBias[i];
+
+                leftFootAxisData[i] = lowPassFilter(_lf, leftFootAxisData_prev[i], 1.0 / SAMPLE_RATE, 0.05);
+                rightFootAxisData[i] = lowPassFilter(_rf, rightFootAxisData_prev[i], 1.0/ SAMPLE_RATE,0.05);
+            
+                leftFootAxisData_prev[i] = leftFootAxisData[i];
+                rightFootAxisData_prev[i] = rightFootAxisData[i];
+            }
     }
 };
