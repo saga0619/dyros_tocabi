@@ -202,7 +202,7 @@ public:
             rightFootBias[i] = _calibRFTData[i];
         }
         _calibMaxIndex = dCalibrationTime * SAMPLE_RATE;
-        ROS_INFO("FT sensor calibration start... time = %.1lf sec, total %d samples ", dCalibrationTime, _calibMaxIndex);
+        ROS_INFO("FT sensor calibration Initialize... time = %.1lf sec, total %d samples ", dCalibrationTime, _calibMaxIndex);
     }
 
     void calibrationFTData(bool ft_calib_finish)
