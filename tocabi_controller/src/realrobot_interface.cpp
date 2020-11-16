@@ -1285,6 +1285,8 @@ void RealRobotInterface::ethercatThread()
                                     if (once)
                                     {
                                         std::cout << cgreen << "ELMO : Leg Origin Check Complete" << creset << std::endl;
+
+                                        dc.ftcalib = true;
                                         once = false;
                                     }
                                 }
@@ -1748,6 +1750,7 @@ void RealRobotInterface::ftsensorThread()
     bool ft_calib_finish = false;
     bool ft_calib_ui = false;
     bool ft_init_write = false;
+    bool ft_init_load = false;
 
     int SAMPLE_RATE = 1000;
 
@@ -1771,13 +1774,56 @@ void RealRobotInterface::ftsensorThread()
         cycle_count++;
 
         ft.analogOversample();
+        
+        string tmp;
+        int i = 0;
+
+        if(ft_init_load == false)
+        {
+            ft_init_log.open(ft_init_path, ios_base::in);
+
+            if(ft_init_log.is_open())
+            {
+                while(getline(ft_init_log, tmp))
+                {
+                    if(i<6)
+                    {
+                        ft.leftFootBias[i] = atof(tmp.c_str());
+                    }
+                    else
+                    {
+                        ft.rightFootBias[i-6] = atof(tmp.c_str());
+
+                    }
+                    i++;
+                }
+                ft_init_load = true;
+                ft_init_log.close();
+                pub_to_gui(dc, "ft bias loaded");
+                dc.ft_state = 2;
+            }
+            else
+            {
+                pub_to_gui(dc, "ft bias load failed");
+            }
+        }
 
         if (dc.ftcalib) //enabled by gui
         {
+            dc.ft_state = 1;
             if (ft_calib_init == false)
             {
                 ft_cycle_count = cycle_count;
                 ft_calib_init = true;
+                ft_calib_finish = false;
+                ft_calib_ui = false;
+
+                for(int i = 0; i < 6; i++)
+                {
+                    ft._calibLFTData[i] = 0.0;
+                    ft._calibRFTData[i] = 0.0;
+                }
+
                 pub_to_gui(dc, "ft sensor : calibration ... ");
             }
             if (cycle_count < 5 * SAMPLE_RATE + ft_cycle_count)
@@ -1794,40 +1840,39 @@ void RealRobotInterface::ftsensorThread()
         {
             if (ft_calib_finish == false)
             {
-                pub_to_gui(dc, "initreq");
-                dc.ft_state = 1;
+                
+            }
+            else
+            {
+                ft_calib_init = false;
             }
         }
 
-        if (ft_calib_finish == true)
+        if (ft_calib_ui == false && ft_calib_finish == true)
         {
-            if (ft_calib_ui == false)
+            dc.print_ft_info_tofile = true;
+            pub_to_gui(dc, "ft sensor : calibration finish ");
+            pub_to_gui(dc, "ftgood");
+            ROS_INFO("calibration finish");
+
+            ft_init_log.open(ft_init_path, ios_base::out);
+            if (ft_init_log.is_open())
             {
-                dc.print_ft_info_tofile = true;
-                pub_to_gui(dc, "ft sensor : calibration finish ");
-                pub_to_gui(dc, "ftgood");
-                ROS_INFO("calibration finish");
-
-                ft_init_log.open(ft_init_path, ios_base::out);
-
-                if (ft_init_log.is_open())
+                for (int i = 0; i < 6; i++)
                 {
-                    for (int i = 0; i < 6; i++)
-                    {
-                        ft_init_log << ft.leftFootBias[i] << "\n";
-                    }
-
-                    for (int i = 0; i < 6; i++)
-                    {
-                        ft_init_log << ft.rightFootBias[i] << "\n";
-                    }
+                    ft_init_log << ft.leftFootBias[i] << "\n";
                 }
 
-                ft_init_log.close();
-                dc.ft_state = 2;
-                ft_calib_ui = true;
+                for (int i = 0; i < 6; i++)
+                {
+                    ft_init_log << ft.rightFootBias[i] << "\n";
+                }
             }
+            ft_init_log.close();
+            dc.ft_state = 2;
+            ft_calib_ui = true;
         }
+
         ft.computeFTData(ft_calib_finish);
 
         for (int i = 0; i < 6; i++)
@@ -1882,7 +1927,6 @@ void RealRobotInterface::handftsensorThread()
     //////OPTOFORCE//////
 
     ft_upper.InitDriver();
-    dc.ftcalib = true;
 
     while (!shutdown_tocabi_bool)
     {
@@ -1922,6 +1966,7 @@ void RealRobotInterface::handftsensorThread()
                 ft_calib_ui = true;
             }
         }
+
         ft_upper.computeFTData(ft_calib_finish);
 
         for (int i = 0; i < 6; i++)

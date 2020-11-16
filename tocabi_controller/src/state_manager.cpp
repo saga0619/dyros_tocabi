@@ -211,7 +211,7 @@ void StateManager::stateThread(void)
                 }
                 //lowpass filter for q_dot
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-                jointVelocityEstimate();
+                //jointVelocityEstimate();
             }
             catch (exception &e)
             {
