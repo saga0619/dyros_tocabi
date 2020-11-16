@@ -296,6 +296,9 @@ public:
   Eigen::Vector3d xpos;
   Eigen::Vector3d sensor_xpos;
   Eigen::Matrix3d rotm;
+  double contact_time;
+  bool contact_transition_mode;
+  double minimum_press_force;
   double friction_ratio;
   double friction_ratio_z;
   double cs_x_length;

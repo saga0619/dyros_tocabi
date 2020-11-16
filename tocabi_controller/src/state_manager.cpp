@@ -175,7 +175,7 @@ void StateManager::stateThread(void)
                 //imuCompenstation();
                 //q_dot_virtual_ = q_dot_virtual_raw_;
                 initYaw();
-                //qdotLPF();
+                qdotLPF();
             }
             catch (exception &e)
             {
@@ -1343,6 +1343,7 @@ void StateManager::stateEstimate()
         quat_before = imu_quat;
         rfzb = RF_CF_FT(2) / (-com_.mass * GRAVITY);
         lfzb = LF_CF_FT(2) / (-com_.mass * GRAVITY);
+
     }
     else
     {

@@ -25,6 +25,11 @@ void WholebodyController::init(RobotData &Robot)
     Robot.Grav_ref.setZero(3);
     Robot.Grav_ref(2) = -9.81;
 
+    Robot.ee_[0].contact_transition_mode = false;
+    Robot.ee_[1].contact_transition_mode = false;
+    Robot.ee_[2].contact_transition_mode = false;
+    Robot.ee_[3].contact_transition_mode = false;
+
     bool verbose = false; //set verbose true for State Manager initialization info
     bool urdfmode;
     ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
@@ -139,6 +144,11 @@ void WholebodyController::set_robot_init(RobotData &Robot)
     Robot.ee_[2].cs_y_length = 0.013;
     Robot.ee_[3].cs_x_length = 0.013;
     Robot.ee_[3].cs_y_length = 0.013;
+
+    Robot.ee_[0].minimum_press_force = 40;
+    Robot.ee_[1].minimum_press_force = 40;
+    Robot.ee_[2].minimum_press_force = 40;
+    Robot.ee_[3].minimum_press_force = 40;
 
     Robot.friction_ratio = 0.24;
 
@@ -1249,11 +1259,12 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
                 {
                     if (Robot.ee_[i].contact)
                     {
+                        Robot.ee_[i].contact_time = Robot.control_time_;
+                        Robot.ee_[i].contact_transition_mode = true;
                         std::cout << " EE " << i << " Contact Enabled " << std::endl;
                     }
                     else
                     {
-
                         std::cout << " EE " << i << " Contact Disabled " << std::endl;
                     }
                 }
@@ -1460,7 +1471,24 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        ub(MODEL_DOF + 6 * i + 2) = -45;
+
+        double zforce = 0;
+
+        if (Robot.ee_[Robot.ee_idx[i]].contact_transition_mode)
+        {
+            if (Robot.control_time_ >= (Robot.ee_[Robot.ee_idx[i]].contact_time + 1.0))
+            {
+                Robot.ee_[Robot.ee_idx[i]].contact_transition_mode = false;
+            }
+
+            zforce = -Robot.ee_[Robot.ee_idx[i]].minimum_press_force * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time);
+        }
+        else
+        {
+            zforce = -Robot.ee_[Robot.ee_idx[i]].minimum_press_force;
+        }
+
+        ub(MODEL_DOF + 6 * i + 2) = zforce;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
