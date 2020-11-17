@@ -92,9 +92,6 @@ public:
   Link link_[LINK_NUMBER + 1];
 
   double roll, pitch, yaw;
-
-  Eigen::MatrixVVd Motor_inertia;
-  Eigen::MatrixVVd Motor_inertia_inverse;
   
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;

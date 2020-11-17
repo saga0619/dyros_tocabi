@@ -111,9 +111,6 @@ public:
   Eigen::VectorQVQd q_virtual_local_;
   Eigen::VectorVQd q_dot_virtual_local_;
   Eigen::VectorVQd q_ddot_virtual_local_;
-
-  Eigen::MatrixVVd Motor_inertia_;
-  Eigen::MatrixVVd Motor_inertia_inv;
   
   double roll, pitch, yaw;
   double yaw_radian;

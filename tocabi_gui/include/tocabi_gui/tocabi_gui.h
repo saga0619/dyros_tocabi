@@ -19,6 +19,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Int32.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <std_msgs/String.h>
@@ -31,6 +32,9 @@
 
 #include "tocabi_controller/TaskCommand.h"
 #include "tocabi_controller/TaskCommandQue.h"
+#include "tocabi_controller/TaskGainCommand.h"
+#include "tocabi_controller/VelocityCommand.h"
+#include "tocabi_controller/positionCommand.h"
 
 const double NM2CNT[33] =
     {       //Elmo 순서
@@ -67,6 +71,29 @@ const double NM2CNT[33] =
         3.46,
         3.52,
         12.33};
+
+//leftleg rightleg waist leftarm head rightarm 
+
+
+const double posStandard[33] = {0.0, 0.0, -0.24, 0.6, -0.36, 0.0,
+								0.0, 0.0, -0.24, 0.6, -0.36, 0.0,
+								0, 0, 0, 
+								0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0,
+                                0, 0,
+								-0.3, -0.3, -1.5, 1.27, 1, 0, 1, 0};
+const double posStandard3[33] = {0.0, 0.0, -0.93, 1.24, -0.5, 0.0, 
+								0.0, 0.0, -0.93, 1.24, -0.5, 0.0,
+								0, 0.44, 0, 
+								-0.39, -1.205, 1, -0.375, -1.18, 2.31, -1.176, -0.178,
+                                0, 0,
+								0.39, 1.205, -1, 0.375, 1.18, -2.31, 1.176, 0.178};
+const double posStandard2[33] = {0.01920543546875, 0.014871940644527501, -0.9358508043751563, 1.338121842500375, -0.5674653948051875, 0.050828442832027504, 
+0.0705680103, -0.06239465556640125, -0.8990736226364687, 1.1964587462107499, -0.4385266665035625, 0.0016720387109400003, 
+0.00085875627915, 0.4494140928808593, 0.04510635186519375, 
+-0.5609804923725624, -1.1437550122563438, 0.9443183765642187, -0.34260309411968737, -1.0029662848342813, 2.2997703634082023, -1.0719877360214063, 0.1035897010547, 
+0.0015608251269812537, 0.014461600869112495, 
+0.5184163693160313, 1.1251018097560312, -0.931678377501875, 0.36133671315124993, 1.0657751151269375, -2.643443347626953, 1.121776907089875, 0.23148915758789498};
+
 
 struct task_que
 {
@@ -130,6 +157,7 @@ protected slots:
     virtual void walkinginitbtncb();
     virtual void walkingstartbtncb();
     virtual void walkingbtn();
+    virtual void dgbtn();
     virtual void sendtunebtn();
     virtual void resettunebtn();
     virtual void pointcb(const geometry_msgs::PolygonStampedConstPtr &msg);
@@ -159,13 +187,48 @@ protected slots:
     virtual void solvermode_cb(int state);
     virtual void inityaw();
     virtual void simvj();
+    virtual void igimubtn();
     virtual void imureset();
+    virtual void printdata();
+    virtual void enablelpf();
+    virtual void sendtaskgaincommand();
+    virtual void resettaskgaincommand();
+    virtual void sebyftbtn();
+    virtual void slidervelcommand();
+    virtual void sliderrel1();
+    virtual void sliderrel2();
+    virtual void sliderrel3();
+    virtual void disablelower();
+    virtual void positionCommand();
+    virtual void positionPreset1();
+    virtual void positionPreset2();
+
+    virtual void taskmodecb(int index);
+
+    //dg
     virtual void walkingspeedcb(int value);
     virtual void walkingdurationcb(int value);
     virtual void walkingangvelcb(int value);
     virtual void kneetargetanglecb(int value);
     virtual void footheightcb(int value);
 
+    virtual void sendupperbodymodecb();
+    virtual void sendnextswinglegcb();
+
+    virtual void sendcomposgaincb();
+    virtual void sendpelvorigaincb();
+    virtual void sendsupportfootdampinggaincb();
+    virtual void sendleggaincb();
+    virtual void sendalphaxcb();
+    virtual void sendalphaycb();
+    virtual void sendstepwidthcb();
+    virtual void sendtest1cb();
+    virtual void sendtest2cb();
+
+    virtual void sendarmgaincb();
+    virtual void sendwaistgaincb();
+
+    virtual void torqueCommand();
     void handletaskmsg();
 
 private:
@@ -205,12 +268,14 @@ public:
     ros::Subscriber timesub;
     ros::Subscriber jointsub;
     ros::Subscriber pointsub;
-
     ros::Subscriber guilogsub;
     ros::Publisher gain_pub;
     std_msgs::Float32MultiArray gain_msg;
     ros::Publisher com_pub;
     std_msgs::String com_msg;
+
+    ros::Publisher poscom_pub;
+    tocabi_controller::positionCommand poscom_msg;
 
     ros::Publisher task_pub;
     tocabi_controller::TaskCommand task_msg;
@@ -218,16 +283,46 @@ public:
     ros::Publisher task_que_pub;
     tocabi_controller::TaskCommandQue task_que_msg;
 
-    ros::Publisher walkingspeed_pub;
-    std_msgs::Float32 walkingspeed_msg;
-    ros::Publisher walkingduration_pub;
-    std_msgs::Float32 walkingduration_msg;
-    ros::Publisher walkingangvel_pub;
-    std_msgs::Float32 walkingangvel_msg;
-    ros::Publisher kneetargetangle_pub;
-    std_msgs::Float32 kneetargetangle_msg;
-    ros::Publisher footheight_pub;
-    std_msgs::Float32 footheight_msg;
+    ros::Publisher taskgain_pub;
+    tocabi_controller::TaskGainCommand taskgain_msg;
+
+    ros::Publisher velcommand_pub;
+    tocabi_controller::VelocityCommand velcmd_msg;
+
+    //dg
+    ros::Publisher walkingslidercommand_pub;
+    std_msgs::Float32MultiArray walkingslidercommand_msg;
+
+    ros::Publisher upperbodymode_pub;
+    std_msgs::Float32 upperbodymode_msg;
+    ros::Publisher nextswingleg_pub;
+    std_msgs::Float32 nextswingleg_msg;
+
+    ros::Publisher com_walking_pd_gain_pub;
+    std_msgs::Float32MultiArray com_walking_pd_gain_msg;
+    ros::Publisher pelv_ori_pd_gain_pub;
+    std_msgs::Float32MultiArray pelv_ori_pd_gain_msg;
+    ros::Publisher support_foot_damping_gain_pub;
+    std_msgs::Float32MultiArray support_foot_damping_gain_msg;
+    ros::Publisher dg_leg_pd_gain_pub;
+    std_msgs::Float32MultiArray dg_leg_pd_gain_msg;
+    
+    ros::Publisher alpha_x_pub;
+    std_msgs::Float32 alpha_x_msg;
+    ros::Publisher alpha_y_pub;
+    std_msgs::Float32 alpha_y_msg;
+    ros::Publisher step_width_pub;
+    std_msgs::Float32 step_width_msg;
+    
+    ros::Publisher test1_pub;
+    std_msgs::Float32 test1_msg;
+    ros::Publisher test2_pub;
+    std_msgs::Float32 test2_msg;
+
+    ros::Publisher arm_pd_gain_pub;
+    std_msgs::Float32MultiArray arm_pd_gain_msg;
+    ros::Publisher waist_pd_gain_pub;
+    std_msgs::Float32MultiArray waist_pd_gain_msg;
 
     ros::Subscriber sysstatesub;
 
@@ -235,6 +330,8 @@ public:
 
     //void guiLogCallback(const std_msgs::StringConstPtr &msg);
     std::string logtext;
+
+    double com_height = 0;
 
 signals:
     void guiLogCallback(const std_msgs::StringConstPtr &msg);

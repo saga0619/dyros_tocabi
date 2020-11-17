@@ -94,7 +94,7 @@ OFF</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>60</y>
+     <y>70</y>
      <width>851</width>
      <height>921</height>
     </rect>
@@ -103,7 +103,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>4</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -188,6 +188,32 @@ OFF</string>
      </property>
      <property name="text">
       <string>DISABLE SAFETY</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="imuresetbtn">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>360</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>IMU EF RESET</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="lowerdisable">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>420</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>DISABLE LOWER</string>
      </property>
     </widget>
    </widget>
@@ -2123,26 +2149,13 @@ OFF</string>
     </widget>
    </widget>
    <widget class="QWidget" name="COMMAND">
-    <widget class="QPushButton" name="sebutton">
-     <property name="geometry">
-      <rect>
-       <x>690</x>
-       <y>170</y>
-       <width>121</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>State Estimation</string>
-     </property>
-    </widget>
     <widget class="QFrame" name="frame_2">
      <property name="geometry">
       <rect>
        <x>650</x>
-       <y>290</y>
+       <y>20</y>
        <width>181</width>
-       <height>231</height>
+       <height>501</height>
       </rect>
      </property>
      <property name="frameShape">
@@ -2155,9 +2168,9 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>10</y>
+        <y>250</y>
         <width>141</width>
-        <height>211</height>
+        <height>121</height>
        </rect>
       </property>
       <property name="windowTitle">
@@ -2166,6 +2179,9 @@ OFF</string>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QPushButton" name="gravity_button_4">
+         <property name="toolTip">
+          <string>disable task control, enable gravity compensation</string>
+         </property>
          <property name="text">
           <string>GravityControl</string>
          </property>
@@ -2173,6 +2189,9 @@ OFF</string>
        </item>
        <item>
         <widget class="QPushButton" name="task_button_4">
+         <property name="toolTip">
+          <string>position control with current joint pos.</string>
+         </property>
          <property name="text">
           <string>PositionControl</string>
          </property>
@@ -2180,25 +2199,36 @@ OFF</string>
        </item>
        <item>
         <widget class="QPushButton" name="task_button_5">
+         <property name="toolTip">
+          <string>position control + gravity compensation</string>
+         </property>
          <property name="text">
           <string>Position(Grav)</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="contact_button_4">
+        <widget class="QPushButton" name="torqueredis">
+         <property name="toolTip">
+          <string>Contact Redistribution Mode Select</string>
+         </property>
          <property name="text">
-          <string>fixedGravity</string>
+          <string>torqueredis</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="data_button_4">
-         <property name="text">
-          <string>Show Data</string>
-         </property>
-        </widget>
-       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_44">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>398</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_38">
        <item>
         <widget class="QPushButton" name="helpbutton_4">
          <property name="text">
@@ -2206,34 +2236,154 @@ OFF</string>
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QPushButton" name="printdatabutton">
+         <property name="toolTip">
+          <string>print data to dc.data_out. See codes for detail</string>
+         </property>
+         <property name="text">
+          <string>Print Data</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="data_button_4">
+         <property name="toolTip">
+          <string>dc.tocabi_.showdata = true for data printing.</string>
+         </property>
+         <property name="text">
+          <string>Show Data</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
-    </widget>
-    <widget class="QPushButton" name="torqueredis">
-     <property name="geometry">
-      <rect>
-       <x>690</x>
-       <y>210</y>
-       <width>121</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>torqueredis</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="qp2nd">
-     <property name="geometry">
-      <rect>
-       <x>690</x>
-       <y>250</y>
-       <width>121</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>qp 2nd</string>
-     </property>
+     <widget class="QWidget" name="verticalLayoutWidget_45">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>141</width>
+        <height>182</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_39">
+       <item>
+        <widget class="QPushButton" name="iybtn">
+         <property name="toolTip">
+          <string>Initialize Current Yaw to Zero</string>
+         </property>
+         <property name="statusTip">
+          <string>statustip</string>
+         </property>
+         <property name="whatsThis">
+          <string>whatsThis</string>
+         </property>
+         <property name="text">
+          <string extracomment="what is comment">Init Yaw</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="qdot_lpf">
+         <property name="toolTip">
+          <string>joint velocity low pass filter on/off</string>
+         </property>
+         <property name="text">
+          <string>qdot Lpf</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="sebutton">
+         <property name="toolTip">
+          <string>state estimation on/off</string>
+         </property>
+         <property name="text">
+          <string>State Estimation</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="sebyftbtn">
+         <property name="toolTip">
+          <string>use mujoco's virtual joint value</string>
+         </property>
+         <property name="text">
+          <string>SE by FT</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="vjbtn">
+         <property name="toolTip">
+          <string>use mujoco's virtual joint value</string>
+         </property>
+         <property name="text">
+          <string>virtual joint(sim)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="IgIMUbtn">
+         <property name="toolTip">
+          <string>use mujoco's virtual joint value</string>
+         </property>
+         <property name="text">
+          <string>Ignore IMU</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="label_138">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>141</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Global Position</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_139">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>230</y>
+        <width>141</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Robot Control</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_140">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>380</y>
+        <width>141</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Data</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
     </widget>
     <widget class="QFrame" name="frame_13">
      <property name="geometry">
@@ -2269,7 +2419,7 @@ OFF</string>
         <x>10</x>
         <y>50</y>
         <width>251</width>
-        <height>311</height>
+        <height>281</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -2574,9 +2724,9 @@ OFF</string>
      <widget class="QLabel" name="label_80">
       <property name="geometry">
        <rect>
-        <x>330</x>
-        <y>375</y>
-        <width>101</width>
+        <x>380</x>
+        <y>380</y>
+        <width>71</width>
         <height>21</height>
        </rect>
       </property>
@@ -2590,9 +2740,9 @@ OFF</string>
      <widget class="QLabel" name="label_84">
       <property name="geometry">
        <rect>
-        <x>330</x>
-        <y>417</y>
-        <width>101</width>
+        <x>400</x>
+        <y>420</y>
+        <width>51</width>
         <height>20</height>
        </rect>
       </property>
@@ -2606,9 +2756,9 @@ OFF</string>
      <widget class="QLineEdit" name="text_traj_time">
       <property name="geometry">
        <rect>
-        <x>440</x>
+        <x>460</x>
         <y>370</y>
-        <width>181</width>
+        <width>161</width>
         <height>31</height>
        </rect>
       </property>
@@ -2622,9 +2772,9 @@ OFF</string>
      <widget class="QPushButton" name="task_send_button">
       <property name="geometry">
        <rect>
-        <x>440</x>
+        <x>460</x>
         <y>450</y>
-        <width>181</width>
+        <width>161</width>
         <height>41</height>
        </rect>
       </property>
@@ -2651,7 +2801,7 @@ OFF</string>
         <x>280</x>
         <y>50</y>
         <width>160</width>
-        <height>311</height>
+        <height>281</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -2770,9 +2920,9 @@ OFF</string>
      <widget class="QComboBox" name="task_mode">
       <property name="geometry">
        <rect>
-        <x>440</x>
+        <x>460</x>
         <y>412</y>
-        <width>181</width>
+        <width>161</width>
         <height>27</height>
        </rect>
       </property>
@@ -2825,7 +2975,7 @@ OFF</string>
       </item>
       <item>
        <property name="text">
-        <string>7. --</string>
+        <string>7. multi contact</string>
        </property>
       </item>
       <item>
@@ -2867,8 +3017,8 @@ OFF</string>
      <widget class="QLabel" name="label_88">
       <property name="geometry">
        <rect>
-        <x>70</x>
-        <y>370</y>
+        <x>20</x>
+        <y>360</y>
         <width>81</width>
         <height>20</height>
        </rect>
@@ -2914,7 +3064,7 @@ OFF</string>
          <x>0</x>
          <y>10</y>
          <width>151</width>
-         <height>163</height>
+         <height>161</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -2994,9 +3144,9 @@ OFF</string>
      <widget class="QPushButton" name="que_add">
       <property name="geometry">
        <rect>
-        <x>270</x>
+        <x>240</x>
         <y>460</y>
-        <width>111</width>
+        <width>81</width>
         <height>31</height>
        </rect>
       </property>
@@ -3007,7 +3157,7 @@ OFF</string>
      <widget class="QLineEdit" name="text_que">
       <property name="geometry">
        <rect>
-        <x>100</x>
+        <x>80</x>
         <y>460</y>
         <width>161</width>
         <height>31</height>
@@ -3025,7 +3175,7 @@ OFF</string>
        <rect>
         <x>10</x>
         <y>460</y>
-        <width>91</width>
+        <width>71</width>
         <height>31</height>
        </rect>
       </property>
@@ -3040,7 +3190,7 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>460</x>
-        <y>250</y>
+        <y>240</y>
         <width>151</width>
         <height>27</height>
        </rect>
@@ -3077,12 +3227,17 @@ OFF</string>
         <string>QP2_junhee</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>QP3</string>
+       </property>
+      </item>
      </widget>
      <widget class="QComboBox" name="cr_mode">
       <property name="geometry">
        <rect>
         <x>460</x>
-        <y>310</y>
+        <y>300</y>
         <width>151</width>
         <height>27</height>
        </rect>
@@ -3119,7 +3274,7 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>460</x>
-        <y>230</y>
+        <y>220</y>
         <width>91</width>
         <height>17</height>
        </rect>
@@ -3132,13 +3287,199 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>460</x>
-        <y>290</y>
+        <y>280</y>
         <width>151</width>
         <height>17</height>
        </rect>
       </property>
       <property name="text">
        <string>Contact redistrbution</string>
+      </property>
+     </widget>
+     <widget class="QSlider" name="horizontalSlider">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>380</y>
+        <width>271</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>50</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QSlider" name="horizontalSlider_2">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>400</y>
+        <width>271</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>50</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QSlider" name="horizontalSlider_3">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>420</y>
+        <width>271</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>50</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>390</y>
+        <width>81</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>COM pos</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Pelv Rot</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>UpperBody rotation</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>RightHand pos</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>RightHand rot</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>LeftHand pos</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>LeftHand rot</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QSlider" name="horizontalSlider_4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>420</y>
+        <width>81</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>20</number>
+      </property>
+      <property name="value">
+       <number>1</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>330</y>
+        <width>141</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Maintain LC</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_lf">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>330</y>
+        <width>92</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>l foot</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_rf">
+      <property name="geometry">
+       <rect>
+        <x>110</x>
+        <y>330</y>
+        <width>92</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>r foot</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_lh">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>330</y>
+        <width>92</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>l hand</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cb_rh">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>330</y>
+        <width>92</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>r hand</string>
       </property>
      </widget>
     </widget>
@@ -3162,8 +3503,8 @@ OFF</string>
        <rect>
         <x>440</x>
         <y>0</y>
-        <width>201</width>
-        <height>61</height>
+        <width>51</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="text">
@@ -3174,19 +3515,19 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>440</x>
-        <y>60</y>
+        <y>50</y>
         <width>121</width>
         <height>28</height>
        </rect>
       </property>
       <item>
        <property name="text">
-        <string>Previewcontrol</string>
+        <string>DCM</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>DCM</string>
+        <string>Previewcontrol</string>
        </property>
       </item>
       <item>
@@ -3199,7 +3540,7 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>440</x>
-        <y>100</y>
+        <y>170</y>
         <width>121</width>
         <height>28</height>
        </rect>
@@ -3219,16 +3560,11 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>440</x>
-        <y>140</y>
+        <y>110</y>
         <width>121</width>
         <height>28</height>
        </rect>
       </property>
-      <item>
-       <property name="text">
-        <string>Torque</string>
-       </property>
-      </item>
       <item>
        <property name="text">
         <string>IK</string>
@@ -3236,7 +3572,12 @@ OFF</string>
       </item>
       <item>
        <property name="text">
-        <string>Jacobian</string>
+        <string>COMJacobian</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Torque</string>
        </property>
       </item>
      </widget>
@@ -3518,6 +3859,77 @@ OFF</string>
        <string>walking start</string>
       </property>
      </widget>
+     <widget class="QCheckBox" name="checkBox_IMU">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>0</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>IMU</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="walking_pattern_2">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>80</y>
+        <width>121</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>PELVIS</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>COM</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_mom">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>30</y>
+        <width>61</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>mom</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="controlmode">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>140</y>
+        <width>121</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>None</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>COM Damping</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>PELV_CLIK</string>
+       </property>
+      </item>
+     </widget>
     </widget>
     <widget class="QPushButton" name="que_send">
      <property name="geometry">
@@ -3600,45 +4012,6 @@ OFF</string>
       </rect>
      </property>
     </widget>
-    <widget class="QPushButton" name="iybtn">
-     <property name="geometry">
-      <rect>
-       <x>690</x>
-       <y>130</y>
-       <width>121</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Init Yaw</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="vjbtn">
-     <property name="geometry">
-      <rect>
-       <x>690</x>
-       <y>50</y>
-       <width>121</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>virtual joint(sim)</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="imuresetbtn">
-     <property name="geometry">
-      <rect>
-       <x>690</x>
-       <y>90</y>
-       <width>121</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>imu EF reset</string>
-     </property>
-    </widget>
    </widget>
    <widget class="QWidget" name="page">
     <widget class="QLabel" name="label_39">
@@ -3657,8 +4030,8 @@ OFF</string>
     <widget class="QFrame" name="frame_11">
      <property name="geometry">
       <rect>
-       <x>310</x>
-       <y>80</y>
+       <x>400</x>
+       <y>20</y>
        <width>431</width>
        <height>491</height>
       </rect>
@@ -3771,9 +4144,9 @@ OFF</string>
     <widget class="QPushButton" name="resettunebtn">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>260</y>
-       <width>201</width>
+       <x>190</x>
+       <y>80</y>
+       <width>161</width>
        <height>41</height>
       </rect>
      </property>
@@ -3784,9 +4157,9 @@ OFF</string>
     <widget class="QPushButton" name="sendtunebtn">
      <property name="geometry">
       <rect>
-       <x>50</x>
-       <y>200</y>
-       <width>201</width>
+       <x>190</x>
+       <y>20</y>
+       <width>161</width>
        <height>41</height>
       </rect>
      </property>
@@ -3794,421 +4167,1844 @@ OFF</string>
       <string>Send Tune Constant</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QWidget" name="CONTROLLER">
-    <widget class="QWidget" name="gridLayoutWidget">
+    <widget class="QFrame" name="frame">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>50</y>
-       <width>522</width>
-       <height>222</height>
+       <x>400</x>
+       <y>520</y>
+       <width>431</width>
+       <height>381</height>
       </rect>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
-        <item>
-         <widget class="QLabel" name="label_139">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_140">
-          <property name="text">
-           <string>(%)</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget_52">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>70</y>
+        <width>71</width>
+        <height>182</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_40">
+       <item>
+        <widget class="QLineEdit" name="gainx">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainy">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainz">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainr">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainp">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainyaw">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QComboBox" name="taskgain_combo">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>70</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>COM</string>
+       </property>
       </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_137">
-        <property name="text">
-         <string>-0.4                                      0.0                                                             0.6</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignJustify|Qt::AlignVCenter</set>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>Pelvis</string>
+       </property>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_141">
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="text">
-         <string>Duration (s)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>UpperBody</string>
+       </property>
       </item>
-      <item row="3" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_9">
-        <item>
-         <widget class="QLabel" name="label_142">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_143">
-          <property name="text">
-           <string>(%)</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <item>
+       <property name="text">
+        <string>Foot</string>
+       </property>
       </item>
-      <item row="2" column="1">
-       <widget class="QSlider" name="walking_duration_slider">
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>50</number>
-        </property>
-        <property name="sliderPosition">
-         <number>50</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBelow</enum>
-        </property>
-        <property name="tickInterval">
-         <number>10</number>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>Hand</string>
+       </property>
       </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="label_138">
-        <property name="text">
-         <string>0.2                                                   0.6                                                  1.0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignJustify|Qt::AlignVCenter</set>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>R_Foot</string>
+       </property>
       </item>
-      <item row="5" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_10">
-        <item>
-         <widget class="QLabel" name="label_146">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_147">
-          <property name="text">
-           <string>(%)</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <item>
+       <property name="text">
+        <string>L_Foot</string>
+       </property>
       </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_145">
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="text">
-         <string>AngVel (rad/s)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>R_Hand</string>
+       </property>
       </item>
-      <item row="4" column="1">
-       <widget class="QSlider" name="walking_angvel_slider">
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>50</number>
-        </property>
-        <property name="sliderPosition">
-         <number>50</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBelow</enum>
-        </property>
-        <property name="tickInterval">
-         <number>10</number>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>L_Hand</string>
+       </property>
       </item>
-      <item row="5" column="1">
-       <widget class="QLabel" name="label_144">
-        <property name="text">
-         <string>-1.0                                                 0.0                                                   1.0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignJustify|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_136">
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="text">
-         <string>Speed (m/s)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSlider" name="walking_speed_slider">
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>40</number>
-        </property>
-        <property name="sliderPosition">
-         <number>40</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBelow</enum>
-        </property>
-        <property name="tickInterval">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     </widget>
+     <widget class="QPushButton" name="taskgain_resetbtn">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>170</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>RESET GAIN</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="taskgain_sendbtn">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>120</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>SEND GAIN</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_53">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>70</y>
+        <width>31</width>
+        <height>182</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_41">
+       <item>
+        <widget class="QLabel" name="label_144">
+         <property name="text">
+          <string>X</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_145">
+         <property name="text">
+          <string>Y</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_146">
+         <property name="text">
+          <string>Z</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_147">
+         <property name="text">
+          <string>R</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_148">
+         <property name="text">
+          <string>P</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_143">
+         <property name="text">
+          <string>Y</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_54">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>70</y>
+        <width>71</width>
+        <height>182</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_42">
+       <item>
+        <widget class="QLineEdit" name="gainx_2">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainy_2">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainz_2">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainr_2">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainp_2">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="gainyaw_2">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="label_149">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>40</y>
+        <width>71</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>P</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_150">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>40</y>
+        <width>71</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>D</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_151">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>10</y>
+        <width>201</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Task PD gain command</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
     </widget>
-    <widget class="QWidget" name="gridLayoutWidget_2">
+    <widget class="QPushButton" name="pcSendCommand">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>270</y>
-       <width>522</width>
-       <height>153</height>
+       <x>190</x>
+       <y>320</y>
+       <width>161</width>
+       <height>41</height>
       </rect>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_148">
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="text">
-         <string>   Knee Angle (degree)  </string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_11">
-        <item>
-         <widget class="QLabel" name="label_149">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
+     <property name="text">
+      <string>Send Command</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pcTorqueStandard">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>380</y>
+       <width>161</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Torque Standard</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="poscom_trajtime">
+     <property name="geometry">
+      <rect>
+       <x>212</x>
+       <y>280</y>
+       <width>141</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>5.0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_152">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>280</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>position control
+ traj time</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pc4ConStandard">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>440</y>
+       <width>161</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>4 Con Standard</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="poscomgravity">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>330</y>
+       <width>92</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Gravity</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="WALKING">
+    <widget class="QFrame" name="frame_20">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>60</y>
+       <width>431</width>
+       <height>341</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QLabel" name="label_141">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>50</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>left</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_142">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>50</y>
+        <width>67</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>right</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_46">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>80</y>
+        <width>72</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="leftarm_layout_3"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_47">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>80</y>
+        <width>71</width>
+        <height>221</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="rightarm_layout_3"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_50">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>50</y>
+        <width>71</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="head_layout_3"/>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_51">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>140</y>
+        <width>71</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="waist_layout_3"/>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="pushButton">
+     <property name="geometry">
+      <rect>
+       <x>520</x>
+       <y>100</y>
+       <width>89</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>PushButton</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_2">
+     <property name="geometry">
+      <rect>
+       <x>520</x>
+       <y>140</y>
+       <width>89</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>PushButton</string>
+     </property>
+    </widget>
+    <widget class="QFrame" name="frame_25">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>500</y>
+       <width>831</width>
+       <height>271</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QWidget" name="gridLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>150</y>
+        <width>361</width>
+        <height>111</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_212">
+         <property name="text">
+          <string>Waist Yaw</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="waist_gain_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_213">
+         <property name="text">
+          <string>Waist Roll</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_217">
+         <property name="text">
+          <string>Kp:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_216">
+         <property name="text">
+          <string>Waist Pitch</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_218">
+         <property name="text">
+          <string>Kd:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="waist_yaw_kp"/>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="waist_yaw_kd"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="waist_roll_kp"/>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="waist_pitch_kp"/>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="waist_roll_kd"/>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="waist_pitch_kd"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_9">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>811</width>
+        <height>121</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_9">
+       <item row="0" column="5">
+        <widget class="QLabel" name="label_210">
+         <property name="text">
+          <string>Elbow</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_209">
+         <property name="text">
+          <string>Shoulder3</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="arm_kp_shoulder1"/>
+       </item>
+       <item row="2" column="6">
+        <widget class="QLineEdit" name="arm_kd_forearm"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_205">
+         <property name="text">
+          <string>Shoulder2</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="arm_kd_shoulder1"/>
+       </item>
+       <item row="1" column="4">
+        <widget class="QLineEdit" name="arm_kp_arm"/>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="arm_kd_shoulder2"/>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="arm_kd_shoulder3"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_208">
+         <property name="text">
+          <string>Shoulder1</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="arm_kp_shoulder3"/>
+       </item>
+       <item row="0" column="7">
+        <widget class="QLabel" name="label_214">
+         <property name="text">
+          <string>Wrist1</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
+        <widget class="QLineEdit" name="arm_kd_arm"/>
+       </item>
+       <item row="0" column="6">
+        <widget class="QLabel" name="label_204">
+         <property name="text">
+          <string>Forearm</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="5">
+        <widget class="QLineEdit" name="arm_kp_elbow"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="arm_kp_shoulder2"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_207">
+         <property name="text">
+          <string>L/R Arm Kp:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="8">
+        <widget class="QLabel" name="label_215">
+         <property name="text">
+          <string>Wrist2</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="6">
+        <widget class="QLineEdit" name="arm_kp_forearm"/>
+       </item>
+       <item row="2" column="5">
+        <widget class="QLineEdit" name="arm_kd_elbow"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_211">
+         <property name="text">
+          <string>L/R Arm Kd:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="arm_gain_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QLabel" name="label_206">
+         <property name="text">
+          <string>Arm</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="7">
+        <widget class="QLineEdit" name="arm_kp_wrist1"/>
+       </item>
+       <item row="1" column="8">
+        <widget class="QLineEdit" name="arm_kp_wrist2"/>
+       </item>
+       <item row="2" column="7">
+        <widget class="QLineEdit" name="arm_kd_wrist1"/>
+       </item>
+       <item row="2" column="8">
+        <widget class="QLineEdit" name="arm_kd_wrist2"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="DG">
+    <widget class="QFrame" name="frame_21">
+     <property name="geometry">
+      <rect>
+       <x>560</x>
+       <y>450</y>
+       <width>271</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QWidget" name="gridLayoutWidget_7">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>251</width>
+        <height>211</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_7">
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="test1"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="alpha_y_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="alpha_x_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="alpha_y"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="alpha_x"/>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="step_width"/>
+       </item>
+       <item row="2" column="2">
+        <widget class="QPushButton" name="step_width_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_195">
+         <property name="text">
+          <string>Step width</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QPushButton" name="test1_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_193">
+         <property name="text">
+          <string>Alpha_x</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_196">
+         <property name="text">
+          <string>Test1</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_194">
+         <property name="text">
+          <string>Alpha_y</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_197">
+         <property name="text">
+          <string>Test2</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="test2"/>
+       </item>
+       <item row="4" column="2">
+        <widget class="QPushButton" name="test2_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QFrame" name="frame_22">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>40</y>
+       <width>601</width>
+       <height>401</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QFrame" name="KneeAnglegridFrame_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>240</y>
+        <width>581</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="1">
+        <widget class="QSlider" name="knee_target_angle_slider_2">
+         <property name="cursor">
+          <cursorShape>SizeHorCursor</cursorShape>
+         </property>
+         <property name="maximum">
+          <number>90</number>
+         </property>
+         <property name="value">
+          <number>18</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>5</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_177">
+         <property name="text">
+          <string>Foot Height (cm)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_13">
+         <item>
+          <widget class="QLabel" name="label_178">
+           <property name="frameShape">
+            <enum>QFrame::Panel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_179">
+           <property name="text">
+            <string>(rad/s)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSlider" name="foot_height_slider_2">
+         <property name="cursor">
+          <cursorShape>SizeHorCursor</cursorShape>
+         </property>
+         <property name="maximum">
+          <number>10</number>
+         </property>
+         <property name="value">
+          <number>7</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_176">
+         <property name="text">
+          <string>Knee Angle (degree)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="label_180">
+         <property name="text">
+          <string> 0         10        20        30         40        50        60        70        80       90</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="label_181">
+         <property name="text">
+          <string>0.0                                                     5.0                                                   10.0 </string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_14">
+         <item>
+          <widget class="QLabel" name="label_182">
+           <property name="frameShape">
+            <enum>QFrame::Panel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_183">
+           <property name="text">
+            <string>(cm)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>0</y>
+        <width>581</width>
+        <height>231</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="WalkingSpeedgridLayout_3">
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_175">
+         <property name="text">
+          <string>AngVel (rad/s)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="label_184">
+         <property name="text">
+          <string>-0.4                                             0.0                                                                       0.6</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QSlider" name="walking_duration_slider_2">
+         <property name="cursor">
+          <cursorShape>SizeHorCursor</cursorShape>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>50</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_173">
+         <property name="text">
+          <string>Speed (m/s)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QSlider" name="walking_angvel_slider_2">
+         <property name="cursor">
+          <cursorShape>SizeHorCursor</cursorShape>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>50</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="label_185">
+         <property name="text">
+          <string>0.4                                                           0.7                                                          1.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_174">
+         <property name="text">
+          <string>Duration (s)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSlider" name="walking_speed_slider_2">
+         <property name="cursor">
+          <cursorShape>SizeHorCursor</cursorShape>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>40</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLabel" name="label_186">
+         <property name="text">
+          <string>-0.3                                                          0.0                                                          0.3</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_15">
+         <item>
+          <widget class="QLabel" name="label_188">
+           <property name="frameShape">
+            <enum>QFrame::Panel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_187">
+           <property name="text">
+            <string>(%)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="4" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_16">
+         <item>
+          <widget class="QLabel" name="label_190">
+           <property name="frameShape">
+            <enum>QFrame::Panel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_189">
+           <property name="text">
+            <string>(%)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="6" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <item>
+          <widget class="QLabel" name="label_192">
+           <property name="frameShape">
+            <enum>QFrame::Panel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_191">
+           <property name="text">
+            <string>(%)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QFrame" name="frame_23">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>39</y>
+       <width>211</width>
+       <height>401</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="lineWidth">
+      <number>10</number>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget_48">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>187</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="UpperbodyModeverticalLayout_43">
+       <item>
+        <widget class="QLabel" name="label_198">
+         <property name="text">
+          <string>Upper Body Mode</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="upperbody_mode">
+         <item>
+          <property name="text">
+           <string>1. Init Pose</string>
           </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
+         </item>
+         <item>
+          <property name="text">
+           <string>2. Zero Pose</string>
           </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3. Swing Arm</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>4. Motion Retargetting</string>
+          </property>
+         </item>
+         <item>
           <property name="text">
            <string/>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_150">
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="send_upperbody_mode_button">
+         <property name="text">
+          <string>Send Mode</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_49">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>187</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="NextSwingLegverticalLayout_44">
+       <item>
+        <widget class="QLabel" name="label_199">
+         <property name="text">
+          <string>Next Swing Leg</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="next_swing_leg_mode">
+         <item>
           <property name="text">
-           <string>(%)</string>
+           <string>1. Left Leg</string>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
+         </item>
+         <item>
+          <property name="text">
+           <string>2. Right Leg</string>
           </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSlider" name="knee_target_angle_slider">
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>5</number>
-        </property>
-        <property name="sliderPosition">
-         <number>5</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBelow</enum>
-        </property>
-        <property name="tickInterval">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QSlider" name="foot_height_slider">
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>50</number>
-        </property>
-        <property name="sliderPosition">
-         <number>50</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksBelow</enum>
-        </property>
-        <property name="tickInterval">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_152">
-        <property name="frameShape">
-         <enum>QFrame::Panel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="text">
-         <string>Foot Height (cm)</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="label_155">
-        <property name="text">
-         <string>0.0                                          5.0                                       10.0</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignJustify|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_12">
-        <item>
-         <widget class="QLabel" name="label_153">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
+         </item>
+         <item>
           <property name="text">
            <string/>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_154">
-          <property name="text">
-           <string>(%)</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_151">
-        <property name="text">
-         <string> 0                                             45                                          90</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignJustify|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="send_next_swing_leg_button">
+         <property name="text">
+          <string>Send</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QFrame" name="frame_24">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>740</y>
+       <width>821</width>
+       <height>151</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QWidget" name="gridLayoutWidget_6">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>801</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="LegGaingridLayout_6">
+       <item row="1" column="4">
+        <widget class="QLineEdit" name="lleg_kp_kneepitch"/>
+       </item>
+       <item row="0" column="6">
+        <widget class="QLabel" name="label_169">
+         <property name="text">
+          <string>Ankle Roll</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_159">
+         <property name="text">
+          <string>Hip Roll</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QLabel" name="label_161">
+         <property name="text">
+          <string>Knee Pitch</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="lleg_kd_hipyaw"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lleg_kp_hipyaw"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_168">
+         <property name="text">
+          <string>Left Leg Kp:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="6">
+        <widget class="QLineEdit" name="lleg_kp_ankleroll"/>
+       </item>
+       <item row="1" column="5">
+        <widget class="QLineEdit" name="lleg_kp_anklepitch"/>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="lleg_kp_hippitch"/>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="lleg_kd_hippitch"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_158">
+         <property name="text">
+          <string>Hip Yaw</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="lleg_kp_hiproll"/>
+       </item>
+       <item row="2" column="4">
+        <widget class="QLineEdit" name="lleg_kd_kneepitch"/>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="lleg_kd_hiproll"/>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_160">
+         <property name="text">
+          <string>Hip Pitch</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="5">
+        <widget class="QLineEdit" name="lleg_kd_anklepitch"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="rleg_kp_hipyaw"/>
+       </item>
+       <item row="0" column="5">
+        <widget class="QLabel" name="label_162">
+         <property name="text">
+          <string>Ankle Pitch</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="6">
+        <widget class="QLineEdit" name="lleg_kd_ankleroll"/>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="rleg_kd_hipyaw"/>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="rleg_kp_hiproll"/>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLineEdit" name="rleg_kd_hiproll"/>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="rleg_kp_hippitch"/>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLineEdit" name="rleg_kd_hippitch"/>
+       </item>
+       <item row="3" column="4">
+        <widget class="QLineEdit" name="rleg_kp_kneepitch"/>
+       </item>
+       <item row="4" column="4">
+        <widget class="QLineEdit" name="rleg_kd_kneepitch"/>
+       </item>
+       <item row="4" column="5">
+        <widget class="QLineEdit" name="rleg_kd_anklepitch"/>
+       </item>
+       <item row="3" column="6">
+        <widget class="QLineEdit" name="rleg_kp_ankleroll"/>
+       </item>
+       <item row="4" column="6">
+        <widget class="QLineEdit" name="rleg_kd_ankleroll"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_170">
+         <property name="text">
+          <string>Left Leg Kd:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_171">
+         <property name="text">
+          <string>Right Leg Kp:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_172">
+         <property name="text">
+          <string>Right Leg Kd:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="leg_gain_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="5">
+        <widget class="QLineEdit" name="rleg_kp_anklepitch"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QFrame" name="frame_26">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>449</y>
+       <width>541</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QWidget" name="gridLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>271</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="ComPosGaingridLayout">
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_156">
+         <property name="text">
+          <string>z</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_154">
+         <property name="text">
+          <string>x</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="com_pos_kp_z"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_155">
+         <property name="text">
+          <string>y</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="com_pos_kp_y"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_153">
+         <property name="text">
+          <string>CoM pos Kp:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_157">
+         <property name="text">
+          <string>CoM pos Kd:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="com_pos_kp_x"/>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="com_pos_kd_y"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="com_pos_kd_x"/>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="com_pos_kd_z"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="com_gain_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>110</y>
+        <width>271</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="PelvOriGaingridLayout_4">
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_163">
+         <property name="text">
+          <string>z</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_164">
+         <property name="text">
+          <string>x</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="pelv_ori_kp_z"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_165">
+         <property name="text">
+          <string>y</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="pelv_ori_kp_y"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_166">
+         <property name="text">
+          <string>Pelv ori Kp:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_167">
+         <property name="text">
+          <string>Pelv ori Kd:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="pelv_ori_kp_x"/>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="pelv_ori_kd_y"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="pelv_ori_kd_x"/>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="pelv_ori_kd_z"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pelv_gain_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_8">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>210</y>
+        <width>301</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="SFdampingLayout_8">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_203">
+         <property name="text">
+          <string>Support Foot kd:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="support_foot_damping_gain_send_button">
+         <property name="text">
+          <string>Set Gain</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_200">
+         <property name="text">
+          <string>z</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="support_foot_kd_y"/>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="support_foot_kd_z"/>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="support_foot_kd_x"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_202">
+         <property name="text">
+          <string>y</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_201">
+         <property name="text">
+          <string>x</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -4274,7 +6070,7 @@ OFF</string>
     </rect>
    </property>
    <property name="text">
-    <string>CONTROLLER</string>
+    <string>UB CMD</string>
    </property>
   </widget>
   <widget class="QPushButton" name="torqueoff_button">
@@ -4324,9 +6120,9 @@ OFF</string>
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>920</x>
-     <y>470</y>
-     <width>191</width>
+     <x>610</x>
+     <y>10</y>
+     <width>194</width>
      <height>41</height>
     </rect>
    </property>
@@ -4353,8 +6149,8 @@ OFF</string>
   <widget class="QLabel" name="label_32">
    <property name="geometry">
     <rect>
-     <x>1180</x>
-     <y>460</y>
+     <x>1130</x>
+     <y>450</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4372,8 +6168,8 @@ OFF</string>
   <widget class="QLabel" name="label_imustatus">
    <property name="geometry">
     <rect>
-     <x>1280</x>
-     <y>460</y>
+     <x>1230</x>
+     <y>450</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4394,8 +6190,8 @@ OFF</string>
   <widget class="QLabel" name="label_34">
    <property name="geometry">
     <rect>
-     <x>1180</x>
-     <y>490</y>
+     <x>1130</x>
+     <y>480</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4413,8 +6209,8 @@ OFF</string>
   <widget class="QLabel" name="label_zpstatus">
    <property name="geometry">
     <rect>
-     <x>1280</x>
-     <y>490</y>
+     <x>1230</x>
+     <y>480</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4438,8 +6234,8 @@ OFF</string>
   <widget class="QLabel" name="label_35">
    <property name="geometry">
     <rect>
-     <x>1400</x>
-     <y>490</y>
+     <x>1350</x>
+     <y>480</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4457,8 +6253,8 @@ OFF</string>
   <widget class="QLabel" name="label_ecatstatus">
    <property name="geometry">
     <rect>
-     <x>1500</x>
-     <y>490</y>
+     <x>1450</x>
+     <y>480</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4482,8 +6278,8 @@ OFF</string>
   <widget class="QLabel" name="label_36">
    <property name="geometry">
     <rect>
-     <x>1400</x>
-     <y>460</y>
+     <x>1350</x>
+     <y>450</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4501,8 +6297,8 @@ OFF</string>
   <widget class="QLabel" name="label_ftstatus">
    <property name="geometry">
     <rect>
-     <x>1500</x>
-     <y>460</y>
+     <x>1450</x>
+     <y>450</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -4526,10 +6322,10 @@ OFF</string>
   <widget class="QGraphicsView" name="graphicsView">
    <property name="geometry">
     <rect>
-     <x>1180</x>
-     <y>80</y>
-     <width>411</width>
-     <height>371</height>
+     <x>940</x>
+     <y>90</y>
+     <width>591</width>
+     <height>341</height>
     </rect>
    </property>
    <property name="verticalScrollBarPolicy">
@@ -4537,6 +6333,9 @@ OFF</string>
    </property>
    <property name="horizontalScrollBarPolicy">
     <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="sizeAdjustPolicy">
+    <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
    </property>
    <property name="interactive">
     <bool>true</bool>
@@ -4555,7 +6354,7 @@ OFF</string>
    <property name="geometry">
     <rect>
      <x>860</x>
-     <y>80</y>
+     <y>520</y>
      <width>311</width>
      <height>371</height>
     </rect>
@@ -4762,70 +6561,181 @@ OFF</string>
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QLabel" name="label_136">
+   <property name="geometry">
+    <rect>
+     <x>910</x>
+     <y>450</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="text">
+    <string>SE</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_sestatus">
+   <property name="geometry">
+    <rect>
+     <x>1010</x>
+     <y>450</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="text">
+    <string>OFF</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_137">
+   <property name="geometry">
+    <rect>
+     <x>910</x>
+     <y>480</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="text">
+    <string>TC</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_tcstatus">
+   <property name="geometry">
+    <rect>
+     <x>1010</x>
+     <y>480</y>
+     <width>91</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="text">
+    <string>NOT OK</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="dg_btn">
+   <property name="geometry">
+    <rect>
+     <x>550</x>
+     <y>0</y>
+     <width>31</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>DG</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>walking_speed_slider</sender>
+   <sender>walking_speed_slider_2</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>label_139</receiver>
+   <receiver>label_188</receiver>
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>496</x>
-     <y>128</y>
+     <x>400</x>
+     <y>123</y>
     </hint>
     <hint type="destinationlabel">
-     <x>348</x>
-     <y>171</y>
+     <x>276</x>
+     <y>163</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>walking_duration_slider</sender>
+   <sender>walking_duration_slider_2</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>label_142</receiver>
+   <receiver>label_190</receiver>
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>589</x>
-     <y>211</y>
+     <x>406</x>
+     <y>203</y>
     </hint>
     <hint type="destinationlabel">
-     <x>348</x>
-     <y>238</y>
+     <x>274</x>
+     <y>251</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>knee_target_angle_slider</sender>
+   <sender>walking_angvel_slider_2</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>label_149</receiver>
+   <receiver>label_192</receiver>
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>525</x>
-     <y>352</y>
+     <x>441</x>
+     <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>376</x>
-     <y>388</y>
+     <x>276</x>
+     <y>325</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>foot_height_slider</sender>
+   <sender>knee_target_angle_slider_2</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>label_153</receiver>
+   <receiver>label_178</receiver>
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>512</x>
-     <y>419</y>
+     <x>489</x>
+     <y>368</y>
     </hint>
     <hint type="destinationlabel">
-     <x>353</x>
-     <y>467</y>
+     <x>300</x>
+     <y>408</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>foot_height_slider_2</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>label_182</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>528</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>469</y>
     </hint>
    </hints>
   </connection>

@@ -456,6 +456,7 @@ void TocabiController::dynamicsThreadHigh()
     }
     std::cout << cyellow << "Dynamics High Thread : End !" << creset << std::endl;
 }
+
 void TocabiController::testThread()
 {
     std::cout << "TC test thread " << std::endl;

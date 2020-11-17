@@ -909,7 +909,7 @@ void StateManager::handleFT()
     Wrench_foot_plate.setZero();
     Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
 
-    RF_CF_FT = rotrf * adt * RF_FT + adt2 * Wrench_foot_plate;
+    RF_CF_FT = rotrf * (adt * RF_FT + adt2 * Wrench_foot_plate);
 
     RF_CF_FT_local = rotrf.inverse() * RF_CF_FT;
 
@@ -929,7 +929,7 @@ void StateManager::handleFT()
     Wrench_foot_plate.setZero();
     Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
 
-    LF_CF_FT = rotrf * adt * LF_FT + adt2 * Wrench_foot_plate;
+    LF_CF_FT = rotrf * (adt * LF_FT + adt2 * Wrench_foot_plate);
 
     LF_CF_FT_local = rotrf.inverse() * LF_CF_FT;
 }
