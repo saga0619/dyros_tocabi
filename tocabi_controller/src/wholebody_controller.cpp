@@ -136,9 +136,9 @@ void WholebodyController::set_robot_init(RobotData &Robot)
     Robot.ee_[2].sensor_xpos = Robot.link_[Left_Hand].xpos_sensor;
     Robot.ee_[3].sensor_xpos = Robot.link_[Right_Hand].xpos_sensor;
 
-    Robot.ee_[0].cs_x_length = 0.12;
+    Robot.ee_[0].cs_x_length = 0.10;
     Robot.ee_[0].cs_y_length = 0.04;
-    Robot.ee_[1].cs_x_length = 0.12;
+    Robot.ee_[1].cs_x_length = 0.10;
     Robot.ee_[1].cs_y_length = 0.04;
     Robot.ee_[2].cs_x_length = 0.013;
     Robot.ee_[2].cs_y_length = 0.013;
@@ -1289,7 +1289,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         std::cout << std::endl
                   << "############################" << std::endl;
         variable_size = MODEL_DOF + contact_dof;
-        constraint_size = task_dof + contact_dof + constraint_per_contact * Robot.contact_index;// + 2;
+        constraint_size = task_dof + contact_dof + constraint_per_contact * Robot.contact_index; // + 2;
         QP_torque.InitializeProblemSize(variable_size, constraint_size);
     }
 
@@ -1491,18 +1491,19 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         ub(MODEL_DOF + i) = 10000;
     }
     double zforce = 0;
-    double zforce_des = 20;
+    double zforce_des = 15;
 
     for (int i = 0; i < Robot.contact_index; i++)
     {
+
         if (Robot.ee_[Robot.ee_idx[i]].contact_transition_mode)
         {
-            if (Robot.control_time_ >= (Robot.ee_[Robot.ee_idx[i]].contact_time + 1.0))
+            if (Robot.control_time_ >= (Robot.ee_[Robot.ee_idx[i]].contact_time + 5.0))
             {
                 Robot.ee_[Robot.ee_idx[i]].contact_transition_mode = false;
             }
 
-            zforce = -zforce_des * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time);
+            zforce = -zforce_des * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time) / 5.0;
         }
         else
         {
@@ -1510,6 +1511,28 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         }
 
         ub(MODEL_DOF + 6 * i + 2) = zforce;
+        
+        if ((Robot.ee_idx[i] != 0) && (Robot.ee_idx[i] != 1))
+        {
+            if (Robot.ee_[Robot.ee_idx[i]].contact_transition_mode)
+            {
+                if (Robot.control_time_ >= (Robot.ee_[Robot.ee_idx[i]].contact_time + 5.0))
+                {
+                    Robot.ee_[Robot.ee_idx[i]].contact_transition_mode = false;
+                }
+
+                lb(MODEL_DOF + 6 * i + 2) = -1000 * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time) / 5.0;
+            }
+            else
+            {
+                lb(MODEL_DOF + 6 * i + 2) = -1000;
+            }
+        }
+        else
+        {
+            lb(MODEL_DOF + 6 * i + 2) = -1000;
+        }
+
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
@@ -1696,7 +1719,7 @@ VectorQd WholebodyController::task_control_torque_QP2_with_contactforce_feedback
     // contact force minimization
     MatrixXd Fsl;
     Fsl.setZero(contact_dof, contact_dof);
-    
+
     for (int i = 0; i < Robot.contact_index; i++)
     {
         Fsl(6 * i + 0, 6 * i + 0) = 0.0001;
