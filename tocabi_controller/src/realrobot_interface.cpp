@@ -1467,7 +1467,9 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     ElmoSafteyMode[i] = 1;
                                     positionSafteyHoldElmo[i] = positionElmo[i];
+                                    pub_to_gui(dc, "Lock %d %s , ELMO Instability ", i, TOCABI::ELMO_NAME[i].c_str());
                                 }
+                                dc.ecat_recovered = false;
                             }
 
                             //Hold position if safety limit breached
