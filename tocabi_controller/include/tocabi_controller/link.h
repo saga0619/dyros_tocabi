@@ -447,6 +447,7 @@ public:
   Eigen::VectorQd torque_grav_cc;
   Eigen::VectorQd torque_grav;
   Eigen::VectorQd torque_contact;
+  Eigen::VectorQd torque_disturbance;
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;

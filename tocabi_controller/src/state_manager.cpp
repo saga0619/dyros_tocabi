@@ -19,7 +19,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon", 100);
     ft_viz_msg.markers.resize(4);
-    syspub_msg.data.resize(8);
+    syspub_msg.data.resize(7);
     imu_lin_acc_lpf.setZero();
     pelv_lin_acc.setZero();
     imu_lin_acc_before.setZero();
@@ -445,26 +445,26 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[13].y = RF_CF_FT(4);
     pointpub_msg.polygon.points[13].z = RF_CF_FT(5);
 
-    pointpub_msg.polygon.points[14].x = dc.tocabi_.link_[Right_Hand].xpos(0);
-    pointpub_msg.polygon.points[14].y = dc.tocabi_.link_[Right_Hand].xpos(1);
+    pointpub_msg.polygon.points[14].x = LF_CF_FT.segment(0,3).norm();
+    pointpub_msg.polygon.points[14].y = LF_CF_FT.segment(3,3).norm();
     pointpub_msg.polygon.points[14].z = dc.tocabi_.link_[Right_Hand].xpos(2);
 
     //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = link_local[Right_Foot].v(0);
-    pointpub_msg.polygon.points[15].y = link_local[Right_Foot].v(1);
+    pointpub_msg.polygon.points[15].x = dc.tocabi_.ContactForce.segment(0,3).norm();
+    pointpub_msg.polygon.points[15].y = dc.tocabi_.ContactForce.segment(3,3).norm();
     pointpub_msg.polygon.points[15].z = link_local[Right_Foot].v(2);
 
     dc.tocabi_.ZMP_command = dc.tocabi_.com_.pos - dc.tocabi_.com_.pos(2) / 9.81 * dc.tocabi_.link_[COM_id].a_traj;
 
-    pointpub_msg.polygon.points[16].x = link_local[Right_Foot].xpos(0);
-    pointpub_msg.polygon.points[16].y = link_local[Right_Foot].xpos(1);
+    pointpub_msg.polygon.points[16].x = RF_CF_FT.segment(0,3).norm();
+    pointpub_msg.polygon.points[16].y = RF_CF_FT.segment(3,3).norm();
     pointpub_msg.polygon.points[16].z = link_local[Right_Foot].xpos(2);
 
-    pointpub_msg.polygon.points[17].x = dc.tocabi_.ContactForce(3) / dc.tocabi_.ContactForce(2);
-    pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce(3 + 6) / dc.tocabi_.ContactForce(2 + 6);
+    pointpub_msg.polygon.points[17].x = dc.tocabi_.ContactForce.segment(6,3).norm();
+    pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce.segment(9,3).norm();
     pointpub_msg.polygon.points[17].z = RF_CP_est(2);
     point_pub.publish(pointpub_msg);
 
@@ -872,7 +872,7 @@ void StateManager::handleFT()
 
     Vector6d Wrench_foot_plate;
     Wrench_foot_plate.setZero();
-    Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
+    Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
 
     RF_CF_FT = rotrf * adt * RF_FT + adt2 * Wrench_foot_plate;
 
@@ -892,7 +892,7 @@ void StateManager::handleFT()
     adt2.setIdentity();
     adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
     Wrench_foot_plate.setZero();
-    Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
+    Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
 
     LF_CF_FT = rotrf * adt * LF_FT + adt2 * Wrench_foot_plate;
 

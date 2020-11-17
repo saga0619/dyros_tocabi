@@ -1455,7 +1455,7 @@ void TocabiController::dynamicsThreadLow()
 
                 //
 
-                /*
+                
                 static int step_cnt = -1;
                 static int step_cnt_before = -1;
 
@@ -1854,7 +1854,7 @@ void TocabiController::dynamicsThreadLow()
                 //tocabi_.ZMP_desired2(0) = int_y;
                 zmp_desired_before.segment(0, 2) = zmp_desired;
                 first_loop = false;
-                step_cnt_before = step_cnt;*/
+                step_cnt_before = step_cnt;
             }
             else if (tc.mode == 9)
             {
@@ -2059,8 +2059,22 @@ void TocabiController::dynamicsThreadLow()
         //tocabi_.ZMP_local = wbc_.GetZMPpos();
 
         //VectorXd contactforce_custom = Robot.J_C_INV_T * Robot.Slc_k_T * torque_desired - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
+        MatrixXd Sk_T, J_dob, lambda_dob_inv;
+        Sk_T.setZero(MODEL_DOF_VIRTUAL, MODEL_DOF);
+        Sk_T.block(6, 0, MODEL_DOF, MODEL_DOF) = Eigen::MatrixXd::Identity(MODEL_DOF, MODEL_DOF);
+        J_dob = Sk_T.transpose();
 
-        tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
+        lambda_dob_inv = J_dob * tocabi_.A_matrix_inverse * tocabi_.N_C * J_dob.transpose();
+        static VectorVQd q_dot_virtual_before;
+        VectorVQd qddot;
+        qddot = (tocabi_.q_dot_virtual_ - q_dot_virtual_before) / tocabi_.d_time_;
+        //F_dob = lambda_dob_inv.inverse()*J_dob*rd_.A_matrix_inverse*rd_.N_C*(rd_.A_matrix*qddot + rd_.G - Sk_T*(torque_grav + torque_task + torque_wrist_full));
+        //tocabi_.torque_disturbance = DyrosMath::pinv_glsSVD(lambda_dob_inv) * J_dob * tocabi_.A_matrix_inverse * tocabi_.N_C * (tocabi_.A_matrix * qddot + tocabi_.G - Sk_T * (torque_grav + torque_task));
+        tocabi_.torque_disturbance.setZero();
+        q_dot_virtual_before = tocabi_.q_dot_virtual_;
+        //rd_.torque_disturbance =
+
+        tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired + tocabi_.torque_disturbance);
         //std::cout << "Contact Force With : " << std::endl
         //          << tocabi_.ContactForce.transpose() << std::endl;
         tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
@@ -2374,6 +2388,7 @@ void TocabiController::getState()
     tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
     tocabi_.q_dot_diff_ = tocabi_.q_dot_ - tocabi_.q_dot_before_;
     tocabi_.q_dot_before_ = tocabi_.q_dot_;
+    //tocabi_.q_dot_virtual_before_ = tocabi_.q_dot_virtual_;
     tocabi_.q_dot_virtual_lpf_ = dc.q_dot_virtual_lpf;
 
     static bool first_run = true;
