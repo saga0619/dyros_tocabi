@@ -622,7 +622,7 @@ void RealRobotInterface::ethercatCheck()
                         {
                             ec_slave[slave].islost = TRUE;
                             ConnectionUnstableBeforeStart = true;
-                            printf("%sERROR : slave %d lost : %s%s\n", cred.c_str(), slave - 1, TOCABI::ELMO_NAME[slave - 1], creset.c_str());
+                            printf("%sERROR : slave %d lost : %s%s\n", cred.c_str(), slave - 1, TOCABI::ELMO_NAME[slave - 1].c_str(), creset.c_str());
                         }
                     }
                 }
@@ -1467,7 +1467,9 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     ElmoSafteyMode[i] = 1;
                                     positionSafteyHoldElmo[i] = positionElmo[i];
+                                    pub_to_gui(dc, "Lock %d %s , ELMO Instability ", i, TOCABI::ELMO_NAME[i].c_str());
                                 }
+                                dc.ecat_recovered = false;
                             }
 
                             //Hold position if safety limit breached
