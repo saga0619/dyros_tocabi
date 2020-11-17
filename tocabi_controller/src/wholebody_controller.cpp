@@ -1488,7 +1488,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
             zforce = -Robot.ee_[Robot.ee_idx[i]].minimum_press_force;
         }
 
-        ub(MODEL_DOF + 6 * i + 2) = zforce;
+        ub(MODEL_DOF + 6 * i + 2) = -15;
         ub(MODEL_DOF + 6 * i + 5) = 10000;
         lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
