@@ -1290,7 +1290,7 @@ void StateManager::stateEstimate()
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
-            q_dot_virtual_(i) = pelv_v(i);
+            q_dot_virtual_(i) = mod_base_vel(i);
         }
 
         //acceleration calculation!

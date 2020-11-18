@@ -1432,7 +1432,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     for (int i = 0; i < constraint_per_contact * Robot.contact_index; i++)
     {
         lbA(task_dof + contact_dof + i) = 0.0;
-        ubA(task_dof + contact_dof + i) = 1000.0;
+        ubA(task_dof + contact_dof + i) = 100000.0;
     }
 
     /*
@@ -1459,12 +1459,12 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }
     for (int i = 0; i < contact_dof; i++)
     {
-        lb(MODEL_DOF + i) = -1000;
-        ub(MODEL_DOF + i) = 1000;
+        lb(MODEL_DOF + i) = -10000;
+        ub(MODEL_DOF + i) = 10000;
     }
 
     double zforce = 0;
-    double zforce_des = 2;
+    double zforce_des = 10;
     double trans_time = Robot.contact_transition_time;
     for (int i = 0; i < Robot.contact_index; i++)
     {
@@ -1487,8 +1487,8 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
             ub(MODEL_DOF + 6 * i + 2) = -zforce_des;
         }
 
-        ub(MODEL_DOF + 6 * i + 5) = 1000;
-        lb(MODEL_DOF + 6 * i + 5) = -1000;
+        ub(MODEL_DOF + 6 * i + 5) = 10000;
+        lb(MODEL_DOF + 6 * i + 5) = -10000;
     }
 
     //std::cout << "calc done!" << std::endl;
@@ -3391,13 +3391,13 @@ Vector2d WholebodyController::fstar_regulation(RobotData &Robot, Vector3d f_star
         //std::cout << "x : ";
         for (int i = 0; i < edge_point_list.size(); i++)
         {
-            std::cout << edge_point_list[i](0) << "\t";
+            std::cout << edge_point_list[i](0) << "\t" << std::endl;
         }
         //std::cout << std::endl
         //          << "y : ";
         for (int i = 0; i < edge_point_list.size(); i++)
         {
-            std::cout << edge_point_list[i](1) << "\t";
+            std::cout << edge_point_list[i](1) << "\t" << std::endl;
         }
         //std::cout << std::endl;
 

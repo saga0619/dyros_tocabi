@@ -173,14 +173,14 @@ const double NM2CNT[ELMO_DOF] =
         3.8,
         3.46,
         4.5,
-        7.3,
+        6.0,
         3.3, //upperbody
         3.0, //leftLeg
         4.3,
         3.8,
         3.46,
         4.5,
-        7.3};
+        6.0};
 
 const double jointLimitUp[ELMO_DOF] =
     {

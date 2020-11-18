@@ -88,6 +88,7 @@ void TocabiController::PositionCommandCallback(const tocabi_controller::position
         dc.positionDesiredExt(i) = msg->position[i];
     dc.position_command_time = control_time_;
     dc.position_traj_time = msg->traj_time;
+    dc.tocabi_.task_control_switch = false;
     dc.position_command_ext = true;
     dc.pext_gravity = msg->gravity;
 
@@ -1183,7 +1184,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 3) = wbc_.getfstar_tra(tocabi_, COM_id);
                 tocabi_.f_star.segment(3, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
-                if ((tc.ratio == 0) && (tc.ratio == 0))
+                if ((tc.ratio == 0) && (tc.height == 0))
                 {
                     tocabi_.f_star.setZero();
                 }
