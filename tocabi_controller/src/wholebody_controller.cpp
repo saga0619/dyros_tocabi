@@ -25,10 +25,12 @@ void WholebodyController::init(RobotData &Robot)
     Robot.Grav_ref.setZero(3);
     Robot.Grav_ref(2) = -9.81;
 
-    Robot.ee_[0].contact_transition_mode = false;
-    Robot.ee_[1].contact_transition_mode = false;
-    Robot.ee_[2].contact_transition_mode = false;
-    Robot.ee_[3].contact_transition_mode = false;
+    Robot.contact_transition_time = 2.0;
+
+    Robot.ee_[0].contact_transition_mode = -1;
+    Robot.ee_[1].contact_transition_mode = -1;
+    Robot.ee_[2].contact_transition_mode = -1;
+    Robot.ee_[3].contact_transition_mode = -1;
 
     bool verbose = false; //set verbose true for State Manager initialization info
     bool urdfmode;
@@ -1251,25 +1253,6 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     if ((task_dof != Robot.task_dof) || (contact_dof != 6 * Robot.contact_index))
     {
-        if (contact_dof != 6 * Robot.contact_index)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (contact_before[i] != Robot.ee_[i].contact)
-                {
-                    if (Robot.ee_[i].contact)
-                    {
-                        Robot.ee_[i].contact_time = Robot.control_time_;
-                        Robot.ee_[i].contact_transition_mode = true;
-                        std::cout << " EE " << i << " Contact Enabled " << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << " EE " << i << " Contact Disabled " << std::endl;
-                    }
-                }
-            }
-        }
         task_dof = Robot.task_dof;
         contact_dof = 6 * Robot.contact_index;
         for (int i = 0; i < 4; i++)
@@ -1493,44 +1476,26 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     double zforce = 0;
     double zforce_des = 15;
 
+    double trans_time = Robot.contact_transition_time;
     for (int i = 0; i < Robot.contact_index; i++)
     {
 
-        if (Robot.ee_[Robot.ee_idx[i]].contact_transition_mode)
+        if (Robot.ee_[Robot.ee_idx[i]].contact_transition_mode == 1)
         {
-            if (Robot.control_time_ >= (Robot.ee_[Robot.ee_idx[i]].contact_time + 5.0))
-            {
-                Robot.ee_[Robot.ee_idx[i]].contact_transition_mode = false;
-            }
-
-            zforce = -zforce_des * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time) / 5.0;
+            lb(MODEL_DOF + 6 * i + 2) = -1000 * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time) / trans_time;
+            ub(MODEL_DOF + 6 * i + 2) = -zforce_des * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time) / trans_time;
+            //std::cout << lb(MODEL_DOF + 6 * i + 2) << "\t" << ub(MODEL_DOF + 6 * i + 2) << std::endl;
         }
-        else
+        else if (Robot.ee_[Robot.ee_idx[i]].contact_transition_mode == 0)
         {
-            zforce = -zforce_des;
-        }
-
-        ub(MODEL_DOF + 6 * i + 2) = zforce;
-        
-        if ((Robot.ee_idx[i] != 0) && (Robot.ee_idx[i] != 1))
-        {
-            if (Robot.ee_[Robot.ee_idx[i]].contact_transition_mode)
-            {
-                if (Robot.control_time_ >= (Robot.ee_[Robot.ee_idx[i]].contact_time + 5.0))
-                {
-                    Robot.ee_[Robot.ee_idx[i]].contact_transition_mode = false;
-                }
-
-                lb(MODEL_DOF + 6 * i + 2) = -1000 * (Robot.control_time_ - Robot.ee_[Robot.ee_idx[i]].contact_time) / 5.0;
-            }
-            else
-            {
-                lb(MODEL_DOF + 6 * i + 2) = -1000;
-            }
+            lb(MODEL_DOF + 6 * i + 2) = -1000 * (Robot.ee_[Robot.ee_idx[i]].contact_time + trans_time - Robot.control_time_) / trans_time;
+            ub(MODEL_DOF + 6 * i + 2) = -zforce_des * (Robot.ee_[Robot.ee_idx[i]].contact_time + trans_time - Robot.control_time_) / trans_time;
+            //std::cout << lb(MODEL_DOF + 6 * i + 2) << "\t" << ub(MODEL_DOF + 6 * i + 2) << std::endl;
         }
         else
         {
             lb(MODEL_DOF + 6 * i + 2) = -1000;
+            ub(MODEL_DOF + 6 * i + 2) = -zforce_des;
         }
 
         ub(MODEL_DOF + 6 * i + 5) = 10000;

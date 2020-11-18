@@ -297,7 +297,7 @@ public:
   Eigen::Vector3d sensor_xpos;
   Eigen::Matrix3d rotm;
   double contact_time;
-  bool contact_transition_mode;
+  int contact_transition_mode; //-1 nothing to do, 0 disabling, 1 enabling
   double minimum_press_force;
   double friction_ratio;
   double friction_ratio_z;
@@ -386,6 +386,8 @@ public:
   int contact_index;
   int contact_part[4];
   int ee_idx[4];
+
+  double contact_transition_time;
 
   double control_time_; // updated by control_base
   double control_time_pre_;

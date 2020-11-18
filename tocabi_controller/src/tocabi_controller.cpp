@@ -1087,7 +1087,67 @@ void TocabiController::dynamicsThreadLow()
                 /* 
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
-                wbc_.set_contact(tocabi_, tc.link_contact[0], tc.link_contact[1], tc.link_contact[2], tc.link_contact[3]);
+                if (tc.task_init)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (tocabi_.ee_[i].contact != tc.link_contact[i])
+                        {
+                            if (tc.link_contact[i])
+                            {
+                                if (tocabi_.ee_[i].contact_transition_mode == -1)
+                                {
+                                    std::cout << i << " : Contact Enable Sequence " << std::endl;
+                                    tocabi_.ee_[i].contact_transition_mode = 1;
+                                    tocabi_.ee_[i].contact_time = tocabi_.control_time_;
+                                }
+                            }
+                            else
+                            {
+                                if (tocabi_.ee_[i].contact_transition_mode == -1)
+                                {
+                                    std::cout << i << " : Contact Disable Sequence " << std::endl;
+                                    tocabi_.ee_[i].contact_transition_mode = 0;
+                                    tocabi_.ee_[i].contact_time = tocabi_.control_time_;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            tocabi_.ee_[i].contact_transition_mode = -1;
+                        }
+                    }
+                    tc.task_init = false;
+                }
+
+                bool cc_[4];
+
+                for (int i = 0; i < 4; i++)
+                {
+
+                    if (tocabi_.ee_[i].contact_transition_mode == 0)
+                    {
+                        cc_[i] = true;
+                        if (tocabi_.control_time_ > (tocabi_.ee_[i].contact_time + tocabi_.contact_transition_time))
+                        {
+                            tocabi_.ee_[i].contact_transition_mode = -1;
+                        }
+                    }
+                    else if (tocabi_.ee_[i].contact_transition_mode == 1)
+                    {
+                        cc_[i] = true;
+                        if (tocabi_.control_time_ > (tocabi_.ee_[i].contact_time + tocabi_.contact_transition_time))
+                        {
+                            tocabi_.ee_[i].contact_transition_mode = -1;
+                        }
+                    }
+                    else
+                    {
+                        cc_[i] = tc.link_contact[i];
+                    }
+                }
+
+                wbc_.set_contact(tocabi_, cc_[0], cc_[1], cc_[2], cc_[3]);
                 //torque_grav = wbc_.gravity_compensation_torque(tocabi_);
 
                 int task_number = 6;
@@ -1108,8 +1168,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(3, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
                 tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
-
-                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+                torque_task = wbc_.task_control_torque_QP3(tocabi_, tocabi_.J_task, tocabi_.f_star);
 
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque_QP2(tocabi_);
 
@@ -1455,7 +1514,6 @@ void TocabiController::dynamicsThreadLow()
 
                 //
 
-                
                 static int step_cnt = -1;
                 static int step_cnt_before = -1;
 

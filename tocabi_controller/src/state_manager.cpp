@@ -427,7 +427,6 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[9].y = rtp;
     pointpub_msg.polygon.points[9].z = rty;
 
-    // use points below :)
 
     pointpub_msg.polygon.points[10].x = LF_CF_FT(0);
     pointpub_msg.polygon.points[10].y = LF_CF_FT(1);
@@ -445,9 +444,17 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[13].y = RF_CF_FT(4);
     pointpub_msg.polygon.points[13].z = RF_CF_FT(5);
 
-    pointpub_msg.polygon.points[14].x = LF_CF_FT.segment(0,3).norm();
-    pointpub_msg.polygon.points[14].y = LF_CF_FT.segment(3,3).norm();
-    pointpub_msg.polygon.points[14].z = dc.tocabi_.link_[Right_Hand].xpos(2);
+    tm = link_[Upper_Body].Rotm;
+    tf2::Matrix3x3 m3(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
+    double utr, utp, uty;
+    m3.getRPY(utr, utp, uty);
+
+    pointpub_msg.polygon.points[14].x = utr;
+    pointpub_msg.polygon.points[14].y = utp;
+    pointpub_msg.polygon.points[14].z = uty;
+
+    // use points below :)
+
 
     //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
