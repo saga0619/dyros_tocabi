@@ -427,7 +427,6 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[9].y = rtp;
     pointpub_msg.polygon.points[9].z = rty;
 
-
     pointpub_msg.polygon.points[10].x = LF_CF_FT(0);
     pointpub_msg.polygon.points[10].y = LF_CF_FT(1);
     pointpub_msg.polygon.points[10].z = LF_CF_FT(2);
@@ -455,26 +454,24 @@ void StateManager::adv2ROS(void)
 
     // use points below :)
 
-
     //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = LF_CF_FT.segment(3,3).norm();
-    pointpub_msg.polygon.points[15].y = LF_CF_FT.segment(3,3).norm();
+    pointpub_msg.polygon.points[15].x = LF_CF_FT.segment(3, 3).norm();
+    pointpub_msg.polygon.points[15].y = LF_CF_FT.segment(3, 3).norm();
     pointpub_msg.polygon.points[15].z = RF_CP_est(2);
 
-    pointpub_msg.polygon.points[16].x = dc.tocabi_.ContactForce.segment(0,3).norm();
-    pointpub_msg.polygon.points[16].y = dc.tocabi_.ContactForce.segment(3,3).norm();
+    pointpub_msg.polygon.points[16].x = dc.tocabi_.ContactForce.segment(0, 3).norm();
+    pointpub_msg.polygon.points[16].y = dc.tocabi_.ContactForce.segment(3, 3).norm();
     pointpub_msg.polygon.points[16].z = link_local[Right_Foot].v(2);
 
-    pointpub_msg.polygon.points[17].x = RF_CF_FT.segment(0,3).norm();
-    pointpub_msg.polygon.points[17].y = RF_CF_FT.segment(3,3).norm();
+    pointpub_msg.polygon.points[17].x = RF_CF_FT.segment(0, 3).norm();
+    pointpub_msg.polygon.points[17].y = RF_CF_FT.segment(3, 3).norm();
     pointpub_msg.polygon.points[17].z = link_local[Right_Foot].xpos(2);
 
-
-    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6,3).norm();
-    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9,3).norm();
+    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6, 3).norm();
+    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9, 3).norm();
     pointpub_msg.polygon.points[18].z = RF_CP_est(2);
 
     point_pub.publish(pointpub_msg);
@@ -1289,7 +1286,7 @@ void StateManager::stateEstimate()
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
-            q_dot_virtual_(i) = mod_base_vel(i);
+            q_dot_virtual_(i) = pelv_v(i);
         }
 
         //acceleration calculation!
@@ -1356,7 +1353,6 @@ void StateManager::stateEstimate()
         quat_before = imu_quat;
         rfzb = RF_CF_FT(2) / (-com_.mass * GRAVITY);
         lfzb = LF_CF_FT(2) / (-com_.mass * GRAVITY);
-
     }
     else
     {
