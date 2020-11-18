@@ -1351,27 +1351,15 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         Fsl(6 * i + 0, 6 * i + 0) = 0.0;
         Fsl(6 * i + 1, 6 * i + 1) = 0.0;
         Fsl(6 * i + 2, 6 * i + 2) = 0.0;
-        Fsl(6 * i + 3, 6 * i + 3) = 0.01;
-        Fsl(6 * i + 4, 6 * i + 4) = 0.01;
-        Fsl(6 * i + 5, 6 * i + 5) = 0.01;
+        Fsl(6 * i + 3, 6 * i + 3) = 0.0001;
+        Fsl(6 * i + 4, 6 * i + 4) = 0.0001;
+        Fsl(6 * i + 5, 6 * i + 5) = 0.0001;
     }
 
     double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
     double rl = DyrosMath::minmax_cut(ratio_l / ratio_r * 10, 1, 10);
 
     double ratioFoots[4] = {rr, rl, 1, 1};
-
-    if (false)
-    {
-        for (int i = 0; i < Robot.contact_index; i++)
-        {
-            Fsl(6 * i + 0, 6 * i + 0) = 0.03 * ratioFoots[i];
-            Fsl(6 * i + 1, 6 * i + 1) = 0.03 * ratioFoots[i];
-            Fsl(6 * i + 3, 6 * i + 3) = 0.001 * ratioFoots[i];
-            Fsl(6 * i + 4, 6 * i + 4) = 0.01 * ratioFoots[i];
-            Fsl(6 * i + 5, 6 * i + 5) = 0.05 * ratioFoots[i];
-        }
-    }
 
     //H.block(MODEL_DOF, MODEL_DOF, contact_dof, contact_dof) = R * Fsl.transpose() * Fsl * R.transpose();
 
@@ -1474,7 +1462,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         ub(MODEL_DOF + i) = 10000;
     }
     double zforce = 0;
-    double zforce_des = 15;
+    double zforce_des = 10;
 
     double trans_time = Robot.contact_transition_time;
     for (int i = 0; i < Robot.contact_index; i++)
@@ -1494,7 +1482,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         }
         else
         {
-            lb(MODEL_DOF + 6 * i + 2) = -1000;
+            lb(MODEL_DOF + 6 * i + 2) = -10000;
             ub(MODEL_DOF + 6 * i + 2) = -zforce_des;
         }
 
