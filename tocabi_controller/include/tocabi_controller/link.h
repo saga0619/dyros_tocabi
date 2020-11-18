@@ -295,6 +295,7 @@ public:
   Eigen::Vector3d cp_;
   Eigen::Vector3d xpos;
   Eigen::Vector3d sensor_xpos;
+  Eigen::Vector6d contact_force;
   Eigen::Matrix3d rotm;
   double contact_time;
   int contact_transition_mode; //-1 nothing to do, 0 disabling, 1 enabling
@@ -400,6 +401,7 @@ public:
   bool target_arrived_[4];
   bool debug;
   bool lambda_calc = false;
+  bool init_qp = false;
   int Right = 0;
   int Left = 1;
 
