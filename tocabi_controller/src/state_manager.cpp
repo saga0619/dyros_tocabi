@@ -1466,6 +1466,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
             std::cout << "Joint position control : on " << std::endl;
             dc.commandTime = control_time_;
             dc.positionDesired = q_;
+            dc.tocabi_.task_control_switch = false;
             dc.set_q_init = true;
             if (dc.position_command_ext)
             {
