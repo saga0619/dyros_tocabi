@@ -179,6 +179,7 @@ public:
                 burstNum[i] = ((uint32_t)_adBuf[i] >> 24);
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
+         //   std::cout<<"1 :"<< adcVoltages[0] << " 2 : " << adcVoltages[1] << " 3 : " << adcVoltages[2] << " 4 : " << adcVoltages[3] << " 5 : " << adcVoltages[4] << " 6 : " << adcVoltages[5] << " 7 : " << adcVoltages[6] << " 8 : " << adcVoltages[7] << " 9 : " << adcVoltages[8] << " 10 : " << adcVoltages[9] << " 11 : " << adcVoltages[10] << " 12 : " << adcVoltages[11]<< " 13 : " << adcVoltages[12]<< " 14 : " << adcVoltages[13] << " 15 : " << adcVoltages[14] << " 16 : " << adcVoltages[15]    <<std::endl;
         }
     }
 

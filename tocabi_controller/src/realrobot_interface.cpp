@@ -576,7 +576,7 @@ void RealRobotInterface::ethercatCheck()
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "ethercatCheck Thread Start" << std::endl;
-    while (ros::ok() && (!shutdown_tocabi_bool))
+    while ((!shutdown_tocabi_bool))
     {
         if (inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
         {
@@ -649,7 +649,7 @@ void RealRobotInterface::ethercatCheck()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    std::cout << cyellow << "checking thread end !" << creset << std::endl;
+    std::cout << cyellow << "Ethercat Check Thread End !" << creset << std::endl;
 }
 
 void RealRobotInterface::ethercatThreadLower()
@@ -1902,7 +1902,7 @@ void RealRobotInterface::ftsensorThread()
         {
         }
     }
-    std::cout << "FTsensor Thread End!" << std::endl;
+    std::cout << cyellow << "FTsensor Thread End !" << creset << std::endl;
 }
 
 void RealRobotInterface::handftsensorThread()

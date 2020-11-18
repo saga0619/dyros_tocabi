@@ -397,6 +397,16 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.link_contact[2] = msg.left_hand;
     tc.link_contact[3] = msg.right_hand;
 
+    if (tc.mode < 10)
+    {
+        if (dc.positionControl)
+        {
+            dc.positionControl = false;
+            dc.position_command_ext = false;
+            std::cout << "PositionControl Disabled By Task Command" << std::endl;
+        }
+    }
+
     if (dc.print_data_ready)
     {
         dc.data_out << "###############  COMMAND RECEIVED  ###############" << control_time_ << std::endl;
@@ -841,6 +851,7 @@ void TocabiController::dynamicsThreadLow()
             std::cout << "Gravity compensation only !" << std::endl;
             tocabi_.task_control_switch = false;
             dc.positionControl = false;
+            dc.position_command_ext = false;
             dc.signal_gravityCompensation = false;
         }
 
@@ -2534,6 +2545,7 @@ void TocabiController::trajectoryplannar()
             }
         }
     }
+    std::cout << cyellow << "Planner Thread End!" << creset << std::endl;
 }
 
 void TocabiController::initialize()
