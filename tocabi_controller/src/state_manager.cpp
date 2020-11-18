@@ -8,7 +8,6 @@
 StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 {
     //signal(SIGINT, StateManager::sigintHandler);
-
     gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
     joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 100);
     time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 100);
@@ -1291,7 +1290,7 @@ void StateManager::stateEstimate()
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
-            q_dot_virtual_(i) = mod_base_vel(i);
+            q_dot_virtual_(i) = pelv_v(i);
         }
 
         //acceleration calculation!
