@@ -64,9 +64,9 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
         dc.currentGain(i) = NM2CNT[i];
     }
 
-    file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
-    ft_sensor.open(dc.homedir + "/Ftsensorcheck.txt", ios_base::out);
-    file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
+    //file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
+    //ft_sensor.open(dc.homedir + "/Ftsensorcheck.txt", ios_base::out);
+    //file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
     fz_group1.resize(18);
     int i = 0;
@@ -129,6 +129,11 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
         fz_group3[i] = TOCABI::R_HipYaw_Joint + i;
         fz_group3[i + 6] = TOCABI::L_HipYaw_Joint + i;
     }
+}
+
+RealRobotInterface::~RealRobotInterface()
+{
+    std::cout << "RR Destructor" << std::endl;
 }
 
 void RealRobotInterface::updateState()
@@ -1055,6 +1060,7 @@ void RealRobotInterface::ethercatThread()
                                         if (elmo_zp_log.is_open())
                                         {
                                             getline(elmo_zp_log, tmp);
+                                            elmo_zp_log.close();
                                             last_boot_time = atoi(tmp.c_str());
                                             std::cout << "ECAT BOOT TIME LOADED : " << last_boot_time - (int)(floor(last_boot_time / 1E+5) * 1E+5) << std::endl;
                                         }
@@ -1123,6 +1129,8 @@ void RealRobotInterface::ethercatThread()
                                                     dc.zp_state = 2;
                                                     dc.ecat_state = 1;
                                                     operation_ready = true;
+
+                                                    
                                                 }
                                             }
                                         }
@@ -1665,6 +1673,7 @@ double RealRobotInterface::elmoJointMove(double init, double angle, double start
 
 void RealRobotInterface::imuThread()
 {
+
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time_from_begin;
@@ -1737,6 +1746,7 @@ void RealRobotInterface::imuThread()
 }
 void RealRobotInterface::ftsensorThread()
 {
+
     //wait for
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
@@ -1776,26 +1786,25 @@ void RealRobotInterface::ftsensorThread()
         cycle_count++;
 
         ft.analogOversample();
-        
+
         string tmp;
         int i = 0;
 
-        if(ft_init_load == false)
+        if (ft_init_load == false)
         {
             ft_init_log.open(ft_init_path, ios_base::in);
 
-            if(ft_init_log.is_open())
+            if (ft_init_log.is_open())
             {
-                while(getline(ft_init_log, tmp))
+                while (getline(ft_init_log, tmp))
                 {
-                    if(i<6)
+                    if (i < 6)
                     {
                         ft.leftFootBias[i] = atof(tmp.c_str());
                     }
                     else
                     {
-                        ft.rightFootBias[i-6] = atof(tmp.c_str());
-
+                        ft.rightFootBias[i - 6] = atof(tmp.c_str());
                     }
                     i++;
                 }
@@ -1820,7 +1829,7 @@ void RealRobotInterface::ftsensorThread()
                 ft_calib_finish = false;
                 ft_calib_ui = false;
 
-                for(int i = 0; i < 6; i++)
+                for (int i = 0; i < 6; i++)
                 {
                     ft._calibLFTData[i] = 0.0;
                     ft._calibRFTData[i] = 0.0;
@@ -1835,14 +1844,66 @@ void RealRobotInterface::ftsensorThread()
                     ft_calib_finish = true;
                     dc.ftcalib = false;
                 }
-                ft.calibrationFTData(ft_calib_finish);
+
+                double foot_plate_mass = 2.326;
+
+                Matrix6d adt;
+                adt.setIdentity();
+                adt.block(3, 0, 3, 3) = DyrosMath::skm(-(link_local[Right_Foot].contact_point - link_local[Right_Foot].sensor_point)) * Matrix3d::Identity();
+                Matrix6d rotrf;
+                rotrf.setZero();
+                rotrf.block(0, 0, 3, 3) = link_local[Right_Foot].Rotm;
+                rotrf.block(3, 3, 3, 3) = link_local[Right_Foot].Rotm;
+                Vector3d RF_com(-0.0162, 0.00008, -0.1209);
+
+                Vector3d com2cp = link_local[Right_Foot].sensor_point - RF_com;
+
+                Matrix6d adt2;
+                adt2.setIdentity();
+                adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+
+                Vector6d Wrench_foot_plate;
+                Wrench_foot_plate.setZero();
+                Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
+
+                RF_CF_FT = rotrf * adt * RF_FT + adt2 * Wrench_foot_plate;
+
+                Eigen::Vector6d RF_FT_calib = (rotrf * adt).inverse() *(dc.tocabi_.ContactForce.segment(6, 6) - adt2 *Wrench_foot_plate);
+
+                RF_CF_FT_local = rotrf.inverse() * RF_CF_FT;
+
+                adt.setIdentity();
+                adt.block(3, 0, 3, 3) = DyrosMath::skm(-(link_local[Left_Foot].contact_point - link_local[Left_Foot].sensor_point)) * Matrix3d::Identity();
+
+                rotrf.setZero();
+                rotrf.block(0, 0, 3, 3) = link_local[Left_Foot].Rotm;
+                rotrf.block(3, 3, 3, 3) = link_local[Left_Foot].Rotm;
+
+                Vector3d LF_com(-0.0162, -0.00008, -0.1209);
+
+                com2cp = link_local[Left_Foot].contact_point - LF_com;
+
+                adt2.setIdentity();
+                adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+                Wrench_foot_plate.setZero();
+                Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
+
+                LF_CF_FT = rotrf * adt * LF_FT + adt2 * Wrench_foot_plate;
+
+                Eigen::Vector6d LF_FT_calib = (rotrf * adt).inverse() *(dc.tocabi_.ContactForce.segment(0, 6) - adt2 *Wrench_foot_plate);
+
+                Eigen::Vector12d contact_force_calib;
+
+                contact_force_calib.segment(0,6) = LF_FT_calib;
+                contact_force_calib.segment(6,6) = RF_FT_calib;
+
+                ft.calibrationFTData(ft_calib_finish, contact_force_calib);
             }
         }
         else
         {
             if (ft_calib_finish == false)
             {
-                
             }
             else
             {
@@ -1902,6 +1963,7 @@ void RealRobotInterface::ftsensorThread()
         {
         }
     }
+
     std::cout << cyellow << "FTsensor Thread End !" << creset << std::endl;
 }
 

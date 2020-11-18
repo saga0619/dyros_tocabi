@@ -347,8 +347,7 @@ class RealRobotInterface : public StateManager
 {
 public:
     RealRobotInterface(DataContainer &dc_global);
-    virtual ~RealRobotInterface() {}
-
+    virtual ~RealRobotInterface();
     //update state of Robot from mujoco
     virtual void updateState() override;
 
@@ -423,8 +422,8 @@ public:
     double ELMO_NM2CNT[ELMO_DOF];
     //int ElmoState[ELMO_DOF];
     //int ElmoState_before[ELMO_DOF];
-    fstream file_homming;
-    fstream ft_sensor;
+    //fstream file_homming;
+    //fstream ft_sensor;
     fstream elmo_zp;
     fstream elmo_zp_log;
     fstream ft_init_log;

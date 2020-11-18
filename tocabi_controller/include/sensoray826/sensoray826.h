@@ -206,7 +206,7 @@ public:
         ROS_INFO("FT sensor calibration Initialize... time = %.1lf sec, total %d samples ", dCalibrationTime, _calibMaxIndex);
     }
 
-    void calibrationFTData(bool ft_calib_finish)
+    void calibrationFTData(bool ft_calib_finish, Eigen::Vector12d contactforce)
     {
         if(ft_calib_finish == false)
         {
@@ -227,12 +227,9 @@ public:
         {
             for(int i=0; i<6; i++)
             {
-                leftFootBias[i] = _calibLFTData[i];
-                rightFootBias[i] = _calibRFTData[i];
+                leftFootBias[i] = - contactforce(i) + _calibLFTData[i];
+                rightFootBias[i] = - contactforce(i+6) + _calibRFTData[i];
             }
-
-            leftFootBias[2] = leftFootBias[2];
-            rightFootBias[2] = rightFootBias[2]; 
         }
     }
 

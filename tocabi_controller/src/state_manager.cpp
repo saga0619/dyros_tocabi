@@ -19,7 +19,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon", 100);
     ft_viz_msg.markers.resize(4);
-    syspub_msg.data.resize(7);
+    syspub_msg.data.resize(8);
     imu_lin_acc_lpf.setZero();
     pelv_lin_acc.setZero();
     imu_lin_acc_before.setZero();
@@ -39,7 +39,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         ft_viz_msg.markers[i].scale.z = 0;
     }
 
-    pointpub_msg.polygon.points.resize(18);
+    pointpub_msg.polygon.points.resize(19);
 
     if (dc.mode == "realrobot")
     {
@@ -147,6 +147,11 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
+}
+
+StateManager::~StateManager()
+{
+    std::cout << "SS Destructor" << std::endl;
 }
 
 void StateManager::stateThread(void)
@@ -427,7 +432,6 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[9].y = rtp;
     pointpub_msg.polygon.points[9].z = rty;
 
-
     pointpub_msg.polygon.points[10].x = LF_CF_FT(0);
     pointpub_msg.polygon.points[10].y = LF_CF_FT(1);
     pointpub_msg.polygon.points[10].z = LF_CF_FT(2);
@@ -455,26 +459,24 @@ void StateManager::adv2ROS(void)
 
     // use points below :)
 
-
     //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = LF_CF_FT.segment(3,3).norm();
-    pointpub_msg.polygon.points[15].y = LF_CF_FT.segment(3,3).norm();
+    pointpub_msg.polygon.points[15].x = LF_CF_FT.segment(0, 3).norm();
+    pointpub_msg.polygon.points[15].y = LF_CF_FT.segment(3, 3).norm();
     pointpub_msg.polygon.points[15].z = RF_CP_est(2);
 
-    pointpub_msg.polygon.points[16].x = dc.tocabi_.ContactForce.segment(0,3).norm();
-    pointpub_msg.polygon.points[16].y = dc.tocabi_.ContactForce.segment(3,3).norm();
+    pointpub_msg.polygon.points[16].x = dc.tocabi_.ContactForce.segment(0, 3).norm();
+    pointpub_msg.polygon.points[16].y = dc.tocabi_.ContactForce.segment(3, 3).norm();
     pointpub_msg.polygon.points[16].z = link_local[Right_Foot].v(2);
 
-    pointpub_msg.polygon.points[17].x = RF_CF_FT.segment(0,3).norm();
-    pointpub_msg.polygon.points[17].y = RF_CF_FT.segment(3,3).norm();
+    pointpub_msg.polygon.points[17].x = RF_CF_FT.segment(0, 3).norm();
+    pointpub_msg.polygon.points[17].y = RF_CF_FT.segment(3, 3).norm();
     pointpub_msg.polygon.points[17].z = link_local[Right_Foot].xpos(2);
 
-
-    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6,3).norm();
-    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9,3).norm();
+    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6, 3).norm();
+    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9, 3).norm();
     pointpub_msg.polygon.points[18].z = RF_CP_est(2);
 
     point_pub.publish(pointpub_msg);
@@ -1356,7 +1358,6 @@ void StateManager::stateEstimate()
         quat_before = imu_quat;
         rfzb = RF_CF_FT(2) / (-com_.mass * GRAVITY);
         lfzb = LF_CF_FT(2) / (-com_.mass * GRAVITY);
-
     }
     else
     {

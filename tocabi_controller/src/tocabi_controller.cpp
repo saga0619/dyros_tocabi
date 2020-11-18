@@ -28,6 +28,11 @@ TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, D
     position_command_sub = dc.nh.subscribe("/tocabi/positioncommand", 100, &TocabiController::PositionCommandCallback, this);
 }
 
+TocabiController::~TocabiController()
+{
+    std::cout << "TC Destructor" << std::endl;
+}
+
 void TocabiController::GetTaskCommand()
 {
     if (task_recv)

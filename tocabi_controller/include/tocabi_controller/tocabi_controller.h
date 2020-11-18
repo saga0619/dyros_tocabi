@@ -13,7 +13,7 @@ class TocabiController
 {
 public:
   TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm);
-
+  ~TocabiController();
   DataContainer &dc;
   CustomController &mycontroller;
   TaskCommand tc;

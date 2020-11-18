@@ -25,7 +25,7 @@ void WholebodyController::init(RobotData &Robot)
     Robot.Grav_ref.setZero(3);
     Robot.Grav_ref(2) = -9.81;
 
-    Robot.contact_transition_time = 2.0;
+    Robot.contact_transition_time = 3.0;
 
     Robot.ee_[0].contact_transition_mode = -1;
     Robot.ee_[1].contact_transition_mode = -1;
