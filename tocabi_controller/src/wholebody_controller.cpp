@@ -1345,16 +1345,16 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     // contact force minimization
     MatrixXd Fsl;
     Fsl.setZero(contact_dof, contact_dof);
-    /*
+
     for (int i = 0; i < Robot.contact_index; i++)
     {
-        Fsl(6 * i + 0, 6 * i + 0) = 0.3;
-        Fsl(6 * i + 1, 6 * i + 1) = 0.3;
-        Fsl(6 * i + 2, 6 * i + 2) = 0.01;
+        Fsl(6 * i + 0, 6 * i + 0) = 0.0;
+        Fsl(6 * i + 1, 6 * i + 1) = 0.0;
+        Fsl(6 * i + 2, 6 * i + 2) = 0.0;
         Fsl(6 * i + 3, 6 * i + 3) = 0.01;
         Fsl(6 * i + 4, 6 * i + 4) = 0.01;
         Fsl(6 * i + 5, 6 * i + 5) = 0.01;
-    }*/
+    }
 
     double rr = DyrosMath::minmax_cut(ratio_r / ratio_l * 10, 1, 10);
     double rl = DyrosMath::minmax_cut(ratio_l / ratio_r * 10, 1, 10);

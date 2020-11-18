@@ -8,7 +8,6 @@
 StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 {
     //signal(SIGINT, StateManager::sigintHandler);
-
     gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
     joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 100);
     time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 100);
@@ -38,6 +37,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         ft_viz_msg.markers[i].scale.y = 0.15;
         ft_viz_msg.markers[i].scale.z = 0;
     }
+
 
     pointpub_msg.polygon.points.resize(18);
 
