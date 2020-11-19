@@ -31,7 +31,7 @@ class StateManager
 {
 public:
   StateManager(DataContainer &dc_global);
-  virtual ~StateManager() {}
+  virtual ~StateManager();
   DataContainer &dc;
   virtual void connect();
   virtual void stateThread(); //main thread managing state

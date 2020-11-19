@@ -8,7 +8,6 @@
 StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
 {
     //signal(SIGINT, StateManager::sigintHandler);
-
     gui_command = dc.nh.subscribe("/tocabi/command", 100, &StateManager::CommandCallback, this);
     joint_states_pub = dc.nh.advertise<sensor_msgs::JointState>("/tocabi/jointstates", 100);
     time_pub = dc.nh.advertise<std_msgs::Float32>("/tocabi/time", 100);
@@ -19,7 +18,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon", 100);
     ft_viz_msg.markers.resize(4);
-    syspub_msg.data.resize(7);
+    syspub_msg.data.resize(8);
     imu_lin_acc_lpf.setZero();
     pelv_lin_acc.setZero();
     imu_lin_acc_before.setZero();
@@ -39,7 +38,7 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
         ft_viz_msg.markers[i].scale.z = 0;
     }
 
-    pointpub_msg.polygon.points.resize(18);
+    pointpub_msg.polygon.points.resize(19);
 
     if (dc.mode == "realrobot")
     {
@@ -147,6 +146,11 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     }
 
     ROS_INFO_COND(verbose, "State manager Init complete");
+}
+
+StateManager::~StateManager()
+{
+    std::cout << "SS Destructor" << std::endl;
 }
 
 void StateManager::stateThread(void)
@@ -427,8 +431,6 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[9].y = rtp;
     pointpub_msg.polygon.points[9].z = rty;
 
-    // use points below :)
-
     pointpub_msg.polygon.points[10].x = LF_CF_FT(0);
     pointpub_msg.polygon.points[10].y = LF_CF_FT(1);
     pointpub_msg.polygon.points[10].z = LF_CF_FT(2);
@@ -445,27 +447,37 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[13].y = RF_CF_FT(4);
     pointpub_msg.polygon.points[13].z = RF_CF_FT(5);
 
-    pointpub_msg.polygon.points[14].x = dc.tocabi_.link_[Right_Hand].xpos(0);
-    pointpub_msg.polygon.points[14].y = dc.tocabi_.link_[Right_Hand].xpos(1);
-    pointpub_msg.polygon.points[14].z = dc.tocabi_.link_[Right_Hand].xpos(2);
+    tm = link_[Upper_Body].Rotm;
+    tf2::Matrix3x3 m3(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
+    double utr, utp, uty;
+    m3.getRPY(utr, utp, uty);
+
+    pointpub_msg.polygon.points[14].x = utr;
+    pointpub_msg.polygon.points[14].y = utp;
+    pointpub_msg.polygon.points[14].z = uty;
+
+    // use points below :)
 
     //pointpub_msg.polygon.points[14].x = dc.tocabi_.ZMP_eqn_calc(0); //from zmp dynamics
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = link_local[Right_Foot].v(0);
-    pointpub_msg.polygon.points[15].y = link_local[Right_Foot].v(1);
-    pointpub_msg.polygon.points[15].z = link_local[Right_Foot].v(2);
+    pointpub_msg.polygon.points[15].x = LF_CF_FT.segment(0, 3).norm();
+    pointpub_msg.polygon.points[15].y = LF_CF_FT.segment(3, 3).norm();
+    pointpub_msg.polygon.points[15].z = RF_CP_est(2);
 
-    dc.tocabi_.ZMP_command = dc.tocabi_.com_.pos - dc.tocabi_.com_.pos(2) / 9.81 * dc.tocabi_.link_[COM_id].a_traj;
+    pointpub_msg.polygon.points[16].x = dc.tocabi_.ContactForce.segment(0, 3).norm();
+    pointpub_msg.polygon.points[16].y = dc.tocabi_.ContactForce.segment(3, 3).norm();
+    pointpub_msg.polygon.points[16].z = link_local[Right_Foot].v(2);
 
-    pointpub_msg.polygon.points[16].x = link_local[Right_Foot].xpos(0);
-    pointpub_msg.polygon.points[16].y = link_local[Right_Foot].xpos(1);
-    pointpub_msg.polygon.points[16].z = link_local[Right_Foot].xpos(2);
+    pointpub_msg.polygon.points[17].x = RF_CF_FT.segment(0, 3).norm();
+    pointpub_msg.polygon.points[17].y = RF_CF_FT.segment(3, 3).norm();
+    pointpub_msg.polygon.points[17].z = link_local[Right_Foot].xpos(2);
 
-    pointpub_msg.polygon.points[17].x = dc.tocabi_.ContactForce(3) / dc.tocabi_.ContactForce(2);
-    pointpub_msg.polygon.points[17].y = dc.tocabi_.ContactForce(3 + 6) / dc.tocabi_.ContactForce(2 + 6);
-    pointpub_msg.polygon.points[17].z = RF_CP_est(2);
+    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6, 3).norm();
+    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9, 3).norm();
+    pointpub_msg.polygon.points[18].z = RF_CP_est(2);
+
     point_pub.publish(pointpub_msg);
 
     for (int i = 0; i < 2; i++)
@@ -872,7 +884,7 @@ void StateManager::handleFT()
 
     Vector6d Wrench_foot_plate;
     Wrench_foot_plate.setZero();
-    Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
+    Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
 
     RF_CF_FT = rotrf * (adt * RF_FT + adt2 * Wrench_foot_plate);
 
@@ -892,7 +904,7 @@ void StateManager::handleFT()
     adt2.setIdentity();
     adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
     Wrench_foot_plate.setZero();
-    Wrench_foot_plate(2) = -foot_plate_mass * GRAVITY;
+    Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
 
     LF_CF_FT = rotrf * (adt * LF_FT + adt2 * Wrench_foot_plate);
 
@@ -1017,7 +1029,8 @@ void StateManager::sendStateToGui()
         syspub_msg.data[3] = dc.ecat_state;
         syspub_msg.data[4] = dc.semode;
         syspub_msg.data[5] = dc.tc_state;
-        syspub_msg.data[6] = dc.dob_detect;
+        syspub_msg.data[6] = dc.dob_detect_left;
+        syspub_msg.data[7] = dc.dob_detect_right;
     }
     else if (dc.mode == "simulation")
     {
@@ -1027,7 +1040,8 @@ void StateManager::sendStateToGui()
         syspub_msg.data[3] = 3;
         syspub_msg.data[4] = dc.semode;
         syspub_msg.data[5] = dc.tc_state;
-        syspub_msg.data[6] = dc.dob_detect;
+        syspub_msg.data[6] = dc.dob_detect_left;
+        syspub_msg.data[7] = dc.dob_detect_right;
     }
     gui_state_pub.publish(syspub_msg);
 }
@@ -1343,7 +1357,6 @@ void StateManager::stateEstimate()
         quat_before = imu_quat;
         rfzb = RF_CF_FT(2) / (-com_.mass * GRAVITY);
         lfzb = LF_CF_FT(2) / (-com_.mass * GRAVITY);
-
     }
     else
     {
@@ -1453,6 +1466,7 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
             std::cout << "Joint position control : on " << std::endl;
             dc.commandTime = control_time_;
             dc.positionDesired = q_;
+            dc.tocabi_.task_control_switch = false;
             dc.set_q_init = true;
             if (dc.position_command_ext)
             {
