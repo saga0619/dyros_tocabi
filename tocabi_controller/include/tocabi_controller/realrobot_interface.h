@@ -1,6 +1,7 @@
 #ifndef REALROBOT_INTERFACE_H
 #define REALROBOT_INTERFACE_H
 
+
 #include <iostream>
 #include <thread>
 
@@ -183,17 +184,23 @@ const double NM2CNT[ELMO_DOF] =
 
 const double jointLimitUp[ELMO_DOF] =
     {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0};
+        1.0, 1.0, 
+        1.54, 1, 1, 1.54, 3, 3, 3, 3, 
+        3, 3, 3, 3, 1, 3, 3, 1.6, 
+        3, 3, 
+        0.6, 3, 3, 3, 1, 0.664, 
+        3, 
+        0.6, 3, 3, 3, 1, 0.664};
 
 const double jointLimitLow[ELMO_DOF] =
     {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0};
+        -1.0, -1.0, 
+        -1.54, -1, -1, -1.54, -3, -3, -3, -3, 
+        -3, -3, -3, -3, -1.6, -3, -3, -1, 
+        -3, -3, 
+        -0.6, -3, -0.5, -0.5, -0.5, -0.664, 
+        -3, 
+        -0.6, -3, -0.5, -0.5, -0.5, -0.664};
 
 const int positionExternalModElmo[ELMO_DOF] =
     {
@@ -410,6 +417,9 @@ public:
     int ElmoMode[ELMO_DOF];
     bool checkPosSafety[ELMO_DOF];
 
+    double ELMO_torquecommand[ELMO_DOF];
+    double ELMO_torque[ELMO_DOF];
+
     double ELMO_NM2CNT[ELMO_DOF];
     //int ElmoState[ELMO_DOF];
     //int ElmoState_before[ELMO_DOF];
@@ -417,6 +427,8 @@ public:
     fstream ft_sensor;
     fstream elmo_zp;
     fstream elmo_zp_log;
+    fstream ft_init_log;
+    std::string ft_init_path;
     std::string zp_path, zplog_path, pack_path;
 
     int checkfirst = -1;
@@ -450,9 +462,13 @@ public:
     Eigen::VectorQd positionSafteyHoldElmo;
     Eigen::VectorQd torqueCustomCommand;
 
-    Eigen::VectorQd rq_;
-    Eigen::VectorQd rq_ext_;
-    Eigen::VectorQd rq_dot_;
+    double rq_[MODEL_DOF];
+    double rq_ext_[MODEL_DOF];
+    double rq_dot_[MODEL_DOF];
+
+    double req_[MODEL_DOF];
+    double req_ext_[MODEL_DOF];
+    double req_dot_[MODEL_DOF];
 
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];

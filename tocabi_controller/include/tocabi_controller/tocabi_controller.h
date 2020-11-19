@@ -1,8 +1,11 @@
 #include "tocabi_controller/dynamics_manager.h"
 #include "tocabi_controller/mujoco_interface.h"
-#include "tocabi_controller/realrobot_interface.h"
 #include "tocabi_controller/positionCommand.h"
 #include "custom_controller.h"
+
+#ifdef COMPILE_REALROBOT
+#include "tocabi_controller/realrobot_interface.h"
+#endif
 
 extern volatile bool shutdown_tocabi_bool;
 class TocabiController
@@ -18,12 +21,18 @@ public:
   WholebodyController wbc_;
   Walking_controller wkc_;
 
+  tocabi_controller::TaskCommand TaskCont;
+  tocabi_controller::TaskCommandQue TaskQueCont;
+
+  void GetTaskCommand();
   void stateThread();
   void dynamicsThreadLow();
   void dynamicsThreadHigh();
   void trajectoryplannar();
   void tuiThread();
   void testThread();
+
+
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
   void TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg);

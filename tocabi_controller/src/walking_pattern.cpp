@@ -540,8 +540,9 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.00;
-        capturePoint_offsetx(i) = 0.00;
+        capturePoint_offsety(i) = 0.02;
+        capturePoint_offsetx(i) = 0.04;
+    //    capturePoint_offsetx(i) = 0.00;
     }
 
     if(com_control == 0)
@@ -572,12 +573,12 @@ void WalkingPattern::setCpPosition()
             {    
                 if(com_control == 0)
                 {
-                    capturePoint_ox(1) = (PELV_float_init).translation()(0) + capturePoint_offsetx(1);
+                    capturePoint_ox(1) = (PELV_float_init).translation()(0);// + capturePoint_offsetx(1);
                     capturePoint_oy(1) = (RF_fisrt_init).translation()(1) + capturePoint_offsety(1);    
                 }
                 else
                 {
-                    capturePoint_ox(1) = (COM_float_init).translation()(0) + capturePoint_offsetx(1);
+                    capturePoint_ox(1) = (COM_float_init).translation()(0);// + capturePoint_offsetx(1);
                     capturePoint_oy(1) = (RF_fisrt_init).translation()(1) + capturePoint_offsety(1);   
                 }
             }
@@ -601,13 +602,13 @@ void WalkingPattern::setCpPosition()
             {
                 if(com_control == 0)
                 {
-                    capturePoint_ox(1) = (PELV_float_init).translation()(0) + capturePoint_offsetx(1);
-                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1) + capturePoint_offsety(1);    
+                    capturePoint_ox(1) = (PELV_float_init).translation()(0);// + capturePoint_offsetx(1);
+                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1) - capturePoint_offsety(1);    
                 }
                 else
                 {
-                    capturePoint_ox(1) = (COM_float_init).translation()(0) + capturePoint_offsetx(1);
-                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1) + capturePoint_offsety(1);   
+                    capturePoint_ox(1) = (COM_float_init).translation()(0);// + capturePoint_offsetx(1);
+                    capturePoint_oy(1) = (LF_fisrt_init).translation()(1) - capturePoint_offsety(1);   
                 }                
             }
             else
@@ -918,6 +919,9 @@ void WalkingPattern::setFootTrajectory()
                 RF_trajectory_float.translation()(1) = foot_step(current_step_num -1, 1);
             }
         }
+        LFD_trajectory_float.translation().setZero();
+        RFD_trajectory_float.translation().setZero();
+        
         contactMode = 1;
     }
     else if(walking_tick >= t_start_real + t_double1 && walking_tick < t_start + t_total - t_double2 - t_rest_last)
@@ -929,6 +933,8 @@ void WalkingPattern::setFootTrajectory()
             if(walking_tick < t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp)/2.0) // the period for lifting the right foot
             {
                 RF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2,(RF_fisrt_init).translation()(2),0.0,0.0,(RF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(0);
+                RFD_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2,(RF_fisrt_init).translation()(2),0.0,0.0,(RF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(1) * Hz_;
+                
                 if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(RF_trajectory_float.translation()(2)) - (RF_fisrt_init).translation()(2) > 0.001)
                 {
                     contactMode = 2;
@@ -937,6 +943,8 @@ void WalkingPattern::setFootTrajectory()
             else
             {
                 RF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(RF_fisrt_init).translation()(2)+foot_height, 0.0,0.0,(RF_fisrt_init).translation()(2),0.0,0.0)(0);
+                RFD_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(RF_fisrt_init).translation()(2)+foot_height, 0.0,0.0,(RF_fisrt_init).translation()(2),0.0,0.0)(1)* Hz_;
+                
                 if(walking_tick < t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp)
                 {
                     contactMode = 2;
@@ -950,15 +958,23 @@ void WalkingPattern::setFootTrajectory()
             {
                 RF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
                 RF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0); 
+
+                RFD_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(1)* Hz_;   
+                RFD_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(1)* Hz_; 
             }
             else if(current_step_num == 1)
             {
                 RF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);           
                 RF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0);
+
+                RFD_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(1)* Hz_;           
+                RFD_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(RF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(1)* Hz_;
+
             }
             else
             {
                 RF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
+                RFD_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(1)* Hz_;   
             }
         }
         else
@@ -966,6 +982,7 @@ void WalkingPattern::setFootTrajectory()
             if(walking_tick < t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0)
             {
                 LF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,(LF_fisrt_init).translation()(2),0.0,0.0,(LF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(0);
+                LFD_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,(LF_fisrt_init).translation()(2),0.0,0.0,(LF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(1)* Hz_;
                 if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(LF_trajectory_float.translation()(2)) - (LF_fisrt_init).translation()(2) > 0.001)
                 {
                     contactMode = 3;
@@ -974,6 +991,7 @@ void WalkingPattern::setFootTrajectory()
             else
             {
                 LF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(LF_fisrt_init).translation()(2)+foot_height,0.0,0.0,(LF_fisrt_init).translation()(2),0.0,0.0)(0);
+                LFD_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp,(LF_fisrt_init).translation()(2)+foot_height,0.0,0.0,(LF_fisrt_init).translation()(2),0.0,0.0)(1)* Hz_;
                 if(walking_tick < t_start+t_total-t_rest_last-t_double2-t_imp-t_rest_temp)
                 {
                     contactMode = 3;
@@ -987,17 +1005,20 @@ void WalkingPattern::setFootTrajectory()
             {
                 LF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
                 LF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0);
+                LFD_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(1)* Hz_;   
+                LFD_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(1)* Hz_;
             }
             else if(current_step_num == 1)
             {
-          
                 LF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);           
                 LF_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(0);
+                LFD_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(1)* Hz_;           
+                LFD_trajectory_float.translation()(1) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,(LF_fisrt_init).translation()(1),0.0,0.0,foot_step(current_step_num,1),0.0,0.0)(1)* Hz_;
             }
             else
             {
-                RF_trajectory_support.translation()(0) = 0.0;
                 LF_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(0);   
+                LFD_trajectory_float.translation()(0) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+2*t_rest_temp,t_start+t_total-t_rest_last-t_double2-t_imp-2*t_rest_temp,foot_step(current_step_num-2,0),0.0,0.0,foot_step(current_step_num,0),0.0,0.0)(1)* Hz_;   
             }
 
         }
@@ -1005,6 +1026,10 @@ void WalkingPattern::setFootTrajectory()
         {
             RF_trajectory_float.translation()(2) = (RF_fisrt_init).translation()(2);
             LF_trajectory_float.translation()(2) = (LF_fisrt_init).translation()(2);
+            RFD_trajectory_float.translation()(2) = 0.0;
+            LFD_trajectory_float.translation()(2) = 0.0;
+
+            contactMode = 1;
         }
 
         if(foot_height == 0.0)
@@ -1028,6 +1053,7 @@ void WalkingPattern::setFootTrajectory()
             {
                RF_trajectory_float.translation()(0) = foot_step(current_step_num,0);   
             }
+            RFD_trajectory_float.translation()(0) = 0.0;
         }
         else if (foot_step(current_step_num,6) == 0)
         {
@@ -1043,6 +1069,7 @@ void WalkingPattern::setFootTrajectory()
             {
                 LF_trajectory_float.translation()(0) = foot_step(current_step_num,0);   
             }
+            LFD_trajectory_float.translation()(0) = 0.0;
         }
         contactMode = 1;
     }      
@@ -1074,6 +1101,9 @@ void WalkingPattern::supportToFloatPattern()
         }
         PELV_trajectory_float.translation()(2) = PELV_first_init.translation()(2);      
         PELV_trajectory_float.linear() = PELV_first_init.linear();
+        PELVD_trajectory_float.translation()(0) = com_refdx(walking_tick);
+        PELVD_trajectory_float.translation()(1) = com_refdy(walking_tick);
+        PELVD_trajectory_float.translation()(2) = 0.0;
     }
 }
 

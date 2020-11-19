@@ -89,6 +89,8 @@ public:
     Eigen::Isometry3d LF_support_init;
     Eigen::Isometry3d LF_trajectory_float;
     Eigen::Isometry3d RF_trajectory_float;
+    Eigen::Isometry3d LFD_trajectory_float;
+    Eigen::Isometry3d RFD_trajectory_float;
     Eigen::Isometry3d LF_trajectory_support;
     Eigen::Isometry3d RF_trajectory_support;
     Eigen::Isometry3d PELV_float_current;
@@ -103,6 +105,7 @@ public:
     Eigen::Isometry3d PELV_support_current;
     Eigen::Isometry3d PELV_support_init;
     Eigen::Isometry3d PELV_trajectory_float;
+    Eigen::Isometry3d PELVD_trajectory_float;
     Eigen::Isometry3d COM_support_current;
     Eigen::Isometry3d COM_support_init;
     
@@ -204,8 +207,10 @@ public:
     Eigen::Vector3d yy_vib;
     Eigen::Vector3d yy_vibm;
     Eigen::Vector2d final_posy;
+    Eigen::MatrixXd L1, L2;
 
-
+    Eigen::Isometry3d HLR_float_init;
+    Eigen::Isometry3d HRR_float_init;
     Eigen::Isometry3d PELV_float_init1;
     
     double ux_vib;
@@ -225,6 +230,7 @@ public:
     double double2Single_pre;
     double current_time;
     double rate;
+    int time_temp;
 
     //Ui WalkingParameter
     

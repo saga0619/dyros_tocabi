@@ -25,8 +25,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //robot definition variables here
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //Terminal Data Que
@@ -57,6 +55,10 @@ public:
   bool print_data_ready = false;
   bool imu_ignore = false;
   bool sebyft = false;
+  bool set_q_init = false;
+  bool single_foot_only = false;
+  bool ecat_lost = false;
+  bool ecat_recovered = false;
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;
@@ -66,6 +68,8 @@ public:
   bool state_end;
   bool dynamics_end;
   int t_que = 0;
+
+  int dob_detect = -2;
 
   std::chrono::steady_clock::time_point start_time_point;
 
@@ -88,6 +92,8 @@ public:
   Eigen::VectorVQd q_dot_virtual_lpf;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd q_ext_;
+  Eigen::VectorVQd q_dot_est_;
+  Eigen::VectorQd q_hold_lower_;
   //Kinematics Information :
   Link link_[LINK_NUMBER + 1];
 
@@ -174,7 +180,7 @@ public:
   bool qp2nd = false;
   bool enable_lpf = false;
   bool switch_lpf = false;
-
+  bool elmoinstability = false;
   bool spalarm = false; // support polygon alarm bool
   bool semode = false;  // state estimation running or not.
 
@@ -194,6 +200,7 @@ public:
   int tc_state = 3; //task control state 0 : on 1 : warn 2: error 3: off
 
   bool position_command_ext = false;
+  bool pext_gravity = false;
   double position_command_time;
   double position_traj_time;
 

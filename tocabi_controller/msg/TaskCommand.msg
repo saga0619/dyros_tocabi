@@ -16,6 +16,12 @@ bool maintain_lc
 bool left
 bool right
 
+# Contact 
+bool left_foot
+bool right_foot
+bool left_hand
+bool right_hand
+
 # Control Duration And Mode
 float64 time
 int32 mode

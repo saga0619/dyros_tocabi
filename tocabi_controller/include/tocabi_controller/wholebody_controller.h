@@ -31,6 +31,15 @@ using namespace qpOASES;
 
 */
 
+const double NM2CNT_d[MODEL_DOF] =
+    {
+        3.0, 4.3, 3.8, 3.46, 4.5, 12.33,
+        3.0, 4.3, 3.8, 3.46, 4.5, 12.33,
+        3.3, 3.3, 3.3,
+        15.5, 15.5, 15.5, 15.5, 42.0, 42.0, 95.0, 95.0,
+        95.0, 95.0,
+        15.5, 15.5, 15.5, 15.5, 42.0, 42.0, 95.0, 95.0};
+
 class WholebodyController
 {
 public:
@@ -44,6 +53,8 @@ public:
   //set contact status of robot. true for contact false for not contact
   void set_contact(RobotData &Robot);
   void set_contact(RobotData &Robot, bool left_foot, bool right_foot, bool left_hand = false, bool right_hand = false);
+
+  void set_robot_init(RobotData &Robot);
 
   //contact force redistribution by yisoolee method at 2 contact(both foot)
   VectorQd contact_force_redistribution_torque(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta);
@@ -135,12 +146,11 @@ public:
   Vector6d getfstar6d(RobotData &Robot, int link_id);
   Vector3d getfstar_acc_tra(RobotData &Robot, int link_id);
   Vector3d getfstar_acc_rot(RobotData &Robot, int link_id);
-  
 
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
 
   Vector3d COM_traj_with_zmp(RobotData &Robot);
-
+  void getSupportPolygon(RobotData &Robot, std::vector<Eigen::Vector2d> &edge_point_list);
   //zmp controller
   void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
@@ -231,6 +241,7 @@ public:
   CQuadraticProgram QP_mpc;
   CQuadraticProgram QP_torque;
   osQuadraticProgram QP_contact;
+  osQuadraticProgram QP_torque3_;
   VectorXd result_temp;
 
 private:

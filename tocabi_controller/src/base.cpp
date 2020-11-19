@@ -33,6 +33,8 @@ int main(int argc, char **argv)
     dc.nh.getParam("/tocabi_controller/Kv", dc.tocabi_.vector_kv);
     dc.nh.getParam("/tocabi_controller/vellimit", dc.safety_limit);
     dc.nh.getParam("/tocabi_controller/NM2CNT", dc.tocabi_.vector_NM2CNT);
+    dc.nh.getParam("/tocabi_controller/opvellimit", dc.tocabi_.com_vel_limit);
+    dc.nh.getParam("/tocabi_controller/opacclimit", dc.tocabi_.com_acc_limit);
 
     dc.statusPub = dc.nh.advertise<std_msgs::String>("/tocabi/guilog", 1000);
     std::string strr("hello guilog");
@@ -108,8 +110,9 @@ int main(int argc, char **argv)
             thread[i].join();
         }
     }
+#ifdef COMPILE_REALROBOT      
     else if (dc.mode == "realrobot")
-    {
+    {  
         std::cout << "RealRobot Mode" << std::endl;
 
         RealRobotInterface rtm(dc);
@@ -264,14 +267,14 @@ int main(int argc, char **argv)
 
         thread[0] = std::thread(&RealRobotInterface::ftsensorThread, &rtm);
 
-        thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
+      //  thread[1] = std::thread(&RealRobotInterface::handftsensorThread, &rtm);
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 1; i++)
         {
             thread[i].join();
         }
     }
-
+#endif
     dc.rgbPubMsg.data = {0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0, 0, 64, 0};
     dc.rgbPub.publish(dc.rgbPubMsg);
     std::cout << cgreen << "All threads are completely terminated !" << creset << std::endl;

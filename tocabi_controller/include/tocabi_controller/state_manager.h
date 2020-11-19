@@ -51,6 +51,8 @@ public:
 
   void contactEstimate();
 
+  void pelvisPosMonitor();
+
   void stateEstimate();
   //private functions
 
@@ -109,6 +111,7 @@ public:
   bool velEst = false;
 
   Eigen::VectorQVQd q_virtual_local_;
+  Eigen::VectorQVQd q_virtual_local_yaw_initialized;
   Eigen::VectorVQd q_dot_virtual_local_;
   Eigen::VectorVQd q_ddot_virtual_local_;
   
@@ -119,6 +122,8 @@ public:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
   Eigen::MatrixXd A_temp_;
+
+  Eigen::Vector7d q_virtual_hold;
 
   Eigen::MatrixVVd Motor_inertia_;
   Eigen::MatrixVVd Motor_inertia_inv;
@@ -164,6 +169,7 @@ public:
   ros::Publisher motor_info_pub;
   ros::Publisher motor_acc_dif_info_pub;
   ros::Publisher point_pub;
+  ros::Publisher support_polygon_pub;
   ros::Publisher gui_state_pub;
 
   ros::Publisher ft_viz_pub;
@@ -172,6 +178,8 @@ public:
   Eigen::Vector3d rf_contactpoint;
   Eigen::Vector3d lf_contactpoint;
 
+
+  geometry_msgs::PolygonStamped supportpolygon;
   ros::Publisher tgainPublisher;
   std_msgs::Float32 tgain_p;
   std_msgs::Int32MultiArray syspub_msg;

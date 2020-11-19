@@ -6,7 +6,7 @@
     name="Pelvis_Link">
     <inertial>
       <origin
-        xyz="0.09408 0 0.03985"
+        xyz="0.07809 0 0.03985"
         rpy="0 0 0"/>
       <mass
         value="12.19525" />
@@ -1153,7 +1153,7 @@
     name="Upperbody_Link">
     <inertial>
       <origin
-        xyz="-0.03794 0 0.16798"
+        xyz="-0.04294 0 0.16798"
         rpy="0 0 0" />
       <mass
         value="18.13384" />
@@ -1889,7 +1889,7 @@
     <child
       link="L_Wrist2_Link" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 1 0" />
     <limit
       lower="-2.094"
       upper="2.094"
@@ -2380,7 +2380,7 @@
     <child
       link="R_Wrist2_Link" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 -1 0" />
     <limit
       lower="-2.094"
       upper="2.094"
