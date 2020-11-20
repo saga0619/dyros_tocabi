@@ -95,6 +95,7 @@ public:
   Eigen::VectorQd q_ext_;
   Eigen::VectorVQd q_dot_est_;
   Eigen::VectorQd q_hold_lower_;
+  Eigen::VectorQd torque_elmo_;
 
   //Kinematics Information :
   Link link_[LINK_NUMBER + 1];

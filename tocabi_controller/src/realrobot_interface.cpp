@@ -148,6 +148,7 @@ void RealRobotInterface::updateState()
             rq_[i] = req_[i];
             rq_dot_[i] = req_dot_[i];
             rq_ext_[i] = req_ext_[i];
+            rq_elmo_[i] = req_elmo_[i];
         }
 
         for (int i = 0; i < ec_slavecount; i++)
@@ -155,6 +156,7 @@ void RealRobotInterface::updateState()
             q_[i] = rq_[TOCABI::JointMap[i]];
             q_dot_[i] = rq_dot_[TOCABI::JointMap[i]];
             q_ext_[i] = rq_ext_[TOCABI::JointMap[i]];
+            torque_elmo_[i] = rq_elmo_[TOCABI::JointMap[i]];
         }
 
         q_ddot_ = q_dot_ - q_dot_before_;
@@ -182,6 +184,7 @@ void RealRobotInterface::updateState()
                 rq_[i] = req_[i];
                 rq_dot_[i] = req_dot_[i];
                 rq_ext_[i] = req_ext_[i];
+                rq_elmo_[i] = req_elmo_[i];
             }
 
             for (int i = 0; i < ec_slavecount; i++)
@@ -189,6 +192,7 @@ void RealRobotInterface::updateState()
                 q_[i] = rq_[TOCABI::JointMap[i]];
                 q_dot_[i] = rq_dot_[TOCABI::JointMap[i]];
                 q_ext_[i] = rq_ext_[TOCABI::JointMap[i]];
+                torque_elmo_[i] = rq_elmo_[TOCABI::JointMap[i]];
             }
 
             q_ddot_ = q_dot_ - q_dot_before_;
@@ -991,11 +995,10 @@ void RealRobotInterface::ethercatThread()
                                 req_[i] = positionElmo[i] - positionZeroElmo[i];
                             std::copy(velocityElmo.data(), velocityElmo.data() + ec_slavecount, req_dot_);
                             std::copy(positionExternalElmo.data(), positionExternalElmo.data() + ec_slavecount, req_ext_);
+                            std::copy(torqueElmo.data(), torqueElmo.data() + ec_slavecount, req_elmo_);
                             atb_q = true;
 
                             //Get State Seqence End, user controller start
-
-                            dc.torqueElmo = torqueElmo;
                             checkfirst = (stateElmo[19] & al);
 
                             if (shutdown_tocabi_bool || shutdown_tocabi_bool)
@@ -1129,8 +1132,6 @@ void RealRobotInterface::ethercatThread()
                                                     dc.zp_state = 2;
                                                     dc.ecat_state = 1;
                                                     operation_ready = true;
-
-                                                    
                                                 }
                                             }
                                         }
@@ -1675,7 +1676,6 @@ void RealRobotInterface::imuThread()
 {
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time_from_begin;
 
     std::chrono::microseconds cycletime(1000);
@@ -1703,9 +1703,10 @@ void RealRobotInterface::imuThread()
         int cycle_count = 0;
 
         std::cout << "IMU Thread Start ! " << std::endl;
+        std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
         while (!shutdown_tocabi_bool)
         {
-            //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+            std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
             cycle_count++;
             //Code here
             //
@@ -1726,8 +1727,8 @@ void RealRobotInterface::imuThread()
 
             Vector3d ang_vel;
             ang_vel(0) = imu_msg.angular_velocity.x;
-            ang_vel(0) = imu_msg.angular_velocity.y;
-            ang_vel(0) = imu_msg.angular_velocity.z;
+            ang_vel(1) = imu_msg.angular_velocity.y;
+            ang_vel(2) = imu_msg.angular_velocity.z;
             Vector3d ang_vel_lpf;
             static Vector3d ang_vel_lpf_before;
             ang_vel_lpf = DyrosMath::lpf(ang_vel, ang_vel_lpf_before, 1000, 15);
@@ -1735,9 +1736,16 @@ void RealRobotInterface::imuThread()
 
             imu_ang_vel = ang_vel_lpf;
 
-            imu_lin_acc(0) = imu_msg.linear_acceleration.x;
-            imu_lin_acc(1) = imu_msg.linear_acceleration.y;
-            imu_lin_acc(2) = imu_msg.linear_acceleration.z;
+            Vector3d lin_acc;
+            lin_acc(0) = imu_msg.linear_acceleration.x;
+            lin_acc(1) = imu_msg.linear_acceleration.y;
+            lin_acc(2) = imu_msg.linear_acceleration.z;
+            Vector3d imu_lin_acc_lpf;
+            static Vector3d imu_lin_acc_lpf_before;
+            imu_lin_acc_lpf = DyrosMath::lpf(lin_acc, imu_lin_acc_lpf_before, 1000, 15);
+            imu_lin_acc_lpf_before = imu_lin_acc_lpf;
+
+            imu_lin_acc = imu_lin_acc_lpf;
         }
         mx5.endIMU();
     }
@@ -1868,7 +1876,7 @@ void RealRobotInterface::ftsensorThread()
 
                 RF_CF_FT = rotrf * adt * RF_FT + adt2 * Wrench_foot_plate;
 
-                Eigen::Vector6d RF_FT_calib = (rotrf * adt).inverse() *(dc.tocabi_.ContactForce.segment(6, 6) - adt2 *Wrench_foot_plate);
+                Eigen::Vector6d RF_FT_calib = (rotrf * adt).inverse() * (dc.tocabi_.ContactForce.segment(6, 6) - adt2 * Wrench_foot_plate);
 
                 RF_CF_FT_local = rotrf.inverse() * RF_CF_FT;
 
@@ -1890,12 +1898,12 @@ void RealRobotInterface::ftsensorThread()
 
                 LF_CF_FT = rotrf * adt * LF_FT + adt2 * Wrench_foot_plate;
 
-                Eigen::Vector6d LF_FT_calib = (rotrf * adt).inverse() *(dc.tocabi_.ContactForce.segment(0, 6) - adt2 *Wrench_foot_plate);
+                Eigen::Vector6d LF_FT_calib = (rotrf * adt).inverse() * (dc.tocabi_.ContactForce.segment(0, 6) - adt2 * Wrench_foot_plate);
 
                 Eigen::Vector12d contact_force_calib;
 
-                contact_force_calib.segment(0,6) = LF_FT_calib;
-                contact_force_calib.segment(6,6) = RF_FT_calib;
+                contact_force_calib.segment(0, 6) = LF_FT_calib;
+                contact_force_calib.segment(6, 6) = RF_FT_calib;
 
                 ft.calibrationFTData(ft_calib_finish, contact_force_calib);
             }

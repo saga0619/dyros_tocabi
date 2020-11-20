@@ -15,6 +15,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <std_msgs/Float32MultiArray.h>
 
 extern std::mutex mtx;
 extern std::mutex mtx_rbdl;
@@ -107,6 +108,7 @@ public:
   Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;
   Eigen::VectorVQd tau_nonlinear_;
+  Eigen::VectorQd torque_elmo_;
 
   bool velEst = false;
 
@@ -169,6 +171,7 @@ public:
   ros::Publisher motor_info_pub;
   ros::Publisher motor_acc_dif_info_pub;
   ros::Publisher point_pub;
+  ros::Publisher point2_pub;
   ros::Publisher support_polygon_pub;
   ros::Publisher gui_state_pub;
 
@@ -188,6 +191,7 @@ public:
   tocabi_controller::MotorInfo motor_info_msg;
   tocabi_controller::MotorInfo acc_dif_info_msg;
   geometry_msgs::PolygonStamped pointpub_msg;
+  std_msgs::Float32MultiArray fr_msg;
 
   void CommandCallback(const std_msgs::StringConstPtr &msg);
   void PinocchioCallback(const tocabi_controller::model &msg);
