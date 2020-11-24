@@ -127,11 +127,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estLinearAccelX")
                 {
-                    imu_pub_msg.linear_acceleration.x = dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelY")
                 {
-                    imu_pub_msg.linear_acceleration.y = dataPoint.as_float();
+                    imu_pub_msg.linear_acceleration.x = -dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estLinearAccelZ")
                 {
@@ -140,11 +140,11 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
                 if (dataPoint.channelName() == "estAngularRateX")
                 {
-                    imu_pub_msg.angular_velocity.x = dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateY")
                 {
-                    imu_pub_msg.angular_velocity.y = dataPoint.as_float();
+                    imu_pub_msg.angular_velocity.x = -dataPoint.as_float();
                 }
                 if (dataPoint.channelName() == "estAngularRateZ")
                 {
@@ -208,9 +208,10 @@ sensor_msgs::Imu MX5IMU::getIMU()
 
     ef_state_flag_before = ef_state_flag;
     ef_state_before = ef_state;
+
     static int num = 0;
-    if (num % 20 == 0)
-        imu_pub.publish(imu_pub_msg);
+    //if (num % 20 == 0)
+    imu_pub.publish(imu_pub_msg);
     num++;
     return imu_pub_msg;
 }
@@ -556,15 +557,15 @@ void MX5IMU::checkIMUData()
 
     if (abs(w[0]) > 0.1)
     {
-        std::cout<<"roll error !"<<std::endl;
+        std::cout << "roll error !" << std::endl;
     }
     else if (abs(w[1]) > 0.1)
     {
-        std::cout<<"pitch error !"<<std::endl;
+        std::cout << "pitch error !" << std::endl;
     }
     else if (abs(w[2]) > 0.1)
     {
-        std::cout<<"yaw error !"<<std::endl;
+        std::cout << "yaw error !" << std::endl;
     }
 
     //imu_pub_msg_before.orientation.

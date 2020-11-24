@@ -14,11 +14,13 @@ StateManager::StateManager(DataContainer &dc_global) : dc(dc_global)
     motor_acc_dif_info_pub = dc.nh.advertise<tocabi_controller::MotorInfo>("/tocabi/accdifinfo", 100);
     tgainPublisher = dc.nh.advertise<std_msgs::Float32>("/tocabi/torquegain", 100);
     point_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/point", 100);
+    point2_pub = dc.nh.advertise<std_msgs::Float32MultiArray>("/tocabi/point2", 100);
     ft_viz_pub = dc.nh.advertise<visualization_msgs::MarkerArray>("/tocabi/ft_viz", 100);
     gui_state_pub = dc.nh.advertise<std_msgs::Int32MultiArray>("/tocabi/systemstate", 100);
     support_polygon_pub = dc.nh.advertise<geometry_msgs::PolygonStamped>("/tocabi/support_polygon", 100);
     ft_viz_msg.markers.resize(4);
     syspub_msg.data.resize(8);
+    fr_msg.data.resize(12);
     imu_lin_acc_lpf.setZero();
     pelv_lin_acc.setZero();
     imu_lin_acc_before.setZero();
@@ -239,6 +241,14 @@ void StateManager::stateThread(void)
                 }
             }
 
+            fr_msg.data[0] = imu_ang_vel(0);
+            fr_msg.data[1] = imu_ang_vel(1);
+            fr_msg.data[2] = imu_ang_vel(2);
+            fr_msg.data[3] = imu_lin_acc(0);
+            fr_msg.data[4] = imu_lin_acc(1);
+            fr_msg.data[5] = imu_lin_acc(2);
+            //point2_pub.publish(fr_msg);
+
             if ((cycle_count % 200) == 0)
             {
                 try
@@ -364,7 +374,7 @@ void StateManager::adv2ROS(void)
     {
         for (int i = 0; i < MODEL_DOF; i++)
         {
-            motor_info_msg.motorinfo1[i] = dc.torqueElmo[i];
+            motor_info_msg.motorinfo1[i] = dc.torque_elmo_[i];
             motor_info_msg.motorinfo2[i] = dc.torqueDemandElmo[i];
         }
         motor_info_pub.publish(motor_info_msg);
@@ -625,6 +635,7 @@ void StateManager::storeState()
     dc.q_virtual_ = q_virtual_;
     dc.q_ddot_virtual_ = q_ddot_virtual_;
     dc.q_ext_ = q_ext_;
+    dc.torque_elmo_ = torque_elmo_;
     //dc.q_dot_est_ = q_dot_est;
 
     dc.tau_nonlinear_ = tau_nonlinear_;
@@ -1152,6 +1163,7 @@ void StateManager::stateEstimate()
         }
 
         // imu pos estimation part (useless for now... )
+        /*
         imu_lin_acc_lpf = DyrosMath::lpf(imu_lin_acc, imu_lin_acc_before, 2000, 20);
         imu_lin_acc_before = imu_lin_acc_lpf;
         pelv_lin_acc = dc.link_[Pelvis].Rotm.inverse() * imu_lin_acc_lpf;
@@ -1160,7 +1172,7 @@ void StateManager::stateEstimate()
         temp = dc.tocabi_.imu_vel_ + dt_i * pelv_lin_acc;
         dc.tocabi_.imu_vel_ = temp;
         temp = dc.tocabi_.imu_pos_ + (dt_i * dt_i / 0.5) * pelv_lin_acc + dc.tocabi_.imu_vel_ * dt_i;
-        dc.tocabi_.imu_pos_ = temp;
+        dc.tocabi_.imu_pos_ = temp;*/
         // imu estimate end
 
         RF_P_cpm = link_local[Right_Foot].Rotm * (RF_CP_est - RF_CP_est_holder);
@@ -1290,8 +1302,14 @@ void StateManager::stateEstimate()
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
-            q_dot_virtual_(i) = mod_base_vel(i);
+            q_dot_virtual_(i) = pelv_v(i);
         }
+        fr_msg.data[6] = pelv_v[0];
+        fr_msg.data[7] = pelv_v[1];
+        fr_msg.data[8] = pelv_v[2];
+        fr_msg.data[9] = imu_acc_dat[0];
+        fr_msg.data[10] = imu_acc_dat[1];
+        fr_msg.data[11] = imu_acc_dat[2];
 
         //acceleration calculation!
         //q_ddot_virtual_ = (q_dot_virtual_ - q_dot_virtual_before) / ((double)dc.ctime / 1000000.0);

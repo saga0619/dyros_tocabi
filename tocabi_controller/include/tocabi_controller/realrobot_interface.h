@@ -464,10 +464,12 @@ public:
     double rq_[MODEL_DOF];
     double rq_ext_[MODEL_DOF];
     double rq_dot_[MODEL_DOF];
+    double rq_elmo_[MODEL_DOF];
 
     double req_[MODEL_DOF];
     double req_ext_[MODEL_DOF];
     double req_dot_[MODEL_DOF];
+    double req_elmo_[MODEL_DOF];
 
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];
