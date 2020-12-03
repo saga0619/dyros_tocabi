@@ -179,6 +179,7 @@ public:
                 burstNum[i] = ((uint32_t)_adBuf[i] >> 24);
                 adcVoltages[i] = adcDatas[i] * 10.0 / 32768;
             }
+         //   std::cout<<"1 :"<< adcVoltages[0] << " 2 : " << adcVoltages[1] << " 3 : " << adcVoltages[2] << " 4 : " << adcVoltages[3] << " 5 : " << adcVoltages[4] << " 6 : " << adcVoltages[5] << " 7 : " << adcVoltages[6] << " 8 : " << adcVoltages[7] << " 9 : " << adcVoltages[8] << " 10 : " << adcVoltages[9] << " 11 : " << adcVoltages[10] << " 12 : " << adcVoltages[11]<< " 13 : " << adcVoltages[12]<< " 14 : " << adcVoltages[13] << " 15 : " << adcVoltages[14] << " 16 : " << adcVoltages[15]    <<std::endl;
         }
     }
 
@@ -205,7 +206,7 @@ public:
         ROS_INFO("FT sensor calibration Initialize... time = %.1lf sec, total %d samples ", dCalibrationTime, _calibMaxIndex);
     }
 
-    void calibrationFTData(bool ft_calib_finish, Eigen::VectorXd contact_force)//, Eigen::Vector6d Wrench_foot_plate, Eigen::Vector6d Wrench_foot_plate1)
+    void calibrationFTData(bool ft_calib_finish, Eigen::Vector12d contactforce)
     {
         if(ft_calib_finish == false)
         {
@@ -226,8 +227,8 @@ public:
         {
             for(int i=0; i<6; i++)
             {
-                leftFootBias[i] = contact_force(i) - _calibLFTData[i];
-                rightFootBias[i] = contact_force(i+6) - _calibRFTData[i];
+                leftFootBias[i] = - contactforce(i) + _calibLFTData[i];
+                rightFootBias[i] = - contactforce(i+6) + _calibRFTData[i];
             }
         }
     }

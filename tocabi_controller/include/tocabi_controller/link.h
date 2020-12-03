@@ -296,9 +296,10 @@ public:
   Eigen::Vector3d cp_;
   Eigen::Vector3d xpos;
   Eigen::Vector3d sensor_xpos;
+  Eigen::Vector6d contact_force;
   Eigen::Matrix3d rotm;
   double contact_time;
-  bool contact_transition_mode;
+  int contact_transition_mode; //-1 nothing to do, 0 disabling, 1 enabling
   double minimum_press_force;
   double friction_ratio;
   double friction_ratio_z;
@@ -389,6 +390,8 @@ public:
   int contact_part[4];
   int ee_idx[4];
 
+  double contact_transition_time;
+
   double control_time_; // updated by control_base
   double control_time_pre_;
   double d_time_;
@@ -400,6 +403,7 @@ public:
   bool target_arrived_[4];
   bool debug;
   bool lambda_calc = false;
+  bool init_qp = false;
   int Right = 0;
   int Left = 1;
 
@@ -451,6 +455,7 @@ public:
   Eigen::VectorQd torque_grav_cc;
   Eigen::VectorQd torque_grav;
   Eigen::VectorQd torque_contact;
+  Eigen::VectorQd torque_disturbance;
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;

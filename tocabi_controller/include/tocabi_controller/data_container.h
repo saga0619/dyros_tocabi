@@ -69,7 +69,8 @@ public:
   bool dynamics_end;
   int t_que = 0;
 
-  int dob_detect = -2;
+  int dob_detect_left = -2;
+  int dob_detect_right = -2;
 
   std::chrono::steady_clock::time_point start_time_point;
 
@@ -95,6 +96,8 @@ public:
   Eigen::VectorQd q_dot_est_;
   Eigen::VectorQd q_dot_est_1;
   Eigen::VectorQd q_hold_lower_;
+  Eigen::VectorQd torque_elmo_;
+
   //Kinematics Information :
   Link link_[LINK_NUMBER + 1];
 
