@@ -96,6 +96,7 @@ struct Com
   Eigen::Vector3d vel;
   Eigen::Vector3d accel;
   Eigen::Vector3d angular_momentum;
+  Eigen::Vector3d angular_moment;
   Eigen::Vector2d ZMP;
   Eigen::Vector2d CP;
   Eigen::Matrix6Vd Jac;
@@ -340,6 +341,7 @@ public:
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_dot_;
   Eigen::VectorQd q_dot_est;
+  Eigen::VectorQd q_dot_est1;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
@@ -417,6 +419,8 @@ public:
   Eigen::MatrixVVd A_matrix_inverse;
   Eigen::Matrix6Qd Ag_;
   Eigen::MatrixQQd Cor_;
+  Eigen::MatrixQQd M_p;
+  Eigen::VectorQd G_;
 
   Eigen::MatrixVVd Motor_inertia;
   Eigen::MatrixVVd Motor_inertia_inverse;

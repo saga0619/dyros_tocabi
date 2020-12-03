@@ -540,9 +540,11 @@ void WalkingPattern::setCpPosition()
 
     for(int i=0; i<total_step_num+3; i++)
     {
-        capturePoint_offsety(i) = 0.02;
-        capturePoint_offsetx(i) = 0.04;
-    //    capturePoint_offsetx(i) = 0.00;
+        capturePoint_offsety(i) = 0.00;
+
+      //  capturePoint_offsety(i) = 0.02;
+    //    capturePoint_offsetx(i) = 0.04;
+        capturePoint_offsetx(i) = 0.00;
     }
 
     if(com_control == 0)
@@ -935,7 +937,7 @@ void WalkingPattern::setFootTrajectory()
                 RF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2,(RF_fisrt_init).translation()(2),0.0,0.0,(RF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(0);
                 RFD_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2,(RF_fisrt_init).translation()(2),0.0,0.0,(RF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(1) * Hz_;
                 
-                if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(RF_trajectory_float.translation()(2)) - (RF_fisrt_init).translation()(2) > 0.001)
+                if(walking_tick > t_start_real+t_double1+t_rest_temp + 0.015*Hz_)
                 {
                     contactMode = 2;
                 }
@@ -983,7 +985,7 @@ void WalkingPattern::setFootTrajectory()
             {
                 LF_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,(LF_fisrt_init).translation()(2),0.0,0.0,(LF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(0);
                 LFD_trajectory_float.translation()(2) = DyrosMath::QuinticSpline(walking_tick,t_start_real+t_double1+t_rest_temp,t_start_real+t_double1+(t_total-t_rest_init-t_rest_last-t_double1-t_double2-t_imp)/2.0,(LF_fisrt_init).translation()(2),0.0,0.0,(LF_fisrt_init).translation()(2)+foot_height,0.0,0.0)(1)* Hz_;
-                if(walking_tick > t_start_real+t_double1+t_rest_temp && abs(LF_trajectory_float.translation()(2)) - (LF_fisrt_init).translation()(2) > 0.001)
+                if(walking_tick > t_start_real+t_double1+t_rest_temp + 0.015*Hz_)
                 {
                     contactMode = 3;
                 }
@@ -1089,21 +1091,22 @@ void WalkingPattern::supportToFloatPattern()
     }
     else
     {   
-        if(com_control == 0)
-        {
-            PELV_trajectory_float.translation()(0)= com_refx(walking_tick);
-            PELV_trajectory_float.translation()(1)= com_refy(walking_tick);
-        }
-        else
-        {
-            PELV_trajectory_float.translation()(0)= (PELV_float_current).translation()(0) + kp*(com_refx(walking_tick)-COM_float_current.translation()(0));//(PELV_first_init.inverse()*COM_float_current).translation()(0));
-            PELV_trajectory_float.translation()(1)= (PELV_float_current).translation()(1) + kp*(com_refy(walking_tick)-COM_float_current.translation()(1));//(PELV_first_init.inverse()*COM_float_current).translation()(1));
-        }
+            if(com_control == 0)
+            {
+                PELV_trajectory_float.translation()(0)= com_refx(walking_tick);
+                PELV_trajectory_float.translation()(1)= com_refy(walking_tick);
+            }
+            else
+            {
+                PELV_trajectory_float.translation()(0)= (PELV_float_current).translation()(0) + kp*(com_refx(walking_tick)-COM_float_current.translation()(0));//(PELV_first_init.inverse()*COM_float_current).translation()(0));
+                PELV_trajectory_float.translation()(1)= (PELV_float_current).translation()(1) + kp*(com_refy(walking_tick)-COM_float_current.translation()(1));//(PELV_first_init.inverse()*COM_float_current).translation()(1));
+            }
+            PELVD_trajectory_float.translation()(0) = com_refdx(walking_tick);
+            PELVD_trajectory_float.translation()(1) = com_refdy(walking_tick);
+            PELVD_trajectory_float.translation()(2) = 0.0;
+
         PELV_trajectory_float.translation()(2) = PELV_first_init.translation()(2);      
         PELV_trajectory_float.linear() = PELV_first_init.linear();
-        PELVD_trajectory_float.translation()(0) = com_refdx(walking_tick);
-        PELVD_trajectory_float.translation()(1) = com_refdy(walking_tick);
-        PELVD_trajectory_float.translation()(2) = 0.0;
     }
 }
 
