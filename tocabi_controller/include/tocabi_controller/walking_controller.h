@@ -54,7 +54,7 @@ public:
     void calcRobotState(RobotData &Robot);
     void hipCompensator();
     void ankleOriControl(RobotData &Robot);
-    void comVibrationController();
+    void comVibrationController(RobotData &Robot);
     void inverseKinematicsdob(RobotData &Robot);
     void comJacobianState(RobotData &Robot);
     void comJacobianIK(RobotData &Robot);

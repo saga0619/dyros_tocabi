@@ -212,7 +212,7 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
     if (MPC)
         _options.setToMPC();
 
-    //_options.boundTolerance = 1E-6;
+  //  _options.boundTolerance = 1E-6;
     _options.boundRelaxation = 1E-6;
     _options.printLevel = PL_LOW;
     _QPprob.setOptions(_options);
@@ -220,7 +220,6 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
     returnValue m_status;
     if (_bInitialized == false) //init
     {
-        std::cout<<"QP init"<<std::endl;
         if (_bool_constraint_Ax == true && _bool_constraint_x == true)
         {
             m_status = _QPprob.init(H_realt, g_realt, A_realt, lb_realt, ub_realt, lbA_realt, ubA_realt, nWSR);

@@ -1797,6 +1797,7 @@ void RealRobotInterface::ftsensorThread()
                     }
                     i++;
                 }
+
                 ft_init_load = true;
                 ft_init_log.close();
                 pub_to_gui(dc, "ft bias loaded");
@@ -1833,7 +1834,8 @@ void RealRobotInterface::ftsensorThread()
                     ft_calib_finish = true;
                     dc.ftcalib = false;
                 }
-                ft.calibrationFTData(ft_calib_finish);
+
+                ft.calibrationFTData(ft_calib_finish, rd_.contact_force);
             }
         }
         else
