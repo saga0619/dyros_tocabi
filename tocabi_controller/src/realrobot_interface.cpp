@@ -1816,6 +1816,7 @@ void RealRobotInterface::ftsensorThread()
                     }
                     i++;
                 }
+
                 ft_init_load = true;
                 ft_init_log.close();
                 pub_to_gui(dc, "ft bias loaded");

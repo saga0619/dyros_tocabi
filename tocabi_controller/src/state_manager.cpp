@@ -217,7 +217,8 @@ void StateManager::stateThread(void)
                 }
                 //lowpass filter for q_dot
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-                //jointVelocityEstimate();
+                jointVelocityEstimate();
+                jointVelocityEstimate1();
             }
             catch (exception &e)
             {
@@ -666,6 +667,8 @@ void StateManager::storeState()
     dc.tocabi_.LH_FT = Rotm * LH_FT;
 
     dc.tocabi_.com_ = com_;
+    dc.tocabi_.q_dot_est = q_dot_est;
+    dc.tocabi_.q_dot_est1 = q_dot_est1;
 
     dc.atb_dc = false;
 }
@@ -750,9 +753,9 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     //COM link information update ::
     double com_mass;
     RigidBodyDynamics::Math::Vector3d com_pos;
-    RigidBodyDynamics::Math::Vector3d com_vel, com_accel, com_ang_momentum;
+    RigidBodyDynamics::Math::Vector3d com_vel, com_accel, com_ang_momentum, com_ang_moment;
     mtx_rbdl.lock();
-    RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_f, q_dot_virtual_f, &q_ddot_virtual_f, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, NULL, false);
+    RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_f, q_dot_virtual_f, &q_ddot_virtual_f, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, &com_ang_moment, false);
     mtx_rbdl.unlock();
 
     RigidBodyDynamics::ConstraintSet CS;
@@ -820,6 +823,7 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     com_.accel = com_accel;
     com_.angular_momentum = com_ang_momentum;
+    com_.angular_moment = com_ang_moment;
 
     double w_ = sqrt(9.81 / com_.pos(2));
 
@@ -1443,8 +1447,65 @@ void StateManager::jointVelocityEstimate()
 
         q_dot_est = -(q_dot_est + B_dt.bottomRightCorner(MODEL_DOF, MODEL_DOF) * (dc.torque_desired + L1 * (q_ - q_est) - tau_.segment<MODEL_DOF>(6)));
     }
+}
 
-    dc.tocabi_.q_dot_est = q_dot_est;
+void StateManager::jointVelocityEstimate1()
+{
+    //Estimate joint velocity using state observer
+    double dt;
+    dt = 1 / 2000;
+    Eigen::MatrixXd A_t, A_dt, B_t, B_dt, C, I, I_t;
+    I.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
+    I.setIdentity();
+    I_t.setZero(MODEL_DOF, MODEL_DOF);
+    I_t.setIdentity();
+    A_t.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
+    A_dt.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
+    B_t.setZero(MODEL_DOF * 2, MODEL_DOF);
+    B_dt.setZero(MODEL_DOF * 2, MODEL_DOF);
+    C.setZero(MODEL_DOF, MODEL_DOF * 2);
+
+    A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
+    A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
+    A_t.topRightCorner(MODEL_DOF, MODEL_DOF) = I_t;
+    B_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF);
+    C.bottomLeftCorner(MODEL_DOF, MODEL_DOF) = I_t * dt;
+    B_dt = B_t * dt;
+    A_dt = I - dt * A_dt;
+
+    double L, L1;
+    L = 0.003;
+    L1 = 0.003;
+
+    if (velEst == false)
+    {
+        q_est1 = q_;
+        q_dot_est1 = q_dot_;
+        velEst = true;
+    }
+
+    if (velEst = true)
+    {
+        Eigen::VectorQd q_temp;
+        Eigen::VectorVQd q_dot_virtual;
+
+        q_dot_virtual = q_dot_virtual_;
+
+        q_temp = q_est1;
+
+        q_est1 = q_est1 + dt * q_dot_est1 + L * (q_ - q_est1);
+
+        q_dot_virtual.segment<MODEL_DOF>(6) = q_dot_est1;
+
+        q_dot_est1 = (q_temp - q_est1) * 2000;
+
+        RigidBodyDynamics::Math::VectorNd tau_;
+        tau_.resize(model_.qdot_size);
+
+        RigidBodyDynamics::NonlinearEffects(model_, q_virtual_, q_dot_virtual, tau_);
+
+        q_dot_est1 = -(q_dot_est1 + B_dt.bottomRightCorner(MODEL_DOF, MODEL_DOF) * (dc.torque_desired + L1 * (q_ - q_est1) - tau_.segment<MODEL_DOF>(6)));
+    }
 }
 
 void StateManager::SetPositionPDGainMatrix()
@@ -1514,6 +1575,18 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
             std::cout << "Joint Grav position control : off " << std::endl;
         }
         dc.positionGravControl = !dc.positionGravControl;
+    }
+    else if(msg->data == "positiondobcontrol")
+    {
+        if(!dc.positionDobControl)
+        {
+            std::cout << "Joint Dob position control : on " << std::endl;
+        }
+        else
+        {
+            std::cout << "Joint Dob position control : off " << std::endl;
+        }
+        dc.positionDobControl = !dc.positionDobControl;
     }
     else if (msg->data == "torqueoff")
     {

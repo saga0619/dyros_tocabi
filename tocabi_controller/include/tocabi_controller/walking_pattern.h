@@ -82,6 +82,7 @@ public:
     Eigen::Isometry3d RF_float_current;
     Eigen::Isometry3d LF_float_current;
     Eigen::Isometry3d RF_float_init;
+    Eigen::Isometry3d RFx_float_init;
     Eigen::Isometry3d LF_float_init;
     Eigen::Isometry3d RF_support_current;
     Eigen::Isometry3d LF_support_current;
@@ -181,6 +182,10 @@ public:
     Eigen::Matrix3x8d Ag_armR;
     Eigen::Matrix3x8d Ag_armL;
     Eigen::Matrix3x3d Ag_waist;
+    Eigen::Matrix3x12d Agl_leg;
+    Eigen::Matrix3x8d Agl_armR;
+    Eigen::Matrix3x8d Agl_armL;
+    Eigen::Matrix3x3d Agl_waist;
     Eigen::Vector5d qd_prev;  
     
     //vibrationcontrol
@@ -222,12 +227,12 @@ public:
     // Walking
     int walking_tick;
     int contactMode; // 0 : double, 1 : RF SWING, 2 : LF SWING
-    bool phaseChange; // true : double, false : single
-   
-    /////temp
-    bool phaseChange_prev;
+    bool phaseChange = false; // true : double, false : single
+    bool phaseChange1 = false;
     double double2Single;
     double double2Single_pre;
+    double single2Double;
+    double single2Double_pre;
     double current_time;
     double rate;
     int time_temp;
