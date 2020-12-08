@@ -34,6 +34,10 @@ class DataContainer
 {
 public:
   ros::NodeHandle nh;
+
+
+  std::atomic_bool atb_dc = false;
+
   //Basic var
   bool simulation = true;
   bool connected = false;

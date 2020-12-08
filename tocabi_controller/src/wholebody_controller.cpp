@@ -32,6 +32,9 @@ void WholebodyController::init(RobotData &Robot)
     Robot.ee_[2].contact_transition_mode = -1;
     Robot.ee_[3].contact_transition_mode = -1;
 
+    Robot.J_g.setZero(MODEL_DOF, MODEL_DOF+6);
+    Robot.J_g.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
+
     bool verbose = false; //set verbose true for State Manager initialization info
     bool urdfmode;
     ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
@@ -173,8 +176,8 @@ void WholebodyController::set_robot_init(RobotData &Robot)
     Robot.Slc_k.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
     Robot.Slc_k_T = Robot.Slc_k.transpose();
     Robot.W = Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; //2 types for w matrix
-    Robot.svd_W_U.setZero(MODEL_DOF, MODEL_DOF);
-    Robot.W_inv = DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
+
+    Robot.W_inv = DyrosMath::pinv_QR(Robot.W, Robot.qr_V2);
 }
 
 void WholebodyController::set_contact(RobotData &Robot)
@@ -218,9 +221,6 @@ void WholebodyController::set_contact(RobotData &Robot)
     }
     set_robot_init(Robot);
 
-    //DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
-    //std::cout<<"Robot.W"<<Robot.W<<std::endl;
-    //std::cout<<"Robot.W_inv"<<Robot.W_inv<<std::endl;
     Robot.contact_force_predict.setZero();
     Robot.contact_calc = true;
 }
@@ -273,9 +273,6 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
 
     set_robot_init(Robot);
 
-    //DyrosMath::pinv_glsSVD(Robot.W, Robot.svd_W_U);
-    //std::cout<<"Robot.W"<<Robot.W<<std::endl;
-    //std::cout<<"Robot.W_inv"<<Robot.W_inv<<std::endl;
     Robot.contact_force_predict.setZero();
     Robot.contact_calc = true;
 }
@@ -2888,56 +2885,10 @@ VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool
     if (fixed)
         return Robot.G.segment(6, MODEL_DOF);
 
-    Eigen::MatrixXd J_g;
-    J_g.setZero(MODEL_DOF, MODEL_DOF + 6);
-    J_g.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
-
-    Eigen::VectorXd torque_grav(MODEL_DOF);
-    Eigen::MatrixXd aa = J_g * Robot.A_matrix_inverse * Robot.N_C * J_g.transpose();
-    /*
-    double epsilon = 1e-7;
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(aa ,Eigen::ComputeThinU | Eigen::ComputeThinV);
-    double tolerance = epsilon * std::max(aa.cols(), aa.rows()) *svd.singularValues().array().abs()(0);
-    Eigen::MatrixXd ppinv = svd.matrixV() *  (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
-
-    Eigen::MatrixXd ppinv = aa.completeOrthogonalDecomposition().pseudoInverse();
-    torque_grav = (J_g*A_matrix.inverse()*N_C*J_g.transpose()).completeOrthogonalDecomposition().pseudoInverse()*J_g*A_matrix.inverse()*N_C*G;
-    torque_grav.setZero();
-    Eigen::MatrixXd ppinv = DyrosMath::pinv_QR(aa);
-    */
-
-    /*
-    double epsilon = 1e-7;
-    if (redsvd)
-    {
-        RedSVD::RedSVD<Eigen::MatrixXd> svd(aa);
-        double tolerance = epsilon * std::max(aa.cols(), aa.rows()) * svd.singularValues().array().abs()(0);
-        ppinv = svd.matrixV() * (svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0).matrix().asDiagonal() * svd.matrixU().adjoint();
-    }
-    else
-    {
-        ppinv = DyrosMath::pinv(aa);
-    }
-*/
-    Eigen::MatrixXd ppinv;
-    ppinv = DyrosMath::pinv_glsSVD(aa);
-
-    if (Robot.showdata)
-    {
-        std::cout << "//////////////////////////////////////////////" << std::endl;
-        std::cout << "time : " << Robot.control_time_ << std::endl;
-        std::cout << "nc norm : " << Robot.N_C << std::endl;
-        Robot.showdata = false;
-    }
-
-    // std::cout <<"Ddd" << std::endl;
-    Eigen::MatrixXd tg_temp = ppinv * J_g * Robot.A_matrix_inverse * Robot.N_C;
-    torque_grav = tg_temp * Robot.G;
-
-    Robot.torque_grav = torque_grav;
+    Robot.torque_grav = DyrosMath::pinv_QR(Robot.J_g * Robot.A_matrix_inverse * Robot.N_C * Robot.J_g.transpose()) * Robot.J_g * Robot.A_matrix_inverse * Robot.N_C * Robot.G;
 
     Robot.contact_calc = false;
-    return torque_grav;
+    return Robot.torque_grav;
 }
 
 VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_task, VectorXd f_star_)
@@ -3136,6 +3087,7 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
 
 VectorQd WholebodyController::task_control_torque_force_control(RobotData &Robot, MatrixXd J_task, VectorXd desiredForce)
 {
+    std::cout << "This solver deprecated!" << std::endl;
     Robot.task_dof = J_task.rows();
 
     //Task Control Torque;
@@ -3449,6 +3401,7 @@ VectorQd WholebodyController::task_control_torque_with_acc_cr(RobotData &Robot, 
     Robot.J_task_inv_T = Robot.lambda * J_task * Robot.A_matrix_inverse * Robot.N_C;
     Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
     Robot.Q_T_ = Robot.Q.transpose();
+
     Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
     Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
 
@@ -3488,8 +3441,9 @@ VectorQd WholebodyController::task_control_torque_with_gravity(RobotData &Robot,
     Robot.J_task_inv_T = Robot.lambda * J_task * Robot.A_matrix_inverse * Robot.N_C;
     Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
     Robot.Q_T_ = Robot.Q.transpose();
+
     Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
-    Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
+    Robot.Q_temp_inv = DyrosMath::pinv_QR(Robot.Q_temp);
 
     //_F=lambda*(f_star);
     //Jtemp=J_task_inv_T*Slc_k_T;
@@ -3892,16 +3846,12 @@ Vector3d WholebodyController::getfstar_acc_rot(RobotData &Robot, int link_id)
 
 VectorQd WholebodyController::contact_force_custom(RobotData &Robot, VectorQd command_torque, Eigen::VectorXd contact_force_now, Eigen::VectorXd contact_force_desired)
 {
-    //JacobiSVD<MatrixXd> svd(Robot.W, ComputeThinU | ComputeThinV);
-    //Robot.svd_U = svd.matrixU();
-    //Robot.svd_U = Robot.svd_W_U; //
 
     MatrixXd V2;
 
     int singular_dof = 6;
     int contact_dof = Robot.J_C.rows();
-    V2.setZero(MODEL_DOF, contact_dof - singular_dof);
-    V2 = Robot.svd_W_U.block(0, MODEL_DOF - contact_dof + singular_dof, MODEL_DOF, contact_dof - singular_dof);
+    V2 = Robot.qr_V2.transpose();
 
     MatrixXd Scf_;
     Scf_.setZero(contact_dof - singular_dof, contact_dof);
@@ -3964,8 +3914,6 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
 
     int contact_dof_ = Robot.J_C.rows();
 
-    VectorQd torque_contact_;
-
     ForceRedistribution.setZero();
 
     if (contact_dof_ == 12)
@@ -3980,12 +3928,8 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
 
         Matrix3d Rotyaw = DyrosMath::rotateWithZ(-Robot.yaw);
 
-        Vector3d P1_local, P2_local;
-        P1_local = Rotyaw * P1_;
-        P2_local = Rotyaw * P2_;
-
-        MatrixXd force_rot_yaw;
-        force_rot_yaw.setZero(12, 12);
+        Eigen::Matrix<double, 12,12> force_rot_yaw;
+        force_rot_yaw.setZero();
         for (int i = 0; i < 4; i++)
         {
             force_rot_yaw.block(i * 3, i * 3, 3, 3) = Rotyaw;
@@ -3997,18 +3941,13 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
         Vector12d ResultRedistribution_;
         ResultRedistribution_.setZero();
 
-        torque_contact_.setZero();
+        Vector12d F12 = force_rot_yaw * ContactForce_;
 
         double eta_cust = 0.99;
         double foot_length = 0.26;
         double foot_width = 0.1;
 
-        Vector12d ContactForce_Local_yaw;
-        ContactForce_Local_yaw = force_rot_yaw * ContactForce_; //Robot frame based contact force
-
-        //ZMP_pos = GetZMPpos(P1_local, P2_local, ContactForce_Local_yaw);
-
-        ForceRedistributionTwoContactMod2(0.99, foot_length, foot_width, 1.0, 0.9, 0.9, P1_local, P2_local, ContactForce_Local_yaw, ResultantForce_, ResultRedistribution_, eta);
+        ForceRedistributionTwoContactMod2(0.99, foot_length, foot_width, 1.0, 0.9, 0.9, Rotyaw * P1_, Rotyaw * P2_, F12, ResultantForce_, ResultRedistribution_, eta);
 
         //std::cout << "fres - calc" << std::endl
         //          << ResultantForce_ << std::endl;
@@ -4018,57 +3957,35 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
 
         //JacobiSVD<MatrixXd> svd(Robot.W, ComputeThinU | ComputeThinV);
 
-        //Robot.svd_W_U = svd.matrixU();
-
-        MatrixXd V2;
-
         int singular_dof = 6;
         int contact_dof = Robot.J_C.rows();
-
-        V2.setZero(MODEL_DOF, singular_dof);
-        V2 = Robot.svd_W_U.block(0, MODEL_DOF - contact_dof + 6, MODEL_DOF, contact_dof - 6);
 
         Vector12d desired_force;
 
         desired_force.setZero();
-        MatrixXd Scf_;
+        Eigen::Matrix<double,6,12> Scf_;
 
         bool right_master = false;
 
-        if (right_master)
+        Scf_.setZero();
+        Scf_.block(0, 6, 6, 6).setIdentity();
+
+        for (int i = 0; i < 6; i++)
         {
-            Scf_.setZero(6, 12);
-            Scf_.block(0, 0, 6, 6).setIdentity();
-
-            for (int i = 0; i < 6; i++)
-            {
-                desired_force(i) = -ContactForce_(i) + ForceRedistribution(i);
-            }
+            desired_force(i + 6) = -ContactForce_(i + 6) + ForceRedistribution(i + 6);
         }
-        else
-        {
+        /*
+        Eigen::Matrix<float,6,6> temp;
+        temp = Scf_ * Robot.J_C_INV_T * Robot.Slc_k_T * Robot.qr_V2.transpose();
+        temp.inverse();*/
 
-            Scf_.setZero(6, 12);
-            Scf_.block(0, 6, 6, 6).setIdentity();
 
-            for (int i = 0; i < 6; i++)
-            {
-                desired_force(i + 6) = -ContactForce_(i + 6) + ForceRedistribution(i + 6);
-            }
-        }
-        MatrixXd temp = Scf_ * Robot.J_C_INV_T * Robot.Slc_k_T * V2;
-        MatrixXd temp_inv = temp.inverse(); //DyrosMath::pinv_SVD(temp);
-        MatrixXd Vc_ = V2 * temp_inv;
-
-        Vector6d reduced_desired_force = Scf_ * desired_force;
-        torque_contact_ = Vc_ * reduced_desired_force;
+        return Robot.qr_V2.transpose() * ( Scf_ * Robot.J_C_INV_T * Robot.Slc_k_T * Robot.qr_V2.transpose()).inverse() * Scf_ * desired_force;
     }
     else
     {
-        torque_contact_.setZero();
+        return Eigen::VectorXd::Zero(12);
     }
-
-    return torque_contact_;
 }
 
 VectorQd WholebodyController::contact_force_redistribution_torque_walking(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta, double ratio, int supportFoot)
@@ -4131,15 +4048,8 @@ VectorQd WholebodyController::contact_force_redistribution_torque_walking(RobotD
 
         //JacobiSVD<MatrixXd> svd(Robot.W, ComputeThinU | ComputeThinV);
 
-        //Robot.svd_W_U = svd.matrixU();
-
-        MatrixXd V2;
-
         int singular_dof = 6;
         int contact_dof = Robot.J_C.rows();
-
-        V2.setZero(MODEL_DOF, singular_dof);
-        V2 = Robot.svd_W_U.block(0, MODEL_DOF - contact_dof + 6, MODEL_DOF, contact_dof - 6);
 
         Vector12d desired_force;
 
@@ -4178,9 +4088,9 @@ VectorQd WholebodyController::contact_force_redistribution_torque_walking(RobotD
                 desired_force(i + 6) = -ContactForce_(i + 6) + ForceRedistribution(i + 6) * ratio;
             }
         }
-        MatrixXd temp = Scf_ * Robot.J_C_INV_T * Robot.Slc_k_T * V2;
+        MatrixXd temp = Scf_ * Robot.J_C_INV_T * Robot.Slc_k_T * Robot.qr_V2.transpose();
         MatrixXd temp_inv = temp.inverse(); //DyrosMath::pinv_SVD(temp);
-        MatrixXd Vc_ = V2 * temp_inv;
+        MatrixXd Vc_ = Robot.qr_V2.transpose() * temp_inv;
 
         Vector6d reduced_desired_force = Scf_ * desired_force;
         torque_contact_ = Vc_ * reduced_desired_force;

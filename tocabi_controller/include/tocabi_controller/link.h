@@ -296,7 +296,9 @@ public:
   Eigen::Vector3d xpos;
   Eigen::Vector3d sensor_xpos;
   Eigen::Vector6d contact_force;
+  Eigen::Vector6d contact_force_ft;
   Eigen::Matrix3d rotm;
+  double contact_accuracy;
   double contact_time;
   int contact_transition_mode; //-1 nothing to do, 0 disabling, 1 enabling
   double minimum_press_force;
@@ -354,6 +356,7 @@ public:
   Eigen::VectorXd ContactForce_qp;
   Eigen::Vector12d ContactForce_FT;
   Eigen::Vector12d ContactForce_FT_raw;
+  Eigen::Vector12d CF_temp;
   Eigen::Vector6d LH_FT, RH_FT;
   Eigen::Vector3d ZMP;
   Eigen::Vector3d ZMP_local;
@@ -429,6 +432,7 @@ public:
 
   Eigen::MatrixXd J_C, J_C_INV_T;
   Eigen::MatrixXd J_COM;
+  Eigen::MatrixXd J_g;
 
   Eigen::MatrixXd J_task;
   Eigen::VectorXd f_star;
@@ -455,7 +459,7 @@ public:
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;
-  Eigen::MatrixXd svd_W_U;
+  Eigen::MatrixXd qr_V2;
 
   int task_dof;
 

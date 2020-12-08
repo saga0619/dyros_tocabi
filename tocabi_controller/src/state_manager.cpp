@@ -302,9 +302,6 @@ void StateManager::testThread()
         updateKinematics(model_, link_local, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
         t[2] = std::chrono::high_resolution_clock::now();
 
-        //stateEstimate();
-        //updateKinematics(q_virtual_, q_dot_virtual_, q_ddot_virtual_);
-
         storeSync();
 
         storeState();
@@ -617,8 +614,11 @@ void StateManager::initialize()
 
 void StateManager::storeState()
 {
-
-    mtx_dc.lock();
+    while (dc.atb_dc)
+    {
+        std::this_thread::sleep_for(std::chrono::microseconds(5));
+    }
+    dc.atb_dc = true;
 
     for (int i = 0; i < LINK_NUMBER + 1; i++)
     {
@@ -667,7 +667,7 @@ void StateManager::storeState()
 
     dc.tocabi_.com_ = com_;
 
-    mtx_dc.unlock();
+    dc.atb_dc = false;
 }
 void StateManager::storeSync()
 {
@@ -898,6 +898,7 @@ void StateManager::handleFT()
     Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
 
     RF_CF_FT = rotrf * adt * RF_FT + adt2 * Wrench_foot_plate;
+    dc.tocabi_.ee_[1].contact_force_ft = RF_CF_FT;
 
     RF_CF_FT_local = rotrf.inverse() * RF_CF_FT;
 
@@ -918,6 +919,7 @@ void StateManager::handleFT()
     Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
 
     LF_CF_FT = rotrf * adt * LF_FT + adt2 * Wrench_foot_plate;
+    dc.tocabi_.ee_[0].contact_force_ft = LF_CF_FT;
 
     LF_CF_FT_local = rotrf.inverse() * LF_CF_FT;
 }
@@ -1194,8 +1196,8 @@ void StateManager::stateEstimate()
         double dr, dl;
         //dr =
 
-        dr = DyrosMath::minmax_cut(RF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1);
-        dl = DyrosMath::minmax_cut(LF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1);
+        dr = DyrosMath::minmax_cut(RF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1) * dc.tocabi_.ee_[1].contact_accuracy;
+        dl = DyrosMath::minmax_cut(LF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1) * dc.tocabi_.ee_[0].contact_accuracy;
 
         if (dr == 1)
         {
