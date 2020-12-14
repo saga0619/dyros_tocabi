@@ -79,6 +79,8 @@ public:
 
   void sendStateToGui();
 
+  void motorInertia();
+
   //Set Position Joint PD Gain
   void SetPositionPDGainMatrix();
 

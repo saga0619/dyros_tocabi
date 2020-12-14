@@ -209,7 +209,6 @@ void RealRobotInterface::updateState()
 
             q_ddot_virtual_local_.setZero();
             q_ddot_virtual_local_.segment(0, 3) = imu_lin_acc;
-            std::cout << "2nd try success " << std::endl;
         }
         else
         {
