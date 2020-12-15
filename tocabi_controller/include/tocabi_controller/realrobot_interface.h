@@ -478,6 +478,8 @@ public:
     double torqueCC_recvt;
     double torqueCC_comt;
 
+    double control_time_real_;
+
     bool hommingElmo[ELMO_DOF];
     bool hommingElmo_before[ELMO_DOF];
 

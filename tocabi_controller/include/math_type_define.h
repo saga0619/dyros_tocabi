@@ -543,7 +543,6 @@ namespace DyrosMath
 
       //std::cout << "GSL RANK :" << rank << std::endl;
 
-      std::chrono::high_resolution_clock::time_point qr_tp0 = std::chrono::high_resolution_clock::now();
       //rank = gsl_linalg_QRPT_rank(A)
       Eigen::MatrixXd R(rank, rank);
       Eigen::MatrixXd Rt(rank, rank);
@@ -562,14 +561,12 @@ namespace DyrosMath
       Rpsinv2.setZero();
       Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
 
-      std::chrono::high_resolution_clock::time_point qr_tp1 = std::chrono::high_resolution_clock::now();
       Eigen::MatrixXd Q(size_row, size_row);
       Q.setIdentity();
 
       Eigen::VectorXd V(size_row);
       Eigen::MatrixXd Qi(size_row, size_row);
       //Q = Eigen::MatrixXd::Identity(size_col,size_col) - tau->data[size_col-1]*
-      std::chrono::high_resolution_clock::time_point qr_tp2 = std::chrono::high_resolution_clock::now();
       for (int i = 0; i < tau_size; i++)
       {
         V.setZero();
@@ -582,7 +579,6 @@ namespace DyrosMath
         Qi = (Eigen::MatrixXd::Identity(size_row, size_row) - tau->data[i] * V * V.transpose());
         Q = Qi * Q;
       }
-      std::chrono::high_resolution_clock::time_point qr_tp3 = std::chrono::high_resolution_clock::now();
       Eigen::MatrixXd P(size_col, size_col);
       P.setZero();
 
@@ -611,20 +607,6 @@ namespace DyrosMath
       gsl_vector_free(tau);
       gsl_permutation_free(p);
       delete signum;
-
-      std::chrono::high_resolution_clock::time_point qr_tp4 = std::chrono::high_resolution_clock::now();
-
-      std::chrono::duration<double> td1 = qr_tp1 - qr_tp0;
-
-      std::cout << "td1 : " << td1.count() * 1000 << std::endl;
-
-      td1 = qr_tp2 - qr_tp1;
-      std::cout << "td2 : " << td1.count() * 1000 << std::endl;
-      td1 = qr_tp3 - qr_tp2;
-      std::cout << "td3 : " << td1.count() * 1000 << std::endl;
-      td1 = qr_tp4 - qr_tp3;
-      std::cout << "td4 : " << td1.count() * 1000 << std::endl;
-
       return P * Rpsinv2 * Q;
 
       /*
@@ -709,8 +691,6 @@ namespace DyrosMath
     }
     else
     {
-
-      //std::chrono::high_resolution_clock::time_point qr_tp0 = std::chrono::high_resolution_clock::now();
       gsl_matrix_view matv = gsl_matrix_view_array(Amat.data(), size_row, size_col);
       gsl_matrix *A = &matv.matrix;
       gsl_vector *norm = gsl_vector_alloc(size_row);
@@ -763,119 +743,12 @@ namespace DyrosMath
         P(p->data[i], i) = 1;
       }
 
-      /*
-
-      std::cout << "QR from GSL" << std::endl;
-      std::cout << "pertubation" << std::endl
-                << P << std::endl;
-      std::cout << "Rinv" << std::endl
-                << Rpsinv2 << std::endl;
-      std::cout << "Q" << std::endl
-                << Q << std::endl;
-
-      Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(Amat);
-      rank = qr.rank();
-
-      R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
-
-      Rpsinv2.setZero();
-      Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
-
-      P = qr.colsPermutation();
-      Q = qr.householderQ();
-      std::cout << "QR from EIGEN" << std::endl;
-      std::cout << "pertubation" << std::endl
-                << P << std::endl;
-      std::cout << "Rinv" << std::endl
-                << Rpsinv2 << std::endl;
-      std::cout << "Q" << std::endl
-                << Q << std::endl;
-*/
-      /*
-      std::chrono::high_resolution_clock::time_point qr_tp0 = std::chrono::high_resolution_clock::now();
-      //rank = gsl_linalg_QRPT_rank(A)
-      Eigen::MatrixXd R(rank, rank);
-      Eigen::MatrixXd Rt(rank, rank);
-      Rt.setZero();
-      R.setZero();
-      for (int i = 0; i < rank; i++)
-      {
-        for (int j = 0; j < rank; j++)
-        {
-          Rt(i, j) = A->data[i * A->tda + j];
-        }
-      }
-      R = Rt.topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
-
-      Eigen::MatrixXd Rpsinv2(size_col, size_row);
-      Rpsinv2.setZero();
-      Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
-
-      std::chrono::high_resolution_clock::time_point qr_tp1 = std::chrono::high_resolution_clock::now();
-      Eigen::MatrixXd Q(size_row, size_row);
-      Q.setIdentity();
-
-      Eigen::VectorXd V(size_row);
-      Eigen::MatrixXd Qi(size_row, size_row);
-      //Q = Eigen::MatrixXd::Identity(size_col,size_col) - tau->data[size_col-1]*
-      std::chrono::high_resolution_clock::time_point qr_tp2 = std::chrono::high_resolution_clock::now();
-      for (int i = 0; i < tau_size; i++)
-      {
-        V.setZero();
-        V(i) = 1.0;
-
-        for (int j = i + 1; j < size_row; j++)
-        {
-          V(j) = A->data[j * A->tda + i];
-        }
-        Qi = (Eigen::MatrixXd::Identity(size_row, size_row) - tau->data[i] * V * V.transpose());
-        Q = Qi * Q;
-      }
-      std::chrono::high_resolution_clock::time_point qr_tp3 = std::chrono::high_resolution_clock::now();
-      Eigen::MatrixXd P(size_col, size_col);
-      P.setZero();
-
-      for (int i = 0; i < size_col; i++)
-      {
-        P(p->data[i], i) = 1;
-      }
-
-      //std::cout << "QR from GSL" << std::endl;
-      //std::cout << "Permutation:" << std::endl
-      //          << P << std::endl;
-      //std::cout << "Rpsinv" << std::endl
-      //          << Rpsinv2 << std::endl;
-      //std::cout << "Q" << std::endl
-      //          << Q << std::endl;
-      ///
-      //std::cout << "result: " << std::endl;
-      //std::cout << P * Rpsinv2 * Q - P2 * Rpsinv * Q2.transpose() << std::endl;
-      //std::cout << "Rinv" << std::endl
-      //          << Rpsinv2 << std::endl;
-      //std::cout << "Q" << std::endl
-      //          << Q.transpose() << std::endl;
-*/
       gsl_matrix_free(Q_);
       gsl_matrix_free(R_);
       gsl_vector_free(norm);
       gsl_vector_free(tau);
       gsl_permutation_free(p);
       delete signum;
-
-      //std::chrono::high_resolution_clock::time_point qr_tp1 = std::chrono::high_resolution_clock::now();
-
-      //std::chrono::duration<double> td1 = qr_tp1 - qr_tp0;
-
-      //std::cout << "td1 : " << td1.count() * 1000 << std::endl;
-
-      /*
-      td1 = qr_tp2 - qr_tp1;
-      std::cout << "td2 : " << td1.count() * 1000 << std::endl;
-      td1 = qr_tp3 - qr_tp2;
-      std::cout << "td3 : " << td1.count() * 1000 << std::endl;
-      td1 = qr_tp4 - qr_tp3;
-      std::cout << "td4 : " << td1.count() * 1000 << std::endl;*/
-
       return P * Rpsinv2 * Q.transpose();
     }
   }

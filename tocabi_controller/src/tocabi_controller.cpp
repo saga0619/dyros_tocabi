@@ -600,11 +600,11 @@ void TocabiController::dynamicsThreadLow()
         r.sleep();
     }
 
-    std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
     std::chrono::seconds sec1(1);
 
     bool display = false;
-    std::chrono::high_resolution_clock::time_point start_time2 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point start_time2 = std::chrono::steady_clock::now();
 
     int contact_number = 2;
     int link_id[contact_number];
@@ -779,12 +779,12 @@ void TocabiController::dynamicsThreadLow()
     while ((!shutdown_tocabi_bool))
     {
         static double est;
-        std::chrono::high_resolution_clock::time_point dyn_loop_start = std::chrono::high_resolution_clock::now();
+        std::chrono::steady_clock::time_point dyn_loop_start = std::chrono::steady_clock::now();
 
         dynthread_cnt++;
 
         loop_pass = true;
-        while (loop_pass)
+        while (loop_pass && (!shutdown_tocabi_bool))
         {
             getState();
         }
@@ -798,7 +798,7 @@ void TocabiController::dynamicsThreadLow()
         }
         if ((dyn_loop_start - start_time2) > sec1)
         {
-            start_time2 = std::chrono::high_resolution_clock::now();
+            start_time2 = std::chrono::steady_clock::now();
             if (dc.checkfreqency)
             {
                 ss.str("");
@@ -2165,7 +2165,7 @@ void TocabiController::dynamicsThreadLow()
             break;
         first = false;
 
-        std::chrono::duration<double> elapsed_time = std::chrono::high_resolution_clock::now() - dyn_loop_start;
+        std::chrono::duration<double> elapsed_time = std::chrono::steady_clock::now() - dyn_loop_start;
 
         est += elapsed_time.count();
 
@@ -2471,7 +2471,7 @@ void TocabiController::tuiThread()
 
 void TocabiController::getState()
 {
-    while (dc.atb_dc)
+    while (dc.atb_dc && (!shutdown_tocabi_bool))
     {
         std::this_thread::sleep_for(std::chrono::microseconds(5));
     }
@@ -2555,7 +2555,7 @@ void TocabiController::trajectoryplannar()
 {
     //wait for
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
     std::chrono::duration<double> time_from_begin, time_interval;
     std::chrono::microseconds cycletime(1000);
     int cycle_count = 0;
@@ -2564,7 +2564,7 @@ void TocabiController::trajectoryplannar()
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
-        std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
+        std::chrono::steady_clock::time_point t_begin1 = std::chrono::steady_clock::now();
         time_from_begin = (t_begin1 - t_begin);
 
         if (tocabi_.task_control_switch)

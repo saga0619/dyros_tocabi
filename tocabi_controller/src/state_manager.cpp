@@ -286,20 +286,6 @@ void StateManager::stateThread(void)
                 std::cout<<cred<<"WARNING state calculation time exceeded! 2000 hz is not reachable"<<creset<<std::endl;
             }
 
-            /*
-            if ((cycle_count % 2000) == 0)
-            {
-                std::cout << control_time_ << std::endl;
-
-                for (int i = 0; i < 9; i++)
-                {
-                    std::cout << i << "  : " << tdu[i] * 500 << "\t";
-                    tdu[i] = 0.0;
-                }
-
-                std::cout << std::endl;
-            }*/
-
             if (dc.tocabi_.signal_yaw_init)
             {
                 dc.tocabi_.signal_yaw_init = false;
@@ -759,16 +745,11 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
    * model dof + 6 ( last component of q_virtual) : w of Quaternion
    * */
 
-    //std::cout << control_time_ << " : q_v(0) : " << q_virtual(0) << " : q_v(1) : " << q_virtual(1) << " : q_v(2) : " << q_virtual(2) << std::endl;
-
     A_temp_.setZero();
     mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual_f, &q_dot_virtual_f, &q_ddot_virtual_f);
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_l, q_virtual_f, A_temp_, false);
-    //Eigen::VectorXd tau_coriolis;
-    //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
     mtx_rbdl.unlock();
-    //tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
 
     A_ = A_temp_;
     A_inv = A_.inverse();
@@ -798,14 +779,9 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_f, q_dot_virtual_f, &q_ddot_virtual_f, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, &com_ang_moment, false);
     mtx_rbdl.unlock();
 
-    //CS.AddContactConstraint(link_[Right_Foot].id,)
-
-    //ROS_INFO_ONCE("TOTAL MASS : %f", com_mass);
     com_.mass = com_mass;
     com_.pos = com_pos;
 
-    //ROS_INFO_ONCE("COM POS : %f %f %f", com_pos(0), com_pos(1), com_pos(2));
-    //RigidBodyDynamics::Utils::
     /*
     if (com_pos(1) < link_[Right_Foot].xpos(1))
     {
@@ -823,38 +799,7 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     {
         std::cout << control_time_ << "COM_Y OUT WARNING !!!!!!!!!!!!!!!!" << std::endl;
     } */
-    /*
-    Eigen::Vector3d foot_ahead_pos(0.15, 0, 0);
-    Eigen::Vector3d foot_back_pos(-0.09, 0, 0);
-    Eigen::Vector3d RH, RT, LH, LT;
 
-    RH = link_p[Right_Foot].xpos + link_p[Right_Foot].Rotm * foot_ahead_pos;
-    RT = link_p[Right_Foot].xpos + link_p[Right_Foot].Rotm * foot_back_pos;
-
-    LH = link_p[Left_Foot].xpos + link_p[Left_Foot].Rotm * foot_ahead_pos;
-    LT = link_p[Left_Foot].xpos + link_p[Left_Foot].Rotm * foot_back_pos;
-
-    double s[4];
-
-    s[0] = DyrosMath::check_border(com_.pos(0), com_.pos(1), RH(0), RT(0), RH(1), RT(1), -1.0);
-    s[1] = DyrosMath::check_border(com_.pos(0), com_.pos(1), RT(0), LT(0), RT(1), LT(1), -1.0);
-    s[2] = DyrosMath::check_border(com_.pos(0), com_.pos(1), LT(0), LH(0), LT(1), LH(1), -1.0);
-    s[3] = DyrosMath::check_border(com_.pos(0), com_.pos(1), LH(0), RH(0), LH(1), RH(1), -1.0);
-    //std::cout << " com pos : x " << com_.pos(0) << "\t" << com_.pos(1) << std::endl;
-    //std::cout << "check sign ! \t" << s[0] << "\t" << s[1] << "\t" << s[2] << "\t" << s[3] << std::endl;
-
-    for (int i = 0; i < 4; i++)
-    {
-        if (s[i] < 0)
-        {
-            if (dc.spalarm)
-                std::cout << control_time_ << "com is out of support polygon !, line " << i << std::endl;
-        }
-    } */
-
-    /*
-    s[1] = DyrosMath::check_border(com_.pos(0), com_.pos(1), RT(0), LT(0), RT(1), LT(1), 1.0);
-    std::cout << " s[1] : " << s[1] << std::endl; */
     Eigen::Vector3d vel_temp;
     vel_temp = com_.vel;
     com_.vel = com_vel;
@@ -1288,10 +1233,8 @@ void StateManager::stateEstimate()
             // std::cout << "SSSIBAL " << rf_s_ratio << " \t " << lf_s_ratio << std::endl;
         }
 
-        //std::cout << " dr : " << dr << "  dl : " << dl << "  rf_s_ratio : " << rf_s_ratio << "  lf_s_ratio : " << lf_s_ratio << std::endl;
         if (contact_right && contact_left)
         {
-            //std::cout << control_time_ << " : base pos calc ! " << std::endl;
             mod_base_pos = rf_cp_m * rf_s_ratio + lf_cp_m * lf_s_ratio;
             //mod_base_pos(2) = mod_base_pos(2) + ((link_[Right_Foot].xpos(2) + link_[Right_Foot].contact_point(2)) * rf_s_ratio/ (rf_s_ratio + lf_s_ratio) + (link_[Left_Foot].xpos(2) + link_[Left_Foot].contact_point(2)) * lf_s_ratio / (rf_s_ratio + lf_s_ratio));
             mod_base_vel = -RF_fixed_contact_vel.segment(3, 3) * rf_s_ratio - LF_fixed_contact_vel.segment(3, 3) * lf_s_ratio;
