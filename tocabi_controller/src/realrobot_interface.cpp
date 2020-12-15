@@ -897,13 +897,6 @@ void RealRobotInterface::ethercatThread()
                             //Ethercat Loop begins :: RT Thread
                             tp[0] = std::chrono::steady_clock::now();
 
-                            //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
-                            /*
-                        while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime))
-                        {
-                            std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-                        }*/
-
                             std::this_thread::sleep_until(st_start_time + cycle_count * cycletime);
 
                             tp[1] = std::chrono::steady_clock::now();

@@ -162,20 +162,30 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     control_time_ = mujoco_sim_time;
     sim_time_ = mujoco_sim_time;
 
-    for (int i = 0; i < MODEL_DOF; i++)
+    static bool first = true;
+
+    if (first)
     {
-        for (int j = 0; j < msg->name.size(); j++)
+        for (int i = 0; i < MODEL_DOF; i++)
         {
-            if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
+            for (int j = 0; j < msg->name.size(); j++)
             {
-                q_(i) = msg->position[j];
-                q_virtual_local_(i + 6) = msg->position[j];
-                q_dot_virtual_local_(i + 6) = msg->velocity[j];
-                q_ddot_virtual_local_(i + 6) = msg->effort[j];
-                torque_(i) = msg->effort[j];
+                if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
+                {
+                    jointmap[i] = j;
+                }
             }
         }
+        first = false;
+    }
 
+    for (int i = 0; i < MODEL_DOF; i++)
+    {
+        q_(i) = msg->position[jointmap[i]];
+        q_virtual_local_(i + 6) = msg->position[jointmap[i]];
+        q_dot_virtual_local_(i + 6) = msg->velocity[jointmap[i]];
+        q_ddot_virtual_local_(i + 6) = msg->effort[jointmap[i]];
+        torque_(i) = msg->effort[jointmap[i]];
         joint_name_mj[i] = msg->name[i + 6].data();
     }
 
@@ -186,7 +196,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     Real_Vel(0) = msg->velocity[0];
     Real_Vel(1) = msg->velocity[1];
     Real_Vel(2) = msg->velocity[2];
-    
+
     //virtual joint
     if (dc.semode)
     {
@@ -205,8 +215,8 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             q_ddot_virtual_local_(i) = 0.0;
         }
 
-               //TEMP
-   /*     q_virtual_(3) = 0.0;
+        //TEMP
+        /*     q_virtual_(3) = 0.0;
         q_virtual_(4) = 0.0;
         q_virtual_(5) = 0.0;
         q_virtual_(MODEL_DOF + 6) = 1.0;*/

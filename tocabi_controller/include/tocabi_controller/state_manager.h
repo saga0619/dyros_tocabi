@@ -88,6 +88,9 @@ public:
 
   double control_time_;
   double control_time_before_;
+
+  double control_time_c_stamp;
+  
   double sim_time_;
 
   int data_received_counter_;

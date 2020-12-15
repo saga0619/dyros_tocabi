@@ -273,6 +273,20 @@ void StateManager::stateThread(void)
                 }
             }
 
+            if ((cycle_count % 2000) == 0)
+            {
+
+                if ((control_time_ - control_time_c_stamp) == 1)
+                {
+                }
+                else
+                {
+                    std::cout << "State Thread is not 2000hz" << std::endl;
+                }
+
+                control_time_c_stamp = control_time_;
+            }
+
             tp[9] = std::chrono::steady_clock::now();
 
             for (int i = 0; i < 9; i++)
@@ -283,7 +297,7 @@ void StateManager::stateThread(void)
 
             if ((tp[9] - tp[0]) > std::chrono::microseconds(dc.ctime))
             {
-                std::cout<<cred<<"WARNING state calculation time exceeded! 2000 hz is not reachable"<<creset<<std::endl;
+                std::cout << cred << "WARNING state calculation time exceeded! 2000 hz is not reachable" << creset << std::endl;
             }
 
             if (dc.tocabi_.signal_yaw_init)
