@@ -146,72 +146,43 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
 {
     //translate eigen to real_t formulation
     real_t H_realt[_num_var * _num_var]; // H in min eq 1/2x'Hx + x'g
-    for (int i = 0; i < _num_var; i++)
-    {
-        for (int j = 0; j < _num_var; j++)
-        {
-            H_realt[_num_var * j + i] = _H(j, i);
-        }
-    }
-
+    Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(H_realt, _num_var, _num_var) = _H;
     real_t g_realt[_num_var]; // g in min eq 1/2x'Hx + x'g
-    for (int i = 0; i < _num_var; i++)
-    {
-        g_realt[i] = _g(i);
-    }
-
+    Eigen::VectorXd::Map(g_realt, _num_var) = _g;
     real_t A_realt[_num_cons * _num_var]; // A in s.t. eq lbA<= Ax <=ubA
     if (_bool_constraint_Ax == true)
     {
-        for (int i = 0; i < _num_var; i++)
-        {
-            for (int j = 0; j < _num_cons; j++)
-            {
-                A_realt[_num_var * j + i] = _A(j, i);
-            }
-        }
+        Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(A_realt, _num_cons, _num_var) = _A;
     }
 
     real_t lbA_realt[_num_cons]; // lbA in s.t. eq lbA<= Ax <=ubA
     if (_bool_constraint_Ax == true)
     {
-        for (int i = 0; i < _num_cons; i++)
-        {
-            lbA_realt[i] = _lbA(i);
-        }
+        Eigen::VectorXd::Map(lbA_realt, _num_cons) = _lbA;
     }
 
     real_t ubA_realt[_num_cons]; // ubA in s.t. eq lbA<= Ax <=ubA
     if (_bool_constraint_Ax == true)
     {
-        for (int i = 0; i < _num_cons; i++)
-        {
-            ubA_realt[i] = _ubA(i);
-        }
+        Eigen::VectorXd::Map(ubA_realt, _num_cons) = _ubA;
     }
     real_t lb_realt[_num_var]; //lb in s.t. eq lb <= x <= ub
     if (_bool_constraint_x == true)
     {
-        for (int i = 0; i < _num_var; i++)
-        {
-            lb_realt[i] = _lb(i);
-        }
+        Eigen::VectorXd::Map(lb_realt, _num_var) = _lb;
     }
 
     real_t ub_realt[_num_var]; //ub in s.t. eq lb <= x <= ub
     if (_bool_constraint_x == true)
     {
-        for (int i = 0; i < _num_var; i++)
-        {
-            ub_realt[i] = _ub(i);
-        }
+        Eigen::VectorXd::Map(ub_realt, _num_var) = _ub;
     }
     int_t nWSR = num_max_iter;
 
     //_options.printLevel = PL_NONE;
     if (MPC)
         _options.setToMPC();
-  
+
     //_options.boundTolerance = 1E-6;
     _options.boundRelaxation = 1E-4;
     _options.printLevel = PL_LOW;
@@ -220,7 +191,7 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
     returnValue m_status;
     if (_bInitialized == false) //init
     {
-        std::cout<<"QP init"<<std::endl;
+        std::cout << "QP init" << std::endl;
         if (_bool_constraint_Ax == true && _bool_constraint_x == true)
         {
             m_status = _QPprob.init(H_realt, g_realt, A_realt, lb_realt, ub_realt, lbA_realt, ubA_realt, nWSR);

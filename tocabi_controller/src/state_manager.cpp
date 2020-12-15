@@ -359,7 +359,7 @@ void StateManager::adv2ROS(void)
     {
         joint_state_msg.position[i] = q_virtual_local_[i + 6];
         joint_state_msg.velocity[i] = q_dot_virtual_local_[i + 6];
-        joint_state_msg.effort[i] = dc.q_dot_virtual_lpf[i + 6];
+        joint_state_msg.effort[i] = dc.torque_desired[i];
         acc_dif_info_msg.motorinfo1[i] = dc.q_dot_virtual_lpf[i + 6];
         acc_dif_info_msg.motorinfo2[i] = q_dot_est[i];
     }
@@ -615,7 +615,7 @@ void StateManager::initialize()
 
 void StateManager::storeState()
 {
-    while (dc.atb_dc)
+    while (dc.atb_dc && (!shutdown_tocabi_bool))
     {
         std::this_thread::sleep_for(std::chrono::microseconds(5));
     }
@@ -1576,9 +1576,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         }
         dc.positionGravControl = !dc.positionGravControl;
     }
-    else if(msg->data == "positiondobcontrol")
+    else if (msg->data == "positiondobcontrol")
     {
-        if(!dc.positionDobControl)
+        if (!dc.positionDobControl)
         {
             std::cout << "Joint Dob position control : on " << std::endl;
         }

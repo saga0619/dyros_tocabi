@@ -7,7 +7,7 @@
 #include "tocabi_controller/qp.h"
 #include <qpOASES.hpp>
 #include "tocabi_controller/osqp_rapper.h"
-
+#include <vector>
 using namespace Eigen;
 using namespace std;
 using namespace qpOASES;
@@ -110,6 +110,7 @@ public:
   */
   VectorQd task_control_torque_custom_force(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force);
 
+  VectorQd task_control_torque_hqp(RobotData &Robot);
   // Get Task Control Torque task jacobian and f_star must be defined.
   VectorQd task_control_torque_custom_force_feedback(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force, VectorXd ft_hand);
 
@@ -239,6 +240,9 @@ public:
   CQuadraticProgram QP_test;
   CQuadraticProgram QP_mpc;
   CQuadraticProgram QP_torque;
+  
+  std::vector<CQuadraticProgram> QP_yslee;
+
   osQuadraticProgram QP_contact;
   osQuadraticProgram QP_torque3_;
   VectorXd result_temp;

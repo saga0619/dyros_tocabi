@@ -2869,6 +2869,25 @@ VectorQd WholebodyController::gravity_compensation_torque_QP(RobotData &Robot)
     return task_torque;
 }
 
+VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot)
+{
+    
+    int variable_size;
+    int constraint_size;
+    //1st variable = 3dof of COM
+    //2nd variable = 3dof of Pel orientation
+    //3nd variable = 3dof of upperbody
+    //constraint : jointlimit : 33dof, vellimit : 33dof, torquelimit : 33dof, 
+    if(Robot.init_qp)
+    {
+        int hqp_size = 3;
+        QP_yslee.resize(hqp_size+1);
+        Robot.init_qp = false;
+    }
+    
+
+}
+
 VectorQd WholebodyController::gravity_compensation_torque(RobotData &Robot, bool fixed, bool redsvd)
 {
     if (Robot.contact_calc == false)
