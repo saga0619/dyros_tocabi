@@ -275,13 +275,12 @@ void StateManager::stateThread(void)
 
             if ((cycle_count % 2000) == 0)
             {
-
-                if ((control_time_ - control_time_c_stamp) == 1)
+                if (((control_time_ - control_time_c_stamp) < 1.001) && ((control_time_ - control_time_c_stamp) > 0.999))
                 {
                 }
                 else
                 {
-                    std::cout << "State Thread is not 2000hz" << std::endl;
+                    std::cout << "State Thread is not 2000 hz" << std::endl;
                 }
 
                 control_time_c_stamp = control_time_;
@@ -297,7 +296,12 @@ void StateManager::stateThread(void)
 
             if ((tp[9] - tp[0]) > std::chrono::microseconds(dc.ctime))
             {
-                std::cout << cred << "WARNING state calculation time exceeded! 2000 hz is not reachable" << creset << std::endl;
+                std::cout << cred << "state calc time is over " << dc.ctime << "us\t ||";
+                for (int i = 0; i < 9; i++)
+                {
+                    std::cout << i << " : " << std::chrono::duration_cast<std::chrono::microseconds>(tp[i + 1] - tp[i]).count() << "\t ||";
+                }
+                std::cout << creset << std::endl;
             }
 
             if (dc.tocabi_.signal_yaw_init)
@@ -749,7 +753,7 @@ void StateManager::motorInertia()
     Motor_inertia_inv = Motor_inertia_.inverse();
 }
 
-void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual_f, const Eigen::VectorXd &q_dot_virtual_f, const Eigen::VectorXd &q_ddot_virtual_f)
+void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual_f, const Eigen::VectorXd &q_dot_virtual_f, const Eigen::VectorXd &q_ddot_virtual_f, bool local)
 {
     //ROS_INFO_ONCE("CONTROLLER : MODEL : updatekinematics enter ");
     /* q_virtual description
@@ -760,10 +764,13 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
    * */
 
     A_temp_.setZero();
-    mtx_rbdl.lock();
+
+    if (!local)
+        mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual_f, &q_dot_virtual_f, &q_ddot_virtual_f);
+    if (!local)
+        mtx_rbdl.unlock();
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_l, q_virtual_f, A_temp_, false);
-    mtx_rbdl.unlock();
 
     A_ = A_temp_;
     A_inv = A_.inverse();
@@ -789,9 +796,8 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     double com_mass;
     RigidBodyDynamics::Math::Vector3d com_pos;
     RigidBodyDynamics::Math::Vector3d com_vel, com_accel, com_ang_momentum, com_ang_moment;
-    mtx_rbdl.lock();
+
     RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_f, q_dot_virtual_f, &q_ddot_virtual_f, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, &com_ang_moment, false);
-    mtx_rbdl.unlock();
 
     com_.mass = com_mass;
     com_.pos = com_pos;

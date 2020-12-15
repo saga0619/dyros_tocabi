@@ -154,7 +154,7 @@ int main(int argc, char **argv)
         //For RealTime Thread
         sched_param sch;
         int policy;
-        int priority[rt_thread_num] = {39, 30};
+        int priority[rt_thread_num] = {39, 38};
         for (int i = 0; i < rt_thread_num; i++)
         {
 
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
             CPU_ZERO(&cst[i]);
             CPU_SET(i, &cst[i]);
         }
-
+        /*
         for (int i = 0; i < 4; i++)
         {
             if (pthread_setaffinity_np(thread[i + 2].native_handle(), sizeof(cst[0]), &cst[0]))
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 
         pthread_setaffinity_np(thread[7].native_handle(), sizeof(cst[3]), &cst[3]);
         pthread_setaffinity_np(thread[8].native_handle(), sizeof(cst[4]), &cst[4]); 
-
+        */
 
 
         //sched_setaffinity(getpid(),sizeof(cpuset),&cpuset);

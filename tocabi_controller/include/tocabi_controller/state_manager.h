@@ -65,7 +65,7 @@ public:
   void adv2ROS();
 
   //update kinematic information with RBDL
-  void updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
+  void updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual, bool local = true);
 
   //testThread to test multithread
   void testThread();

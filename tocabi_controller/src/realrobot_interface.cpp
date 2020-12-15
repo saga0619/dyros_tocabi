@@ -139,25 +139,8 @@ RealRobotInterface::~RealRobotInterface()
 void RealRobotInterface::updateState()
 {
     //State is updated by main state loop of realrobot interface !
-    static bool first = true;
 
     control_time_ = control_time_real_;
-
-    if (first)
-    {
-        first = false;
-    }
-    else
-    {
-        int time_diff = (int)((control_time_ - control_time_before_) * 1.0E+6);
-
-        if ((time_diff > dc.ctime * 1.05) || (time_diff < dc.ctime * 0.95))
-        {
-            std::cout<<cred<<"Warning : Time is not OK"<<creset<<std::endl;
-        }
-    }
-
-    control_time_before_ = control_time_;
 
     ros::spinOnce();
 
@@ -857,7 +840,7 @@ void RealRobotInterface::ethercatThread()
                         std::chrono::microseconds cycletime(dc.ctime);
                         int cycle_count = 0;
 
-                        std::chrono::steady_clock::time_point tp[9];
+                        std::chrono::steady_clock::time_point tp[10];
                         std::chrono::steady_clock::time_point time_until;
 
                         std::chrono::duration<double> td[8];
@@ -903,6 +886,25 @@ void RealRobotInterface::ethercatThread()
                             time_from_begin = std::chrono::steady_clock::now() - st_start_time;
                             control_time_real_ = time_from_begin.count();
 
+                            static bool first = true;
+                            if (first)
+                            {
+                                first = false;
+                            }
+                            else
+                            {
+                                int time_diff = (int)((control_time_real_ - control_time_before_) * 1.0E+6);
+
+                                if ((time_diff > dc.ctime * 1.05) || (time_diff < dc.ctime * 0.95))
+                                {
+                                    std::cout << cred << "Warning : Time is not OK, time diff is : " << time_diff << std::endl;
+                                    std::cout << "current time : " << control_time_real_ << std::endl;
+                                    std::cout << "before time : " << control_time_before_ << std::endl;
+                                    std::cout << "If you check this message, please let junhee know" << std::endl;
+                                }
+                            }
+                            control_time_before_ = control_time_real_;
+
                             /** PDO I/O refresh */
                             //ec_send_processdata();
 
@@ -925,6 +927,7 @@ void RealRobotInterface::ethercatThread()
                             if (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                             {
                                 std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n RECV ELMO TIME : " << td[3].count() * 1E+6 << " us \t last tick : " << td[5].count() * 1E+6 << " us \t last send process : " << td[6].count() * 1E+6 << " us\n LAST LOOP :" << td[4].count() * 1E+6 << " us\n " << creset << std::endl;
+                                std::cout << cred << "If you see this warning message often, Rebooting tocabi is recommanded" << creset << std::endl;
                                 dc.elmoinstability = true;
                                 if (dc.torqueOn)
                                 {
@@ -937,6 +940,7 @@ void RealRobotInterface::ethercatThread()
 
                                 while (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                                 {
+
                                     cycle_count++;
                                 }
                             }
@@ -1517,6 +1521,7 @@ void RealRobotInterface::ethercatThread()
                             //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
                             tp[7] = std::chrono::steady_clock::now();
                             ec_send_processdata();
+                            tp[8] = std::chrono::steady_clock::now();
                             td[6] = std::chrono::steady_clock::now() - tp[7];
                             for (int i = 0; i < ec_slavecount; i++)
                             {
@@ -1540,19 +1545,21 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = true;
                                 }
                             }
-                            tp[8] = std::chrono::steady_clock::now();
+                            tp[9] = std::chrono::steady_clock::now();
                             td[4] = tp[8] - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
                             if (td[4].count() * 1E+6 > 500)
                             {
                                 std::cout << "Loop time exceeded : " << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[2] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[3] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[7] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[8] - tp[0]).count() << std::endl;
+                                std::cout << "sleep_until" << std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count() << std::endl;
+                                std::cout << "checktime" << std::chrono::duration_cast<std::chrono::microseconds>(tp[2] - tp[1]).count() << std::endl;
+                                std::cout << "ec_receive_processdata()" << std::chrono::duration_cast<std::chrono::microseconds>(tp[3] - tp[2]).count() << std::endl;
+                                std::cout << "getdata & copy" << std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[3]).count() << std::endl;
+                                std::cout << "findzero" << std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[4]).count() << std::endl;
+                                std::cout << "torque copy" << std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[5]).count() << std::endl;
+                                std::cout << "command op" << std::chrono::duration_cast<std::chrono::microseconds>(tp[7] - tp[6]).count() << std::endl;
+                                std::cout << "ec_send_processdata()" << std::chrono::duration_cast<std::chrono::microseconds>(tp[8] - tp[7]).count() << std::endl;
+                                std::cout << "rount to int" << std::chrono::duration_cast<std::chrono::microseconds>(tp[9] - tp[8]).count() << std::endl;
+                                std::cout << "If you check this message, please let junhee know : " << std::endl;
                             }
 
                             d_mean = d_mean + td[4].count();

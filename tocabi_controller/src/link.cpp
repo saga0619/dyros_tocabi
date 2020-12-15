@@ -1,6 +1,6 @@
 #include "tocabi_controller/link.h"
 #include "ros/ros.h"
-
+//local setting is required
 void Link::initialize(RigidBodyDynamics::Model &model_, int id_, std::string name_, double mass, Eigen::Vector3d &local_com_position)
 {
     id = id_;
