@@ -463,20 +463,20 @@ void TocabiController::dynamicsThreadHigh()
                     dc.set_q_init = false;
                 }
                 if (dc.positionGravControl)
-                { 
-                    if(dc.positionDobControl)
+                {
+                    if (dc.positionDobControl)
                     {
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
                             torque_desired(i) = dc.torque_dist(i) + tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
-                        }     
+                        }
                     }
                     else
                     {
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
                             torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
-                        }     
+                        }
                     }
                 }
                 else if (dc.position_command_ext)
@@ -502,11 +502,11 @@ void TocabiController::dynamicsThreadHigh()
                 }
                 else
                 {
-                    if(dc.positionDobControl)
+                    if (dc.positionDobControl)
                     {
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
-                            torque_desired(i) =  dc.torque_dist(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
+                            torque_desired(i) = dc.torque_dist(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
                         }
                     }
                     else
@@ -890,7 +890,7 @@ void TocabiController::dynamicsThreadLow()
                     std::cout << "current ct : " << control_time_ << " cmd t : " << tc.command_time << " trj t: " << tc.traj_time << std::endl;
                     if (tque_msg.tque.size() > 0)
                     {
-   
+
                         tocabi_controller::TaskCommand tc_temp = tque_msg.tque[0];
                         tque_msg.tque.erase(tque_msg.tque.begin());
                         gettaskcommand(tc_temp);
@@ -2154,7 +2154,6 @@ void TocabiController::dynamicsThreadLow()
             }
         }
 
-
         tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
         tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);
         //tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(0) * 9.8 - tocabi_.com_.pos(2) * tocabi_.link_[COM_id].a_traj(0)) / 9.8;
@@ -2394,7 +2393,6 @@ void TocabiController::tuiThread()
         int tg2 = (255 - 63) * dc.t_gain;
 
         dc.rgbPubMsg.data = {0, 0, tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1};
-        dc.rgbPub.publish(dc.rgbPubMsg);
 
         if (dc.safetyison)
         {
@@ -2418,7 +2416,6 @@ void TocabiController::tuiThread()
                 dc.rgbPubMsg.data[16] = 0;
                 dc.rgbPubMsg.data[17] = 0;
             }
-            dc.rgbPub.publish(dc.rgbPubMsg);
         }
 
         if (dc.elmoinstability)
@@ -2443,9 +2440,25 @@ void TocabiController::tuiThread()
                 dc.rgbPubMsg.data[16] = 0;
                 dc.rgbPubMsg.data[17] = 0;
             }
+        }
+
+        bool diff = false;
+
+        for (int i = 0; i < 18; i++)
+        {
+            if (dc.rgbPubMsg_before.data[i] != dc.rgbPubMsg.data[i])
+            {
+                diff = true;
+                break;
+            }
+        }
+
+        if (diff)
+        {
             dc.rgbPub.publish(dc.rgbPubMsg);
         }
 
+        dc.rgbPubMsg_before = dc.rgbPubMsg;
         before_time = control_time_;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
         //std::cout<<control_time_<<"tui test"<<std::endl;
@@ -2457,7 +2470,7 @@ void TocabiController::tuiThread()
 }
 
 void TocabiController::getState()
-{    
+{
     while (dc.atb_dc)
     {
         std::this_thread::sleep_for(std::chrono::microseconds(5));

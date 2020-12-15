@@ -3516,7 +3516,7 @@ VectorQd WholebodyController::task_control_torque_motor(RobotData &Robot, Eigen:
 
     Robot.Q_motor_temp = Robot.Q_motor * Robot.W_inv * Robot.Q_motor_T_;
 
-    Robot.Q_motor_temp_inv = DyrosMath::pinv_SVD(Robot.Q_motor_temp);
+    Robot.Q_motor_temp_inv = DyrosMath::pinv_QR(Robot.Q_motor_temp);
 
     VectorQd torque_task;
     torque_task = Robot.W_inv * Robot.Q_motor_T_ * Robot.Q_motor_temp_inv * Robot.lambda_motor * f_star_;

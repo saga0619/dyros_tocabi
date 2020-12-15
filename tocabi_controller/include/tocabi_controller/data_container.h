@@ -222,6 +222,7 @@ public:
   std_msgs::String statusPubMsg;
   ros::Publisher rgbPub;
   std_msgs::Int32MultiArray rgbPubMsg;
+  std_msgs::Int32MultiArray rgbPubMsg_before;
 };
 
 static volatile sig_atomic_t shutdown_tocabi = 0;

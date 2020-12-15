@@ -171,10 +171,15 @@ void StateManager::stateThread(void)
     {
         std::cout << "State Thread : START " << std::endl;
 
+        std::chrono::steady_clock::time_point tp[10];
+        std::chrono::duration<double> td[10];
+        double tdu[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+        motorInertia();
         while (!shutdown_tocabi_bool)
         {
             std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
-
+            tp[0] = std::chrono::steady_clock::now();
             try
             {
                 updateState();
@@ -187,7 +192,7 @@ void StateManager::stateThread(void)
             {
                 std::cout << "Error ar updateState : " << e.what() << std::endl;
             }
-
+            tp[1] = std::chrono::steady_clock::now();
             if (shutdown_tocabi_bool)
             {
                 std::cout << "shutdown signal received" << std::endl;
@@ -208,24 +213,30 @@ void StateManager::stateThread(void)
             try
             {
                 updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
+                tp[2] = std::chrono::steady_clock::now();
                 handleFT();
+                tp[3] = std::chrono::steady_clock::now();
                 //contactEstimate();
                 stateEstimate();
+                tp[4] = std::chrono::steady_clock::now();
                 if (dc.single_foot_only == false)
                 {
                     pelvisPosMonitor();
                 }
                 //lowpass filter for q_dot
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
+                tp[5] = std::chrono::steady_clock::now();
                 jointVelocityEstimate();
+                tp[6] = std::chrono::steady_clock::now();
                 jointVelocityEstimate1();
             }
             catch (exception &e)
             {
                 std::cout << "Error ar updateKinematics : " << e.what() << std::endl;
             }
-
+            tp[7] = std::chrono::steady_clock::now();
             storeState();
+            tp[8] = std::chrono::steady_clock::now();
 
             if ((cycle_count % 10) == 0)
             {
@@ -261,6 +272,33 @@ void StateManager::stateThread(void)
                     std::cout << "Error ar sendStateToGui : " << e.what() << std::endl;
                 }
             }
+
+            tp[9] = std::chrono::steady_clock::now();
+
+            for (int i = 0; i < 9; i++)
+            {
+                td[i] = tp[i + 1] - tp[i];
+                tdu[i] += td[i].count();
+            }
+
+            if ((tp[9] - tp[0]) > std::chrono::microseconds(dc.ctime))
+            {
+                std::cout<<cred<<"WARNING state calculation time exceeded! 2000 hz is not reachable"<<creset<<std::endl;
+            }
+
+            /*
+            if ((cycle_count % 2000) == 0)
+            {
+                std::cout << control_time_ << std::endl;
+
+                for (int i = 0; i < 9; i++)
+                {
+                    std::cout << i << "  : " << tdu[i] * 500 << "\t";
+                    tdu[i] = 0.0;
+                }
+
+                std::cout << std::endl;
+            }*/
 
             if (dc.tocabi_.signal_yaw_init)
             {
@@ -677,31 +715,9 @@ void StateManager::storeSync()
     //dc.tocabi_.
 }
 
-void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual_f, const Eigen::VectorXd &q_dot_virtual_f, const Eigen::VectorXd &q_ddot_virtual_f)
+void StateManager::motorInertia()
 {
-    //ROS_INFO_ONCE("CONTROLLER : MODEL : updatekinematics enter ");
-    /* q_virtual description
-   * 0 ~ 2 : XYZ cartesian coordinates
-   * 3 ~ 5 : XYZ Quaternion
-   * 6 ~ MODEL_DOF + 5 : joint position
-   * model dof + 6 ( last component of q_virtual) : w of Quaternion
-   * */
 
-    //std::cout << control_time_ << " : q_v(0) : " << q_virtual(0) << " : q_v(1) : " << q_virtual(1) << " : q_v(2) : " << q_virtual(2) << std::endl;
-
-    mtx_rbdl.lock();
-    RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual_f, &q_dot_virtual_f, &q_ddot_virtual_f);
-
-    A_temp_.setZero();
-    RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_l, q_virtual_f, A_temp_, false);
-
-    //Eigen::VectorXd tau_coriolis;
-    //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
-    mtx_rbdl.unlock();
-    //tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
-
-    A_ = A_temp_;
-    A_inv = A_.inverse();
     for (int i = 0; i < 6; ++i)
     {
         Motor_inertia_(i, i) = 10.0;
@@ -731,7 +747,31 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     Motor_inertia_(30, 30) = 0.015;
 
     Motor_inertia_inv = Motor_inertia_.inverse();
+}
 
+void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual_f, const Eigen::VectorXd &q_dot_virtual_f, const Eigen::VectorXd &q_ddot_virtual_f)
+{
+    //ROS_INFO_ONCE("CONTROLLER : MODEL : updatekinematics enter ");
+    /* q_virtual description
+   * 0 ~ 2 : XYZ cartesian coordinates
+   * 3 ~ 5 : XYZ Quaternion
+   * 6 ~ MODEL_DOF + 5 : joint position
+   * model dof + 6 ( last component of q_virtual) : w of Quaternion
+   * */
+
+    //std::cout << control_time_ << " : q_v(0) : " << q_virtual(0) << " : q_v(1) : " << q_virtual(1) << " : q_v(2) : " << q_virtual(2) << std::endl;
+
+    A_temp_.setZero();
+    mtx_rbdl.lock();
+    RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual_f, &q_dot_virtual_f, &q_ddot_virtual_f);
+    RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_l, q_virtual_f, A_temp_, false);
+    //Eigen::VectorXd tau_coriolis;
+    //RigidBodyDynamics::NonlinearEffects(model_,q_virtual_,q_dot_virtual_,tau_coriolis);
+    mtx_rbdl.unlock();
+    //tf2::Quaternion q(q_virtual_(3), q_virtual_(4), q_virtual_(5), q_virtual_(MODEL_DOF + 6));
+
+    A_ = A_temp_;
+    A_inv = A_.inverse();
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
         link_p[i].pos_Update(model_l, q_virtual_f);
@@ -758,8 +798,6 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_f, q_dot_virtual_f, &q_ddot_virtual_f, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, &com_ang_moment, false);
     mtx_rbdl.unlock();
 
-    RigidBodyDynamics::ConstraintSet CS;
-
     //CS.AddContactConstraint(link_[Right_Foot].id,)
 
     //ROS_INFO_ONCE("TOTAL MASS : %f", com_mass);
@@ -785,7 +823,7 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     {
         std::cout << control_time_ << "COM_Y OUT WARNING !!!!!!!!!!!!!!!!" << std::endl;
     } */
-
+    /*
     Eigen::Vector3d foot_ahead_pos(0.15, 0, 0);
     Eigen::Vector3d foot_back_pos(-0.09, 0, 0);
     Eigen::Vector3d RH, RT, LH, LT;
@@ -812,7 +850,7 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
             if (dc.spalarm)
                 std::cout << control_time_ << "com is out of support polygon !, line " << i << std::endl;
         }
-    }
+    } */
 
     /*
     s[1] = DyrosMath::check_border(com_.pos(0), com_.pos(1), RT(0), LT(0), RT(1), LT(1), 1.0);
@@ -863,11 +901,6 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     {
         link_p[i].vw_Update(q_dot_virtual_f);
     }
-
-    RigidBodyDynamics::Math::VectorNd tau_;
-    tau_.resize(model_l.qdot_size);
-    RigidBodyDynamics::NonlinearEffects(model_l, q_virtual_f, q_dot_virtual_f, tau_);
-    tau_nonlinear_ = tau_;
 
     //contactJacUpdate
     //link_[Right_Foot].Set_Contact(model_, q_virtual_, link_[Right_Foot].contact_point);
@@ -1395,16 +1428,20 @@ void StateManager::jointVelocityEstimate()
     //Estimate joint velocity using state observer
     double dt;
     dt = 1 / 2000;
-    Eigen::MatrixXd A_t, A_dt, B_t, B_dt, C, I, I_t;
-    I.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
+
+    Eigen::Matrix<double, MODEL_DOF * 2, MODEL_DOF * 2> I, A_t, A_dt;
+    Eigen::Matrix<double, MODEL_DOF, MODEL_DOF> I_t;
+    Eigen::Matrix<double, MODEL_DOF * 2, MODEL_DOF> B_t, B_dt;
+    Eigen::Matrix<double, MODEL_DOF, MODEL_DOF * 2> C;
+
     I.setIdentity();
-    I_t.setZero(MODEL_DOF, MODEL_DOF);
+    A_t.setZero();
+    A_dt.setZero();
+
     I_t.setIdentity();
-    A_t.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
-    A_dt.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
-    B_t.setZero(MODEL_DOF * 2, MODEL_DOF);
-    B_dt.setZero(MODEL_DOF * 2, MODEL_DOF);
-    C.setZero(MODEL_DOF, MODEL_DOF * 2);
+    B_t.setZero();
+    B_dt.setZero();
+    C.setZero();
 
     A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
     A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
@@ -1454,16 +1491,19 @@ void StateManager::jointVelocityEstimate1()
     //Estimate joint velocity using state observer
     double dt;
     dt = 1 / 2000;
-    Eigen::MatrixXd A_t, A_dt, B_t, B_dt, C, I, I_t;
-    I.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
+    Eigen::Matrix<double, MODEL_DOF * 2, MODEL_DOF * 2> I, A_t, A_dt;
+    Eigen::Matrix<double, MODEL_DOF, MODEL_DOF> I_t;
+    Eigen::Matrix<double, MODEL_DOF * 2, MODEL_DOF> B_t, B_dt;
+    Eigen::Matrix<double, MODEL_DOF, MODEL_DOF * 2> C;
+
     I.setIdentity();
-    I_t.setZero(MODEL_DOF, MODEL_DOF);
+    A_t.setZero();
+    A_dt.setZero();
+
     I_t.setIdentity();
-    A_t.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
-    A_dt.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
-    B_t.setZero(MODEL_DOF * 2, MODEL_DOF);
-    B_dt.setZero(MODEL_DOF * 2, MODEL_DOF);
-    C.setZero(MODEL_DOF, MODEL_DOF * 2);
+    B_t.setZero();
+    B_dt.setZero();
+    C.setZero();
 
     A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
     A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
