@@ -1715,8 +1715,8 @@ void RealRobotInterface::imuThread()
 
             Vector3d ang_vel;
             ang_vel(0) = imu_msg.angular_velocity.x;
-            ang_vel(0) = imu_msg.angular_velocity.y;
-            ang_vel(0) = imu_msg.angular_velocity.z;
+            ang_vel(1) = imu_msg.angular_velocity.y;
+            ang_vel(2) = imu_msg.angular_velocity.z;
             Vector3d ang_vel_lpf;
             static Vector3d ang_vel_lpf_before;
             ang_vel_lpf = DyrosMath::lpf(ang_vel, ang_vel_lpf_before, 1000, 15);

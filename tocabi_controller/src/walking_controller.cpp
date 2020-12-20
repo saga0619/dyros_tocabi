@@ -85,7 +85,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
         }
 
         if(mom == true)
-        {
+        {   
             momentumControl(Robot);
 
             q_w(0) = q_w(0) + q_dm(0)/Hz_;
@@ -239,7 +239,7 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd &leg_q)
     if (walking_tick == 0)
     {
         Eigen::VectorQd q_temp;
-        q_temp << 0.0, 0.03, -0.55, 1.1, -0.55, -0.03, 0.0, -0.03, -0.55, 1.1, -0.55, 0.03, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1.0, 0, 1.0, 0;
+        q_temp << 0.0, 0.00, -0.35, 1.0, -0.65, 0.00, 0.0, 0.00, -0.35, 1.0, -0.65, 0.00, 0.0, 0.0, 0.0, 0.2, 0.5, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.2, -0.5, -1.5, 1.27, 1.0, 0, 1.0, 0;
        
        //q_temp.setZero();
         //q_target = Robot.q_;
@@ -781,7 +781,7 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
     dob_hat = 0.3 * dob_hat + 0.7 * dob_hat_prev;
 
     double defaultGain = 0.0;
-    double compliantGain = 2.0;
+    double compliantGain = 3.0;
     double compliantTick = 0.1 * Hz_;
 
     for (int i = 0; i < 12; i++)
@@ -840,6 +840,7 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
             desired_leg_q(i) = desired_leg_q(i) - dobGain * dob_hat(i);
         }
     }
+    dob_debug = dobGain*dob_hat;
 }
 
 void Walking_controller::ankleOriControl(RobotData &Robot)
@@ -1117,7 +1118,8 @@ void Walking_controller::momentumControl(RobotData &Robot)
     variable_size = 5;
     constraint_size = 5;
 
-    QP_m.InitializeProblemSize(variable_size, constraint_size);
+    if(walking_tick == 0)
+        QP_m.InitializeProblemSize(variable_size, constraint_size);
 
     MatrixXd H, A, W;
     H.setZero(variable_size, variable_size);
@@ -1158,7 +1160,7 @@ void Walking_controller::momentumControl(RobotData &Robot)
         q_rarmd(1) = q_dm(4);
 	    q_larmd(1) = q_dm(3);
     }
-
+    H_leg.setZero();
     H_leg = Ag_leg * Robot.q_dot_est.head(12) + Ag_waist * Robot.q_dot_est.segment(12,3) + Ag_armL * Robot.q_dot_est.segment(15,8) + Ag_armR * Robot.q_dot_est.segment(25,8);
 
     Eigen::MatrixXd Ag_temp;
@@ -1198,8 +1200,7 @@ void Walking_controller::momentumControl(RobotData &Robot)
 
     ub(3) = 0.5;
     ub(4) = 0.5;
-//std::cout << "q_dot_est" << Robot.q_dot_est<<std::endl; 
-//  std::cout << lb << std::endl;
+
     QP_m.EnableEqualityCondition(0.001);
     QP_m.UpdateMinProblem(H, g);
     QP_m.UpdateSubjectToAx(A, lbA, ubA);
@@ -1280,13 +1281,13 @@ void Walking_controller::comVibrationController(RobotData &Robot)
                 xy_vib_est = Ay_vib*xy_vib_est/Hz_ + xy_vib_est + By_vib*uy_vib/Hz_ + L2*(yy_vibm-yy_vib)/Hz_;
             }    
 
-            PELV_trajectory_float.translation()(0) = com_refx(walking_tick) - 0.5 * (Robot.com_.pos(0)-(-PELV_float_init.translation()(0)+COM_float_init.translation()(0))-com_refx(walking_tick));
-            PELV_trajectory_float.translation()(1) = com_refy(walking_tick) - 0.5 * (Robot.com_.pos(1)- com_refy(walking_tick));
+            PELV_trajectory_float.translation()(0) = com_refx(walking_tick) - 2.5/*0.9*/ * (Robot.com_.pos(0)-(-PELV_float_init.translation()(0)+COM_float_init.translation()(0))-com_refx(walking_tick));
+            PELV_trajectory_float.translation()(1) = com_refy(walking_tick) - 3.0/*0.9*/ * (Robot.com_.pos(1)- com_refy(walking_tick));
         }
         else
         {
-            PELV_trajectory_float.translation()(0) = com_refx(t_total + t_last - 4) - 0.5 * (Robot.com_.pos(0)-(-PELV_float_init.translation()(0)+COM_float_init.translation()(0))-com_refx(t_total + t_last - 4));
-            PELV_trajectory_float.translation()(1) = com_refy(t_total + t_last - 4) - 0.5 * (Robot.com_.pos(1)-com_refy(t_total + t_last - 4));
+            PELV_trajectory_float.translation()(0) = com_refx(t_total + t_last - 4) - 2.5/*0.9*/ * (Robot.com_.pos(0)-(-PELV_float_init.translation()(0)+COM_float_init.translation()(0))-com_refx(t_total + t_last - 4));
+            PELV_trajectory_float.translation()(1) = com_refy(t_total + t_last - 4) - 3.0/*0.9*/ * (Robot.com_.pos(1)-com_refy(t_total + t_last - 4));
         }
         
     }

@@ -35,6 +35,9 @@ public:
     Eigen::Vector12d desired_leg_q_prev;
     Eigen::Vector12d desired_leg_q_dot;
 
+    Eigen::Vector12d dob_debug;
+    double a = 0;
+
     CQuadraticProgram QP_m;
 
     void walkingCompute(RobotData &Robot);

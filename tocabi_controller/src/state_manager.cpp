@@ -733,9 +733,9 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     //COM link information update ::
     double com_mass;
     RigidBodyDynamics::Math::Vector3d com_pos;
-    RigidBodyDynamics::Math::Vector3d com_vel, com_accel, com_ang_momentum, com_ang_moment;
+    RigidBodyDynamics::Math::Vector3d com_vel, com_accel, com_ang_momentum;
     mtx_rbdl.lock();
-    RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_f, q_dot_virtual_f, &q_ddot_virtual_f, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, &com_ang_moment, false);
+    RigidBodyDynamics::Utils::CalcCenterOfMass(model_l, q_virtual_f, q_dot_virtual_f, &q_ddot_virtual_f, com_mass, com_pos, &com_vel, &com_accel, &com_ang_momentum, NULL, false);
     mtx_rbdl.unlock();
 
     RigidBodyDynamics::ConstraintSet CS;
@@ -803,7 +803,6 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     com_.accel = com_accel;
     com_.angular_momentum = com_ang_momentum;
-    com_.angular_moment = com_ang_moment;
 
     double w_ = sqrt(9.81 / com_.pos(2));
 
