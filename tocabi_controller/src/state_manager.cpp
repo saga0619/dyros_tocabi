@@ -728,8 +728,6 @@ void StateManager::storeState()
     dc.tocabi_.com_ = com_;
     dc.tocabi_.q_dot_est = q_dot_est;
     dc.tocabi_.q_dot_est1 = q_dot_est1;
-
-    mtx_dc.unlock();
     dc.atb_dc = false;
 }
 void StateManager::storeSync()
