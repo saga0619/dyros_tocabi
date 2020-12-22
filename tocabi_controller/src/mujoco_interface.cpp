@@ -1,4 +1,5 @@
 #include "tocabi_controller/mujoco_interface.h"
+#include "chrono"
 
 MujocoInterface::MujocoInterface(DataContainer &dc_global) : dc(dc_global), StateManager(dc_global)
 {
@@ -23,7 +24,8 @@ MujocoInterface::MujocoInterface(DataContainer &dc_global) : dc(dc_global), Stat
 
 void MujocoInterface::updateState()
 {
-    while (ros::ok() && (!shutdown_tocabi_bool))
+    std::chrono::steady_clock::time_point tstart = std::chrono::steady_clock::now();
+    while (!shutdown_tocabi_bool)
     {
         ros::spinOnce();
         if (new_state_trigger)
@@ -31,12 +33,18 @@ void MujocoInterface::updateState()
             new_state_trigger = false;
             break;
         }
+        else
+        {
+            //std::cout << "sim status callback : " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tstart).count() << std::endl;
+        }
+
         if (dc.mode == "testmode" || dc.mode == "testmode2")
         {
             break;
         }
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::this_thread::sleep_for(std::chrono::microseconds(20));
     }
+    //std::cout << "sim status callback : " << std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tstart).count() << std::endl;
 }
 
 void MujocoInterface::sendCommand(Eigen::VectorQd command, double simt, int control_mode)
@@ -162,21 +170,37 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     control_time_ = mujoco_sim_time;
     sim_time_ = mujoco_sim_time;
 
-    for (int i = 0; i < MODEL_DOF; i++)
+    static bool first = true;
+
+    if (first)
     {
-        for (int j = 0; j < msg->name.size(); j++)
+        for (int i = 0; i < MODEL_DOF; i++)
         {
-            if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
+            for (int j = 0; j < msg->name.size(); j++)
             {
-                q_(i) = msg->position[j];
-                q_virtual_local_(i + 6) = msg->position[j];
-                q_dot_virtual_local_(i + 6) = msg->velocity[j];
-                q_ddot_virtual_local_(i + 6) = msg->effort[j];
-                torque_(i) = msg->effort[j];
+                if (TOCABI::ACTUATOR_NAME[i] == msg->name[j].data())
+                {
+                    jointmap[i] = j;
+                }
             }
+            joint_name_mj[i] = msg->name[i + 6].data();
         }
 
-        joint_name_mj[i] = msg->name[i + 6].data();
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            std::cout << jointmap[i] << "\t";
+        }
+        std::cout << std::endl;
+        first = false;
+    }
+
+    for (int i = 0; i < MODEL_DOF; i++)
+    {
+        q_(i) = msg->position[jointmap[i]];
+        q_virtual_local_(i + 6) = msg->position[jointmap[i]];
+        q_dot_virtual_local_(i + 6) = msg->velocity[jointmap[i]];
+        q_ddot_virtual_local_(i + 6) = msg->effort[jointmap[i]];
+        torque_(i) = msg->effort[jointmap[i]];
     }
 
     Real_Pos(0) = msg->position[0];
@@ -216,8 +240,11 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
         for (int i = 0; i < 6; i++)
         {
             q_virtual_local_(i) = msg->position[i];
+            //q_virtual_local_.segment(0,6) = Eigen::map<Eigen::Vector6d>(msg->position,6);
             q_dot_virtual_local_(i) = msg->velocity[i];
+            //q_dot_virtual_local_.segment(0,6) = Eigen::Map<Eigen::Vector6d>(msg->velocity,6);
             q_ddot_virtual_local_(i) = msg->effort[i];
+            //q_ddot_virtual_local_.segment(0,6) = Eigen::Map<Eigen::Vector6d>(msg->effort,6);
         }
         q_virtual_local_(MODEL_DOF + 6) = msg->position[MODEL_DOF + 6];
         q_virtual_local_(0) = 0.0;
@@ -230,7 +257,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
                 q_virtual_local_(i) = msg->position[i];
         }
     }
-
+    
     for (int i = 0; i < msg->sensor.size(); i++)
     {
         if (msg->sensor[i].name == "Acc_Pelvis_IMU")
@@ -261,30 +288,21 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
                 RF_FT(j) = msg->sensor[i].data[j];
             }
         }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "RF_Torque_sensor")
+        else if (msg->sensor[i].name == "RF_Torque_sensor")
         {
             for (int j = 0; j < 3; j++)
             {
                 RF_FT(j + 3) = msg->sensor[i].data[j];
             }
         }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "LF_Force_sensor")
+        else if (msg->sensor[i].name == "LF_Force_sensor")
         {
             for (int j = 0; j < 3; j++)
             {
                 LF_FT(j) = msg->sensor[i].data[j];
             }
         }
-    }
-    for (int i = 0; i < msg->sensor.size(); i++)
-    {
-        if (msg->sensor[i].name == "LF_Torque_sensor")
+        else if (msg->sensor[i].name == "LF_Torque_sensor")
         {
             for (int j = 0; j < 3; j++)
             {
@@ -292,6 +310,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             }
         }
     }
+    /*
     for (int i = 0; i < msg->sensor.size(); i++)
     {
         if (msg->sensor[i].name == "LH_Force_sensor")
@@ -332,6 +351,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             }
         }
     }
+    */
     data_received_counter_++;
     new_state_trigger = true;
 }

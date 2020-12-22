@@ -60,7 +60,7 @@ public:
   void comJacobianState(RobotData &Robot);
   void comJacobianIK(RobotData &Robot);
   void momentumControl(RobotData &Robot);
-
+  
 private:
 };
 #endif

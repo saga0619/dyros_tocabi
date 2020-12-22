@@ -73,7 +73,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             comJacobianState(Robot);
             comJacobianIK(Robot);
         }
-
+      
         if (walking_tick == 0)
         {
             q_w(0) = desired_init_leg_q(12);
@@ -626,7 +626,6 @@ void Walking_controller::updateNextStepTime()
         phaseChange = true;
         phaseChange1 = false;
         double2Single_pre = t_start_real + t_double1 + t_rest_temp - 0.075 * Hz_;
-        double2Single = t_start_real + t_double1 + t_rest_temp + 0.015 * Hz_ - 1;
     }
     else
     {
@@ -1177,6 +1176,7 @@ void Walking_controller::momentumControl(RobotData &Robot)
     {
         lbA(i) = (-0.2 - q_w(i)) * Hz_;
         ubA(i) = (0.2 - q_w(i)) * Hz_;
+
     }
 
     lbA(3) = (0.15 - q_w(3)) * Hz_;
@@ -1204,6 +1204,7 @@ void Walking_controller::momentumControl(RobotData &Robot)
     QP_m.SolveQPoases(100, q_dm);
 
     qd_prev = q_dm;
+
 }
 
 void Walking_controller::comVibrationController(RobotData &Robot)

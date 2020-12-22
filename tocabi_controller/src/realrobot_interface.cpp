@@ -64,9 +64,9 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
         dc.currentGain(i) = NM2CNT[i];
     }
 
-    file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
-    ft_sensor.open(dc.homedir + "/Ftsensorcheck.txt", ios_base::out);
-    file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
+    //file_homming.open(dc.homedir + "/hommingcheck.txt", ios_base::out);
+    //ft_sensor.open(dc.homedir + "/Ftsensorcheck.txt", ios_base::out);
+    //file_homming << "R7\tR8\tL8\tL7\tL3\tL4\tR4\tR3\tR5\tR6\tL6\tL5\tL1\tL2\tR2\tR1\tw1\tw2" << endl;
 
     fz_group1.resize(18);
     int i = 0;
@@ -131,9 +131,17 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     }
 }
 
+RealRobotInterface::~RealRobotInterface()
+{
+    std::cout << "RR Destructor" << std::endl;
+}
+
 void RealRobotInterface::updateState()
 {
     //State is updated by main state loop of realrobot interface !
+
+    control_time_ = control_time_real_;
+
     ros::spinOnce();
 
     if (atb_q)
@@ -143,6 +151,7 @@ void RealRobotInterface::updateState()
             rq_[i] = req_[i];
             rq_dot_[i] = req_dot_[i];
             rq_ext_[i] = req_ext_[i];
+            rq_elmo_[i] = req_elmo_[i];
         }
 
         for (int i = 0; i < ec_slavecount; i++)
@@ -150,6 +159,7 @@ void RealRobotInterface::updateState()
             q_[i] = rq_[TOCABI::JointMap[i]];
             q_dot_[i] = rq_dot_[TOCABI::JointMap[i]];
             q_ext_[i] = rq_ext_[TOCABI::JointMap[i]];
+            torque_elmo_[i] = rq_elmo_[TOCABI::JointMap[i]];
         }
 
         q_ddot_ = q_dot_ - q_dot_before_;
@@ -177,6 +187,7 @@ void RealRobotInterface::updateState()
                 rq_[i] = req_[i];
                 rq_dot_[i] = req_dot_[i];
                 rq_ext_[i] = req_ext_[i];
+                rq_elmo_[i] = req_elmo_[i];
             }
 
             for (int i = 0; i < ec_slavecount; i++)
@@ -184,6 +195,7 @@ void RealRobotInterface::updateState()
                 q_[i] = rq_[TOCABI::JointMap[i]];
                 q_dot_[i] = rq_dot_[TOCABI::JointMap[i]];
                 q_ext_[i] = rq_ext_[TOCABI::JointMap[i]];
+                torque_elmo_[i] = rq_elmo_[TOCABI::JointMap[i]];
             }
 
             q_ddot_ = q_dot_ - q_dot_before_;
@@ -200,7 +212,6 @@ void RealRobotInterface::updateState()
 
             q_ddot_virtual_local_.setZero();
             q_ddot_virtual_local_.segment(0, 3) = imu_lin_acc;
-            std::cout << "2nd try success " << std::endl;
         }
         else
         {
@@ -339,7 +350,7 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
     double fztime = 3.0;
     if (elmofz[slv_number].findZeroSequence == FZ_CHECKHOMMINGSTATUS)
     {
-        elmofz[slv_number].initTime = control_time_;
+        elmofz[slv_number].initTime = control_time_real_;
         elmofz[slv_number].initPos = positionElmo[slv_number];
         elmofz[slv_number].findZeroSequence = FZ_FINDHOMMINGSTART;
 
@@ -369,7 +380,7 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
         ElmoMode[slv_number] = EM_POSITION;
         positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, elmofz[slv_number].init_direction * 0.6, elmofz[slv_number].initTime, fztime * 4.0);
 
-        if (control_time_ == elmofz[slv_number].initTime)
+        if (control_time_real_ == elmofz[slv_number].initTime)
         {
             //std::cout << "joint " << slv_number << "  init pos : " << elmofz[slv_number].initPos << "   goto " << elmofz[slv_number].initPos + elmofz[slv_number].init_direction * 0.6 << std::endl;
         }
@@ -381,7 +392,7 @@ void RealRobotInterface::findZeroPointlow(int slv_number)
             pub_to_gui(dc, "jointzp %d %d", slv_number, 1);
             elmofz[slv_number].result = ElmoHommingStatus::SUCCESS;
         }
-        if (control_time_ > elmofz[slv_number].initTime + fztime * 4.0)
+        if (control_time_real_ > elmofz[slv_number].initTime + fztime * 4.0)
         {
             elmofz[slv_number].result == ElmoHommingStatus::FAILURE;
         }
@@ -399,7 +410,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         {
             //std::cout << "motor " << slv_number << " init state : homming on" << std::endl;
             elmofz[slv_number].findZeroSequence = FZ_FINDHOMMINGSTART;
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
             elmofz[slv_number].initPos = positionElmo[slv_number];
             elmofz[slv_number].firstPos = positionElmo[slv_number];
         }
@@ -407,7 +418,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         {
             //std::cout << "motor " << slv_number << " init state : homming off" << std::endl;
             elmofz[slv_number].findZeroSequence = FZ_FINDHOMMING;
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
             elmofz[slv_number].initPos = positionElmo[slv_number];
             elmofz[slv_number].firstPos = positionElmo[slv_number];
         }
@@ -423,7 +434,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
             //std::cout << "motor " << slv_number << " seq 1 complete, wait 1 sec" << std::endl;
             hommingElmo_before[slv_number] = hommingElmo[slv_number];
             elmofz[slv_number].findZeroSequence = FZ_FINDHOMMINGEND;
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
             elmofz[slv_number].posStart = positionElmo[slv_number];
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
@@ -456,15 +467,15 @@ void RealRobotInterface::findZeroPoint(int slv_number)
                 elmofz[slv_number].findZeroSequence = FZ_GOTOZEROPOINT;
                 elmofz[slv_number].initPos = positionElmo[slv_number];
                 positionZeroElmo[slv_number] = (elmofz[slv_number].posEnd + elmofz[slv_number].posStart) * 0.5 + positionZeroModElmo[slv_number];
-                elmofz[slv_number].initTime = control_time_;
+                elmofz[slv_number].initTime = control_time_real_;
                 //std::cout << "on : Motor " << slv_number << " zero point found : " << positionZeroElmo[slv_number] << std::endl;
             }
         }
 
-        if (control_time_ > elmofz[slv_number].initTime + fztime)
+        if (control_time_real_ > elmofz[slv_number].initTime + fztime)
         {
             //If dection timeout, go to failure sequence
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
             elmofz[slv_number].findZeroSequence = 6;
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
@@ -474,7 +485,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
 
         ElmoMode[slv_number] = EM_POSITION;
         positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, elmofz[slv_number].init_direction * 0.3, elmofz[slv_number].initTime, fztime);
-        if (control_time_ > (elmofz[slv_number].initTime + fztime))
+        if (control_time_real_ > (elmofz[slv_number].initTime + fztime))
         {
             positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos + 0.3 * elmofz[slv_number].init_direction, -0.6 * elmofz[slv_number].init_direction, elmofz[slv_number].initTime + fztime, fztime * 2.0);
         }
@@ -483,14 +494,14 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         {
             //std::cout << "homming found ! to sequence 1 ! " << std::endl;
             elmofz[slv_number].findZeroSequence = 1;
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
 
-        if (control_time_ > (elmofz[slv_number].initTime + fztime * 3.0))
+        if (control_time_real_ > (elmofz[slv_number].initTime + fztime * 3.0))
         {
             //If dection timeout, go to failure sequence
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
             elmofz[slv_number].findZeroSequence = 6;
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
@@ -503,7 +514,7 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, positionZeroElmo(slv_number) - elmofz[slv_number].initPos, elmofz[slv_number].initTime, go_to_zero_dur);
 
         //go to zero position
-        if (control_time_ > (elmofz[slv_number].initTime + go_to_zero_dur))
+        if (control_time_real_ > (elmofz[slv_number].initTime + go_to_zero_dur))
         {
             //std::cout << "go to zero complete !" << std::endl;
             //printf("Motor %d %s : Zero Point Found : %8.6f, homming length : %8.6f ! \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str(), positionZeroElmo[slv_number], abs(elmofz[slv_number].posStart - elmofz[slv_number].posEnd));
@@ -527,13 +538,13 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         //find zero point failed
         ElmoMode[slv_number] = EM_POSITION;
         positionDesiredElmo[slv_number] = elmoJointMove(elmofz[slv_number].initPos, elmofz[slv_number].firstPos - elmofz[slv_number].initPos, elmofz[slv_number].initTime, fztime);
-        if (control_time_ > (elmofz[slv_number].initTime + fztime))
+        if (control_time_real_ > (elmofz[slv_number].initTime + fztime))
         {
             elmofz[slv_number].findZeroSequence = 7;
             printf("Motor %d %s : Zero point detection Failed. Manual Detection Required. \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
             pub_to_gui(dc, "jointzp %d %d", slv_number, 2);
             elmofz[slv_number].result = ElmoHommingStatus::FAILURE;
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
         }
     }
     else if (elmofz[slv_number].findZeroSequence == 7)
@@ -543,10 +554,10 @@ void RealRobotInterface::findZeroPoint(int slv_number)
         if (hommingElmo[slv_number] && hommingElmo_before[slv_number])
         {
             elmofz[slv_number].findZeroSequence = 1;
-            elmofz[slv_number].initTime = control_time_;
+            elmofz[slv_number].initTime = control_time_real_;
             elmofz[slv_number].initPos = positionElmo[slv_number];
         }
-        if (control_time_ > (elmofz[slv_number].initTime + fztime_manual))
+        if (control_time_real_ > (elmofz[slv_number].initTime + fztime_manual))
         {
             printf("Motor %d %s :  Manual Detection Failed. \n", slv_number, TOCABI::ELMO_NAME[slv_number].c_str());
             pub_to_gui(dc, "jointzp %d %d", slv_number, 3);
@@ -576,7 +587,7 @@ void RealRobotInterface::ethercatCheck()
 {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::cout << "ethercatCheck Thread Start" << std::endl;
-    while (ros::ok() && (!shutdown_tocabi_bool))
+    while ((!shutdown_tocabi_bool))
     {
         if (inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
         {
@@ -622,7 +633,7 @@ void RealRobotInterface::ethercatCheck()
                         {
                             ec_slave[slave].islost = TRUE;
                             ConnectionUnstableBeforeStart = true;
-                            printf("%sERROR : slave %d lost : %s%s\n", cred.c_str(), slave - 1, TOCABI::ELMO_NAME[slave - 1], creset.c_str());
+                            printf("%sERROR : slave %d lost : %s%s\n", cred.c_str(), slave - 1, TOCABI::ELMO_NAME[slave - 1].c_str(), creset.c_str());
                         }
                     }
                 }
@@ -649,7 +660,7 @@ void RealRobotInterface::ethercatCheck()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    std::cout << cyellow << "checking thread end !" << creset << std::endl;
+    std::cout << cyellow << "Ethercat Check Thread End !" << creset << std::endl;
 }
 
 void RealRobotInterface::ethercatThreadLower()
@@ -829,7 +840,7 @@ void RealRobotInterface::ethercatThread()
                         std::chrono::microseconds cycletime(dc.ctime);
                         int cycle_count = 0;
 
-                        std::chrono::steady_clock::time_point tp[9];
+                        std::chrono::steady_clock::time_point tp[10];
                         std::chrono::steady_clock::time_point time_until;
 
                         std::chrono::duration<double> td[8];
@@ -869,18 +880,30 @@ void RealRobotInterface::ethercatThread()
                             //Ethercat Loop begins :: RT Thread
                             tp[0] = std::chrono::steady_clock::now();
 
-                            //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
-                            /*
-                        while (std::chrono::steady_clock::now() < (t_begin + cycle_count * cycletime))
-                        {
-                            std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-                        }*/
-
                             std::this_thread::sleep_until(st_start_time + cycle_count * cycletime);
 
                             tp[1] = std::chrono::steady_clock::now();
                             time_from_begin = std::chrono::steady_clock::now() - st_start_time;
-                            control_time_ = time_from_begin.count();
+                            control_time_real_ = time_from_begin.count();
+
+                            static bool first = true;
+                            if (first)
+                            {
+                                first = false;
+                            }
+                            else
+                            {
+                                int time_diff = (int)((control_time_real_ - control_time_before_) * 1.0E+6);
+
+                                if ((time_diff > dc.ctime * 1.05) || (time_diff < dc.ctime * 0.95))
+                                {
+                                    std::cout << cred << "Warning : Time is not OK, time diff is : " << time_diff << std::endl;
+                                    std::cout << "current time : " << control_time_real_ << std::endl;
+                                    std::cout << "before time : " << control_time_before_ << std::endl;
+                                    std::cout << "If you check this message, please let junhee know" << std::endl;
+                                }
+                            }
+                            control_time_before_ = control_time_real_;
 
                             /** PDO I/O refresh */
                             //ec_send_processdata();
@@ -904,6 +927,7 @@ void RealRobotInterface::ethercatThread()
                             if (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                             {
                                 std::cout << cred << "## ELMO LOOP INSTABILITY DETECTED ##\n START TIME DELAY :" << -td[0].count() * 1E+6 << " us\n THREAD SYNC TIME : " << td[1].count() * 1E+6 << " us\n RECV ELMO TIME : " << td[3].count() * 1E+6 << " us \t last tick : " << td[5].count() * 1E+6 << " us \t last send process : " << td[6].count() * 1E+6 << " us\n LAST LOOP :" << td[4].count() * 1E+6 << " us\n " << creset << std::endl;
+                                std::cout << cred << "If you see this warning message often, Rebooting tocabi is recommanded" << creset << std::endl;
                                 dc.elmoinstability = true;
                                 if (dc.torqueOn)
                                 {
@@ -916,6 +940,7 @@ void RealRobotInterface::ethercatThread()
 
                                 while (tp[3] > st_start_time + (cycle_count + 1) * cycletime)
                                 {
+
                                     cycle_count++;
                                 }
                             }
@@ -986,11 +1011,10 @@ void RealRobotInterface::ethercatThread()
                                 req_[i] = positionElmo[i] - positionZeroElmo[i];
                             std::copy(velocityElmo.data(), velocityElmo.data() + ec_slavecount, req_dot_);
                             std::copy(positionExternalElmo.data(), positionExternalElmo.data() + ec_slavecount, req_ext_);
+                            std::copy(torqueElmo.data(), torqueElmo.data() + ec_slavecount, req_elmo_);
                             atb_q = true;
 
                             //Get State Seqence End, user controller start
-
-                            dc.torqueElmo = torqueElmo;
                             checkfirst = (stateElmo[19] & al);
 
                             if (shutdown_tocabi_bool || shutdown_tocabi_bool)
@@ -1055,6 +1079,7 @@ void RealRobotInterface::ethercatThread()
                                         if (elmo_zp_log.is_open())
                                         {
                                             getline(elmo_zp_log, tmp);
+                                            elmo_zp_log.close();
                                             last_boot_time = atoi(tmp.c_str());
                                             std::cout << "ECAT BOOT TIME LOADED : " << last_boot_time - (int)(floor(last_boot_time / 1E+5) * 1E+5) << std::endl;
                                         }
@@ -1197,10 +1222,10 @@ void RealRobotInterface::ethercatThread()
                                 //findZeroLeg();
 
                                 elmofz[TOCABI::R_Shoulder3_Joint].findZeroSequence = 7;
-                                elmofz[TOCABI::R_Shoulder3_Joint].initTime = control_time_;
+                                elmofz[TOCABI::R_Shoulder3_Joint].initTime = control_time_real_;
                                 pub_to_gui(dc, "jointzp %d %d", TOCABI::R_Shoulder3_Joint, 2);
                                 elmofz[TOCABI::L_Shoulder3_Joint].findZeroSequence = 7;
-                                elmofz[TOCABI::L_Shoulder3_Joint].initTime = control_time_;
+                                elmofz[TOCABI::L_Shoulder3_Joint].initTime = control_time_real_;
                                 pub_to_gui(dc, "jointzp %d %d", TOCABI::L_Shoulder3_Joint, 2);
 
                                 for (int j = 0; j < ec_slavecount; j++)
@@ -1350,7 +1375,7 @@ void RealRobotInterface::ethercatThread()
                                     if (dc.torqueOn)
                                     {
                                         //If torqueOn command received, torque will increases slowly, for rising_time, which is currently 3 seconds.
-                                        to_ratio = DyrosMath::minmax_cut((control_time_ - dc.torqueOnTime) / rising_time, 0.0, 1.0);
+                                        to_ratio = DyrosMath::minmax_cut((control_time_real_ - dc.torqueOnTime) / rising_time, 0.0, 1.0);
                                         ElmoMode[i] = EM_TORQUE;
                                         dc.t_gain = to_ratio;
 
@@ -1368,7 +1393,7 @@ void RealRobotInterface::ethercatThread()
                                         {
                                             to_calib = 0.0;
                                         }
-                                        to_ratio = DyrosMath::minmax_cut(1.0 - to_calib - (control_time_ - dc.torqueOffTime) / rising_time, 0.0, 1.0);
+                                        to_ratio = DyrosMath::minmax_cut(1.0 - to_calib - (control_time_real_ - dc.torqueOffTime) / rising_time, 0.0, 1.0);
 
                                         dc.t_gain = to_ratio;
 
@@ -1391,7 +1416,7 @@ void RealRobotInterface::ethercatThread()
                             }
                             if (torqueCCEnable)
                             {
-                                if ((control_time_ >= torqueCC_recvt) && (control_time_ < (torqueCC_recvt + torqueCC_comt)))
+                                if ((control_time_real_ >= torqueCC_recvt) && (control_time_real_ < (torqueCC_recvt + torqueCC_comt)))
                                 {
                                     for (int i = 0; i < MODEL_DOF; i++)
                                     {
@@ -1400,7 +1425,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
 
-                                if (control_time_ > (torqueCC_recvt + torqueCC_comt))
+                                if (control_time_real_ > (torqueCC_recvt + torqueCC_comt))
                                 {
                                     torqueCCEnable = false;
                                 }
@@ -1467,7 +1492,9 @@ void RealRobotInterface::ethercatThread()
                                 {
                                     ElmoSafteyMode[i] = 1;
                                     positionSafteyHoldElmo[i] = positionElmo[i];
+                                    pub_to_gui(dc, "Lock %d %s , ELMO Instability ", i, TOCABI::ELMO_NAME[i].c_str());
                                 }
+                                dc.ecat_recovered = false;
                             }
 
                             //Hold position if safety limit breached
@@ -1494,6 +1521,7 @@ void RealRobotInterface::ethercatThread()
                             //std::this_thread::sleep_until(st_start_time + cycle_count * cycletime+ std::chrono::microseconds(250));
                             tp[7] = std::chrono::steady_clock::now();
                             ec_send_processdata();
+                            tp[8] = std::chrono::steady_clock::now();
                             td[6] = std::chrono::steady_clock::now() - tp[7];
                             for (int i = 0; i < ec_slavecount; i++)
                             {
@@ -1517,19 +1545,21 @@ void RealRobotInterface::ethercatThread()
                                     checkPosSafety[i] = true;
                                 }
                             }
-                            tp[8] = std::chrono::steady_clock::now();
+                            tp[9] = std::chrono::steady_clock::now();
                             td[4] = tp[8] - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
                             if (td[4].count() * 1E+6 > 500)
                             {
                                 std::cout << "Loop time exceeded : " << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[2] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[3] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[7] - tp[0]).count() << std::endl;
-                                std::cout << std::chrono::duration_cast<std::chrono::microseconds>(tp[8] - tp[0]).count() << std::endl;
+                                std::cout << "sleep_until" << std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count() << std::endl;
+                                std::cout << "checktime" << std::chrono::duration_cast<std::chrono::microseconds>(tp[2] - tp[1]).count() << std::endl;
+                                std::cout << "ec_receive_processdata()" << std::chrono::duration_cast<std::chrono::microseconds>(tp[3] - tp[2]).count() << std::endl;
+                                std::cout << "getdata & copy" << std::chrono::duration_cast<std::chrono::microseconds>(tp[4] - tp[3]).count() << std::endl;
+                                std::cout << "findzero" << std::chrono::duration_cast<std::chrono::microseconds>(tp[5] - tp[4]).count() << std::endl;
+                                std::cout << "torque copy" << std::chrono::duration_cast<std::chrono::microseconds>(tp[6] - tp[5]).count() << std::endl;
+                                std::cout << "command op" << std::chrono::duration_cast<std::chrono::microseconds>(tp[7] - tp[6]).count() << std::endl;
+                                std::cout << "ec_send_processdata()" << std::chrono::duration_cast<std::chrono::microseconds>(tp[8] - tp[7]).count() << std::endl;
+                                std::cout << "rount to int" << std::chrono::duration_cast<std::chrono::microseconds>(tp[9] - tp[8]).count() << std::endl;
+                                std::cout << "If you check this message, please let junhee know : " << std::endl;
                             }
 
                             d_mean = d_mean + td[4].count();
@@ -1546,15 +1576,15 @@ void RealRobotInterface::ethercatThread()
 
                             c_count++;
 
-                            if (control_time_ > pwait_time)
+                            if (control_time_real_ > pwait_time)
                             {
                                 oct_cnt += oc_cnt;
                                 if (dc.print_delay_info)
                                 {
-                                    printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us, oc : %d, oct : %d \n", control_time_, c_count, d_min * 1.0E+6,
+                                    printf("%3.0f, %d hz SEND min : %5.2f us, max : %5.2f us, avg : %5.2f us RECV min : %5.2f us, max : %5.2f us, avg %5.2f us, oc : %d, oct : %d \n", control_time_real_, c_count, d_min * 1.0E+6,
                                            d_max * 1.0E+6, d_mean / c_count * 1.0E+6, d1_min * 1.0E+6, d1_max * 1.0E+6, d1_mean * 1.0E+6 / c_count, oc_cnt, oct_cnt);
 
-                                    pub_to_gui(dc, "%3.0f : tout : %d, total : %d", control_time_, oc_cnt, oct_cnt);
+                                    pub_to_gui(dc, "%3.0f : tout : %d, total : %d", control_time_real_, oc_cnt, oct_cnt);
 
                                     //int al = 63;
                                     std::bitset<16> stx(stateElmo[0]);
@@ -1570,7 +1600,7 @@ void RealRobotInterface::ethercatThread()
                                         }
                                     }
                                 }
-                                //std::cout << control_time_ << ", " << c_count << std::setprecision(4) << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"
+                                //std::cout << control_time_real_ << ", " << c_count << std::setprecision(4) << " hz, min : " << d_min * 1.0E+6 << " us , max : " << d_max * 1.0E+6 << " us, mean " << d_mean / c_count * 1.0E+6 << " us"
                                 //          << "receive : mean :" << d1_mean / c_count * 1.0E+6 << " max : " << d1_max * 1.0E+6 << " min : " << d1_min * 1.0E+6 << std::endl;
 
                                 d_min = 1000;
@@ -1641,19 +1671,19 @@ double RealRobotInterface::elmoJointMove(double init, double angle, double start
 {
     double des_pos;
 
-    if (control_time_ < start_time)
+    if (control_time_real_ < start_time)
     {
         des_pos = init;
     }
-    else if ((control_time_ >= start_time) && (control_time_ < (start_time + traj_time)))
+    else if ((control_time_real_ >= start_time) && (control_time_real_ < (start_time + traj_time)))
     {
-        des_pos = init + angle * (control_time_ - start_time) / traj_time;
+        des_pos = init + angle * (control_time_real_ - start_time) / traj_time;
     }
-    // else if ((control_time_ >= (start_time + traj_time)) && (control_time_ < (start_time + 3 * traj_time)))
+    // else if ((control_time_real_ >= (start_time + traj_time)) && (control_time_real_ < (start_time + 3 * traj_time)))
     //{
-    //    des_pos = init + angle - 2 * angle * (control_time_ - (start_time + traj_time)) / traj_time;
+    //    des_pos = init + angle - 2 * angle * (control_time_real_ - (start_time + traj_time)) / traj_time;
     //}
-    else if (control_time_ > (start_time + traj_time))
+    else if (control_time_real_ > (start_time + traj_time))
     {
         des_pos = init + angle;
     }
@@ -1663,8 +1693,8 @@ double RealRobotInterface::elmoJointMove(double init, double angle, double start
 
 void RealRobotInterface::imuThread()
 {
+
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time_from_begin;
 
     std::chrono::microseconds cycletime(1000);
@@ -1692,9 +1722,10 @@ void RealRobotInterface::imuThread()
         int cycle_count = 0;
 
         std::cout << "IMU Thread Start ! " << std::endl;
+        std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
         while (!shutdown_tocabi_bool)
         {
-            //std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
+            std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
             cycle_count++;
             //Code here
             //
@@ -1724,9 +1755,16 @@ void RealRobotInterface::imuThread()
 
             imu_ang_vel = ang_vel_lpf;
 
-            imu_lin_acc(0) = imu_msg.linear_acceleration.x;
-            imu_lin_acc(1) = imu_msg.linear_acceleration.y;
-            imu_lin_acc(2) = imu_msg.linear_acceleration.z;
+            Vector3d lin_acc;
+            lin_acc(0) = imu_msg.linear_acceleration.x;
+            lin_acc(1) = imu_msg.linear_acceleration.y;
+            lin_acc(2) = imu_msg.linear_acceleration.z;
+            Vector3d imu_lin_acc_lpf;
+            static Vector3d imu_lin_acc_lpf_before;
+            imu_lin_acc_lpf = DyrosMath::lpf(lin_acc, imu_lin_acc_lpf_before, 1000, 15);
+            imu_lin_acc_lpf_before = imu_lin_acc_lpf;
+
+            imu_lin_acc = imu_lin_acc_lpf;
         }
         mx5.endIMU();
     }
@@ -1735,9 +1773,10 @@ void RealRobotInterface::imuThread()
 }
 void RealRobotInterface::ftsensorThread()
 {
+
     //wait for
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
     std::chrono::duration<double> time_from_begin;
 
     std::chrono::microseconds cycletime(1000);
@@ -1834,7 +1873,59 @@ void RealRobotInterface::ftsensorThread()
                     dc.ftcalib = false;
                 }
 
-                ft.calibrationFTData(ft_calib_finish, rd_.contact_force);
+                double foot_plate_mass = 2.326;
+
+                Matrix6d adt;
+                adt.setIdentity();
+                adt.block(3, 0, 3, 3) = DyrosMath::skm(-(link_local[Right_Foot].contact_point - link_local[Right_Foot].sensor_point)) * Matrix3d::Identity();
+                Matrix6d rotrf;
+                rotrf.setZero();
+                rotrf.block(0, 0, 3, 3) = link_local[Right_Foot].Rotm;
+                rotrf.block(3, 3, 3, 3) = link_local[Right_Foot].Rotm;
+                Vector3d RF_com(-0.0162, 0.00008, -0.1209);
+
+                Vector3d com2cp = link_local[Right_Foot].sensor_point - RF_com;
+
+                Matrix6d adt2;
+                adt2.setIdentity();
+                adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+
+                Vector6d Wrench_foot_plate;
+                Wrench_foot_plate.setZero();
+                Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
+
+                RF_CF_FT = rotrf * adt * RF_FT + adt2 * Wrench_foot_plate;
+
+                Eigen::Vector6d RF_FT_calib = (rotrf * adt).inverse() * (dc.tocabi_.ContactForce.segment(6, 6) - adt2 * Wrench_foot_plate);
+
+                RF_CF_FT_local = rotrf.inverse() * RF_CF_FT;
+
+                adt.setIdentity();
+                adt.block(3, 0, 3, 3) = DyrosMath::skm(-(link_local[Left_Foot].contact_point - link_local[Left_Foot].sensor_point)) * Matrix3d::Identity();
+
+                rotrf.setZero();
+                rotrf.block(0, 0, 3, 3) = link_local[Left_Foot].Rotm;
+                rotrf.block(3, 3, 3, 3) = link_local[Left_Foot].Rotm;
+
+                Vector3d LF_com(-0.0162, -0.00008, -0.1209);
+
+                com2cp = link_local[Left_Foot].contact_point - LF_com;
+
+                adt2.setIdentity();
+                adt2.block(3, 0, 3, 3) = DyrosMath::skm(-com2cp) * Matrix3d::Identity();
+                Wrench_foot_plate.setZero();
+                Wrench_foot_plate(2) = foot_plate_mass * GRAVITY;
+
+                LF_CF_FT = rotrf * adt * LF_FT + adt2 * Wrench_foot_plate;
+
+                Eigen::Vector6d LF_FT_calib = (rotrf * adt).inverse() * (dc.tocabi_.ContactForce.segment(0, 6) - adt2 * Wrench_foot_plate);
+
+                Eigen::Vector12d contact_force_calib;
+
+                contact_force_calib.segment(0, 6) = LF_FT_calib;
+                contact_force_calib.segment(6, 6) = RF_FT_calib;
+
+                ft.calibrationFTData(ft_calib_finish, contact_force_calib);
             }
         }
         else
@@ -1900,14 +1991,15 @@ void RealRobotInterface::ftsensorThread()
         {
         }
     }
-    std::cout << "FTsensor Thread End!" << std::endl;
+
+    std::cout << cyellow << "FTsensor Thread End !" << creset << std::endl;
 }
 
 void RealRobotInterface::handftsensorThread()
 {
     //wait for
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
     std::chrono::duration<double> time_from_begin;
 
     std::chrono::microseconds cycletime(500);
@@ -2043,7 +2135,7 @@ void RealRobotInterface::tcommandCallback(const std_msgs::Float32MultiArrayConst
             std::cout << TOCABI::ELMO_NAME[(int)(msg->data[0])] << " : " << msg->data[1] << " NM for 1 seconds " << std::endl;
             torqueCustomCommand.setZero();
             torqueCustomCommand[(int)(msg->data[0])] = msg->data[1];
-            torqueCC_recvt = control_time_;
+            torqueCC_recvt = control_time_real_;
             torqueCC_comt = 1.0;
             torqueCCEnable = true;
         }
@@ -2060,7 +2152,7 @@ void RealRobotInterface::tcommandCallback(const std_msgs::Float32MultiArrayConst
 
             torqueCustomCommand.setZero();
             torqueCustomCommand[(int)(msg->data[0])] = msg->data[1];
-            torqueCC_recvt = control_time_;
+            torqueCC_recvt = control_time_real_;
             torqueCC_comt = msg->data[2];
             torqueCCEnable = true;
         }

@@ -172,34 +172,34 @@ const double NM2CNT[ELMO_DOF] =
         3.8,
         3.46,
         4.5,
-        12.33,
+        6.0,
         3.3, //upperbody
         3.0, //leftLeg
         4.3,
         3.8,
         3.46,
         4.5,
-        12.33};
+        6.0};
 
 const double jointLimitUp[ELMO_DOF] =
     {
-        1.0, 1.0,
-        1.54, 1, 1, 1.54, 3, 3, 3, 3,
-        3, 3, 3, 3, 1, 3, 3, 1.6,
-        3, 3,
-        0.6, 3, 3, 3, 1, 0.664,
-        3,
+        1.0, 1.0, 
+        1.54, 1, 1, 1.54, 3, 3, 3, 3, 
+        3, 3.5, 3.5, 3, 1, 3, 3, 1.6, 
+        3, 3, 
+        0.6, 3, 3, 3, 1, 0.664, 
+        3, 
         0.6, 3, 3, 3, 1, 0.664};
 
 const double jointLimitLow[ELMO_DOF] =
     {
-        -1.0, -1.0,
-        -1.54, -1, -1, -1.54, -3, -3, -3, -3,
-        -3, -3, -3, -3, -1.6, -3, -3, -1,
-        -3, -3,
-        -0.6, -3, -0.5, -0.5, -0.5, -0.664,
-        -3,
-        -0.6, -3, -0.5, -0.5, -0.5, -0.664};
+        -1.0, -1.0, 
+        -1.54, -1, -1, -1.54, -3, -3, -3, -3, 
+        -3, -3.5, -3.5, -3, -1.6, -3, -3, -1, 
+        -3, -3, 
+        -0.6, -3, -1.5, -0.5, -1.0, -0.664, 
+        -3, 
+        -0.6, -3, -1.5, -0.5, -1.0, -0.664};
 
 const int positionExternalModElmo[ELMO_DOF] =
     {
@@ -346,8 +346,7 @@ class RealRobotInterface : public StateManager
 {
 public:
     RealRobotInterface(DataContainer &dc_global);
-    virtual ~RealRobotInterface() {}
-
+    virtual ~RealRobotInterface();
     //update state of Robot from mujoco
     virtual void updateState() override;
 
@@ -422,8 +421,8 @@ public:
     double ELMO_NM2CNT[ELMO_DOF];
     //int ElmoState[ELMO_DOF];
     //int ElmoState_before[ELMO_DOF];
-    fstream file_homming;
-    fstream ft_sensor;
+    //fstream file_homming;
+    //fstream ft_sensor;
     fstream elmo_zp;
     fstream elmo_zp_log;
     fstream ft_init_log;
@@ -464,10 +463,12 @@ public:
     double rq_[MODEL_DOF];
     double rq_ext_[MODEL_DOF];
     double rq_dot_[MODEL_DOF];
+    double rq_elmo_[MODEL_DOF];
 
     double req_[MODEL_DOF];
     double req_ext_[MODEL_DOF];
     double req_dot_[MODEL_DOF];
+    double req_elmo_[MODEL_DOF];
 
     int stateElmo[ELMO_DOF];
     int stateElmo_before[ELMO_DOF];
@@ -475,6 +476,8 @@ public:
     bool torqueCCEnable;
     double torqueCC_recvt;
     double torqueCC_comt;
+
+    double control_time_real_;
 
     bool hommingElmo[ELMO_DOF];
     bool hommingElmo_before[ELMO_DOF];
