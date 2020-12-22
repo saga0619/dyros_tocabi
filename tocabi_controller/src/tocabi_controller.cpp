@@ -437,20 +437,20 @@ void TocabiController::dynamicsThreadHigh()
                     dc.set_q_init = false;
                 }
                 if (dc.positionGravControl)
-                { 
-                    if(dc.positionDobControl)
+                {
+                    if (dc.positionDobControl)
                     {
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
                             torque_desired(i) = dc.torque_dist(i) + tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
-                        }     
+                        }
                     }
                     else
                     {
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
                             torque_desired(i) = tocabi_.torque_grav_cc(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
-                        }     
+                        }
                     }
                 }
                 else if (dc.position_command_ext)
@@ -476,11 +476,11 @@ void TocabiController::dynamicsThreadHigh()
                 }
                 else
                 {
-                    if(dc.positionDobControl)
+                    if (dc.positionDobControl)
                     {
                         for (int i = 0; i < MODEL_DOF; i++)
                         {
-                            torque_desired(i) =  dc.torque_dist(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
+                            torque_desired(i) = dc.torque_dist(i) + dc.tocabi_.Kps[i] * (tocabi_.q_desired_(i) - tocabi_.q_(i)) - dc.tocabi_.Kvs[i] * (tocabi_.q_dot_virtual_(i + 6));
                         }
                     }
                     else
@@ -866,7 +866,7 @@ void TocabiController::dynamicsThreadLow()
                     std::cout << "current ct : " << control_time_ << " cmd t : " << tc.command_time << " trj t: " << tc.traj_time << std::endl;
                     if (tque_msg.tque.size() > 0)
                     {
-   
+
                         tocabi_controller::TaskCommand tc_temp = tque_msg.tque[0];
                         tque_msg.tque.erase(tque_msg.tque.begin());
                         gettaskcommand(tc_temp);

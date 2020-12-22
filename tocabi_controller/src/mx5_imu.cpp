@@ -556,15 +556,15 @@ void MX5IMU::checkIMUData()
 
     if (abs(w[0]) > 0.1)
     {
-        std::cout<<"roll error !"<<std::endl;
+        std::cout << "roll error !" << std::endl;
     }
     else if (abs(w[1]) > 0.1)
     {
-        std::cout<<"pitch error !"<<std::endl;
+        std::cout << "pitch error !" << std::endl;
     }
     else if (abs(w[2]) > 0.1)
     {
-        std::cout<<"yaw error !"<<std::endl;
+        std::cout << "yaw error !" << std::endl;
     }
 
     //imu_pub_msg_before.orientation.

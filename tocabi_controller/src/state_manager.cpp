@@ -1349,7 +1349,6 @@ void StateManager::stateEstimate()
         quat_before = imu_quat;
         rfzb = RF_CF_FT(2) / (-com_.mass * GRAVITY);
         lfzb = LF_CF_FT(2) / (-com_.mass * GRAVITY);
-
     }
     else
     {
@@ -1544,9 +1543,9 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         }
         dc.positionGravControl = !dc.positionGravControl;
     }
-    else if(msg->data == "positiondobcontrol")
+    else if (msg->data == "positiondobcontrol")
     {
-        if(!dc.positionDobControl)
+        if (!dc.positionDobControl)
         {
             std::cout << "Joint Dob position control : on " << std::endl;
         }

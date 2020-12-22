@@ -1774,26 +1774,25 @@ void RealRobotInterface::ftsensorThread()
         cycle_count++;
 
         ft.analogOversample();
-        
+
         string tmp;
         int i = 0;
 
-        if(ft_init_load == false)
+        if (ft_init_load == false)
         {
             ft_init_log.open(ft_init_path, ios_base::in);
 
-            if(ft_init_log.is_open())
+            if (ft_init_log.is_open())
             {
-                while(getline(ft_init_log, tmp))
+                while (getline(ft_init_log, tmp))
                 {
-                    if(i<6)
+                    if (i < 6)
                     {
                         ft.leftFootBias[i] = atof(tmp.c_str());
                     }
                     else
                     {
-                        ft.rightFootBias[i-6] = atof(tmp.c_str());
-
+                        ft.rightFootBias[i - 6] = atof(tmp.c_str());
                     }
                     i++;
                 }
@@ -1819,7 +1818,7 @@ void RealRobotInterface::ftsensorThread()
                 ft_calib_finish = false;
                 ft_calib_ui = false;
 
-                for(int i = 0; i < 6; i++)
+                for (int i = 0; i < 6; i++)
                 {
                     ft._calibLFTData[i] = 0.0;
                     ft._calibRFTData[i] = 0.0;
@@ -1842,7 +1841,6 @@ void RealRobotInterface::ftsensorThread()
         {
             if (ft_calib_finish == false)
             {
-                
             }
             else
             {

@@ -33,7 +33,6 @@ public:
   void tuiThread();
   void testThread();
 
-
   void TaskCommandCallback(const tocabi_controller::TaskCommandConstPtr &msg);
   void TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg);
   void TaskGainCallback(const tocabi_controller::TaskGainCommandConstPtr &msg);

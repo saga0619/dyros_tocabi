@@ -126,7 +126,7 @@ public:
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
   Eigen::MatrixXd A_temp_;
-  
+
   Eigen::Vector7d q_virtual_hold;
 
   Eigen::MatrixVVd Motor_inertia_;
@@ -149,7 +149,6 @@ public:
   Eigen::Vector3d RF_CP_est, LF_CP_est;
 
   bool RF_Contact, LF_Contact;
-  
 
   double rf_s_ratio, lf_s_ratio;
   std::chrono::steady_clock::time_point st_start_time;
@@ -181,7 +180,6 @@ public:
 
   Eigen::Vector3d rf_contactpoint;
   Eigen::Vector3d lf_contactpoint;
-
 
   geometry_msgs::PolygonStamped supportpolygon;
   ros::Publisher tgainPublisher;
