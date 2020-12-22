@@ -673,14 +673,14 @@ void StateManager::initialize()
 
 void StateManager::storeState()
 {
-    /*
+    
     while (dc.atb_dc && (!shutdown_tocabi_bool))
     {
         std::this_thread::sleep_for(std::chrono::microseconds(5));
     }
     dc.atb_dc = true;
 
-*/
+
     for (int i = 0; i < LINK_NUMBER + 1; i++)
     {
         dc.link_[i] = link_[i];
