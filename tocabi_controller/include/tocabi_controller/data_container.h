@@ -34,6 +34,10 @@ class DataContainer
 {
 public:
   ros::NodeHandle nh;
+
+
+  std::atomic_bool atb_dc = false;
+
   //Basic var
   bool simulation = true;
   bool connected = false;
@@ -69,13 +73,17 @@ public:
   bool dynamics_end;
   int t_que = 0;
 
-  int dob_detect = -2;
+  int dob_detect_left = -2;
+  int dob_detect_right = -2;
 
   std::chrono::steady_clock::time_point start_time_point;
 
   double time;
   double com_time;
   double sim_time;
+
+  int dyn_cnt;
+  int sta_cnt;
 
   int dym_hz;
   std::chrono::microseconds dym_timestep;
@@ -95,6 +103,8 @@ public:
   Eigen::VectorQd q_dot_est_;
   Eigen::VectorQd q_dot_est_1;
   Eigen::VectorQd q_hold_lower_;
+  Eigen::VectorQd torque_elmo_;
+
   //Kinematics Information :
   Link link_[LINK_NUMBER + 1];
 
@@ -215,6 +225,7 @@ public:
   std_msgs::String statusPubMsg;
   ros::Publisher rgbPub;
   std_msgs::Int32MultiArray rgbPubMsg;
+  std_msgs::Int32MultiArray rgbPubMsg_before;
 };
 
 static volatile sig_atomic_t shutdown_tocabi = 0;

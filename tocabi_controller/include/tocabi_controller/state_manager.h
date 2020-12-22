@@ -15,6 +15,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/transform_datatypes.h>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <std_msgs/Float32MultiArray.h>
 
 extern std::mutex mtx;
 extern std::mutex mtx_rbdl;
@@ -31,7 +32,7 @@ class StateManager
 {
 public:
   StateManager(DataContainer &dc_global);
-  virtual ~StateManager() {}
+  virtual ~StateManager();
   DataContainer &dc;
   virtual void connect();
   virtual void stateThread(); //main thread managing state
@@ -63,6 +64,7 @@ public:
   //advertise informations to ROS
   void adv2ROS();
 
+  void updateKinematics_local(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
   //update kinematic information with RBDL
   void updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
 
@@ -78,6 +80,8 @@ public:
 
   void sendStateToGui();
 
+  void motorInertia();
+
   //Set Position Joint PD Gain
   void SetPositionPDGainMatrix();
 
@@ -85,6 +89,9 @@ public:
 
   double control_time_;
   double control_time_before_;
+
+  double control_time_c_stamp;
+
   double sim_time_;
 
   int data_received_counter_;
@@ -111,6 +118,7 @@ public:
   Eigen::VectorQd q_ext_;
   Eigen::VectorQd torque_desired;
   Eigen::VectorVQd tau_nonlinear_;
+  Eigen::VectorQd torque_elmo_;
 
   bool velEst = false;
 
@@ -149,7 +157,6 @@ public:
   Eigen::Vector3d RF_CP_est, LF_CP_est;
 
   bool RF_Contact, LF_Contact;
-  
 
   double rf_s_ratio, lf_s_ratio;
   std::chrono::steady_clock::time_point st_start_time;
@@ -173,6 +180,7 @@ public:
   ros::Publisher motor_info_pub;
   ros::Publisher motor_acc_dif_info_pub;
   ros::Publisher point_pub;
+  ros::Publisher point2_pub;
   ros::Publisher support_polygon_pub;
   ros::Publisher gui_state_pub;
 
@@ -181,7 +189,6 @@ public:
 
   Eigen::Vector3d rf_contactpoint;
   Eigen::Vector3d lf_contactpoint;
-
 
   geometry_msgs::PolygonStamped supportpolygon;
   ros::Publisher tgainPublisher;
@@ -192,6 +199,7 @@ public:
   tocabi_controller::MotorInfo motor_info_msg;
   tocabi_controller::MotorInfo acc_dif_info_msg;
   geometry_msgs::PolygonStamped pointpub_msg;
+  std_msgs::Float32MultiArray fr_msg;
 
   void CommandCallback(const std_msgs::StringConstPtr &msg);
   void PinocchioCallback(const tocabi_controller::model &msg);

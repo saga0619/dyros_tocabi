@@ -13,7 +13,7 @@ class TocabiController
 {
 public:
   TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm);
-
+  ~TocabiController();
   DataContainer &dc;
   CustomController &mycontroller;
   TaskCommand tc;
@@ -74,6 +74,7 @@ private:
 
   bool safetymode;
 
+  bool loop_pass = false;
   bool task_switch = false;
   bool task_que_switch = false;
   bool task_que_start = false;

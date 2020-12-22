@@ -1280,7 +1280,7 @@ void Walking_controller::comVibrationController(RobotData &Robot)
 
                 xy_vib_est = Ay_vib*xy_vib_est/Hz_ + xy_vib_est + By_vib*uy_vib/Hz_ + L2*(yy_vibm-yy_vib)/Hz_;
             }    
-
+          
             PELV_trajectory_float.translation()(0) = com_refx(walking_tick) - 5.5/*0.9*/ * (Robot.com_.pos(0)-(-PELV_float_init.translation()(0)+COM_float_init.translation()(0))-com_refx(walking_tick));
             PELV_trajectory_float.translation()(1) = com_refy(walking_tick) - 3.0/*0.9*/ * (Robot.com_.pos(1)- com_refy(walking_tick));
         }

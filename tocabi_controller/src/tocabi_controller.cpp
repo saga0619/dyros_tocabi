@@ -18,6 +18,8 @@ std::mutex mtx_ncurse;
 std::atomic_bool task_recv = false;
 std::atomic_bool taskque_recv = false;
 
+std::chrono::duration<double> td_gs[5];
+
 TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, DynamicsManager &dm) : dc(dc_global), s_(sm), d_(dm), tocabi_(dc_global.tocabi_), wbc_(dc_global.wbc_), mycontroller(*(new CustomController(dc_global, dc_global.tocabi_)))
 {
     initialize();
@@ -26,6 +28,11 @@ TocabiController::TocabiController(DataContainer &dc_global, StateManager &sm, D
     taskgain_sub = dc.nh.subscribe("/tocabi/taskgaincommand", 100, &TocabiController::TaskGainCallback, this);
     vel_command_sub = dc.nh.subscribe("/tocabi/velcommand", 100, &TocabiController::VelocityCommandCallback, this);
     position_command_sub = dc.nh.subscribe("/tocabi/positioncommand", 100, &TocabiController::PositionCommandCallback, this);
+}
+
+TocabiController::~TocabiController()
+{
+    std::cout << "TC Destructor" << std::endl;
 }
 
 void TocabiController::GetTaskCommand()
@@ -83,8 +90,17 @@ void TocabiController::PositionCommandCallback(const tocabi_controller::position
         dc.positionDesiredExt(i) = msg->position[i];
     dc.position_command_time = control_time_;
     dc.position_traj_time = msg->traj_time;
+    dc.tocabi_.task_control_switch = false;
     dc.position_command_ext = true;
     dc.pext_gravity = msg->gravity;
+
+    if (msg->relative)
+    {
+        for (int i = 0; i < MODEL_DOF; i++)
+        {
+            dc.positionDesiredExt(i) = tocabi_.q_(i) + msg->position[i];
+        }
+    }
 }
 VectorQd TocabiController::positionCommandExt(double control_time, double traj_time, VectorQd current_pos, VectorQd desired_pos)
 {
@@ -290,7 +306,7 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.contactredis = msg.contactredis;
     tocabi_.contact_redistribution_mode = tc.contactredis;
     tc.solver = msg.solver;
-
+    tocabi_.init_qp = true;
     tc.custom_taskgain = msg.customTaskGain;
     tc.pos_p = msg.pos_p;
     tc.pos_d = msg.pos_d;
@@ -388,6 +404,16 @@ void TocabiController::gettaskcommand(tocabi_controller::TaskCommand &msg)
     tc.link_contact[1] = msg.right_foot;
     tc.link_contact[2] = msg.left_hand;
     tc.link_contact[3] = msg.right_hand;
+
+    if (tc.mode < 10)
+    {
+        if (dc.positionControl)
+        {
+            dc.positionControl = false;
+            dc.position_command_ext = false;
+            std::cout << "PositionControl Disabled By Task Command" << std::endl;
+        }
+    }
 
     if (dc.print_data_ready)
     {
@@ -574,12 +600,11 @@ void TocabiController::dynamicsThreadLow()
         r.sleep();
     }
 
-    std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
     std::chrono::seconds sec1(1);
 
-    std::chrono::duration<double> sec = std::chrono::high_resolution_clock::now() - start_time;
     bool display = false;
-    std::chrono::high_resolution_clock::time_point start_time2 = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point start_time2 = std::chrono::steady_clock::now();
 
     int contact_number = 2;
     int link_id[contact_number];
@@ -669,7 +694,7 @@ void TocabiController::dynamicsThreadLow()
     tocabi_.TaskForce.setZero(6);
 
     std::chrono::steady_clock::time_point tp[6];
-    std::chrono::duration<double> td[7];
+    std::chrono::duration<double> td[10];
 
     dc.nh.getParam("/tocabi_controller/TaskGainPCOM", dc.tocabi_.v_com_kp);
     dc.nh.getParam("/tocabi_controller/TaskGainDCOM", dc.tocabi_.v_com_kv);
@@ -746,18 +771,23 @@ void TocabiController::dynamicsThreadLow()
         tocabi_.link_[Left_Hand].acc_p_gain = accp_;
     }
 
+    double td_avg[12];
+    for (int i = 0; i < 9; i++)
+        td_avg[i] = 0.0;
+    int td_cnt = 0;
     //Control Loop Start
     while ((!shutdown_tocabi_bool))
     {
         static double est;
-        std::chrono::high_resolution_clock::time_point dyn_loop_start = std::chrono::high_resolution_clock::now();
+        std::chrono::steady_clock::time_point dyn_loop_start = std::chrono::steady_clock::now();
+
         dynthread_cnt++;
 
-        td[0] = tp[1] - tp[0];
-        td[1] = tp[2] - tp[1];
-        td[2] = tp[3] - tp[2];
-        td[3] = tp[4] - tp[3];
-        td[4] = tp[5] - tp[4];
+        loop_pass = true;
+        while (loop_pass && (!shutdown_tocabi_bool))
+        {
+            getState();
+        }
 
         if (control_time_ == 0)
         {
@@ -768,14 +798,15 @@ void TocabiController::dynamicsThreadLow()
         }
         if ((dyn_loop_start - start_time2) > sec1)
         {
-            start_time2 = std::chrono::high_resolution_clock::now();
+            start_time2 = std::chrono::steady_clock::now();
             if (dc.checkfreqency)
             {
                 ss.str("");
-                ss << "dynamics thread : " << dynthread_cnt << " hz, time : " << est; //<< std::endl;
+                static int stac = 0;
+                ss << "dyn : " << dynthread_cnt<<" hz, stn : " << dc.sta_cnt -stac<< " hz, time : " << est; //<< std::endl;
+                stac = dc.sta_cnt;
                 //dc.statusPubMsg.data = ss.str();
                 pub_to_gui(dc, ss.str().c_str());
-                //dc.statusPub.publish(dc.statusPubMsg);
             }
             if (dc.print_delay_info)
             {
@@ -784,9 +815,6 @@ void TocabiController::dynamicsThreadLow()
             dynthread_cnt = 0;
             est = 0;
         }
-        tp[0] = std::chrono::steady_clock::now();
-        getState(); //link data override
-        tp[1] = std::chrono::steady_clock::now();
         GetTaskCommand();
 
         wbc_.update(tocabi_);
@@ -825,9 +853,6 @@ void TocabiController::dynamicsThreadLow()
             tocabi_.link_[Right_Hand].acc_p_gain = accp_;
             tocabi_.link_[Left_Hand].acc_p_gain = accp_;
         }
-
-        tp[2] = std::chrono::steady_clock::now();
-        sec = std::chrono::high_resolution_clock::now() - start_time;
         if (tc.custom_taskgain)
             customgainhandle();
 
@@ -854,6 +879,7 @@ void TocabiController::dynamicsThreadLow()
             std::cout << "Gravity compensation only !" << std::endl;
             tocabi_.task_control_switch = false;
             dc.positionControl = false;
+            dc.position_command_ext = false;
             dc.signal_gravityCompensation = false;
         }
 
@@ -898,9 +924,15 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
+                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
                 tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
-                tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
-                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+                //tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
+                //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+
+                torque_task = wbc_.task_control_torque_hqp_step(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                tocabi_.contact_redistribution_mode = 2;
                 torque_grav.setZero();
             }
             else if (tc.mode == 1) //COM with rotation
@@ -923,7 +955,6 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
                 tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
-
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();
@@ -1100,7 +1131,67 @@ void TocabiController::dynamicsThreadLow()
                 /* 
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
-                wbc_.set_contact(tocabi_, tc.link_contact[0], tc.link_contact[1], tc.link_contact[2], tc.link_contact[3]);
+                if (tc.task_init)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (tocabi_.ee_[i].contact != tc.link_contact[i])
+                        {
+                            if (tc.link_contact[i])
+                            {
+                                if (tocabi_.ee_[i].contact_transition_mode == -1)
+                                {
+                                    std::cout << i << " : Contact Enable Sequence " << std::endl;
+                                    tocabi_.ee_[i].contact_transition_mode = 1;
+                                    tocabi_.ee_[i].contact_time = tocabi_.control_time_;
+                                }
+                            }
+                            else
+                            {
+                                if (tocabi_.ee_[i].contact_transition_mode == -1)
+                                {
+                                    std::cout << i << " : Contact Disable Sequence " << std::endl;
+                                    tocabi_.ee_[i].contact_transition_mode = 0;
+                                    tocabi_.ee_[i].contact_time = tocabi_.control_time_;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            tocabi_.ee_[i].contact_transition_mode = -1;
+                        }
+                    }
+                    tc.task_init = false;
+                }
+
+                bool cc_[4];
+
+                for (int i = 0; i < 4; i++)
+                {
+
+                    if (tocabi_.ee_[i].contact_transition_mode == 0)
+                    {
+                        cc_[i] = true;
+                        if (tocabi_.control_time_ > (tocabi_.ee_[i].contact_time + tocabi_.contact_transition_time))
+                        {
+                            tocabi_.ee_[i].contact_transition_mode = -1;
+                        }
+                    }
+                    else if (tocabi_.ee_[i].contact_transition_mode == 1)
+                    {
+                        cc_[i] = true;
+                        if (tocabi_.control_time_ > (tocabi_.ee_[i].contact_time + tocabi_.contact_transition_time))
+                        {
+                            tocabi_.ee_[i].contact_transition_mode = -1;
+                        }
+                    }
+                    else
+                    {
+                        cc_[i] = tc.link_contact[i];
+                    }
+                }
+
+                wbc_.set_contact(tocabi_, cc_[0], cc_[1], cc_[2], cc_[3]);
                 //torque_grav = wbc_.gravity_compensation_torque(tocabi_);
 
                 int task_number = 6;
@@ -1120,6 +1211,10 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 3) = wbc_.getfstar_tra(tocabi_, COM_id);
                 tocabi_.f_star.segment(3, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
+                if ((tc.ratio == 0) && (tc.height == 0))
+                {
+                    tocabi_.f_star.setZero();
+                }
                 tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
 
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
@@ -1468,7 +1563,6 @@ void TocabiController::dynamicsThreadLow()
 
                 //
 
-                /*
                 static int step_cnt = -1;
                 static int step_cnt_before = -1;
 
@@ -1867,7 +1961,7 @@ void TocabiController::dynamicsThreadLow()
                 //tocabi_.ZMP_desired2(0) = int_y;
                 zmp_desired_before.segment(0, 2) = zmp_desired;
                 first_loop = false;
-                step_cnt_before = step_cnt;*/
+                step_cnt_before = step_cnt;
             }
             else if (tc.mode == 9)
             {
@@ -1976,15 +2070,6 @@ void TocabiController::dynamicsThreadLow()
                 }
             }
 
-            Eigen::Matrix3d tm;
-            tm = tocabi_.link_[Right_Foot].Rotm;
-            tf2::Matrix3x3 m(tm(0, 0), tm(0, 1), tm(0, 2), tm(1, 0), tm(1, 1), tm(1, 2), tm(2, 0), tm(2, 1), tm(2, 2));
-            double ltr, ltp, lty;
-            m.getRPY(ltr, ltp, lty);
-
-            //std::cout << "q_ext - q_int of R_hip Roll : " << dc.q_(7) - dc.q_ext_(7) << std::endl;
-            //std::cout << "lamb y : " << tocabi_.lambda(1, 1) << " f* y : " << tocabi_.f_star(1) << "   R grav_torq : " << tocabi_.torque_grav(7) << " total_torq : " << torque_task(7) << "  Rf roll" << ltr * 180 / 3.141592 << std::endl;
-
             if (dc.print_data_ready)
             {
                 dc.data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
@@ -2013,17 +2098,13 @@ void TocabiController::dynamicsThreadLow()
                     }
                 }
             }
-            //std::cout << control_time_ << " COM Fy : " << Fs(1) << std::endl;
         }
         else
         {
             wbc_.set_contact(tocabi_, 1, 1);
-            tp[3] = std::chrono::steady_clock::now();
             torque_grav = wbc_.gravity_compensation_torque(tocabi_);
-            //torque_grav = wbc_.task_control_torque_QP_gravity(red_);
         }
 
-        tp[4] = std::chrono::steady_clock::now();
         TorqueDesiredLocal = torque_grav + torque_task;
 
         if (dc.signal_contactTorqueRedistribution)
@@ -2050,7 +2131,6 @@ void TocabiController::dynamicsThreadLow()
             TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
         tocabi_.torque_contact = TorqueContact;
-        tp[5] = std::chrono::steady_clock::now();
         ///////////////////////////////////////////////////////////////////////////////////////
         //////////////////              Controller Code End             ///////////////////////
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -2067,46 +2147,74 @@ void TocabiController::dynamicsThreadLow()
 
         mtx.unlock();
 
-        //wbc_.task_control_torque(J_task,Eigen)
-        //wbc_.get_contact_force(TorqueDesiredLocal);
-        //tocabi_.ZMP_local = wbc_.GetZMPpos();
-
-        //VectorXd contactforce_custom = Robot.J_C_INV_T * Robot.Slc_k_T * torque_desired - Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse * Robot.G;
-
         tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
-        //std::cout << "Contact Force With : " << std::endl
-        //          << tocabi_.ContactForce.transpose() << std::endl;
-        tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
-        double qddot_err_size = (tocabi_.q_ddot_estimate_ - tocabi_.q_ddot_virtual_.segment(6, MODEL_DOF)).norm();
-        //std::cout << control_time_ << "qddot error : " << tocabi_.q_dot_diff_(5) / 0.0005 << " q_ddot from sim : " << tocabi_.q_ddot_virtual_(5) << " qddotes size : " << tocabi_.q_ddot_estimate_(5) << std::endl;
 
-        if (dc.showdata)
+        for (int i = 0; i < 2; i++)
         {
-
-            wbc_.fstar_regulation(tocabi_, tocabi_.f_star);
-            dc.showdata = false;
+            if (tocabi_.ee_[i].contact)
+            {
+                tocabi_.ee_[i].contact_accuracy = abs((tocabi_.ee_[i].contact_force.segment(0, 3).norm() - tocabi_.ee_[i].contact_force_ft.segment(0, 3).norm()) / tocabi_.ee_[i].contact_force.segment(0, 3).norm());
+            }
+            else
+            {
+                tocabi_.ee_[i].contact_accuracy = 0;
+            }
         }
+
         tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
         tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);
         //tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(0) * 9.8 - tocabi_.com_.pos(2) * tocabi_.link_[COM_id].a_traj(0)) / 9.8;
         tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81;
         tocabi_.ZMP_eqn_calc(1) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81 + tocabi_.com_.angular_momentum(0) / (tocabi_.com_.mass * 9.81);
         tocabi_.ZMP_eqn_calc(2) = 0.0;
-        //std::cout << "ZMP desired : " << tocabi_.ZMP_desired(1) << "\tZMP ft : " << tocabi_.ZMP_ft(1) << "\tZMP error : " << tocabi_.ZMP_error(1) << std::endl;
-        //std::cout << "zmp error x : "<< zmp1(0) <<"  y : "<< zmp1(1)<<std::endl;
-
-        //VectorXd tau_coriolis;
-        //RigidBodyDynamics::NonlinearEffects(model_,tocabi_.q_virtual_,tocabi_.q_dot_virtual_,tau_coriolis)
 
         if (shutdown_tocabi_bool)
             break;
         first = false;
 
-        std::chrono::duration<double> elapsed_time = std::chrono::high_resolution_clock::now() - dyn_loop_start;
+        std::chrono::duration<double> elapsed_time = std::chrono::steady_clock::now() - dyn_loop_start;
 
         est += elapsed_time.count();
 
-        //std::this_thread::sleep_until(dyn_loop_start + dc.dym_timestep);
+        if (dc.showdata)
+        {
+
+            //wbc_.fstar_regulation(tocabi_, tocabi_.f_star);
+            /*
+            std::chrono::steady_clock::time_point tp_pinv = std::chrono::steady_clock::now();
+            DyrosMath::pinv_SVD(tocabi_.W);
+            std::chrono::duration<double> pinv_time = std::chrono::steady_clock::now() - tp_pinv;
+            double time_base = pinv_time.count();
+
+            std::cout << "pinv eigen SVD  : " << pinv_time.count() * 1000.0 << std::endl;
+
+            tp_pinv = std::chrono::steady_clock::now();
+            DyrosMath::pinv_QR2(tocabi_.W);
+            pinv_time = std::chrono::steady_clock::now() - tp_pinv;
+            std::cout << "pinv eigen QR : " << pinv_time.count() * 1000.0 << "  " << pinv_time.count() / time_base * 100 << " %" << std::endl;
+
+            tp_pinv = std::chrono::steady_clock::now();
+            DyrosMath::pinv_glsSVD(tocabi_.W);
+            pinv_time = std::chrono::steady_clock::now() - tp_pinv;
+            std::cout << "pinv gls SVD : " << pinv_time.count() * 1000.0 << "  " << pinv_time.count() / time_base * 100 << " %" << std::endl;
+
+            tp_pinv = std::chrono::steady_clock::now();
+            DyrosMath::pinv_glsQR2(tocabi_.W);
+            pinv_time = std::chrono::steady_clock::now() - tp_pinv;
+            std::cout << "pinv gls QR : " << pinv_time.count() * 1000.0 << "  " << pinv_time.count() / time_base * 100 << " %" << std::endl;
+*/
+            //std::cout << "test" << std::endl
+            //          << DyrosMath::pinv_QR2(tocabi_.W) - DyrosMath::pinv_glsQR2(tocabi_.W) << std::endl;
+
+            for (int i = 0; i < 9; i++)
+            {
+                std::cout << "td" << i << "  " << td[i].count() * 1000 << std::endl;
+            }
+
+            std::cout << elapsed_time.count() * 1000 << "ms !!" << std::endl;
+
+            dc.showdata = false;
+        }
     }
     std::cout << cyellow << "Dynamics Slow Thread End !" << creset << std::endl;
 }
@@ -2292,7 +2400,6 @@ void TocabiController::tuiThread()
         int tg2 = (255 - 63) * dc.t_gain;
 
         dc.rgbPubMsg.data = {0, 0, tg1, 0, 0, tg1, 0, 0, 63 + tg2, 0, 0, 63 + tg2, 0, 0, tg1, 0, 0, tg1};
-        dc.rgbPub.publish(dc.rgbPubMsg);
 
         if (dc.safetyison)
         {
@@ -2316,7 +2423,6 @@ void TocabiController::tuiThread()
                 dc.rgbPubMsg.data[16] = 0;
                 dc.rgbPubMsg.data[17] = 0;
             }
-            dc.rgbPub.publish(dc.rgbPubMsg);
         }
 
         if (dc.elmoinstability)
@@ -2341,9 +2447,25 @@ void TocabiController::tuiThread()
                 dc.rgbPubMsg.data[16] = 0;
                 dc.rgbPubMsg.data[17] = 0;
             }
+        }
+
+        bool diff = false;
+
+        for (int i = 0; i < 18; i++)
+        {
+            if (dc.rgbPubMsg_before.data[i] != dc.rgbPubMsg.data[i])
+            {
+                diff = true;
+                break;
+            }
+        }
+
+        if (diff)
+        {
             dc.rgbPub.publish(dc.rgbPubMsg);
         }
 
+        dc.rgbPubMsg_before = dc.rgbPubMsg;
         before_time = control_time_;
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
         //std::cout<<control_time_<<"tui test"<<std::endl;
@@ -2356,87 +2478,91 @@ void TocabiController::tuiThread()
 
 void TocabiController::getState()
 {
-    int count = 0;
-    if (dc.testmode == false)
+    while (dc.atb_dc && (!shutdown_tocabi_bool))
     {
-        while ((time == dc.time) && (!shutdown_tocabi_bool))
-        {
-            std::this_thread::sleep_for(std::chrono::microseconds(1));
-            count++;
-        }
+        std::this_thread::sleep_for(std::chrono::microseconds(5));
     }
-    mtx_dc.lock();
+    dc.atb_dc = true;
 
     time = dc.time;
-    control_time_ = dc.time;
-    sim_time = dc.sim_time;
-    dym_hz = dc.dym_hz;
-    stm_hz = dc.stm_hz;
-    //q_ = dc.q_;
-    //q_virtual_ = dc.q_virtual_;
-    //q_dot_ = dc.q_dot_;
-    //q_dot_virtual_ = dc.q_dot_virtual_;
-    //q_ddot_virtual_ = dc.q_ddot_virtual_;
-    torque_ = dc.torque_;
-    tocabi_.d_time_ = dc.time - tocabi_.control_time_;
-    tocabi_.control_time_ = dc.time;
-    tocabi_.q_ = dc.q_;
-    tocabi_.q_virtual_ = dc.q_virtual_;
-    tocabi_.q_dot_ = dc.q_dot_virtual_.segment(6, MODEL_DOF);
-    tocabi_.q_dot_virtual_ = dc.q_dot_virtual_;
-    tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
-    tocabi_.q_dot_diff_ = tocabi_.q_dot_ - tocabi_.q_dot_before_;
-    tocabi_.q_dot_before_ = tocabi_.q_dot_;
-    tocabi_.q_dot_virtual_lpf_ = dc.q_dot_virtual_lpf;
 
-    static bool first_run = true;
-    if (first_run)
+    if (control_time_ != time)
     {
+        control_time_ = dc.time;
+        sim_time = dc.sim_time;
+        dym_hz = dc.dym_hz;
+        stm_hz = dc.stm_hz;
+        //q_ = dc.q_;
+        //q_virtual_ = dc.q_virtual_;
+        //q_dot_ = dc.q_dot_;
+        //q_dot_virtual_ = dc.q_dot_virtual_;
+        //q_ddot_virtual_ = dc.q_ddot_virtual_;
+        torque_ = dc.torque_;
+        tocabi_.d_time_ = dc.time - tocabi_.control_time_;
+        tocabi_.control_time_ = dc.time;
+        tocabi_.q_ = dc.q_;
+        tocabi_.q_virtual_ = dc.q_virtual_;
+        tocabi_.q_dot_ = dc.q_dot_virtual_.segment(6, MODEL_DOF);
+        tocabi_.q_dot_virtual_ = dc.q_dot_virtual_;
+        tocabi_.q_ddot_virtual_ = dc.q_ddot_virtual_;
+        tocabi_.q_dot_diff_ = tocabi_.q_dot_ - tocabi_.q_dot_before_;
+        tocabi_.q_dot_before_ = tocabi_.q_dot_;
+        //tocabi_.q_dot_virtual_before_ = tocabi_.q_dot_virtual_;
+        tocabi_.q_dot_virtual_lpf_ = dc.q_dot_virtual_lpf;
+
+        static bool first_run = true;
+        if (first_run)
+        {
+            for (int i = 0; i < LINK_NUMBER + 1; i++)
+            {
+                dc.link_[i].pos_p_gain = tocabi_.link_[i].pos_p_gain;
+                dc.link_[i].pos_d_gain = tocabi_.link_[i].pos_d_gain;
+                dc.link_[i].rot_p_gain = tocabi_.link_[i].rot_p_gain;
+                dc.link_[i].rot_d_gain = tocabi_.link_[i].rot_d_gain;
+
+                tocabi_.link_[i] = dc.link_[i];
+            }
+            first_run = false;
+        }
         for (int i = 0; i < LINK_NUMBER + 1; i++)
         {
-            dc.link_[i].pos_p_gain = tocabi_.link_[i].pos_p_gain;
-            dc.link_[i].pos_d_gain = tocabi_.link_[i].pos_d_gain;
-            dc.link_[i].rot_p_gain = tocabi_.link_[i].rot_p_gain;
-            dc.link_[i].rot_d_gain = tocabi_.link_[i].rot_d_gain;
-
-            tocabi_.link_[i] = dc.link_[i];
+            tocabi_.link_[i].xpos = dc.link_[i].xpos;
+            tocabi_.link_[i].xipos = dc.link_[i].xipos;
+            tocabi_.link_[i].Rotm = dc.link_[i].Rotm;
+            tocabi_.link_[i].Jac = dc.link_[i].Jac;
+            tocabi_.link_[i].Jac_COM = dc.link_[i].Jac_COM;
+            tocabi_.link_[i].Jac_COM_p = dc.link_[i].Jac_COM_p;
+            tocabi_.link_[i].Jac_COM_r = dc.link_[i].Jac_COM_r;
+            tocabi_.link_[i].COM_position = dc.link_[i].COM_position;
+            //tocabi_.link_[i].xpos_contact = dc.link_[i].xpos_contact;
+            tocabi_.link_[i].v = dc.link_[i].v;
+            tocabi_.link_[i].w = dc.link_[i].w;
         }
-        first_run = false;
+
+        tocabi_.roll = dc.roll;
+        tocabi_.pitch = dc.pitch;
+        tocabi_.yaw = dc.yaw;
+
+        tocabi_.A_ = dc.A_;
+        tocabi_.A_matrix = dc.A_;
+        tocabi_.A_matrix_inverse = dc.A_inv;
+        tocabi_.Motor_inertia = dc.Motor_inertia;
+        tocabi_.Motor_inertia_inverse = dc.Motor_inertia_inverse;
+        tocabi_.com_ = dc.com_;
+        loop_pass = false;
     }
-    for (int i = 0; i < LINK_NUMBER + 1; i++)
+    else
     {
-        tocabi_.link_[i].xpos = dc.link_[i].xpos;
-        tocabi_.link_[i].xipos = dc.link_[i].xipos;
-        tocabi_.link_[i].Rotm = dc.link_[i].Rotm;
-        tocabi_.link_[i].Jac = dc.link_[i].Jac;
-        tocabi_.link_[i].Jac_COM = dc.link_[i].Jac_COM;
-        tocabi_.link_[i].Jac_COM_p = dc.link_[i].Jac_COM_p;
-        tocabi_.link_[i].Jac_COM_r = dc.link_[i].Jac_COM_r;
-        tocabi_.link_[i].COM_position = dc.link_[i].COM_position;
-        //tocabi_.link_[i].xpos_contact = dc.link_[i].xpos_contact;
-        tocabi_.link_[i].v = dc.link_[i].v;
-        tocabi_.link_[i].w = dc.link_[i].w;
+        loop_pass = true;
     }
-
-    tocabi_.roll = dc.roll;
-    tocabi_.pitch = dc.pitch;
-    tocabi_.yaw = dc.yaw;
-
-    tocabi_.A_ = dc.A_;
-    tocabi_.A_matrix = dc.A_;
-    tocabi_.A_matrix_inverse = dc.A_inv;
-    tocabi_.Motor_inertia = dc.Motor_inertia;
-    tocabi_.Motor_inertia_inverse = dc.Motor_inertia_inverse;
-    tocabi_.com_ = dc.com_;
-
-    mtx_dc.unlock();
+    dc.atb_dc = false;
 }
 
 void TocabiController::trajectoryplannar()
 {
     //wait for
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    std::chrono::high_resolution_clock::time_point t_begin = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point t_begin = std::chrono::steady_clock::now();
     std::chrono::duration<double> time_from_begin, time_interval;
     std::chrono::microseconds cycletime(1000);
     int cycle_count = 0;
@@ -2445,7 +2571,7 @@ void TocabiController::trajectoryplannar()
     {
         std::this_thread::sleep_until(t_begin + cycle_count * cycletime);
         cycle_count++;
-        std::chrono::high_resolution_clock::time_point t_begin1 = std::chrono::high_resolution_clock::now();
+        std::chrono::steady_clock::time_point t_begin1 = std::chrono::steady_clock::now();
         time_from_begin = (t_begin1 - t_begin);
 
         if (tocabi_.task_control_switch)
@@ -2474,6 +2600,7 @@ void TocabiController::trajectoryplannar()
             }
         }
     }
+    std::cout << cyellow << "Planner Thread End!" << creset << std::endl;
 }
 
 void TocabiController::initialize()
