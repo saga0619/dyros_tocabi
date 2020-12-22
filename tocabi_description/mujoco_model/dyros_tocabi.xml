@@ -74,6 +74,7 @@
         <material name='geom' texture="texgeom" texuniform="true"/>
         <material name='MatPlane' reflectance='0.3' texture="texplane" texrepeat="1 1" texuniform="true"/>
         <material name='MatPlane2' reflectance='0.3' />
+        <material name='object1' texture="texgeom" texuniform="true" rgba=".5 .1 .1 1" />
     </asset>
 
     <worldbody>
@@ -347,7 +348,6 @@
                 </body>
             </body>
         </body>
-
     </worldbody>
     <actuator>
         <motor name="L_HipYaw_Motor" joint="L_HipYaw_Joint"/>
@@ -420,7 +420,7 @@
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
 								-0.3 -0.3 -1.5 1.27 1 0 1 0"/-->
 
-        <key name="front" time="0" qpos ="0 0 0.84783 1 0 0 0 
+        <key name="front" time="0" qpos ="0 0 0.88783 1 0 0 0 
 								0.0 0 -0.5 1.0 -0.5 -0.0 
 								0.0 0 -0.5 1.0 -0.5 -0.0
 								0 0 0 0 0
