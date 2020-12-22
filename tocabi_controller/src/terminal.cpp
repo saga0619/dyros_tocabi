@@ -45,11 +45,10 @@ void pub_to_gui(DataContainer &dc, const char *str, ...)
     dc.statusPubMsg.data = str_;
 
     dc.statusPub.publish(dc.statusPubMsg);
-    
+
     //std::cout<<str_;
 
     va_end(lst);
-
 }
 
 int kbhit(void)

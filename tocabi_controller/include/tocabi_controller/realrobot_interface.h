@@ -1,7 +1,6 @@
 #ifndef REALROBOT_INTERFACE_H
 #define REALROBOT_INTERFACE_H
 
-
 #include <iostream>
 #include <thread>
 
@@ -118,18 +117,18 @@ const double MAX_VEL[ELMO_DOF] =
      10.0,
      10.0,
      10.0,
-     2.0, //shoulder3
-     2.0, //arm
-     2.0, //arm
-     2.0, //shoulder3
+     2.0,  //shoulder3
+     2.0,  //arm
+     2.0,  //arm
+     2.0,  //shoulder3
      10.0, //Elbow
      10.0, //Forearm
      10.0, //Forearm
      10.0, //Elbow
-     3.5, //shoulder1
-     3.5, //shoulder2
-     3.5, //shoulder2
-     3.5, //shoulder1
+     3.5,  //shoulder1
+     3.5,  //shoulder2
+     3.5,  //shoulder2
+     3.5,  //shoulder1
      3.3,  //Waist
      3.3,
      3.0, //rightLeg

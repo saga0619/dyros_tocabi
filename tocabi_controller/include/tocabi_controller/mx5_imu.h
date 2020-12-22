@@ -31,7 +31,7 @@ public:
     bool rst_pub_once2 = true;
     tf2_ros::TransformBroadcaster br;
 
-    //Eigen::Vector4d 
+    //Eigen::Vector4d
 
     void initIMU();
     void resetEFIMU();
