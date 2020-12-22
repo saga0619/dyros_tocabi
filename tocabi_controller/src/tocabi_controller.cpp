@@ -802,7 +802,9 @@ void TocabiController::dynamicsThreadLow()
             if (dc.checkfreqency)
             {
                 ss.str("");
-                ss << "dynamics thread : " << dynthread_cnt << " hz, time : " << est; //<< std::endl;
+                static int stac = 0;
+                ss << "dyn : " << dynthread_cnt<<" hz, stn : " << dc.sta_cnt -stac<< " hz, time : " << est; //<< std::endl;
+                stac = dc.sta_cnt;
                 //dc.statusPubMsg.data = ss.str();
                 pub_to_gui(dc, ss.str().c_str());
             }
@@ -922,9 +924,15 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
+                tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
+                tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
+
                 tocabi_.f_star = wbc_.getfstar6d(tocabi_, COM_id);
-                tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
-                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+                //tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
+                //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
+
+                torque_task = wbc_.task_control_torque_hqp_step(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                tocabi_.contact_redistribution_mode = 2;
                 torque_grav.setZero();
             }
             else if (tc.mode == 1) //COM with rotation
@@ -947,7 +955,6 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
                 tocabi_.link_[COM_id].rot_desired = Matrix3d::Identity();
-
                 tocabi_.link_[COM_id].Set_Trajectory_rotation(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time, false);
 
                 tocabi_.link_[Upper_Body].rot_desired = DyrosMath::rotateWithZ(tc.yaw * 3.1415 / 180.0) * DyrosMath::rotateWithX(tc.roll * 3.1415 / 180.0) * DyrosMath::rotateWithY(tc.pitch * 3.1415 / 180.0); //Matrix3d::Identity();

@@ -82,6 +82,9 @@ public:
   double com_time;
   double sim_time;
 
+  int dyn_cnt;
+  int sta_cnt;
+
   int dym_hz;
   std::chrono::microseconds dym_timestep;
 

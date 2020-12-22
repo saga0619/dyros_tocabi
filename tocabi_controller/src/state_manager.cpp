@@ -180,19 +180,15 @@ void StateManager::stateThread(void)
         {
             std::this_thread::sleep_until(st_start_time + std::chrono::microseconds(250) + (cycle_count * cycletime));
             tp[0] = std::chrono::steady_clock::now();
-            try
-            {
-                updateState();
-                //imuCompenstation();
-                //q_dot_virtual_ = q_dot_virtual_raw_;
-                initYaw();
-                qdotLPF();
-            }
-            catch (exception &e)
-            {
-                std::cout << "Error ar updateState : " << e.what() << std::endl;
-            }
+
+            updateState();
+
             tp[1] = std::chrono::steady_clock::now();
+            //imuCompenstation();
+            //q_dot_virtual_ = q_dot_virtual_raw_;
+            initYaw();
+            qdotLPF();
+
             if (shutdown_tocabi_bool)
             {
                 std::cout << "shutdown signal received" << std::endl;
@@ -212,23 +208,25 @@ void StateManager::stateThread(void)
 
             try
             {
-                updateKinematics(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
                 tp[2] = std::chrono::steady_clock::now();
-                handleFT();
+                updateKinematics_local(model_, link_local, q_virtual_local_, q_dot_virtual_local_, q_ddot_virtual_local_);
+
                 tp[3] = std::chrono::steady_clock::now();
+                handleFT();
+
                 //contactEstimate();
                 stateEstimate();
-                tp[4] = std::chrono::steady_clock::now();
                 if (dc.single_foot_only == false)
                 {
                     pelvisPosMonitor();
                 }
                 //lowpass filter for q_dot
+                tp[4] = std::chrono::steady_clock::now();
                 updateKinematics(model_2, link_, q_virtual_, q_dot_virtual_, q_ddot_virtual_);
                 tp[5] = std::chrono::steady_clock::now();
                 jointVelocityEstimate();
                 tp[6] = std::chrono::steady_clock::now();
-                jointVelocityEstimate1();
+                //jointVelocityEstimate1();
             }
             catch (exception &e)
             {
@@ -273,19 +271,6 @@ void StateManager::stateThread(void)
                 }
             }
 
-            if ((cycle_count % 2000) == 0)
-            {
-                if (((control_time_ - control_time_c_stamp) < 1.001) && ((control_time_ - control_time_c_stamp) > 0.999))
-                {
-                }
-                else
-                {
-                    std::cout << "State Thread is not 2000 hz" << std::endl;
-                }
-
-                control_time_c_stamp = control_time_;
-            }
-
             tp[9] = std::chrono::steady_clock::now();
 
             for (int i = 0; i < 9; i++)
@@ -294,22 +279,53 @@ void StateManager::stateThread(void)
                 tdu[i] += td[i].count();
             }
 
+            if ((cycle_count % 2000) == 0)
+            {
+
+                static std::chrono::steady_clock::time_point tn = std::chrono::steady_clock::now();
+
+                int t2us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tn).count();
+                tn = std::chrono::steady_clock::now();
+
+                if (((control_time_ - control_time_c_stamp) < 1.01) && ((control_time_ - control_time_c_stamp) > 0.99))
+                {
+                }
+                else
+                {
+                    std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
+                    for (int i = 0; i < 9; i++)
+                    {
+                        std::cout << i << " : " << tdu[i] / 2000.0 *1000000.0<< "\t";
+                    }
+                    std::cout << std::endl;
+                }
+
+                for (int i = 0; i < 9; i++)
+                {
+                    tdu[i] = 0;
+                }
+
+                control_time_c_stamp = control_time_;
+            }
+
+            /*
             if ((tp[9] - tp[0]) > std::chrono::microseconds(dc.ctime))
             {
-                std::cout << cred << "state calc time is over " << dc.ctime << "us\t ||";
+                std::cout << cred <<std::chrono::duration_cast<std::chrono::microseconds>(tp[9] - tp[0]).count()<< "state calc time is over " << dc.ctime << "us\t ||";
                 for (int i = 0; i < 9; i++)
                 {
                     std::cout << i << " : " << std::chrono::duration_cast<std::chrono::microseconds>(tp[i + 1] - tp[i]).count() << "\t ||";
                 }
                 std::cout << creset << std::endl;
             }
-
+*/
             if (dc.tocabi_.signal_yaw_init)
             {
                 dc.tocabi_.signal_yaw_init = false;
             }
             dc.firstcalcdone = true;
             cycle_count++;
+            dc.sta_cnt = cycle_count;
         }
     }
     std::cout << cyellow << "State Thread End !" << creset << std::endl;
@@ -657,12 +673,14 @@ void StateManager::initialize()
 
 void StateManager::storeState()
 {
+    /*
     while (dc.atb_dc && (!shutdown_tocabi_bool))
     {
         std::this_thread::sleep_for(std::chrono::microseconds(5));
     }
     dc.atb_dc = true;
 
+*/
     for (int i = 0; i < LINK_NUMBER + 1; i++)
     {
         dc.link_[i] = link_[i];
@@ -689,8 +707,6 @@ void StateManager::storeState()
 
     dc.A_ = A_;
     dc.A_inv = A_inv;
-    dc.Motor_inertia = Motor_inertia_;
-    dc.Motor_inertia_inverse = Motor_inertia_inv;
 
     dc.tocabi_.ContactForce_FT.segment(0, 6) = LF_CF_FT;
     dc.tocabi_.ContactForce_FT.segment(6, 6) = RF_CF_FT;
@@ -751,9 +767,45 @@ void StateManager::motorInertia()
     Motor_inertia_(30, 30) = 0.015;
 
     Motor_inertia_inv = Motor_inertia_.inverse();
+
+
+    dc.Motor_inertia = Motor_inertia_;
+    dc.Motor_inertia_inverse = Motor_inertia_inv;
 }
 
-void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual_f, const Eigen::VectorXd &q_dot_virtual_f, const Eigen::VectorXd &q_ddot_virtual_f, bool local)
+void StateManager::updateKinematics_local(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual_f, const Eigen::VectorXd &q_dot_virtual_f, const Eigen::VectorXd &q_ddot_virtual_f)
+{
+    //ROS_INFO_ONCE("CONTROLLER : MODEL : updatekinematics enter ");
+    /* q_virtual description
+   * 0 ~ 2 : XYZ cartesian coordinates
+   * 3 ~ 5 : XYZ Quaternion
+   * 6 ~ MODEL_DOF + 5 : joint position
+   * model dof + 6 ( last component of q_virtual) : w of Quaternion
+   * */
+    RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual_f, &q_dot_virtual_f, &q_ddot_virtual_f);
+
+    link_p[Right_Foot].pos_Update(model_l, q_virtual_f);
+    link_p[Left_Foot].pos_Update(model_l, q_virtual_f);
+    link_p[Right_Hand].pos_Update(model_l, q_virtual_f);
+    link_p[Left_Hand].pos_Update(model_l, q_virtual_f);
+
+
+    Eigen::Vector3d zero;
+    zero.setZero();
+
+    link_p[Right_Foot].Set_Jacobian(model_l, q_virtual_f, zero);
+    link_p[Left_Foot].Set_Jacobian(model_l, q_virtual_f, zero);
+    link_p[Right_Hand].Set_Jacobian(model_l, q_virtual_f, zero);
+    link_p[Left_Hand].Set_Jacobian(model_l, q_virtual_f, zero);
+
+
+    link_p[Right_Foot].vw_Update(q_dot_virtual_f);
+    link_p[Left_Foot].vw_Update(q_dot_virtual_f);
+    link_p[Right_Hand].vw_Update(q_dot_virtual_f);
+    link_p[Left_Hand].vw_Update(q_dot_virtual_f);
+}
+
+void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual_f, const Eigen::VectorXd &q_dot_virtual_f, const Eigen::VectorXd &q_ddot_virtual_f)
 {
     //ROS_INFO_ONCE("CONTROLLER : MODEL : updatekinematics enter ");
     /* q_virtual description
@@ -765,11 +817,9 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
 
     A_temp_.setZero();
 
-    if (!local)
-        mtx_rbdl.lock();
+    mtx_rbdl.lock();
     RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual_f, &q_dot_virtual_f, &q_ddot_virtual_f);
-    if (!local)
-        mtx_rbdl.unlock();
+    mtx_rbdl.unlock();
     RigidBodyDynamics::CompositeRigidBodyAlgorithm(model_l, q_virtual_f, A_temp_, false);
 
     A_ = A_temp_;
@@ -780,12 +830,10 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     }
     Eigen::Vector3d zero;
     zero.setZero();
-    dc.check = true;
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
         link_p[i].Set_Jacobian(model_l, q_virtual_f, zero);
     }
-    dc.check = false;
 
     for (int i = 0; i < MODEL_DOF + 1; i++)
     {
@@ -974,6 +1022,7 @@ void StateManager::contactEstimate()
         if (LF_Contact)
         {
             //std::cout << "LF Contact Off" << std::endl;
+            
         }
         LF_Contact = false;
     }

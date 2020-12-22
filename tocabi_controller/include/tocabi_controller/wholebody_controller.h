@@ -111,6 +111,9 @@ public:
   VectorQd task_control_torque_custom_force(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force);
 
   VectorQd task_control_torque_hqp(RobotData &Robot);
+
+  VectorQd task_control_torque_hqp_step(RobotData &Robot, MatrixXd &J_task, VectorXd &f_star);
+
   // Get Task Control Torque task jacobian and f_star must be defined.
   VectorQd task_control_torque_custom_force_feedback(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force, VectorXd ft_hand);
 
@@ -148,10 +151,10 @@ public:
   Vector3d getfstar_acc_rot(RobotData &Robot, int link_id);
 
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
-
   Vector3d COM_traj_with_zmp(RobotData &Robot);
   void getSupportPolygon(RobotData &Robot, std::vector<Eigen::Vector2d> &edge_point_list);
   //zmp controller
+  void getJkt(RobotData &Robot, MatrixXd &J_task, MatrixXd &Jkt);
   void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
   VectorQd CP_controller();

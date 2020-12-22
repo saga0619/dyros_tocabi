@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(tocabi_controller)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++17 -O1)
+add_compile_options(-std=c++17 -O3)
 
 ADD_DEFINITIONS(-DBOOST_MPL_LIMIT_LIST_SIZE=40)
 ADD_DEFINITIONS(-DBOOST_MPL_LIMIT_VECTOR_SIZE=40)
