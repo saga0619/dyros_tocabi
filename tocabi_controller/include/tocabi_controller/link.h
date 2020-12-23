@@ -458,10 +458,15 @@ struct RobotData
   Eigen::VectorQd torque_grav;
   Eigen::VectorQd torque_contact;
   Eigen::VectorQd torque_disturbance;
+  Eigen::VectorQd torque_limit;
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;
   Eigen::MatrixXd qr_V2;
+  Eigen::MatrixXd NwJw;
+  Eigen::MatrixXd Scf_;
+
+  bool qp_error = false;
 
   int task_dof;
 

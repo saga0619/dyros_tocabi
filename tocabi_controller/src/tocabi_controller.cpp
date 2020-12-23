@@ -975,6 +975,18 @@ void TocabiController::dynamicsThreadLow()
                 wbc_.set_contact(tocabi_, 1, 1);
 
                 int task_number = 21;
+                
+                std::vector<MatrixXd> Jtask_hqp;
+                std::vector<VectorXd> fstar_hqp;
+
+                Jtask_hqp.resize(2);
+                fstar_hqp.resize(2);
+
+                Jtask_hqp[0] = tocabi_.link_[COM_id].Jac;
+                Jtask_hqp[1] = tocabi_.link_[Upper_Body].Jac_COM_r;;
+
+                
+                
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
@@ -1003,17 +1015,22 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
-                tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
+                fstar_hqp[0] = wbc_.getfstar6d(tocabi_, COM_id);
+                fstar_hqp[1] = wbc_.getfstar_rot(tocabi_, Upper_Body);
+
+                //tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
 
                 //(tocabi_.lambda * tocabi_.f_star)
 
-                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver); // + wbc_.contact_torque_calc_from_QP(tocabi_, torque_grav);
+                //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver); // + wbc_.contact_torque_calc_from_QP(tocabi_, torque_grav);
+
+
+                torque_task = wbc_.task_control_torque_hqp(tocabi_, Jtask_hqp, fstar_hqp);
 
                 //wbc_.contact_torque_calc_from_QP(tocabi_, torque_task);
 
                 // std::cout << "ContactForce Without : " << std::endl
                 //          << (wbc_.get_contact_force(tocabi_, torque_task)).transpose() << std::endl;
-
                 torque_grav.setZero();
             }
             else if (tc.mode == 3) //Pelv pos&rot control + upper rotation

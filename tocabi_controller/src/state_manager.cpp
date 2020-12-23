@@ -1247,8 +1247,8 @@ void StateManager::stateEstimate()
         double dr, dl;
         //dr =
 
-        dr = DyrosMath::minmax_cut(RF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1) * dc.tocabi_.ee_[1].contact_accuracy;
-        dl = DyrosMath::minmax_cut(LF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1) * dc.tocabi_.ee_[0].contact_accuracy;
+        dr = DyrosMath::minmax_cut(RF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1);// * dc.tocabi_.ee_[1].contact_accuracy;
+        dl = DyrosMath::minmax_cut(LF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1);// * dc.tocabi_.ee_[0].contact_accuracy;
 
         if (dr == 1)
         {
