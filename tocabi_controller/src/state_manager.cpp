@@ -697,6 +697,7 @@ void StateManager::storeState()
     dc.q_ddot_virtual_ = q_ddot_virtual_;
     dc.q_ext_ = q_ext_;
     dc.torque_elmo_ = torque_elmo_;
+
     //dc.q_dot_est_ = q_dot_est;
 
     dc.tau_nonlinear_ = tau_nonlinear_;
@@ -727,7 +728,6 @@ void StateManager::storeState()
     dc.tocabi_.com_ = com_;
     dc.tocabi_.q_dot_est = q_dot_est;
     dc.tocabi_.q_dot_est1 = q_dot_est1;
-
     dc.atb_dc = false;
 }
 void StateManager::storeSync()
@@ -1503,20 +1503,17 @@ void StateManager::jointVelocityEstimate1()
     //Estimate joint velocity using state observer
     double dt;
     dt = 1 / 2000;
-    Eigen::Matrix<double, MODEL_DOF * 2, MODEL_DOF * 2> I, A_t, A_dt;
-    Eigen::Matrix<double, MODEL_DOF, MODEL_DOF> I_t;
-    Eigen::Matrix<double, MODEL_DOF * 2, MODEL_DOF> B_t, B_dt;
-    Eigen::Matrix<double, MODEL_DOF, MODEL_DOF * 2> C;
-
+    Eigen::MatrixXd A_t, A_dt, B_t, B_dt, C, I, I_t;
+    I.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
     I.setIdentity();
-    A_t.setZero();
-    A_dt.setZero();
-
+    I_t.setZero(MODEL_DOF, MODEL_DOF);
     I_t.setIdentity();
-    B_t.setZero();
-    B_dt.setZero();
-    C.setZero();
-
+    A_t.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
+    A_dt.setZero(MODEL_DOF * 2, MODEL_DOF * 2);
+    B_t.setZero(MODEL_DOF * 2, MODEL_DOF);
+    B_dt.setZero(MODEL_DOF * 2, MODEL_DOF);
+    C.setZero(MODEL_DOF, MODEL_DOF * 2);
+  
     A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
     A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
     A_t.topRightCorner(MODEL_DOF, MODEL_DOF) = I_t;

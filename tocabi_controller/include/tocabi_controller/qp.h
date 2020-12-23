@@ -1,7 +1,6 @@
 #ifndef QUADRATICPROGRAM_H
 #define QUADRATICPROGRAM_H
 
-
 /*
 QPoases rapper 
 min   0.5 * x' * H * x + x' * g

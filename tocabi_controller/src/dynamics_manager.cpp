@@ -51,8 +51,6 @@ void DynamicsManager::testThread()
 
 
 
-
-
         if (shutdown_tocabi_bool)
         {
             printf("thread calc end \n");

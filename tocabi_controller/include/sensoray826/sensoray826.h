@@ -205,7 +205,7 @@ public:
         _calibMaxIndex = dCalibrationTime * SAMPLE_RATE;
         ROS_INFO("FT sensor calibration Initialize... time = %.1lf sec, total %d samples ", dCalibrationTime, _calibMaxIndex);
     }
-
+  
     void calibrationFTData(bool ft_calib_finish, Eigen::Vector12d contactforce)
     {
         if(ft_calib_finish == false)

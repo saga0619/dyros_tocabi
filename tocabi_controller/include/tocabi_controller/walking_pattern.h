@@ -46,7 +46,7 @@ public:
     double t_imp;
     double foot_height;
     int current_step_num; // temp
-    
+
     //////Foot Step//////
     Eigen::MatrixXd foot_step;
     Eigen::MatrixXd foot_step_support;
@@ -109,11 +109,11 @@ public:
     Eigen::Isometry3d PELVD_trajectory_float;
     Eigen::Isometry3d COM_support_current;
     Eigen::Isometry3d COM_support_init;
-    
+
     Eigen::Isometry3d RF_fisrt_init;
     Eigen::Isometry3d LF_fisrt_init;
     Eigen::Isometry3d PELV_first_init;
- 
+
     Eigen::Vector6d SUF_float_initV;
     Eigen::Vector6d SWF_float_initV;
     Eigen::Vector6d SUF_float_currentV;
@@ -123,7 +123,7 @@ public:
     Eigen::Vector6d SWF_support_initV;
     Eigen::Vector6d LF_trajectory_dot_support;
     Eigen::Vector6d RF_trajectory_dot_support;
-    
+
     Eigen::Vector3d COMV_support_currentV;
     Eigen::Vector3d COMA_support_currentV;
     Eigen::Vector3d PELV_trajectory_euler;
@@ -173,7 +173,7 @@ public:
     Eigen::Vector6d SFerr;
     Eigen::Vector3d Cfsemd;
     Eigen::Matrix<double, 3, 6> Jfsem;
-    
+
     //MomentumControl
     Eigen::VectorXd q_w;
     Eigen::Vector3d H_leg;
@@ -186,8 +186,8 @@ public:
     Eigen::Matrix3x8d Agl_armR;
     Eigen::Matrix3x8d Agl_armL;
     Eigen::Matrix3x3d Agl_waist;
-    Eigen::Vector5d qd_prev;  
-    
+    Eigen::Vector5d qd_prev;
+
     //vibrationcontrol
     Eigen::Matrix2d Ax_vib;
     Eigen::Vector2d Bx_vib;
@@ -217,7 +217,7 @@ public:
     Eigen::Isometry3d HLR_float_init;
     Eigen::Isometry3d HRR_float_init;
     Eigen::Isometry3d PELV_float_init1;
-    
+
     double ux_vib;
     double uy_vib;
 
@@ -226,7 +226,7 @@ public:
 
     // Walking
     int walking_tick;
-    int contactMode; // 0 : double, 1 : RF SWING, 2 : LF SWING
+    int contactMode;          // 0 : double, 1 : RF SWING, 2 : LF SWING
     bool phaseChange = false; // true : double, false : single
     bool phaseChange1 = false;
     double double2Single;
@@ -238,7 +238,7 @@ public:
     int time_temp;
 
     //Ui WalkingParameter
-    
+
     int ik_mode;
     int walking_pattern;
     int foot_step_dir;
@@ -264,12 +264,12 @@ public:
     Eigen::Vector3d com_support_temp;
     Eigen::Vector3d com_support_temp_prev;
     Eigen::Vector3d COM_prev;
-    
+
     Eigen::Vector12d dob_hat;
     Eigen::Vector12d dob_hat_prev;
-    Eigen::Vector12d leg_q;//temp
+    Eigen::Vector12d leg_q; //temp
 
-    Eigen::Matrix2d rot_vel;//temp
+    Eigen::Matrix2d rot_vel; //temp
     Eigen::Matrix2d rot_prev;
 
     Eigen::Vector3d rf_e, lf_e, rf_e_vel, lf_e_vel;
