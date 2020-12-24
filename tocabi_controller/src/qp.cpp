@@ -182,7 +182,7 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
     //_options.printLevel = PL_NONE;
     if (MPC)
         _options.setToMPC();
-
+  
     //_options.boundTolerance = 1E-6;
     _options.boundRelaxation = 1E-4;
     _options.printLevel = PL_LOW;

@@ -465,7 +465,6 @@ struct RobotData
   Eigen::MatrixXd qr_V2;
   Eigen::MatrixXd NwJw;
   Eigen::MatrixXd Scf_;
-  Eigen::MatrixXd Af_;
 
   bool qp_error = false;
 

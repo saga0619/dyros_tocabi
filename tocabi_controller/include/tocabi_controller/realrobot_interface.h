@@ -1,7 +1,6 @@
 #ifndef REALROBOT_INTERFACE_H
 #define REALROBOT_INTERFACE_H
 
-
 #include <iostream>
 #include <thread>
 
@@ -118,18 +117,18 @@ const double MAX_VEL[ELMO_DOF] =
      10.0,
      10.0,
      10.0,
-     2.0, //shoulder3
-     2.0, //arm
-     2.0, //arm
-     2.0, //shoulder3
+     2.0,  //shoulder3
+     2.0,  //arm
+     2.0,  //arm
+     2.0,  //shoulder3
      10.0, //Elbow
      10.0, //Forearm
      10.0, //Forearm
      10.0, //Elbow
-     3.5, //shoulder1
-     3.5, //shoulder2
-     3.5, //shoulder2
-     3.5, //shoulder1
+     3.5,  //shoulder1
+     3.5,  //shoulder2
+     3.5,  //shoulder2
+     3.5,  //shoulder1
      3.3,  //Waist
      3.3,
      3.0, //rightLeg
@@ -185,8 +184,10 @@ const double NM2CNT[ELMO_DOF] =
 const double jointLimitUp[ELMO_DOF] =
     {
         1.0, 1.0, 
-        1.54, 1, 1, 1.54, 3, 3, 3, 3, 
-        3, 3.5, 3.5, 3, 1, 3, 3, 1.6, 
+        1.57, 2.094,2.094,1.57,1.92, 3.15,3.15,1.92,
+        2.8, 3.15, 3.15,-0.1,1.54, 3.15,3.15,2.09,
+        // 1.54, 3.15, 1.92, 3.15, -0.1, 3.15, 1.57, 2.094, 
+        // 2.09, 3.15, 1.92, 3.15,  2.8, 3.15, 1.57, 2.094, 
         3, 3, 
         0.6, 3, 3, 3, 1, 0.664, 
         3, 
@@ -195,8 +196,8 @@ const double jointLimitUp[ELMO_DOF] =
 const double jointLimitLow[ELMO_DOF] =
     {
         -1.0, -1.0, 
-        -1.54, -1, -1, -1.54, -3, -3, -3, -3, 
-        -3, -3.5, -3.5, -3, -1.6, -3, -3, -1, 
+        -1.57,-2.094,-2.094,-1.57,-1.92,-3.15,-3.15,-1.92,
+        0.1,-3.15,-3.15,-2.8,-2.09,-3.15,-3.15,-1.54,
         -3, -3, 
         -0.6, -3, -1.5, -0.5, -1.0, -0.664, 
         -3, 

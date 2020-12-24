@@ -169,7 +169,6 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     mujoco_sim_time = msg->time;
     control_time_ = mujoco_sim_time;
     sim_time_ = mujoco_sim_time;
-
     static bool first = true;
 
     if (first)
@@ -210,7 +209,7 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
     Real_Vel(0) = msg->velocity[0];
     Real_Vel(1) = msg->velocity[1];
     Real_Vel(2) = msg->velocity[2];
-
+    
     //virtual joint
     if (dc.semode)
     {
@@ -229,8 +228,8 @@ void MujocoInterface::simStatusCallback(const mujoco_ros_msgs::SimStatusConstPtr
             q_ddot_virtual_local_(i) = 0.0;
         }
 
-        //TEMP
-        /*     q_virtual_(3) = 0.0;
+               //TEMP
+   /*     q_virtual_(3) = 0.0;
         q_virtual_(4) = 0.0;
         q_virtual_(5) = 0.0;
         q_virtual_(MODEL_DOF + 6) = 1.0;*/
