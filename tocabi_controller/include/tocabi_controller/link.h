@@ -290,9 +290,8 @@ private:
   Eigen::MatrixXd j_temp;
 };
 
-class EndEffector
+struct EndEffector
 {
-public:
   Eigen::Vector3d cp_;
   Eigen::Vector3d xpos;
   Eigen::Vector3d sensor_xpos;
@@ -320,9 +319,8 @@ public:
 
 Eigen::Vector2d local2global(double x, double y, double angle);
 
-class RobotData
+struct RobotData
 {
-public:
   Com com_;
   Link link_[LINK_NUMBER + 1];
   double orientation;
@@ -460,10 +458,16 @@ public:
   Eigen::VectorQd torque_grav;
   Eigen::VectorQd torque_contact;
   Eigen::VectorQd torque_disturbance;
+  Eigen::VectorQd torque_limit;
 
   Eigen::MatrixXd Slc_k, Slc_k_T;
   Eigen::MatrixXd svd_U;
   Eigen::MatrixXd qr_V2;
+  Eigen::MatrixXd NwJw;
+  Eigen::MatrixXd Scf_;
+  Eigen::MatrixXd Af_;
+
+  bool qp_error = false;
 
   int task_dof;
 

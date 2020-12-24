@@ -232,10 +232,10 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
 
     if (m_status != SUCCESSFUL_RETURN)
     {
-        std::cout << "QP solve error from hotstart" << std::endl;
-        PrintMinProb();
-        PrintSubjectToAx();
-        PrintSubjectTox();
+        //std::cout << "QP solve error from hotstart" << std::endl;
+        //PrintMinProb();
+        //PrintSubjectToAx();
+        //PrintSubjectTox();
     }
 
     real_t Xopt_realt[_num_var];
