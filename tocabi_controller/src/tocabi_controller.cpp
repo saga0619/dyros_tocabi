@@ -763,7 +763,7 @@ void TocabiController::dynamicsThreadLow()
         td[2] = tp[3] - tp[2];
         td[3] = tp[4] - tp[3];
         td[4] = tp[5] - tp[4];
-
+        td[5] = tp[6] - tp[5];
         if (control_time_ == 0)
         {
             first = true;
@@ -784,7 +784,7 @@ void TocabiController::dynamicsThreadLow()
             }
             if (dc.print_delay_info)
             {
-                //std::cout << "td1 : " << td[0].count() * 1000 << "  td2 : " << td[1].count() * 1000 << "  td3 : " << td[2].count() * 1000 << "  td4 : " << td[3].count() * 1000 << "  td5 : " << td[4].count() * 1000 << std::endl;
+                // std::cout << "td1 : " << td[0].count() * 1000 << "  td2 : " << td[1].count() * 1000 << "  td3 : " << td[2].count() * 1000 << "  td4 : " << td[3].count() * 1000 << "  td5 : " << td[4].count() * 1000 << "  td6 : " << td[5].count() * 1000 << std::endl;
             }
             dynthread_cnt = 0;
             est = 0;
@@ -793,9 +793,9 @@ void TocabiController::dynamicsThreadLow()
         getState(); //link data override
         tp[1] = std::chrono::steady_clock::now();
         GetTaskCommand();
-
+        
         wbc_.update(tocabi_);
-
+        
         if (control_time_ == 0)
         {
             std::cout << "Gain ?" << std::endl;
@@ -2036,6 +2036,7 @@ void TocabiController::dynamicsThreadLow()
                 torque_grav.setZero();
                 try
                 {
+                    tp[3] = std::chrono::steady_clock::now();
                     mycontroller.computeSlow();
                 }
                 catch (exception &e)
@@ -2086,7 +2087,6 @@ void TocabiController::dynamicsThreadLow()
         else
         {
             wbc_.set_contact(tocabi_, 1, 1);
-            tp[3] = std::chrono::steady_clock::now();
             torque_grav = wbc_.gravity_compensation_torque(tocabi_);
             //torque_grav = wbc_.task_control_torque_QP_gravity(red_);
         }
@@ -2159,8 +2159,8 @@ void TocabiController::dynamicsThreadLow()
 
         //std::cout << "Contact Force With : " << std::endl
         //          << tocabi_.ContactForce.transpose() << std::endl;
-        tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
-        double qddot_err_size = (tocabi_.q_ddot_estimate_ - tocabi_.q_ddot_virtual_.segment(6, MODEL_DOF)).norm();
+        // tocabi_.q_ddot_estimate_ = wbc_.get_joint_acceleration(tocabi_, torque_desired);
+        // double qddot_err_size = (tocabi_.q_ddot_estimate_ - tocabi_.q_ddot_virtual_.segment(6, MODEL_DOF)).norm();
         //std::cout << control_time_ << "qddot error : " << tocabi_.q_dot_diff_(5) / 0.0005 << " q_ddot from sim : " << tocabi_.q_ddot_virtual_(5) << " qddotes size : " << tocabi_.q_ddot_estimate_(5) << std::endl;
 
         if (dc.showdata)
@@ -2169,8 +2169,8 @@ void TocabiController::dynamicsThreadLow()
             wbc_.fstar_regulation(tocabi_, tocabi_.f_star);
             dc.showdata = false;
         }
-        tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
-        tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);
+        // tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
+        // tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);
         //tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(0) * 9.8 - tocabi_.com_.pos(2) * tocabi_.link_[COM_id].a_traj(0)) / 9.8;
         tocabi_.ZMP_eqn_calc(0) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81;
         tocabi_.ZMP_eqn_calc(1) = (tocabi_.link_[COM_id].x_traj(1) * 9.81 - (tocabi_.com_.pos(2) - tocabi_.link_[Right_Foot].xpos(2) * 0.5 - tocabi_.link_[Left_Foot].xpos(2) * 0.5) * tocabi_.link_[COM_id].a_traj(1)) / 9.81 + tocabi_.com_.angular_momentum(0) / (tocabi_.com_.mass * 9.81);
@@ -2188,7 +2188,7 @@ void TocabiController::dynamicsThreadLow()
         std::chrono::duration<double> elapsed_time = std::chrono::high_resolution_clock::now() - dyn_loop_start;
 
         est += elapsed_time.count();
-
+        tp[6] = std::chrono::steady_clock::now();
         //std::this_thread::sleep_until(dyn_loop_start + dc.dym_timestep);
     }
     std::cout << cyellow << "Dynamics Slow Thread End !" << creset << std::endl;

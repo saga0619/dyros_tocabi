@@ -15,13 +15,13 @@
             <site type="cylinder" size="0.005 0.005" group="4" rgba=".1 .1 .9 1"/>
         </default>
         <default class="Leg">
-            <joint damping="5" frictionloss="4"/>
+            <joint damping="4" frictionloss="5"/>
         </default>
         <default class="Waist">
-            <joint damping="5" frictionloss="4"/>
+            <joint damping="4" frictionloss="5"/>
         </default>
         <default class="Upper">
-            <joint damping="5" frictionloss="4"/>
+            <joint damping="4" frictionloss="5"/>
         </default>
     </default>
 
@@ -63,7 +63,9 @@
         <mesh name="L_wrist1" file="L_wrist1.STL" />
         <mesh name="neck" file="neck.STL" />
         <mesh name="head" file="head.STL" />
-        <mesh name="hand" file="wrist2joint.STL" scale="0.001 0.001 0.001"/>
+        <!-- <mesh name="hand" file="wrist2joint.STL" scale="0.001 0.001 0.001"/> -->
+        <mesh name="R_hand" file="allegro_right_hand_base_link.STL" />
+        <mesh name="L_hand" file="allegro_left_hand_base_link.STL" />
         <mesh name="Foot_Link" file="Foot_Link.STL"/>
 
 
@@ -77,7 +79,7 @@
     </asset>
 
     <worldbody>
-        <geom name="ground" type="plane" pos="0 0 0" size="100 100 .05" rgba="0.7 0.6 0.5 1" material="MatPlane2" group="3" friction = "0.8 0.01 0.01"/>
+        <geom name="ground" type="plane" pos="0 0 0" size="100 100 .05" rgba="0.7 0.6 0.5 1" material="MatPlane2" group="3"/>
         <light directional="true" diffuse=".8 .8 .8" pos="0 0 10" dir="0 0 -10"/>
         <light directional="true" diffuse=".5 .5 .5" pos="10 0 0" dir="-10 0 0"/>
 
@@ -267,7 +269,7 @@
                                             <body name="L_Forearm_Link" pos="0 0.1244 0.0325">
                                                 <inertial pos="-0.01426 0.0767 0.00033" mass="0.35234" fullinertia="0.001053636 0.049889479 0.001266418 0.000084568 0.000022117 0.000019539" />
                                                 <joint name="L_Forearm_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14159 3.14159" class="Upper"/>
-                                                <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="L_forearm" />
+                                                <geom class="viz" quat="0 0 1 0" rgba="0.85938 0.07813 0.23438 1" mesh="L_forearm" />
                                                 <geom class="cls" size="0.04 0.05" pos="0 0.05 0" quat="0.707107 0.707107 0 0" type="cylinder"/>
                                                 <geom class="cls" size="0.025 0.04" pos="0 0.1451 0" quat="0.707107 0 0.707107 0" type="cylinder"/>
                                                 <body name="L_Wrist1_Link" pos="0 0.1451 0">
@@ -278,8 +280,9 @@
                                                     <body name="L_Wrist2_Link" pos="0 0.046 0" quat="0 0 -0.707107 0.707107">
                                                         <inertial pos="0.00063 0.0636 0.00178" mass="0.1" fullinertia="0.000865450 0.000696917 0.015377823 0 0 0" />
                                                         <joint name="L_Wrist2_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.094 2.094" class="Upper"/>
+                                                        <geom class="viz" pos="0.01 0 -0.11" quat="0.7071068 0.7071068 0 0" rgba="0.20313 0.20313 0.20313 1" mesh="L_hand" />
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="cls"/>
-                                                        <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
+                                                        <!-- <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" /> -->
                                                         <site class="FTsensor" name="LH_FT" pos="0 0 -0.035"/>
                                                     </body>
                                                 </body>
@@ -321,7 +324,7 @@
                                             <body name="R_Forearm_Link" pos="0 -0.1244 0.0325">
                                                 <inertial pos="-0.01426 -0.0767 0.00033" mass="0.35234" fullinertia="0.001053636 0.049889479 0.001266418 -0.000084568 0.000022117 -0.000019539" />
                                                 <joint name="R_Forearm_Joint" pos="0 0 0" axis="0 -1 0" limited="true" range="-3.14159 3.14159" class="Upper"/>
-                                                <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="R_forearm" />
+                                                <geom class="viz" quat="0 0 1 0" rgba="0.85938 0.07813 0.23438 1" mesh="R_forearm" />
                                                 <geom size="0.04 0.05" pos="0 -0.05 0" quat="0.707107 0.707107 0 0" type="cylinder" class="cls" />
                                                 <geom size="0.025 0.04" pos="0 -0.1451 0" quat="0.707107 0 0.707107 0" type="cylinder" class="cls" />
                                                 <body name="R_Wrist1_Link" pos="0 -0.1451 0">
@@ -332,8 +335,9 @@
                                                     <body name="R_Wrist2_Link" pos="0 -0.046 0" quat="0 0 0.707107 0.707107">
                                                         <inertial pos="0.00063 -0.0636 0.00178" quat="0.5 0.5 -0.5 0.5" mass="0.1" fullinertia="0.000865450 0.000696917 0.015377823 0 0 0" />
                                                         <joint name="R_Wrist2_Joint" pos="0 0 0" axis="0 -1 0" limited="true" range="-2.094 2.094" class="Upper"/>
+                                                        <geom class="viz" pos="0.01 0 -0.11" quat="0 1 0 0" rgba="0.20313 0.20313 0.20313 1" mesh="R_hand" />
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="cls" />
-                                                        <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" />
+                                                        <!-- <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" /> -->
                                                         <site class="FTsensor" name="RH_FT" pos="0 0 -0.035"/>
                                                     </body>
                                                 </body>
@@ -411,12 +415,25 @@
         <frameangvel name="Pelvis_angular_vel" objtype="site" objname="Pelvis_IMU"/>
     </sensor>
 
-
     <keyframe>
-        <!--Initial Position Setting -->
-        <key name="front" time="0" qpos ="0 0 1 1 0 0 0
-								0 0 0.02 0.1 -0.12 0 
-								0 0 0.02 0.1 -0.12 0 
+        <!-- Initial Position Setting 0.94783-->
+        <key name="front" time="0" qpos ="0 0 0.93 1 0 0 0 
+								0.0 0.0 -0.24 0.6 -0.36 0.0 
+								0.0 0.0 -0.24 0.6 -0.36 0.0
+								0 0 0 0 0
+								0.3 0.3 1.5 -1.27 -1 0 -1 0
+								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>
+
+        <!--key name="front" time="0" qpos ="0 0 0.84783 1 0 0 0 
+								0.0 0.0 -0.55 1.1 -0.55 -0.0 
+								0.0 0.0 -0.55 1.1 -0.55 -0.0
+								0 0 0 0 0
+								0.3 0.3 1.5 -1.27 -1 0 -1 0
+								-0.3 -0.3 -1.5 1.27 1 0 1 0"/-->
+
+        <key name="side" time="0" qpos ="0 0 0.94783 0.8660254 0 0 0.5 
+								0.0 0.0 -0.24 0.6 -0.36 0.0 
+								0.0 0.0 -0.24 0.6 -0.36 0.0
 								0 0 0 0 0
 								0.3 0.3 1.5 -1.27 -1 0 -1 0
 								-0.3 -0.3 -1.5 1.27 1 0 1 0"/>

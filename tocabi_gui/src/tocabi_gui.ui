@@ -103,7 +103,7 @@ OFF</string>
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>5</number>
    </property>
    <widget class="QWidget" name="ECAT">
     <widget class="QLabel" name="label_33">
@@ -5089,9 +5089,9 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>40</y>
+       <y>20</y>
        <width>601</width>
-       <height>401</height>
+       <height>421</height>
       </rect>
      </property>
      <property name="frameShape">
@@ -5104,7 +5104,7 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>240</y>
+        <y>260</y>
         <width>581</width>
         <height>151</height>
        </rect>
@@ -5157,7 +5157,7 @@ OFF</string>
          <item>
           <widget class="QLabel" name="label_179">
            <property name="text">
-            <string>(rad/s)</string>
+            <string>(degree)</string>
            </property>
           </widget>
          </item>
@@ -5236,9 +5236,9 @@ OFF</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>0</y>
+        <y>10</y>
         <width>581</width>
-        <height>231</height>
+        <height>241</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="WalkingSpeedgridLayout_3">
@@ -5380,7 +5380,7 @@ OFF</string>
             <string>(%)</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -5407,7 +5407,7 @@ OFF</string>
             <string>(%)</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -5434,7 +5434,7 @@ OFF</string>
             <string>(%)</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -5447,9 +5447,9 @@ OFF</string>
      <property name="geometry">
       <rect>
        <x>9</x>
-       <y>39</y>
+       <y>19</y>
        <width>211</width>
-       <height>401</height>
+       <height>421</height>
       </rect>
      </property>
      <property name="frameShape">
@@ -5574,7 +5574,7 @@ OFF</string>
        <x>10</x>
        <y>740</y>
        <width>821</width>
-       <height>151</height>
+       <height>171</height>
       </rect>
      </property>
      <property name="frameShape">
