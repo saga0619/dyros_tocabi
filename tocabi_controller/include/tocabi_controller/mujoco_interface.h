@@ -55,6 +55,7 @@ private:
   float mujoco_sim_last_time;
 
   bool new_state_trigger = false;
+  int jointmap[MODEL_DOF];
 
   std::string joint_name_mj[MODEL_DOF];
   //ros::Rate rate_;

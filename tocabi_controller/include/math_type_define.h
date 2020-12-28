@@ -440,7 +440,6 @@ namespace DyrosMath
         svdV(i, j) = mat2->data[i * mat2->tda + j];
       }
     }
-
     for (int i = 0; i < size_col; i++)
     {
       svdS(i) = vec1->data[i];
@@ -462,6 +461,296 @@ namespace DyrosMath
     gsl_vector_free(vec1);
     gsl_vector_free(vec2);
     return svdV * (svdS.array().abs() > tolerance).select(svdS.array().inverse(), 0).matrix().asDiagonal() * svdU.adjoint();
+  }
+
+  static Eigen::VectorXd gls_QR_Solve(Eigen::MatrixXd Amat, Eigen::VectorXd V)
+  {
+    int size_row, size_col, rank;
+    size_row = Amat.rows();
+    size_col = Amat.cols();
+
+    if (size_col > size_row)
+    {
+      std::cout << "WARNING colsize error" << std::endl;
+    }
+    else
+    {
+      gsl_matrix_view matv = gsl_matrix_view_array(Amat.data(), size_row, size_col);
+      gsl_matrix *A = &matv.matrix;
+      gsl_vector *norm = gsl_vector_alloc(size_row);
+      gsl_vector *tau = gsl_vector_alloc(GSL_MIN(size_row, size_col));
+
+      int tau_size = size_col;
+
+      gsl_permutation *p = gsl_permutation_alloc(size_col);
+      int *signum = new int;
+
+      gsl_vector_view vecv = gsl_vector_view_array(V.data(), size_col);
+      gsl_vector *b = &vecv.vector;
+
+      gsl_vector *x = gsl_vector_alloc(size_col);
+      gsl_linalg_QRPT_decomp(A, tau, p, signum, norm);
+      gsl_linalg_QRPT_solve(A, tau, p, b, x);
+
+      gsl_vector_free(norm);
+      gsl_vector_free(tau);
+      gsl_permutation_free(p);
+      gsl_vector_free(x);
+      delete signum;
+
+      Eigen::VectorXd res(size_col);
+
+      for (int i = 0; i < size_col; i++)
+      {
+        res(i) = x->data[i];
+      }
+      return res;
+    }
+  }
+
+  static Eigen::MatrixXd pinv_glsQR(Eigen::MatrixXd Amat) //faster than pinv_SVD,
+  {
+    //FullPivHouseholderQR<MatrixXd> qr(A);
+    //qr.compute(A);
+    //qr.setThreshold(10e-10);
+    //return qr.inverse();
+
+    int size_row, size_col, rank;
+    size_row = Amat.rows();
+    size_col = Amat.cols();
+
+    double tol = 1.0E-6;
+
+    if (size_col > size_row)
+    {
+      std::cout << "WARNING colsize error" << std::endl;
+    }
+    else
+    {
+      gsl_matrix_view matv = gsl_matrix_view_array(Amat.data(), size_row, size_col);
+      gsl_matrix *A = &matv.matrix;
+      gsl_vector *norm = gsl_vector_alloc(size_row);
+      gsl_vector *tau = gsl_vector_alloc(GSL_MIN(size_row, size_col));
+
+      int tau_size = size_col;
+
+      gsl_permutation *p = gsl_permutation_alloc(size_col);
+      int *signum = new int;
+
+      gsl_linalg_QRPT_decomp(A, tau, p, signum, norm);
+
+      rank = gsl_linalg_QRPT_rank(A, tol);
+
+      //std::cout << "GSL RANK :" << rank << std::endl;
+
+      //rank = gsl_linalg_QRPT_rank(A)
+      Eigen::MatrixXd R(rank, rank);
+      Eigen::MatrixXd Rt(rank, rank);
+      Rt.setZero();
+      R.setZero();
+      for (int i = 0; i < rank; i++)
+      {
+        for (int j = 0; j < rank; j++)
+        {
+          Rt(i, j) = A->data[i * A->tda + j];
+        }
+      }
+      R = Rt.topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+
+      Eigen::MatrixXd Rpsinv2(size_col, size_row);
+      Rpsinv2.setZero();
+      Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+
+      Eigen::MatrixXd Q(size_row, size_row);
+      Q.setIdentity();
+
+      Eigen::VectorXd V(size_row);
+      Eigen::MatrixXd Qi(size_row, size_row);
+      //Q = Eigen::MatrixXd::Identity(size_col,size_col) - tau->data[size_col-1]*
+      for (int i = 0; i < tau_size; i++)
+      {
+        V.setZero();
+        V(i) = 1.0;
+
+        for (int j = i + 1; j < size_row; j++)
+        {
+          V(j) = A->data[j * A->tda + i];
+        }
+        Qi = (Eigen::MatrixXd::Identity(size_row, size_row) - tau->data[i] * V * V.transpose());
+        Q = Qi * Q;
+      }
+      Eigen::MatrixXd P(size_col, size_col);
+      P.setZero();
+
+      for (int i = 0; i < size_col; i++)
+      {
+        P(p->data[i], i) = 1;
+      }
+
+      //std::cout << "QR from GSL" << std::endl;
+      //std::cout << "Permutation:" << std::endl
+      //          << P << std::endl;
+      //std::cout << "Rpsinv" << std::endl
+      //          << Rpsinv2 << std::endl;
+      //std::cout << "Q" << std::endl
+      //          << Q << std::endl;
+      ///
+      //std::cout << "result: " << std::endl;
+      //std::cout << P * Rpsinv2 * Q - P2 * Rpsinv * Q2.transpose() << std::endl;
+      //std::cout << "Rinv" << std::endl
+      //          << Rpsinv2 << std::endl;
+      //std::cout << "Q" << std::endl
+      //          << Q.transpose() << std::endl;
+
+      //gsl_matrix_free(mat2);
+      gsl_vector_free(norm);
+      gsl_vector_free(tau);
+      gsl_permutation_free(p);
+      delete signum;
+      return P * Rpsinv2 * Q;
+
+      /*
+      Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(Amat);
+      rank = qr.rank();
+
+      R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+
+      Rpsinv2.setZero();
+      Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+
+      std::cout << "QR from EIGEN" << std::endl;
+      std::cout << "pertubation" << std::endl
+                << qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose() << std::endl;
+      //std::cout << "Rinv" << std::endl*/
+      //          << Rpsinv2 << std::endl;
+      //std::cout << "Q" << std::endl
+      //          << qr.householderQ().transpose() << std::endl;
+    }
+
+    /*
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(A);
+    qr.setThreshold(10e-10);
+    int rank = qr.rank();
+
+    if (rank == 0)
+    {
+      std::cout << "WARN::Input Matrix seems to be zero matrix" << std::endl;
+      return A;
+    }
+    else
+    {
+      if (A.rows() > A.cols())
+      {
+        //ColPivHouseholderQR<MatrixXd> qr(A);
+        qr.compute(A);
+        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+        Eigen::MatrixXd Rpsinv2(A.cols(), A.rows());
+
+        Rpsinv2.setZero();
+        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+
+        return qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose();
+      }
+      else if (A.cols() > A.rows())
+      {
+        //ColPivHouseholderQR<MatrixXd> qr(A.transpose());
+        qr.compute(A.transpose());
+        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+        Eigen::MatrixXd Rpsinv2(A.rows(), A.cols());
+
+        Rpsinv2.setZero();
+        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+        return (qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose()).transpose();
+      }
+      else if (A.cols() == A.rows())
+      {
+        if (rank == A.cols() && rank == A.cols()) //full rank suqre matrix
+        {
+          return A.inverse();
+        }
+        else //rank deficient matrix
+        {
+          Eigen::CompleteOrthogonalDecomposition<MatrixXd> cod(A);
+          return cod.pseudoInverse();
+        }
+      }
+    }*/
+  }
+
+  static Eigen::MatrixXd pinv_glsQR2(Eigen::MatrixXd Amat) //faster than pinv_SVD,
+  {
+    int size_row, size_col, rank;
+    size_row = Amat.rows();
+    size_col = Amat.cols();
+
+    double tol = 1.0E-6;
+
+    if (size_col > size_row)
+    {
+      std::cout << "WARNING colsize error" << std::endl;
+    }
+    else
+    {
+      gsl_matrix_view matv = gsl_matrix_view_array(Amat.data(), size_row, size_col);
+      gsl_matrix *A = &matv.matrix;
+      gsl_vector *norm = gsl_vector_alloc(size_row);
+      gsl_vector *tau = gsl_vector_alloc(GSL_MIN(size_row, size_col));
+
+      gsl_matrix *Q_ = gsl_matrix_alloc(size_row, size_row);
+      gsl_matrix *R_ = gsl_matrix_alloc(size_row, size_col);
+
+      int tau_size = size_col;
+
+      gsl_permutation *p = gsl_permutation_alloc(size_col);
+      int *signum = new int;
+
+      gsl_linalg_QRPT_decomp2(A, Q_, R_, tau, p, signum, norm);
+
+      rank = gsl_linalg_QRPT_rank(R_, tol);
+
+      Eigen::MatrixXd R(rank, rank);
+      Eigen::MatrixXd Rt(rank, rank);
+      Rt.setZero();
+      R.setZero();
+      for (int i = 0; i < rank; i++)
+      {
+        for (int j = 0; j < rank; j++)
+        {
+          Rt(i, j) = R_->data[i * R_->tda + j];
+        }
+      }
+      R = Rt.topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+      Eigen::MatrixXd Rpsinv2(size_col, size_row);
+      Rpsinv2.setZero();
+      Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+
+      Eigen::MatrixXd Q(size_row, size_row);
+      Q.setIdentity();
+
+      for (int i = 0; i < size_row; i++)
+      {
+        for (int j = 0; j < size_row; j++)
+        {
+          Q(i, j) = Q_->data[i * Q_->tda + j];
+        }
+      }
+
+      Eigen::MatrixXd P(size_col, size_col);
+      P.setZero();
+
+      for (int i = 0; i < size_col; i++)
+      {
+        P(p->data[i], i) = 1;
+      }
+
+      gsl_matrix_free(Q_);
+      gsl_matrix_free(R_);
+      gsl_vector_free(norm);
+      gsl_vector_free(tau);
+      gsl_permutation_free(p);
+      delete signum;
+      return P * Rpsinv2 * Q.transpose();
+    }
   }
 
   static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double epsilon = std::numeric_limits<double>::epsilon())
@@ -614,8 +903,13 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
     //return qr.inverse();
 
     Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(A);
-    qr.setThreshold(10e-10);
+    //qr.setThreshold(10e-10);
     int rank = qr.rank();
+
+    int cols, rows;
+
+    cols = A.cols();
+    rows = A.rows();
 
     if (rank == 0)
     {
@@ -624,44 +918,83 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
     }
     else
     {
-      if (A.rows() > A.cols())
-      {
-        //ColPivHouseholderQR<MatrixXd> qr(A);
-        qr.compute(A);
-        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
-        Eigen::MatrixXd Rpsinv2(A.cols(), A.rows());
-
-        Rpsinv2.setZero();
-        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
-
-        return qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose();
-      }
-      else if (A.cols() > A.rows())
+      if (cols > rows)
       {
         //ColPivHouseholderQR<MatrixXd> qr(A.transpose());
-        qr.compute(A.transpose());
+        //qr.compute(A.transpose());
         Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
-        Eigen::MatrixXd Rpsinv2(A.rows(), A.cols());
+        Eigen::MatrixXd Rpsinv2(rows, cols);
 
         Rpsinv2.setZero();
         Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
         return (qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose()).transpose();
       }
-      else if (A.cols() == A.rows())
+      else
       {
-        if (rank == A.cols() && rank == A.cols()) //full rank suqre matrix
-        {
-          return A.inverse();
-        }
-        else //rank deficient matrix
-        {
-#ifdef EIGEN_3_3
-          Eigen::CompleteOrthogonalDecomposition<MatrixXd> cod(A);
-          return cod.pseudoInverse();
-#else
-          pinv_SVD(A, 10e-8);
-#endif
-        }
+        //ColPivHouseholderQR<MatrixXd> qr(A);
+        //qr.compute(A);
+        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+        Eigen::MatrixXd Rpsinv2(cols, rows);
+
+        Rpsinv2.setZero();
+        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+        return qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose();
+      }
+    }
+  }
+
+  static Eigen::MatrixXd pinv_QR(const Eigen::MatrixXd &A, Eigen::MatrixXd &V2) //faster than pinv_SVD,
+  {
+    //FullPivHouseholderQR<MatrixXd> qr(A);
+    //qr.compute(A);
+    //qr.setThreshold(10e-10);
+    //return qr.inverse();
+
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(A);
+    //qr.setThreshold(10e-10);
+    int rank = qr.rank();
+
+    int cols, rows;
+
+    cols = A.cols();
+    rows = A.rows();
+
+    if (rank == 0)
+    {
+      std::cout << "WARN::Input Matrix seems to be zero matrix" << std::endl;
+      return A;
+    }
+    else
+    {
+      if (cols > rows)
+      {
+        //ColPivHouseholderQR<MatrixXd> qr(A.transpose());
+        //qr.compute(A.transpose());
+        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+        Eigen::MatrixXd Rpsinv2(rows, cols);
+
+        Rpsinv2.setZero();
+        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+        return (qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose()).transpose();
+      }
+      else
+      {
+        //ColPivHouseholderQR<MatrixXd> qr(A);
+        //qr.compute(A);
+        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+        Eigen::MatrixXd Rpsinv2(cols, rows);
+        Rpsinv2.setZero();
+        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+
+        Eigen::MatrixXd P;
+        P = qr.householderQ().transpose();
+
+        V2 = P.block(rank, 0, P.rows() - rank, P.cols());
+
+        //cols -> cols * cols
+        //V2 = qr.colsPermutation().block(rank,0,cols - rank, rows - rank)
+
+        return qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose();
       }
     }
   }

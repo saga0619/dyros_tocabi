@@ -59,9 +59,12 @@ public:
 
   void jointVelocityEstimate();
 
+  void jointVelocityEstimate1();
+
   //advertise informations to ROS
   void adv2ROS();
 
+  void updateKinematics_local(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
   //update kinematic information with RBDL
   void updateKinematics(RigidBodyDynamics::Model &model_l, Link *link_p, const Eigen::VectorXd &q_virtual, const Eigen::VectorXd &q_dot_virtual, const Eigen::VectorXd &q_ddot_virtual);
 
@@ -77,6 +80,8 @@ public:
 
   void sendStateToGui();
 
+  void motorInertia();
+
   //Set Position Joint PD Gain
   void SetPositionPDGainMatrix();
 
@@ -84,6 +89,9 @@ public:
 
   double control_time_;
   double control_time_before_;
+
+  double control_time_c_stamp;
+
   double sim_time_;
 
   int data_received_counter_;
@@ -92,9 +100,11 @@ public:
   Eigen::VectorQd q_init_;
   Eigen::VectorQVQd q_virtual_;
   Eigen::VectorQd q_est;
+  Eigen::VectorQd q_est1;
   Eigen::VectorQd q_dot_;
   Eigen::VectorQd q_dot_before_;
   Eigen::VectorQd q_dot_est;
+  Eigen::VectorQd q_dot_est1;
   Eigen::VectorQd q_ddot_;
   Eigen::VectorVQd q_dot_virtual_;
   Eigen::VectorVQd q_dot_virtual_lpf_;
@@ -147,7 +157,6 @@ public:
   Eigen::Vector3d RF_CP_est, LF_CP_est;
 
   bool RF_Contact, LF_Contact;
-  
 
   double rf_s_ratio, lf_s_ratio;
   std::chrono::steady_clock::time_point st_start_time;
@@ -180,7 +189,6 @@ public:
 
   Eigen::Vector3d rf_contactpoint;
   Eigen::Vector3d lf_contactpoint;
-
 
   geometry_msgs::PolygonStamped supportpolygon;
   ros::Publisher tgainPublisher;

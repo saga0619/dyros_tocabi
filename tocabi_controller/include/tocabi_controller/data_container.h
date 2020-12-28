@@ -34,6 +34,10 @@ class DataContainer
 {
 public:
   ros::NodeHandle nh;
+
+
+  std::atomic_bool atb_dc = false;
+
   //Basic var
   bool simulation = true;
   bool connected = false;
@@ -78,6 +82,9 @@ public:
   double com_time;
   double sim_time;
 
+  int dyn_cnt;
+  int sta_cnt;
+
   int dym_hz;
   std::chrono::microseconds dym_timestep;
 
@@ -93,7 +100,8 @@ public:
   Eigen::VectorVQd q_dot_virtual_lpf;
   Eigen::VectorVQd q_ddot_virtual_;
   Eigen::VectorQd q_ext_;
-  Eigen::VectorVQd q_dot_est_;
+  Eigen::VectorQd q_dot_est_;
+  Eigen::VectorQd q_dot_est_1;
   Eigen::VectorQd q_hold_lower_;
   Eigen::VectorQd torque_elmo_;
 
@@ -108,6 +116,8 @@ public:
   Eigen::MatrixVVd Motor_inertia_inverse;
 
   Com com_;
+
+  Eigen::VectorQd torque_dist;
 
   Eigen::VectorVQd tau_nonlinear_;
   Eigen::VectorQd torque_;
@@ -173,9 +183,9 @@ public:
   bool disableLowerBody = false;
 
   //Controller switch
-
   bool positionControl = false;
   bool positionGravControl = false;
+  bool positionDobControl = false;
   bool signal_gravityCompensation = false;
   bool customGain = false;
   bool fixedgravity = false;
@@ -216,6 +226,7 @@ public:
   std_msgs::String statusPubMsg;
   ros::Publisher rgbPub;
   std_msgs::Int32MultiArray rgbPubMsg;
+  std_msgs::Int32MultiArray rgbPubMsg_before;
 };
 
 static volatile sig_atomic_t shutdown_tocabi = 0;

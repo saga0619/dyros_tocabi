@@ -96,8 +96,7 @@ namespace TOCABI
         R_Elbow_Joint,
         R_Forearm_Joint,
         R_Wrist1_Joint,
-        R_Wrist2_Joint
-    };
+        R_Wrist2_Joint};
 
     const std::string ACTUATOR_NAME[MODEL_DOF] = {"L_HipYaw_Motor", "L_HipRoll_Motor", "L_HipPitch_Motor", "L_Knee_Motor", "L_AnklePitch_Motor", "L_AnkleRoll_Motor", "R_HipYaw_Motor", "R_HipRoll_Motor", "R_HipPitch_Motor", "R_Knee_Motor", "R_AnklePitch_Motor", "R_AnkleRoll_Motor", "Waist1_Motor", "Waist2_Motor", "Upperbody_Motor", "L_Shoulder1_Motor", "L_Shoulder2_Motor", "L_Shoulder3_Motor", "L_Armlink_Motor", "L_Elbow_Motor", "L_Forearm_Motor", "L_Wrist1_Motor", "L_Wrist2_Motor", "Neck_Motor", "Head_Motor", "R_Shoulder1_Motor", "R_Shoulder2_Motor", "R_Shoulder3_Motor", "R_Armlink_Motor", "R_Elbow_Motor", "R_Forearm_Motor", "R_Wrist1_Motor", "R_Wrist2_Motor"};
 

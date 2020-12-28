@@ -7,7 +7,7 @@
 #include "tocabi_controller/qp.h"
 #include <qpOASES.hpp>
 #include "tocabi_controller/osqp_rapper.h"
-
+#include <vector>
 using namespace Eigen;
 using namespace std;
 using namespace qpOASES;
@@ -111,6 +111,12 @@ public:
   */
   VectorQd task_control_torque_custom_force(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force);
 
+  VectorQd task_control_torque_hqp(RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp);
+
+  VectorQd task_control_torque_hqp_step(RobotData &Robot, MatrixXd &J_task, VectorXd &f_star);
+
+  std::pair<VectorXd, VectorXd> hqp_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, VectorXd torque_before, MatrixXd &Null_task, MatrixXd &Jkt,  MatrixXd &lambda, VectorXd f_star, bool init);
+
   // Get Task Control Torque task jacobian and f_star must be defined.
   VectorQd task_control_torque_custom_force_feedback(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force, VectorXd ft_hand);
 
@@ -148,10 +154,12 @@ public:
   Vector3d getfstar_acc_rot(RobotData &Robot, int link_id);
 
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
-
   Vector3d COM_traj_with_zmp(RobotData &Robot);
   void getSupportPolygon(RobotData &Robot, std::vector<Eigen::Vector2d> &edge_point_list);
   //zmp controller
+  void getJkt(RobotData &Robot, MatrixXd &J_task, MatrixXd &Jkt);
+  MatrixXd getJkt_f(RobotData &Robot, MatrixXd &J_task, MatrixXd &lambda);
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> getjkt_t(RobotData &Robot, MatrixXd &Jtask);
   void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
   VectorQd CP_controller();
@@ -240,6 +248,9 @@ public:
   CQuadraticProgram QP_test;
   CQuadraticProgram QP_mpc;
   CQuadraticProgram QP_torque;
+
+  std::vector<CQuadraticProgram> QP_hqp;
+
   osQuadraticProgram QP_contact;
   osQuadraticProgram QP_torque3_;
   VectorXd result_temp;
