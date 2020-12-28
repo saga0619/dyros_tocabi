@@ -3012,10 +3012,10 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd> WholebodyController::getjkt_t(RobotD
 
     std::chrono::steady_clock::time_point t5 = std::chrono::steady_clock::now();
 
-    std::cout << "getjkt lambda : " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4).count() << "\t" << std::endl;
+    // std::cout << "getjkt lambda : " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4).count() << "\t" << std::endl;
     return ret;
 }
 
@@ -3120,12 +3120,12 @@ std::pair<VectorXd, VectorXd> WholebodyController::hqp_step_calc(CQuadraticProgr
     {
         std::pair<VectorXd, VectorXd> ret(qpres.segment(0, task_dof), qpres.segment(task_dof, contact_dof));
         t[10] = std::chrono::steady_clock::now();
-        std::cout << "hqp qp prepare : ";
-        for (int i = 0; i < 10; i++)
-        {
-            std::cout << i <<" : "<< std::chrono::duration_cast<std::chrono::microseconds>(t[i+1] - t[i]).count() << "\t";
-        }
-        std::cout<<std::endl;
+        // std::cout << "hqp qp prepare : ";
+        // for (int i = 0; i < 10; i++)
+        // {
+        //     std::cout << i <<" : "<< std::chrono::duration_cast<std::chrono::microseconds>(t[i+1] - t[i]).count() << "\t";
+        // }
+        // std::cout<<std::endl;
         return ret;
     }
     else
@@ -3184,8 +3184,8 @@ VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot, std::vec
             ans[i].first;
             ans[i].second;
 
-            Null = Null * (MatrixQQd::Identity() - ans[i - 1].first * ans[i - 1].second * Jtask_hqp[i - 1] * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T);
             torque_prev = torque_prev + Null * ans[i - 1].first * ans[i - 1].second * (fstar_hqp[i - 1] + qp_ans[i - 1].first);
+            Null = Null * (MatrixQQd::Identity() - ans[i - 1].first * ans[i - 1].second * Jtask_hqp[i - 1] * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T);
             t9 = std::chrono::steady_clock::now();
 
             qp_ans.push_back(hqp_step_calc(QP_hqp[i], Robot, torque_prev, Null, ans[i].first, ans[i].second, fstar_hqp[i], Robot.init_qp));
@@ -3196,16 +3196,16 @@ VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot, std::vec
     std::chrono::steady_clock::time_point t11 = std::chrono::steady_clock::now();
     Robot.init_qp = false;
     //return Robot.torque_grav + ans[0].first * ans[0].second * (fstar_hqp[0] + qp_ans[0].first) + Robot.NwJw * qp_ans[0].second;
-    std::cout << "hqp total : " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t6 - t5).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t7 - t6).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t8 - t7).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t9 - t8).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t10 - t9).count() << "\t"
-              << std::chrono::duration_cast<std::chrono::microseconds>(t11 - t10).count() << "\t" << std::endl;
+    // std::cout << "hqp total : " << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t5 - t4).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t6 - t5).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t7 - t6).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t8 - t7).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t9 - t8).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t10 - t9).count() << "\t"
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t11 - t10).count() << "\t" << std::endl;
     return torque_prev + Null * ans.back().first * ans.back().second * (fstar_hqp.back() + qp_ans.back().first) + Robot.NwJw * qp_ans.back().second + Robot.torque_grav;
 }
 
