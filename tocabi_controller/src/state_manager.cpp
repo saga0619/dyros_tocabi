@@ -784,6 +784,7 @@ void StateManager::updateKinematics_local(RigidBodyDynamics::Model &model_l, Lin
    * */
     RigidBodyDynamics::UpdateKinematicsCustom(model_l, &q_virtual_f, &q_dot_virtual_f, &q_ddot_virtual_f);
 
+    link_p[Pelvis].pos_Update(model_l, q_virtual_f);
     link_p[Right_Foot].pos_Update(model_l, q_virtual_f);
     link_p[Left_Foot].pos_Update(model_l, q_virtual_f);
     link_p[Right_Hand].pos_Update(model_l, q_virtual_f);
@@ -793,12 +794,14 @@ void StateManager::updateKinematics_local(RigidBodyDynamics::Model &model_l, Lin
     Eigen::Vector3d zero;
     zero.setZero();
 
+    link_p[Pelvis].Set_Jacobian(model_l, q_virtual_f, zero);
     link_p[Right_Foot].Set_Jacobian(model_l, q_virtual_f, zero);
     link_p[Left_Foot].Set_Jacobian(model_l, q_virtual_f, zero);
     link_p[Right_Hand].Set_Jacobian(model_l, q_virtual_f, zero);
     link_p[Left_Hand].Set_Jacobian(model_l, q_virtual_f, zero);
 
 
+    link_p[Pelvis].vw_Update(q_dot_virtual_f);
     link_p[Right_Foot].vw_Update(q_dot_virtual_f);
     link_p[Left_Foot].vw_Update(q_dot_virtual_f);
     link_p[Right_Hand].vw_Update(q_dot_virtual_f);
