@@ -434,7 +434,7 @@ struct RobotData
 
   Eigen::MatrixXd J_C, J_C_INV_T;
   Eigen::MatrixXd J_COM;
-  Eigen::MatrixXd J_g;
+  Eigen::Matrix<double, MODEL_DOF,MODEL_DOF_VIRTUAL> J_g;
 
   Eigen::MatrixXd J_task;
   Eigen::VectorXd f_star;

@@ -292,12 +292,12 @@ void StateManager::stateThread(void)
                 }
                 else
                 {
-                    std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
-                    for (int i = 0; i < 9; i++)
-                    {
-                        std::cout << i << " : " << tdu[i] / 2000.0 * 1000000.0 << "\t";
-                    }
-                    std::cout << std::endl;
+                    //std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
+                    //for (int i = 0; i < 9; i++)
+                    //{
+                    //    std::cout << i << " : " << tdu[i] / 2000.0 * 1000000.0 << "\t";
+                    //}
+                    //std::cout << std::endl;
                 }
 
                 for (int i = 0; i < 9; i++)
