@@ -1338,7 +1338,7 @@ void StateManager::stateEstimate()
         imu_acc_dat = imu_acc_dat - imu_init;
 
         double dt = 0.0005;
-        double tau = 0.6;
+        double tau = 0.05;
         double alpha = tau / (tau + dt);
 
         pelv_v = alpha * (imu_acc_dat * dt + pelv_v_before) + (1 - alpha) * mod_base_vel;

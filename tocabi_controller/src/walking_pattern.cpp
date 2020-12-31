@@ -537,7 +537,7 @@ void WalkingPattern::setCpPosition()
     for (int i = 0; i < total_step_num + 3; i++)
     {
         capturePoint_offsety(i) = 0.00;
-        capturePoint_offsety(i) = 0.05;
+        capturePoint_offsety(i) = 0.01;
         //    capturePoint_offsetx(i) = 0.04;
         capturePoint_offsetx(i) = 0.00;
     }
