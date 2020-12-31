@@ -292,12 +292,12 @@ void StateManager::stateThread(void)
                 }
                 else
                 {
-                    std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
-                    for (int i = 0; i < 9; i++)
-                    {
-                        std::cout << i << " : " << tdu[i] / 2000.0 *1000000.0<< "\t";
-                    }
-                    std::cout << std::endl;
+                    //std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
+                    //for (int i = 0; i < 9; i++)
+                    //{
+                    //    std::cout << i << " : " << tdu[i] / 2000.0 * 1000000.0 << "\t";
+                    //}
+                    //std::cout << std::endl;
                 }
 
                 for (int i = 0; i < 9; i++)
@@ -673,13 +673,12 @@ void StateManager::initialize()
 
 void StateManager::storeState()
 {
-    
+
     while (dc.atb_dc && (!shutdown_tocabi_bool))
     {
         std::this_thread::sleep_for(std::chrono::microseconds(5));
     }
     dc.atb_dc = true;
-
 
     for (int i = 0; i < LINK_NUMBER + 1; i++)
     {
@@ -768,7 +767,6 @@ void StateManager::motorInertia()
 
     Motor_inertia_inv = Motor_inertia_.inverse();
 
-
     dc.Motor_inertia = Motor_inertia_;
     dc.Motor_inertia_inverse = Motor_inertia_inv;
 }
@@ -790,7 +788,6 @@ void StateManager::updateKinematics_local(RigidBodyDynamics::Model &model_l, Lin
     link_p[Right_Hand].pos_Update(model_l, q_virtual_f);
     link_p[Left_Hand].pos_Update(model_l, q_virtual_f);
 
-
     Eigen::Vector3d zero;
     zero.setZero();
 
@@ -799,7 +796,6 @@ void StateManager::updateKinematics_local(RigidBodyDynamics::Model &model_l, Lin
     link_p[Left_Foot].Set_Jacobian(model_l, q_virtual_f, zero);
     link_p[Right_Hand].Set_Jacobian(model_l, q_virtual_f, zero);
     link_p[Left_Hand].Set_Jacobian(model_l, q_virtual_f, zero);
-
 
     link_p[Pelvis].vw_Update(q_dot_virtual_f);
     link_p[Right_Foot].vw_Update(q_dot_virtual_f);
@@ -1025,7 +1021,6 @@ void StateManager::contactEstimate()
         if (LF_Contact)
         {
             //std::cout << "LF Contact Off" << std::endl;
-            
         }
         LF_Contact = false;
     }
@@ -1204,6 +1199,7 @@ void StateManager::stateEstimate()
                 std::cout << control_time_ << "  left foot contact disabled" << std::endl;
             }
         }
+        static double dr_static, dl_static;
 
         if (dc.semode_init)
         {
@@ -1219,6 +1215,8 @@ void StateManager::stateEstimate()
             pelv_x_before.setZero();
             imu_ang_vel_before.setZero();
             imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
+            dr_static = 0.5;
+            dl_static = 0.5;
         }
 
         // imu pos estimation part (useless for now... )
@@ -1253,8 +1251,8 @@ void StateManager::stateEstimate()
         double dr, dl;
         //dr =
 
-        dr = DyrosMath::minmax_cut(RF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1);// * dc.tocabi_.ee_[1].contact_accuracy;
-        dl = DyrosMath::minmax_cut(LF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1);// * dc.tocabi_.ee_[0].contact_accuracy;
+        dr = DyrosMath::minmax_cut(RF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1); // * dc.tocabi_.ee_[1].contact_accuracy;
+        dl = DyrosMath::minmax_cut(LF_CF_FT(2) / (-com_.mass * GRAVITY), 0, 1); // * dc.tocabi_.ee_[0].contact_accuracy;
 
         if (dr == 1)
         {
@@ -1276,8 +1274,11 @@ void StateManager::stateEstimate()
             }
         }
 
-        rf_s_ratio = dr / (dr + dl);
-        lf_s_ratio = dl / (dl + dr);
+        dr_static = DyrosMath::lpf(dr, dr_static, 2000, 20);
+        dl_static = DyrosMath::lpf(dl, dl_static, 2000, 20);
+
+        rf_s_ratio = dr_static / (dr_static + dl_static);
+        lf_s_ratio = dl_static / (dl_static + dr_static);
 
         lf_s_ratio = DyrosMath::minmax_cut(lf_s_ratio, 0, 1);
 
@@ -1301,11 +1302,6 @@ void StateManager::stateEstimate()
             {
                 lf_s_ratio = 0;
             }
-        }
-
-        if (rf_s_ratio + lf_s_ratio > 1)
-        {
-            // std::cout << "SSSIBAL " << rf_s_ratio << " \t " << lf_s_ratio << std::endl;
         }
 
         if (contact_right && contact_left)
@@ -1526,7 +1522,7 @@ void StateManager::jointVelocityEstimate1()
     B_t.setZero(MODEL_DOF * 2, MODEL_DOF);
     B_dt.setZero(MODEL_DOF * 2, MODEL_DOF);
     C.setZero(MODEL_DOF, MODEL_DOF * 2);
-  
+
     A_t.topRightCorner(MODEL_DOF, MODEL_DOF);
     A_t.bottomRightCorner(MODEL_DOF, MODEL_DOF) = A_inv.bottomRightCorner(MODEL_DOF, MODEL_DOF) * dc.tocabi_.Cor_;
     A_t.topRightCorner(MODEL_DOF, MODEL_DOF) = I_t;
