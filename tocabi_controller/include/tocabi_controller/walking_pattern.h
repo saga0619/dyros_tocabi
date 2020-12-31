@@ -188,6 +188,14 @@ public:
     Eigen::Matrix3x3d Agl_waist;
     Eigen::Vector5d qd_prev;
 
+    Eigen::Vector3d CM_moment_;
+    Eigen::Vector3d CM_momentum_prev;
+    Eigen::Vector3d CM_moment_lpf;
+    Eigen::Vector3d CM_moment_prev;
+    Eigen::Vector3d com_accref;
+    Eigen::Vector3d comFcur;
+    Eigen::Vector3d comFref;
+
     //vibrationcontrol
     Eigen::Matrix2d Ax_vib;
     Eigen::Vector2d Bx_vib;

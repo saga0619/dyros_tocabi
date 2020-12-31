@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/jhk/catkin_ws/devel/include/**",
+                "/opt/ros/melodic/include/**",
+                "/usr/local/include/**",
+                "/usr/local/include/**",
+                "/home/jhk/catkin_ws/src/mujoco_ros_sim/mujoco_ros/include/**",
+                "/home/jhk/catkin_ws/src/pinocchio_tocabi/include/**",
+                "/home/jhk/catkin_ws/src/dyros_tocabi/tocabi_controller/include/**",
+                "/home/jhk/catkin_ws/src/tocabi_gui/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14"
+        }
+    ],
+    "version": 4
+}

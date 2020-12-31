@@ -1,0 +1,8 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/jhk/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/melodic/lib/python2.7/dist-packages",
+        "/usr/local/lib/python2.7/site-packages",
+        "/usr/local/lib/python2.7/dist-packages"
+    ]
+}

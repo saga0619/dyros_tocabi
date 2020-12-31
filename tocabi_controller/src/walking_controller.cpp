@@ -73,7 +73,7 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             comJacobianState(Robot);
             comJacobianIK(Robot);
         }
-      
+
         if (walking_tick == 0)
         {
             q_w(0) = desired_init_leg_q(12);
@@ -626,6 +626,7 @@ void Walking_controller::updateNextStepTime()
         phaseChange = true;
         phaseChange1 = false;
         double2Single_pre = t_start_real + t_double1 + t_rest_temp - 0.075 * Hz_;
+        double2Single = double2Single_pre + 93;
     }
     else
     {
@@ -1113,7 +1114,27 @@ void Walking_controller::momentumControl(RobotData &Robot)
     constraint_size = 5;
 
     if (walking_tick == 0)
+    {
         QP_m.InitializeProblemSize(variable_size, constraint_size);
+
+        com_accref.setZero();
+        CM_moment_prev.setZero();
+        CM_momentum_prev.setZero();
+        CM_moment_.setZero();
+    }
+    else
+    {
+        com_accref(0) = (com_refdx(walking_tick) - com_refdx(walking_tick - 1)) * 1000;
+        com_accref(1) = (com_refdy(walking_tick) - com_refdy(walking_tick - 1)) * 1000;
+        //   CM_moment_ = (H_leg - CM_momentum_prev) * 1000.0;
+        CM_moment_lpf = DyrosMath::lpf(CM_moment_, CM_moment_prev, 1000, 200);
+    }
+
+    // CM_momentum_prev = H_leg;
+    CM_moment_prev = CM_moment_;
+
+    // comFcur(0) = Robot.total_mass * (GRAVITY) * (Robot.com_.pos(0) - ZMP_lpf(0)) / Robot.com_.pos(2); // - CM_moment_lpf(1)/(Robot.com_.pos(2));
+    comFref(0) = Robot.total_mass * GRAVITY * (com_refx(walking_tick) - zmp_refx(walking_tick) /* - com_accref(0)*/) / Robot.com_.pos(2);
 
     MatrixXd H, A, W;
     H.setZero(variable_size, variable_size);
@@ -1176,7 +1197,6 @@ void Walking_controller::momentumControl(RobotData &Robot)
     {
         lbA(i) = (-0.2 - q_w(i)) * Hz_;
         ubA(i) = (0.2 - q_w(i)) * Hz_;
-
     }
 
     lbA(3) = (0.15 - q_w(3)) * Hz_;
@@ -1204,7 +1224,6 @@ void Walking_controller::momentumControl(RobotData &Robot)
     QP_m.SolveQPoases(100, q_dm);
 
     qd_prev = q_dm;
-
 }
 
 void Walking_controller::comVibrationController(RobotData &Robot)
@@ -1275,12 +1294,12 @@ void Walking_controller::comVibrationController(RobotData &Robot)
                 xy_vib_est = Ay_vib * xy_vib_est / Hz_ + xy_vib_est + By_vib * uy_vib / Hz_ + L2 * (yy_vibm - yy_vib) / Hz_;
             }
 
-            PELV_trajectory_float.translation()(0) = com_refx(walking_tick) - 5.5 /*0.9*/ * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(walking_tick));
+            PELV_trajectory_float.translation()(0) = com_refx(walking_tick) - 2.5 /*0.9*/ * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(walking_tick));
             PELV_trajectory_float.translation()(1) = com_refy(walking_tick) - 3.0 /*0.9*/ * (Robot.com_.pos(1) - com_refy(walking_tick));
         }
         else
         {
-            PELV_trajectory_float.translation()(0) = com_refx(t_total + t_last - 4) - 5.5 /*0.9*/ * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(t_total + t_last - 4));
+            PELV_trajectory_float.translation()(0) = com_refx(t_total + t_last - 4) - 2.5 /*0.9*/ * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(t_total + t_last - 4));
             PELV_trajectory_float.translation()(1) = com_refy(t_total + t_last - 4) - 3.0 /*0.9*/ * (Robot.com_.pos(1) - com_refy(t_total + t_last - 4));
         }
     }

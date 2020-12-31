@@ -163,6 +163,7 @@ public:
 
   Eigen::Vector4d imu_quat;
   Eigen::Vector3d imu_ang_vel;
+  Eigen::Vector3d imu_ang_vel_before;
   Eigen::Vector3d imu_lin_acc;
   Eigen::Vector3d pelv_lin_acc;
   Eigen::Vector3d imu_lin_acc_before;
