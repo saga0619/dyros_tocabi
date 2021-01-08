@@ -216,6 +216,10 @@ public:
   double position_command_time;
   double position_traj_time;
 
+  //check
+  double rf_s_ratio;
+  double lf_s_ratio;
+
   //Simulation mode
   bool simulationMode;
 

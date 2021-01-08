@@ -239,7 +239,7 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd &leg_q)
     if (walking_tick == 0)
     {
         Eigen::VectorQd q_temp;
-        q_temp << 0.0, 0.00, -0.35, 1.0, -0.65, 0.00, 0.0, 0.00, -0.35, 1.0, -0.65, 0.00, 0.0, 0.0, 0.0, 0.2, 0.5, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.2, -0.5, -1.5, 1.27, 1.0, 0, 1.0, 0;
+        q_temp << 0.0, 0.00, -0.5, 1.0, -0.5, 0.00, 0.0, 0.00, -0.5, 1.0, -0.5, 0.00, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1.0, 0, -1.0, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1.0, 0, 1.0, 0;
 
         //q_temp.setZero();
         //q_target = Robot.q_;
@@ -621,22 +621,23 @@ void Walking_controller::updateNextStepTime()
         walking_enable = 2.0;
     }
 
-    if (walking_tick >= t_start_real + t_double1 + t_rest_temp - 0.075 * Hz_ && walking_tick <= t_start_real + t_double1 + t_rest_temp + 0.015 * Hz_ + 1 && current_step_num != 0)
+    if (walking_tick >= t_start_real + t_double1 + t_rest_temp - 0.035 * Hz_ && walking_tick <= t_start_real + t_double1 + t_rest_temp + 0.015 * Hz_ + 1 && current_step_num != 0)
     {
         phaseChange = true;
         phaseChange1 = false;
-        double2Single_pre = t_start_real + t_double1 + t_rest_temp - 0.075 * Hz_;
+        double2Single_pre = t_start_real + t_double1 + t_rest_temp - 0.035 * Hz_;
+        double2Single =  t_start_real + t_double1 + t_rest_temp + 0.015 * Hz_;
     }
     else
     {
         phaseChange = false;
     }
 
-    if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp && walking_tick <= t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp + 0.1 * Hz_ - 1 && current_step_num != 0 && phaseChange == false)
+    if (walking_tick >= t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp + 0.05*Hz_ && walking_tick <= t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp + 0.1 * Hz_ - 1 && current_step_num != 0 && phaseChange == false)
     {
         phaseChange1 = true;
         phaseChange = false;
-        single2Double_pre = t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp + 1;
+        single2Double_pre = t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp + 1 + 0.05*Hz_;
         single2Double = t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp + 0.1 * Hz_;
     }
     else
@@ -1275,13 +1276,13 @@ void Walking_controller::comVibrationController(RobotData &Robot)
                 xy_vib_est = Ay_vib * xy_vib_est / Hz_ + xy_vib_est + By_vib * uy_vib / Hz_ + L2 * (yy_vibm - yy_vib) / Hz_;
             }
 
-            PELV_trajectory_float.translation()(0) = com_refx(walking_tick) - 5.5 /*0.9*/ * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(walking_tick));
-            PELV_trajectory_float.translation()(1) = com_refy(walking_tick) - 3.0 /*0.9*/ * (Robot.com_.pos(1) - com_refy(walking_tick));
+            PELV_trajectory_float.translation()(0) = com_refx(walking_tick) - 1.5 * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(walking_tick));
+            PELV_trajectory_float.translation()(1) = com_refy(walking_tick) - 0.9 * (Robot.com_.pos(1) - com_refy(walking_tick));
         }
         else
         {
-            PELV_trajectory_float.translation()(0) = com_refx(t_total + t_last - 4) - 5.5 /*0.9*/ * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(t_total + t_last - 4));
-            PELV_trajectory_float.translation()(1) = com_refy(t_total + t_last - 4) - 3.0 /*0.9*/ * (Robot.com_.pos(1) - com_refy(t_total + t_last - 4));
+            PELV_trajectory_float.translation()(0) = com_refx(t_total + t_last - 4) - 1.5 * (Robot.com_.pos(0) - (-PELV_float_init.translation()(0) + COM_float_init.translation()(0)) - com_refx(t_total + t_last - 4));
+            PELV_trajectory_float.translation()(1) = com_refy(t_total + t_last - 4) - 0.9 * (Robot.com_.pos(1) - com_refy(t_total + t_last - 4));
         }
     }
     else

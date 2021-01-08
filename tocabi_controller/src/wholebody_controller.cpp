@@ -1467,7 +1467,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
     }
 
     double zforce = 0;
-    double zforce_des = 10;
+    double zforce_des = 25;
     double trans_time = Robot.contact_transition_time;
     for (int i = 0; i < Robot.contact_index; i++)
     {
@@ -1546,6 +1546,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
         std::cout << solve_result << "qp3 solve failed. changing to gravity compensation" << std::endl;
         Robot.task_control_switch = false;
         Robot.contact_redistribution_mode = 0;
+        set_contact(Robot, 1, 1);
         task_torque = gravity_compensation_torque(Robot);
         QP_torque.InitializeProblemSize(variable_size, constraint_size);
     }
@@ -4302,7 +4303,7 @@ VectorQd WholebodyController::contact_force_redistribution_torque(RobotData &Rob
     }
     else
     {
-        return Eigen::VectorXd::Zero(12);
+        return Eigen::VectorXd::Zero(MODEL_DOF);
     }
 }
 

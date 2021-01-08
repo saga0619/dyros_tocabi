@@ -72,6 +72,10 @@ void TocabiController::GetTaskCommand()
 void TocabiController::TaskQueCommandCallback(const tocabi_controller::TaskCommandQueConstPtr &msg)
 {
     //const tocabi_controller::TaskCommandConstPtr &tc_temp;
+
+    dc.f_out.open("/home/dyros/ajh_san/4contact.txt", std::ios_base::out);
+    dc.f_out << "time \t com_des_x \t com_des_y \t com_des_z \t com_x \t com_y \t com_z \t ft_0 \t ft_1 \t ft_2 \t ft_3 \t ft_4 \t ft_5 \t ft_0 \t ft_1 \t ft_2 \t ft_3 \t ft_4 \t ft_5 \t ft_0 \t ft_1 \t ft_2 \t ft_3 \t ft_4 \t ft_5 \t ft_0 \t ft_1 \t ft_2 \t ft_3 \t ft_4 \t ft_5 \n";
+
     TaskQueCont = *msg;
     taskque_recv = true;
 }
@@ -803,7 +807,7 @@ void TocabiController::dynamicsThreadLow()
             {
                 ss.str("");
                 static int stac = 0;
-                ss << "dyn : " << dynthread_cnt<<" hz, stn : " << dc.sta_cnt -stac<< " hz, time : " << est; //<< std::endl;
+                ss << "dyn : " << dynthread_cnt << " hz, stn : " << dc.sta_cnt - stac << " hz, time : " << est; //<< std::endl;
                 stac = dc.sta_cnt;
                 //dc.statusPubMsg.data = ss.str();
                 pub_to_gui(dc, ss.str().c_str());
@@ -864,6 +868,7 @@ void TocabiController::dynamicsThreadLow()
         torque_add.setZero();
         TorqueContact.setZero();
         //dc.positionControl = true;
+        bool end_file = false;
 
         if (dc.signal_gravityCompensation)
         {
@@ -881,6 +886,9 @@ void TocabiController::dynamicsThreadLow()
             dc.positionControl = false;
             dc.position_command_ext = false;
             dc.signal_gravityCompensation = false;
+            dc.tocabi_.contact_redistribution_mode = 0;
+
+            end_file = true;
         }
 
         if (tocabi_.task_control_switch)
@@ -975,7 +983,7 @@ void TocabiController::dynamicsThreadLow()
                 wbc_.set_contact(tocabi_, 1, 1);
 
                 int task_number = 21;
-                
+
                 std::vector<MatrixXd> Jtask_hqp;
                 std::vector<VectorXd> fstar_hqp;
 
@@ -983,10 +991,9 @@ void TocabiController::dynamicsThreadLow()
                 fstar_hqp.resize(2);
 
                 Jtask_hqp[0] = tocabi_.link_[COM_id].Jac;
-                Jtask_hqp[1] = tocabi_.link_[Upper_Body].Jac_COM_r;;
+                Jtask_hqp[1] = tocabi_.link_[Upper_Body].Jac_COM_r;
+                ;
 
-                
-                
                 tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
 
@@ -1023,7 +1030,6 @@ void TocabiController::dynamicsThreadLow()
                 //(tocabi_.lambda * tocabi_.f_star)
 
                 //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver); // + wbc_.contact_torque_calc_from_QP(tocabi_, torque_grav);
-
 
                 torque_task = wbc_.task_control_torque_hqp(tocabi_, Jtask_hqp, fstar_hqp);
 
@@ -1233,9 +1239,7 @@ void TocabiController::dynamicsThreadLow()
                     tocabi_.f_star.setZero();
                 }
                 tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
-
                 torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
-
                 torque_grav.setZero(); // = wbc_.gravity_compensation_torque_QP2(tocabi_);
 
                 /*
@@ -2147,6 +2151,7 @@ void TocabiController::dynamicsThreadLow()
         {
             TorqueContact = wbc_.contact_torque_calc_from_QP(tocabi_, TorqueDesiredLocal);
         }
+        
         tocabi_.torque_contact = TorqueContact;
         ///////////////////////////////////////////////////////////////////////////////////////
         //////////////////              Controller Code End             ///////////////////////
@@ -2164,8 +2169,41 @@ void TocabiController::dynamicsThreadLow()
 
         mtx.unlock();
 
+
         tocabi_.ContactForce = wbc_.get_contact_force(tocabi_, torque_desired);
 
+        static int tick = 0;
+
+        
+        if ((tc.mode == 7) && tocabi_.task_control_switch)
+        {
+            static bool start_file = true;
+
+            if (start_file)
+            {
+                std::cout << "file out start" << std::endl;
+                start_file = false;
+            }
+            end_file = false;
+
+            if ((tick % 10) == 0)
+            {
+                if (dc.f_out.is_open())
+                {
+                    //std::cout << control_time_ << "writing" << std::endl;
+                    dc.f_out << control_time_ << "\t" << tocabi_.link_[COM_id].x_traj(0) << "\t" << tocabi_.link_[COM_id].x_traj(1) << "\t" << tocabi_.link_[COM_id].x_traj(2) << "\t" << tocabi_.link_[COM_id].xpos(0) << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].xpos(2) << "\t";
+                    for (int i = 0; i < 4; i++)
+                    {
+                        //std::fixed << std::setprecision(4) <<
+                        dc.f_out << tocabi_.ee_[i].contact_force(0) << "\t" << tocabi_.ee_[i].contact_force(1) << "\t" << tocabi_.ee_[i].contact_force(2) << "\t" << tocabi_.ee_[i].contact_force(3) << "\t" << tocabi_.ee_[i].contact_force(4) << "\t" << tocabi_.ee_[i].contact_force(5) << "\t";
+                    }
+                    dc.f_out << "\n";
+                }
+            }
+            tick++;
+        }
+
+        /*
         for (int i = 0; i < 2; i++)
         {
             if (tocabi_.ee_[i].contact)
@@ -2176,7 +2214,7 @@ void TocabiController::dynamicsThreadLow()
             {
                 tocabi_.ee_[i].contact_accuracy = 0;
             }
-        }
+        } */
 
         tocabi_.ZMP = wbc_.GetZMPpos(tocabi_);
         tocabi_.ZMP_ft = wbc_.GetZMPpos_fromFT(tocabi_);

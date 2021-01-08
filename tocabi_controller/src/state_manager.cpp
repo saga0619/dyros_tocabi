@@ -528,21 +528,21 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = LF_CF_FT.segment(0, 3).norm();
-    pointpub_msg.polygon.points[15].y = LF_CF_FT.segment(3, 3).norm();
-    pointpub_msg.polygon.points[15].z = RF_CP_est(2);
+    pointpub_msg.polygon.points[15].x = dc.tocabi_.link_[COM_id].x_traj(0);
+    pointpub_msg.polygon.points[15].y = dc.tocabi_.link_[COM_id].x_traj(1);
+    pointpub_msg.polygon.points[15].z = dc.tocabi_.link_[COM_id].x_desired(0);
 
-    pointpub_msg.polygon.points[16].x = dc.tocabi_.ContactForce.segment(0, 3).norm();
-    pointpub_msg.polygon.points[16].y = dc.tocabi_.ContactForce.segment(3, 3).norm();
-    pointpub_msg.polygon.points[16].z = link_local[Right_Foot].v(2);
+    pointpub_msg.polygon.points[16].x = dc.tocabi_.link_[COM_id].v_traj(0);
+    pointpub_msg.polygon.points[16].y = dc.tocabi_.link_[COM_id].v_traj(1);
+    pointpub_msg.polygon.points[16].z = dc.tocabi_.link_[COM_id].v_traj(2);
 
-    pointpub_msg.polygon.points[17].x = RF_CF_FT.segment(0, 3).norm();
-    pointpub_msg.polygon.points[17].y = RF_CF_FT.segment(3, 3).norm();
-    pointpub_msg.polygon.points[17].z = link_local[Right_Foot].xpos(2);
+    pointpub_msg.polygon.points[17].x = dc.tocabi_.link_[COM_id].v(0);
+    pointpub_msg.polygon.points[17].y = dc.tocabi_.link_[COM_id].v(1);
+    pointpub_msg.polygon.points[17].z = dc.tocabi_.link_[COM_id].v(2);
 
-    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6, 3).norm();
-    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9, 3).norm();
-    pointpub_msg.polygon.points[18].z = RF_CP_est(2);
+    pointpub_msg.polygon.points[18].x = dc.tocabi_.link_[Pelvis].v(0);
+    pointpub_msg.polygon.points[18].y = dc.tocabi_.link_[Pelvis].v(1);
+    pointpub_msg.polygon.points[18].z = dc.tocabi_.link_[Pelvis].v(2);
 
     point_pub.publish(pointpub_msg);
 
@@ -708,6 +708,9 @@ void StateManager::storeState()
 
     dc.A_ = A_;
     dc.A_inv = A_inv;
+
+    dc.rf_s_ratio = rf_s_ratio;
+    dc.lf_s_ratio = lf_s_ratio;
 
     dc.tocabi_.ContactForce_FT.segment(0, 6) = LF_CF_FT;
     dc.tocabi_.ContactForce_FT.segment(6, 6) = RF_CF_FT;
@@ -1662,7 +1665,6 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
         dc.commandTime = control_time_;
         dc.signal_gravityCompensation = true;
 
-        dc.tocabi_.contact_redistribution_mode = 0;
 
         dc.tc_state = 3;
     }
@@ -1784,7 +1786,8 @@ void StateManager::CommandCallback(const std_msgs::StringConstPtr &msg)
     }
     else if (msg->data == "printdata")
     {
-        dc.open_file_for_print = true;
+        //dc.open_file_for_print = true;
+        dc.f_out.close();
     }
     else if (msg->data == "enablelpf")
     {
