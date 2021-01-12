@@ -2125,7 +2125,7 @@ void TocabiController::dynamicsThreadLow()
         }
 
         TorqueDesiredLocal = torque_grav + torque_task;
-
+        
         if (dc.signal_contactTorqueRedistribution)
         {
             dc.signal_contactTorqueRedistribution = false;

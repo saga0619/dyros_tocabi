@@ -287,18 +287,18 @@ void StateManager::stateThread(void)
                 int t2us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tn).count();
                 tn = std::chrono::steady_clock::now();
 
-                if (((control_time_ - control_time_c_stamp) < 1.01) && ((control_time_ - control_time_c_stamp) > 0.99))
-                {
-                }
-                else
-                {
-                    std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
-                    for (int i = 0; i < 9; i++)
-                    {
-                        std::cout << i << " : " << tdu[i] / 2000.0 * 1000000.0 << "\t";
-                    }
-                    std::cout << std::endl;
-                }
+                // if (((control_time_ - control_time_c_stamp) < 1.01) && ((control_time_ - control_time_c_stamp) > 0.99))
+                // {
+                // }
+                // else
+                // {
+                //     std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
+                //     for (int i = 0; i < 9; i++)
+                //     {
+                //         std::cout << i << " : " << tdu[i] / 2000.0 * 1000000.0 << "\t";
+                //     }
+                //     std::cout << std::endl;
+                // }
 
                 for (int i = 0; i < 9; i++)
                 {
