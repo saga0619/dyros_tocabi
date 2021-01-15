@@ -1,0 +1,35 @@
+<launch>
+  <arg name="debug" default="false"/>
+  <arg name="rviz" default="false"/>
+  <arg name="controller" default="true" />
+  <arg name="gui" default="false"/>
+  <arg name="run_mode" default="realrobot"/>
+  <arg name="urdfDampingmodel" default="false"/>
+  <arg name="ifname" default="enp4s0"/>
+  <arg name="ctime" default="500"/>
+  
+  <group if="$(arg controller)">
+    <node name="tocabi_controller" pkg="tocabi_controller" type="tocabi_controller" output="screen" required="true">
+      <param name="run_mode" value="$(arg run_mode)"/>
+      <param name="debug" value="$(arg debug)" />
+      <param name="rviz_pub" value="$(arg rviz)"/>
+      <param name="ctime" value="$(arg ctime)"/>
+      <param name="ifname" value="$(arg ifname)"/>
+      <param name="ifname2" value="eno2"/>
+      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_with_alegro_qb.urdf"/>
+      <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_positionPDgain.yaml" />
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_parameters.yaml" />
+      <rosparam command="load" file="$(find tocabi_description)/setting/safety_limit.yaml" />
+    </node>
+  </group>
+
+  <node name="auracontrol" pkg="auracontrol" type="auracontrol" output="screen"/>
+
+  <group if="$(arg gui)">
+    <node name="tocabi_gui" pkg="tocabi_gui" type="tocabi_gui"/>
+  </group>
+
+  <node name="pinocchio_tocabi" pkg ="pinocchio_tocabi" type="node" output="screen">
+  </node>
+</launch>
