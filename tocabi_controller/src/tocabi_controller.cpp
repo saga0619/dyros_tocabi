@@ -979,17 +979,17 @@ void TocabiController::dynamicsThreadLow()
                 std::vector<MatrixXd> Jtask_hqp;
                 std::vector<VectorXd> fstar_hqp;
 
-                Jtask_hqp.resize(2);
-                fstar_hqp.resize(2);
+                Jtask_hqp.resize(3);
+                fstar_hqp.resize(3);
 
                 Eigen::MatrixXd Jtask_hand(12, MODEL_DOF_VIRTUAL);
                 Jtask_hqp[0] = tocabi_.link_[COM_id].Jac;
 
-                /*Jtask_hqp[1].resize(12, MODEL_DOF);
-                Jtask_hqp[1].block(0, 0, 6, MODEL_DOF) = tocabi_.link_[Left_Hand].Jac_COM;
-                Jtask_hqp[1].block(6, 0, 6, MODEL_DOF) = tocabi_.link_[Right_Hand].Jac_COM;
-*/
-                Jtask_hqp[1] = tocabi_.link_[Upper_Body].Jac_COM_r;
+                Jtask_hqp[1].resize(12, MODEL_DOF_VIRTUAL);
+                Jtask_hqp[1].block(0, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Left_Hand].Jac_COM;
+                Jtask_hqp[1].block(6, 0, 6, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM;
+
+                Jtask_hqp[2] = tocabi_.link_[Upper_Body].Jac_COM_r;
 
                 /* tocabi_.J_task.setZero(task_number, MODEL_DOF_VIRTUAL);
                 tocabi_.f_star.setZero(task_number);
@@ -1020,18 +1020,22 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.f_star.segment(0, 6) = wbc_.getfstar6d(tocabi_, COM_id);
                 tocabi_.f_star.segment(6, 3) = wbc_.getfstar_rot(tocabi_, Upper_Body);*/
 
-                fstar_hqp[0] = wbc_.getfstar6d(tocabi_, COM_id);/*
+                fstar_hqp[0] = wbc_.getfstar6d(tocabi_, COM_id);
                 fstar_hqp[1].resize(12);
+                fstar_hqp[1].segment(0, 3) = tocabi_.link_[Left_Hand].pos_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].v + tocabi_.link_[Pelvis].v);
+                fstar_hqp[1].segment(3, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Pelvis].w);
+                fstar_hqp[1].segment(6, 3) = tocabi_.link_[Right_Hand].pos_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].v + tocabi_.link_[Pelvis].v);
+                fstar_hqp[1].segment(9, 3) = tocabi_.link_[Right_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].w + tocabi_.link_[Pelvis].w);
 
-                tocabi_.link_[Left_Hand].x_init_local = tocabi_.link_[Left_Hand].x_init - tocabi_.link_[Pelvis].x_init;
-                tocabi_.link_[Right_Hand].x_init_local = tocabi_.link_[Right_Hand].x_init - tocabi_.link_[Pelvis].x_init;
+               // tocabi_.link_[Left_Hand].x_init_local = tocabi_.link_[Left_Hand].x_init - tocabi_.link_[Pelvis].x_init;
+                //tocabi_.link_[Right_Hand].x_init_local = tocabi_.link_[Right_Hand].x_init - tocabi_.link_[Pelvis].x_init;
 
                 //tocabi_.link_[Left_Hand].
 
 
-                fstar_hqp[1].segment(0,3) = tocabi_.link_[Left_Hand].pos_p_gain.cwiseProduct()
-                //fstar_hqp[1].block(0,6) = wbc_.getfs*/
-                fstar_hqp[1] = wbc_.getfstar_rot(tocabi_, Upper_Body);
+                //fstar_hqp[1].segment(0,3) = tocabi_.link_[Left_Hand].pos_p_gain.cwiseProduct()
+                //fstar_hqp[1].block(0,6) = wbc_.getfs
+                fstar_hqp[2] = wbc_.getfstar_rot(tocabi_, Upper_Body);
 
                 //tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
 
@@ -1040,6 +1044,8 @@ void TocabiController::dynamicsThreadLow()
                 //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver); // + wbc_.contact_torque_calc_from_QP(tocabi_, torque_grav);
 
                 torque_task = wbc_.task_control_torque_hqp(tocabi_, Jtask_hqp, fstar_hqp);
+
+                tocabi_.contact_redistribution_mode = 2;
 
                 //wbc_.contact_torque_calc_from_QP(tocabi_, torque_task);
 
