@@ -158,7 +158,10 @@ public:
   //zmp controller
   void getJkt(RobotData &Robot, MatrixXd &J_task, MatrixXd &Jkt);
   MatrixXd getJkt_f(RobotData &Robot, MatrixXd &J_task, MatrixXd &lambda);
+
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> getjkt_m(MatrixXd &AmatNc, MatrixXd &Winv, MatrixXd &Jtask);
   std::pair<Eigen::MatrixXd, Eigen::MatrixXd> getjkt_t(RobotData &Robot, MatrixXd &Jtask);
+
   void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
   VectorQd CP_controller();
