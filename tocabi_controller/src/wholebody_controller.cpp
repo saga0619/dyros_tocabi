@@ -3172,14 +3172,14 @@ VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot, std::vec
 {
     std::chrono::steady_clock::time_point t[20];
     int i=0;
-    std::chrono::steady_clock::time_point t[i++] = std::chrono::steady_clock::now();
+    t[i++] = std::chrono::steady_clock::now();
 
     int hqp_size = Jtask_hqp.size();
     std::vector<std::future<std::pair<MatrixXd, MatrixXd>>> hqp_ret;
 
     //MatrixXd tempMat;
     //tempMat = Robot.A_matrix_inverse * Robot.N_C;
-    std::chrono::steady_clock::time_point t[i++] = std::chrono::steady_clock::now();
+    t[i++] = std::chrono::steady_clock::now();
 
     for (int i = 0; i < hqp_size; i++)
     {
@@ -3187,29 +3187,29 @@ VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot, std::vec
         hqp_ret.push_back(std::async(std::launch::async, &WholebodyController::getjkt_t, this, std::ref(Robot), std::ref(Jtask_hqp[i])));
     }
 
-    std::chrono::steady_clock::time_point t[i++] = std::chrono::steady_clock::now();
+    t[i++] = std::chrono::steady_clock::now();
     int contact_dof = Robot.contact_index * 6 - 6;
 
     Robot.torque_grav = gravity_compensation_torque(Robot);
-    std::chrono::steady_clock::time_point t[i++] = std::chrono::steady_clock::now();
+    t[i++] = std::chrono::steady_clock::now();
 
     Robot.Scf_.setZero(contact_dof, contact_dof + 6);
     Robot.Scf_.block(0, 0, contact_dof, contact_dof).setIdentity();
 
     Robot.NwJw = Robot.qr_V2.transpose() * (Robot.Scf_ * Robot.J_C_INV_T.rightCols(MODEL_DOF) * Robot.qr_V2.transpose()).inverse();
-    std::chrono::steady_clock::time_point t[i++] = std::chrono::steady_clock::now();
+    t[i++] = std::chrono::steady_clock::now();
 
     std::vector<std::pair<MatrixXd, MatrixXd>> ans;
     ans.push_back(hqp_ret[0].get());
 
-    std::chrono::steady_clock::time_point t[i++] = std::chrono::steady_clock::now();
+    t[i++] = std::chrono::steady_clock::now();
     MatrixXd Null = MatrixQQd::Identity(); // - ans[0].first * Robot.lambda * Jtask_hqp[0] * Robot.A_matrix_inverse * Robot.N_C* Robot.Slc_k_T;
     VectorXd torque_prev;
     torque_prev.setZero(MODEL_DOF);
 
     std::vector<std::pair<VectorXd, VectorXd>> qp_ans;
     QP_hqp.resize(hqp_size+1);
-    std::chrono::steady_clock::time_point t[i++] = std::chrono::steady_clock::now();
+    t[i++] = std::chrono::steady_clock::now();
 
     qp_ans.push_back(hqp_step_calc(QP_hqp[0], Robot, torque_prev, Null, ans[0].first, ans[0].second, fstar_hqp[0], Robot.init_qp));
 
