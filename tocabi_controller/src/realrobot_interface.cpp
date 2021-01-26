@@ -7,8 +7,8 @@
 
 const char *homedir;
 
-std::atomic_bool atb_q = true;
-std::atomic_bool atb_elmo = true;
+std::atomic<bool> atb_q{true};
+std::atomic<bool> atb_elmo{true};
 
 double rising_time = 3.0;
 bool elmo_init = true;
