@@ -1077,7 +1077,7 @@ void StateManager::qdotLPF()
 
         q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
         q_dot_virtual_before = q_dot_virtual_lpf_;
-        //q_dot_virtual_local_ = q_dot_virtual_lpf_;
+        q_dot_virtual_local_ = q_dot_virtual_lpf_;
         q_dot_virtual_ = q_dot_virtual_local_;
         q_ddot_virtual_ = q_ddot_virtual_lpf_;
     }

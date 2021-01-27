@@ -177,6 +177,12 @@ public:
     //MomentumControl
     Eigen::VectorXd q_w;
     Eigen::Vector3d H_leg;
+    Eigen::Vector3d H_legr;
+    Eigen::Vector3d H_legl;
+    Eigen::Vector3d Hl_leg;
+    Eigen::Vector3d Hd_leg;
+    Eigen::Vector3d Td_leg;
+    Eigen::Vector3d Hd_leg_prev;
     Eigen::VectorXd q_dm;
     Eigen::Matrix3x12d Ag_leg;
     Eigen::Matrix3x8d Ag_armR;
@@ -188,13 +194,17 @@ public:
     Eigen::Matrix3x3d Agl_waist;
     Eigen::Vector5d qd_prev;
 
-    Eigen::Vector3d CM_moment_;
-    Eigen::Vector3d CM_momentum_prev;
-    Eigen::Vector3d CM_moment_lpf;
-    Eigen::Vector3d CM_moment_prev;
+    Eigen::Vector3d CM_momentLeg_;
+    Eigen::Vector3d CM_momentumLeg_prev;
+    Eigen::Vector3d CM_momentumLeg_prev1;
+    Eigen::Vector3d CM_momentLeg_lpf;
+    Eigen::Vector3d CM_momentUpper_;
+    Eigen::Vector3d CM_momentumUpperd_;
+    Eigen::Vector3d CM_momentLeg_prev;  
     Eigen::Vector3d com_accref;
     Eigen::Vector3d comFcur;
     Eigen::Vector3d comFref;
+    Eigen::Vector3d comFerr;   
 
     //vibrationcontrol
     Eigen::Matrix2d Ax_vib;
