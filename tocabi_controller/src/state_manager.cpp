@@ -1071,9 +1071,10 @@ void StateManager::qdotLPF()
         q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 200);
 
         q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
-
-        //q_dot_virtual_local_ = q_dot_virtual_lpf_;
+        q_dot_virtual_before = q_dot_virtual_lpf_;
+        q_dot_virtual_local_ = q_dot_virtual_lpf_;
         q_dot_virtual_ = q_dot_virtual_local_;
+        q_ddot_virtual_ = q_ddot_virtual_lpf_;
     }
     else
     {
@@ -1124,6 +1125,7 @@ void StateManager::stateEstimate()
 
         static Eigen::Vector3d pelv_v_before;
         static Eigen::Vector3d pelv_v;
+        static Eigen::Vector3d pelv_anga;
         static Eigen::Vector3d pelv_x_before;
         static Eigen::Vector3d pelv_x;
         RF_contact_pos_mod = RF_CP_est - RF_CP_est_before;
@@ -1211,6 +1213,7 @@ void StateManager::stateEstimate()
             dc.semode_init = false;
             pelv_v_before.setZero();
             pelv_x_before.setZero();
+            imu_ang_vel_before.setZero();
             imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
             dr_static = 0.5;
             dl_static = 0.5;
@@ -1349,11 +1352,18 @@ void StateManager::stateEstimate()
 
         pelv_x = alpha * (pelv_v * dt + imu_acc_dat * dt * dt * 0.5 + pelv_x_before) + (1 - alpha) * (-mod_base_pos);
         pelv_x_before = pelv_x;
+
+        pelv_anga = (q_dot_virtual_.segment<3>(3) - imu_ang_vel_before)*2000;
+        imu_ang_vel_before = q_dot_virtual_.segment<3>(3);
+
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
             q_dot_virtual_(i) = pelv_v(i);
-        }
+            q_ddot_virtual_(i) = imu_acc_dat(i);
+            q_ddot_virtual_(i+3) = pelv_anga(i);
+        }    
+
         fr_msg.data[6] = pelv_v[0];
         fr_msg.data[7] = pelv_v[1];
         fr_msg.data[8] = pelv_v[2];
