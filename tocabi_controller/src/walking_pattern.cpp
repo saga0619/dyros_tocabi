@@ -539,7 +539,7 @@ void WalkingPattern::setCpPosition()
         capturePoint_offsety(i) = 0.00;
         capturePoint_offsety(i) = 0.00;
         //    capturePoint_offsetx(i) = 0.04;
-        capturePoint_offsetx(i) = 0.00;
+        capturePoint_offsetx(i) = 0.02;
     }
 
     if (com_control == 0)
