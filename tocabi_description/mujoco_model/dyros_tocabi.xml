@@ -128,7 +128,7 @@
                                     <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="AnkleRoll_L_Link" />
                                     <geom class="cls" size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder"/>
                                     <body name="L_Foot_Link" pos="0 0 0">
-                                        <inertial pos="-0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
+                                        <inertial pos="0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
                                         <geom class="cls" size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box"/>
                                         <geom class="cls" size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder"/>
@@ -178,7 +178,7 @@
                                     <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="AnkleRoll_R_Link" />
                                     <geom class="cls" size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder"/>
                                     <body name="R_Foot_Link" pos="0 0 0">
-                                        <inertial pos="-0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
+                                        <inertial pos="0.0162 8e-05 -0.1209" mass="2.326" fullinertia="0.003386409 0.012600125 0.014296 1.1237E-05 -0.000526477 -1.976E-06" />
                                         <geom class="viz" rgba="0.85938 0.07813 0.23438 1" mesh="Foot_Link" />
                                         <geom class="cls" size="0.15 0.065 0.0135" pos="0.03 0 -0.145" type="box"/>
                                         <geom class="cls" size="0.045 0.03125" pos="-0.08875 0 0" quat="0.707107 0 -0.707107 0" type="cylinder" />
