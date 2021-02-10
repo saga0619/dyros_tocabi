@@ -40,6 +40,17 @@ const double NM2CNT_d[MODEL_DOF] =
         95.0, 95.0,
         15.5, 15.5, 15.5, 15.5, 42.0, 42.0, 95.0, 95.0};
 
+const double T_LIMIT[MODEL_DOF] = 
+  {
+        1500.0/3.0, 1500.0/4.3, 1500.0/3.8, 1500.0/3.46, 1500.0/4.5, 1500.0/12.33,
+        1500.0/3.0, 1500.0/4.3, 1500.0/3.8, 1500.0/3.46, 1500.0/4.5, 1500.0/12.33,
+        1500.0/3.3, 1500.0/3.3, 1500.0/3.3,
+        1500.0/15.5, 1500.0/15.5, 1500.0/15.5, 1500.0/15.5, 1500.0/42.0, 1500.0/42.0, 1500.0/95.0, 1500.0/95.0,
+        1500.0/95.0, 1500.0/95.0,
+        1500.0/15.5, 1500.0/15.5, 1500.0/15.5, 1500.0/15.5, 1500.0/42.0, 1500.0/42.0, 1500.0/95.0, 1500.0/95.0
+  };
+
+
 class WholebodyController
 {
 public:
@@ -53,8 +64,13 @@ public:
   //set contact status of robot. true for contact false for not contact
   void set_contact(RobotData &Robot);
   void set_contact(RobotData &Robot, bool left_foot, bool right_foot, bool left_hand = false, bool right_hand = false);
+  void set_contact_multithread(RobotData &Robot, bool left_foot, bool right_foot, bool left_hand = false, bool right_hand = false);
+
+  void calc_winv(RobotData &Robot);
+  void get_winv(RobotData &Robot);
 
   void set_robot_init(RobotData &Robot);
+  void set_robot_init_multithread(RobotData &Robot);
 
   //contact force redistribution by yisoolee method at 2 contact(both foot)
   VectorQd contact_force_redistribution_torque(RobotData &Robot, VectorQd command_torque, Eigen::Vector12d &ForceRedistribution, double &eta);
@@ -92,6 +108,8 @@ public:
   VectorQd task_control_torque(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_, int mode);
 
   VectorQd task_control_torque_motor(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  void copy_robot_fast(RobotData &Robot, RobotData_fast &Robot_fast, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp);
+
   /*
   * Get Task Control Torque from QP.
   * task jacobian and f_star must be defined. 
@@ -112,9 +130,15 @@ public:
 
   VectorQd task_control_torque_hqp(RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp);
 
+  VectorQd task_control_torque_hqp_threaded(RobotData_fast Robot_thread, bool &init_qp);
+
   VectorQd task_control_torque_hqp_step(RobotData &Robot, MatrixXd &J_task, VectorXd &f_star);
 
-  std::pair<VectorXd, VectorXd> hqp_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, VectorXd torque_before, MatrixXd &Null_task, MatrixXd &Jkt,  MatrixXd &lambda, VectorXd f_star, bool init);
+  VectorXd hqp_contact_calc(CQuadraticProgram &qphqp, RobotData &Robot, VectorXd torque_prev, bool init);
+  VectorXd hqp_contact_calc(CQuadraticProgram &qphqp, RobotData_fast &Robot_fast, VectorXd torque_prev, bool init);
+  VectorXd hqp_damping_calc(CQuadraticProgram &qphqp, RobotData_fast &Robot_fast, VectorXd torque_prev, MatrixXd &Null_task, bool init);
+  std::pair<VectorXd, VectorXd> hqp_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, VectorXd torque_before, MatrixXd &Null_task, MatrixXd &Jkt, MatrixXd &lambda, VectorXd f_star, bool init);
+  std::pair<VectorXd, VectorXd> hqp_step_calc(CQuadraticProgram &qphqp, RobotData_fast &Robot_fast, VectorXd torque_prev, MatrixXd &Null_task, MatrixXd &Jkt, MatrixXd &lambda, VectorXd f_star, bool init);
 
   // Get Task Control Torque task jacobian and f_star must be defined.
   VectorQd task_control_torque_custom_force_feedback(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force, VectorXd ft_hand);
@@ -159,8 +183,9 @@ public:
   void getJkt(RobotData &Robot, MatrixXd &J_task, MatrixXd &Jkt);
   MatrixXd getJkt_f(RobotData &Robot, MatrixXd &J_task, MatrixXd &lambda);
 
-  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> getjkt_m(MatrixXd &AmatNc, MatrixXd &Winv, MatrixXd &Jtask);
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> getjkt_m(MatrixVVd &Amat_inv, MatrixXd &Nc, MatrixXd &Winv, MatrixXd &Jtask);
   std::pair<Eigen::MatrixXd, Eigen::MatrixXd> getjkt_t(RobotData &Robot, MatrixXd &Jtask);
+  std::pair<Eigen::MatrixXd, Eigen::MatrixXd> pinv_QR(MatrixXd &A);
 
   void CPpatternGen(RobotData &Robot);
   VectorQd CP_control_init(RobotData &Robot, double dT);
@@ -177,6 +202,8 @@ public:
   const int SINGLE_SUPPORT_RIGHT = 2;
   const int TRIPPLE_SUPPORT = 3;
   const int QUAD_SUPPORT = 4;
+
+  VectorQd torque_limit;
 
   void CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix);
   /*

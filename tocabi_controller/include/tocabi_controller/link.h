@@ -7,6 +7,8 @@
 #include "tocabi_controller/tocabi.h"
 #include <rbdl/addons/urdfreader/urdfreader.h>
 #include <mutex>
+#include <future>
+#include <atomic>
 
 extern std::mutex mtx_rbdl;
 
@@ -319,6 +321,32 @@ public:
 
 Eigen::Vector2d local2global(double x, double y, double angle);
 
+struct RobotData_fast
+{
+  Eigen::MatrixVVd A_matrix_inverse;
+  Eigen::MatrixXd W_inv;
+  Eigen::MatrixXd N_C;
+  Eigen::MatrixXd P_C;
+  Eigen::VectorQd torque_grav;
+  Eigen::MatrixXd NwJw;
+  Eigen::MatrixXd J_C_INV_T;
+  Eigen::MatrixXd qr_V2;
+
+  Eigen::VectorQd q_dot_;
+
+  EndEffector ee_[ENDEFFECTOR_NUMBER];
+  
+  int ee_idx[4];
+
+  std::vector<Eigen::VectorXd> fstar_hqp;
+  std::vector<Eigen::MatrixXd> Jtask_hqp;
+
+  int contact_index;
+
+  Eigen::VectorQd torque_control;
+
+};
+
 struct RobotData
 {
   Com com_;
@@ -372,6 +400,8 @@ struct RobotData
   Eigen::Vector3d CP_;
   Eigen::Vector3d CP_desired;
   Eigen::VectorXd TaskForce;
+
+  std::future<std::pair<Eigen::MatrixXd, Eigen::MatrixXd>> winv_ret;
 
   bool zmp_feedback_control = false;
   bool check = false;
@@ -442,6 +472,7 @@ struct RobotData
 
   Eigen::MatrixXd Lambda_c;
   Eigen::MatrixXd N_C;
+  Eigen::VectorXd P_C;
   Eigen::MatrixVVd I37;
 
   Eigen::VectorXd contact_force_predict;

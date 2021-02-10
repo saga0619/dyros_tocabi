@@ -38,6 +38,8 @@ public:
 
   std::atomic<bool> atb_dc{false};
 
+  std::atomic<bool> trigger_hqp{false};
+
   //Basic var
   bool simulation = true;
   bool connected = false;
@@ -128,6 +130,7 @@ public:
   //Kinematics Information :
   //MODEL Tocabi;
   RobotData tocabi_;
+  RobotData_fast tocabi_fast_;
   WholebodyController wbc_;
   Walking_controller wkc_;
 
