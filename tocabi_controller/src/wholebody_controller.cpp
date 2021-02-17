@@ -270,10 +270,10 @@ void WholebodyController::set_robot_init_multithread(RobotData &Robot)
     Robot.ee_[2].friction_ratio = Robot.friction_ratio;
     Robot.ee_[3].friction_ratio = Robot.friction_ratio;
 
-    Robot.ee_[0].friction_ratio_z = 0.01;
-    Robot.ee_[1].friction_ratio_z = 0.01;
-    Robot.ee_[2].friction_ratio_z = 0.01;
-    Robot.ee_[3].friction_ratio_z = 0.01;
+    Robot.ee_[0].friction_ratio_z = 0.2;
+    Robot.ee_[1].friction_ratio_z = 0.2;
+    Robot.ee_[2].friction_ratio_z = 0.2;
+    Robot.ee_[3].friction_ratio_z = 0.2;
     //t[tcnt++] = std::chrono::steady_clock::now();
 
     //t[tcnt++] = std::chrono::steady_clock::now();
@@ -3796,14 +3796,17 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
     t[tcnt] = std::chrono::steady_clock::now(); //0us
     init_qp = false;
     //return Robot.torque_grav + ans[0].first * ans[0].second * (fstar_hqp[0] + qp_ans[0].first) + Robot.NwJw * qp_ans[0].second;
-    std::cout << "hqp calc : ";
+    
+    
+    /*std::cout << "hqp calc : ";
     for (int i = 0; i < tcnt; i++)
     {
         //std::cout << std::chrono::duration_cast<std::chrono::microseconds>(t[i + 1] - t[i]).count() << "\t";
     }
 
-
+    
     std::cout << "  total : " << std::chrono::duration_cast<std::chrono::microseconds>(t[tcnt] - t[0]).count() << std::endl;
+    */
     static double all_time = 0;
     all_time += std::chrono::duration_cast<std::chrono::microseconds>(t[tcnt] - t[5]).count();
     static int tc = 0;
