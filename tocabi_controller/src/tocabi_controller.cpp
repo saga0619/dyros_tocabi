@@ -2620,6 +2620,7 @@ void TocabiController::tuiThread()
 
         if (dc.open_file_for_print && !dc.print_data_ready)
         {
+            dc.tocabi_.data_print_switch = true;
             dc.data_out = std::ofstream(dc.print_file_name.c_str());
             if (dc.data_out.is_open())
             {

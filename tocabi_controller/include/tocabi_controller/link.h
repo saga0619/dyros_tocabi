@@ -431,6 +431,10 @@ struct RobotData
 
   double friction_ratio;
 
+  bool data_print_switch = false;
+
+  bool data_print = false;
+
   double start_time_[4];
   double end_time_[4];
   bool target_arrived_[4];

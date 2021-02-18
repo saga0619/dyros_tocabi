@@ -112,6 +112,34 @@ void WholebodyController::update(RobotData &Robot)
     Robot.Motor_inertia(20, 20) = 1.27;
     Robot.Motor_inertia(29, 29) = 0.015;
     Robot.Motor_inertia(30, 30) = 0.015;*/
+
+    if (Robot.data_print_switch)
+    {
+        Robot.data_print = true;
+        Robot.data_print_switch = false;
+
+        data_out1 = std::ofstream(print_file_name.c_str());
+        if (data_out1.is_open())
+        {
+            std::cout << "Start Logging Data .... to " << print_file_name << std::endl;
+            data_out1 << "Start Data Print" << std::endl;
+        }
+        else
+        {
+            std::cout << "Failed to open tocabi_data.txt" << std::endl;
+        }
+
+        data_out2 = std::ofstream(print_file_name.c_str());
+        if (data_out1.is_open())
+        {
+            std::cout << "Start Logging Data .... to " << print_file_name << std::endl;
+            data_out2 << "Start Data Print" << std::endl;
+        }
+        else
+        {
+            std::cout << "Failed to open tocabi_data.txt" << std::endl;
+        }
+    }
 }
 /*
 void WholebodyController::contact_set(int contact_number, int link_id[])
