@@ -3,9 +3,7 @@
 #include "tocabi_controller/TaskCommand.h"
 #include <tf/transform_datatypes.h>
 #include "stdlib.h"
-#include <fstream>
 #include <sstream>
-
 #include <iostream>
 #include <string>
 
@@ -705,8 +703,10 @@ void TocabiController::dynamicsThreadLow()
     tstruct = *localtime(&now);
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     current_time = buf;
-    dc.print_file_name = path + "/tocabi_data" + current_time + ".txt";
-
+    dc.print_file_name = path + "/tocabi_control_data" + current_time + ".txt";
+    
+    wbc_.print_file_name = path + "/tocabi_wbc_slack_data" + current_time + ".txt";
+    wbc_.print_file_name2 = path + "/tocabi_wbc_hqp_time_data" + current_time + ".txt";
     std::stringstream ss;
 
     ///////////////////////
@@ -952,7 +952,7 @@ void TocabiController::dynamicsThreadLow()
                 //tocabi_.f_star.segment(0, 2) = wbc_.fstar_regulation(tocabi_, tocabi_.f_star.segment(0, 3));
                 //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
 
-                torque_task = wbc_.task_control_torque_hqp_step(tocabi_, tocabi_.J_task, tocabi_.f_star);
+                torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver);
                 tocabi_.contact_redistribution_mode = 2;
                 torque_grav.setZero();
             }
@@ -1033,6 +1033,7 @@ void TocabiController::dynamicsThreadLow()
                 //wbc_.set_contact(tocabi_, 1, 1);
 
                 wbc_.set_contact(tocabi_, 1, 1);
+
                 wbc_.copy_robot_fast(tocabi_, tocabi_fast_, Jtask_hqp, fstar_hqp);
 
                 torque_task = wbc_.task_control_torque_hqp_threaded(tocabi_fast_, tocabi_.init_qp);
@@ -1238,8 +1239,8 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[Left_Hand].x_traj(2) = tc.l_z - 0.5 * hand_z_diff + 0.5 * hand_z_diff * cos((tocabi_.control_time_ - tc.command_time) * 2.0 * 3.141592 / tc.traj_time);
                 tocabi_.link_[Right_Hand].x_traj(2) = tc.r_z + 0.5 * hand_z_diff - 0.5 * hand_z_diff * cos((tocabi_.control_time_ - tc.command_time) * 2.0 * 3.141592 / tc.traj_time);
 
-                tocabi_.link_[Left_Hand].v_traj(2) = - 0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time)* 2.0 * 3.141592 / tc.traj_time;
-                tocabi_.link_[Right_Hand].v_traj(2) = + 0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time)* 2.0 * 3.141592 / tc.traj_time;
+                tocabi_.link_[Left_Hand].v_traj(2) = -0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time) * 2.0 * 3.141592 / tc.traj_time;
+                tocabi_.link_[Right_Hand].v_traj(2) = +0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time) * 2.0 * 3.141592 / tc.traj_time;
 
                 fstar_hqp[1].segment(0, 3) = tocabi_.link_[Left_Hand].pos_p_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].x_traj - l_pos_local)) + tocabi_.link_[Left_Hand].pos_d_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].v_traj - l_v_local));
                 fstar_hqp[1].segment(3, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Pelvis].w);
@@ -1272,6 +1273,14 @@ void TocabiController::dynamicsThreadLow()
                 wbc_.set_contact(tocabi_, 1, 1);
 
                 wbc_.copy_robot_fast(tocabi_, tocabi_fast_, Jtask_hqp, fstar_hqp);
+
+                //print trajectory info
+                dc.data_out << control_time_
+                            << tocabi_.link_[COM_id].x_traj.transpose() << tocabi_.link_[COM_id].xpos.transpose()
+                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].r_traj).transpose() << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].Rotm).transpose()
+                            << tocabi_.link_[Left_Hand].x_traj.transpose() << l_pos_local.transpose()
+                            << tocabi_.link_[Right_Hand].x_traj.transpose() << r_pos_local.transpose()
+                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].r_traj).transpose() << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].Rotm).transpose() << std::endl;
 
                 dc.trigger_hqp = true;
 

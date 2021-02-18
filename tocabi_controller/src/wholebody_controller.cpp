@@ -34,7 +34,6 @@ void WholebodyController::init(RobotData &Robot)
         torque_limit(i) = 1500 / NM2CNT_d[i];
     }
 
-
     Robot.ee_[0].contact_transition_mode = -1;
     Robot.ee_[1].contact_transition_mode = -1;
     Robot.ee_[2].contact_transition_mode = -1;
@@ -60,6 +59,21 @@ void WholebodyController::init(RobotData &Robot)
     }
 
     RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &(Robot.model_virtual), true, verbose);
+
+    //print_file_name =
+
+    
+    data_out1 = std::ofstream(print_file_name.c_str());
+    data_out2 = std::ofstream(print_file_name2.c_str());
+    if (data_out1.is_open())
+    {
+        std::cout << "Start WBC Data logging.... to " << print_file_name << std::endl;
+        data_out1 << "Start WBC Data Print" << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to open tocabi_wbc_data.txt" << std::endl;
+    }
 }
 
 void WholebodyController::CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix)
@@ -128,10 +142,6 @@ void WholebodyController::zmp_feedback_control(Vector3d desired_zmp)
 
 void WholebodyController::set_robot_init(RobotData &Robot)
 {
-    Robot.Lambda_c = (Robot.J_C * Robot.A_matrix_inverse * (Robot.J_C.transpose())).inverse();
-    Robot.J_C_INV_T = Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse;
-    Robot.N_C = MatrixVVd::Identity() - Robot.J_C.transpose() * Robot.J_C_INV_T;
-
     Robot.ee_[0].cp_ = Robot.link_[Left_Foot].xpos_contact;
     Robot.ee_[1].cp_ = Robot.link_[Right_Foot].xpos_contact;
     Robot.ee_[2].cp_ = Robot.link_[Left_Hand].xpos_contact;
@@ -170,30 +180,26 @@ void WholebodyController::set_robot_init(RobotData &Robot)
 
     Robot.ee_[0].friction_ratio = Robot.friction_ratio;
     Robot.ee_[1].friction_ratio = Robot.friction_ratio;
+
     Robot.ee_[2].friction_ratio = Robot.friction_ratio;
     Robot.ee_[3].friction_ratio = Robot.friction_ratio;
 
-    Robot.ee_[0].friction_ratio_z = 0.01;
-    Robot.ee_[1].friction_ratio_z = 0.01;
-    Robot.ee_[2].friction_ratio_z = 0.01;
-    Robot.ee_[3].friction_ratio_z = 0.01;
-    //t[tcnt++] = std::chrono::steady_clock::now();
+    Robot.ee_[0].friction_ratio_z = Robot.friction_ratio;
+    Robot.ee_[1].friction_ratio_z = Robot.friction_ratio;
+    Robot.ee_[2].friction_ratio_z = Robot.friction_ratio;
+    Robot.ee_[3].friction_ratio_z = Robot.friction_ratio;
 
-    //t[tcnt++] = std::chrono::steady_clock::now();
-    //t[tcnt++] = std::chrono::steady_clock::now();
-    //Robot.I37.setIdentity(MODEL_DOF + 6, MODEL_DOF + 6);
-    //t[tcnt++] = std::chrono::steady_clock::now();
+    Robot.Lambda_c = (Robot.J_C * Robot.A_matrix_inverse * (Robot.J_C.transpose())).inverse();
+    Robot.J_C_INV_T = Robot.Lambda_c * Robot.J_C * Robot.A_matrix_inverse;
+    Robot.N_C.setZero(MODEL_DOF + 6, MODEL_DOF + 6);
+    Robot.I37.setIdentity(MODEL_DOF + 6, MODEL_DOF + 6);
+    Robot.N_C = Robot.I37 - Robot.J_C.transpose() * Robot.J_C_INV_T;
     Robot.Slc_k.setZero(MODEL_DOF, MODEL_DOF + 6);
     Robot.Slc_k.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
     Robot.Slc_k_T = Robot.Slc_k.transpose();
-    //t[tcnt++] = std::chrono::steady_clock::now();
-    Robot.W = Robot.A_matrix_inverse.bottomRows(MODEL_DOF) * Robot.N_C.rightCols(MODEL_DOF); // * Robot.Slc_k_T; //2 types for w matrix
-    //t[tcnt++] = std::chrono::steady_clock::now();
-    Robot.W_inv = DyrosMath::pinv_QR(Robot.W, Robot.qr_V2);
-    //t[tcnt] = std::chrono::steady_clock::now();
+    Robot.W = Robot.Slc_k * Robot.A_matrix_inverse * Robot.N_C * Robot.Slc_k_T; //2 types for w matrix
 
-    //get_winv(Robot);
-    //std::cout << "W pinv : " << std::chrono::duration_cast<std::chrono::microseconds>(t[1] - t[0]).count() << std::endl;
+    Robot.W_inv = DyrosMath::pinv_QR(Robot.W, Robot.qr_V2);
 }
 void WholebodyController::calc_winv(RobotData &Robot)
 {
@@ -270,15 +276,15 @@ void WholebodyController::set_robot_init_multithread(RobotData &Robot)
     Robot.ee_[2].friction_ratio = Robot.friction_ratio;
     Robot.ee_[3].friction_ratio = Robot.friction_ratio;
 
-    Robot.ee_[0].friction_ratio_z = 0.2;
-    Robot.ee_[1].friction_ratio_z = 0.2;
-    Robot.ee_[2].friction_ratio_z = 0.2;
-    Robot.ee_[3].friction_ratio_z = 0.2;
+    Robot.ee_[0].friction_ratio_z = Robot.friction_ratio;
+    Robot.ee_[1].friction_ratio_z = Robot.friction_ratio;
+    Robot.ee_[2].friction_ratio_z = Robot.friction_ratio;
+    Robot.ee_[3].friction_ratio_z = Robot.friction_ratio;
     //t[tcnt++] = std::chrono::steady_clock::now();
 
     //t[tcnt++] = std::chrono::steady_clock::now();
     //t[tcnt++] = std::chrono::steady_clock::now();
-    //Robot.I37.setIdentity(MODEL_DOF + 6, MODEL_DOF + 6);
+    Robot.I37.setIdentity(MODEL_DOF + 6, MODEL_DOF + 6);
     //t[tcnt++] = std::chrono::steady_clock::now();
     Robot.Slc_k.setZero(MODEL_DOF, MODEL_DOF + 6);
     Robot.Slc_k.block(0, 6, MODEL_DOF, MODEL_DOF).setIdentity();
@@ -389,10 +395,6 @@ void WholebodyController::set_contact(RobotData &Robot)
 
 void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool right_foot, bool left_hand, bool right_hand)
 {
-    std::chrono::steady_clock::time_point t[20];
-    int tcnt = 0;
-    t[tcnt++] = std::chrono::steady_clock::now();
-
     Robot.ee_[0].contact = left_foot;
     Robot.ee_[1].contact = right_foot;
     Robot.ee_[2].contact = left_hand;
@@ -425,19 +427,19 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
     }
 
     Robot.J_C.setZero(Robot.contact_index * 6, MODEL_DOF_VIRTUAL);
-    t[tcnt++] = std::chrono::steady_clock::now();
+
     Robot.link_[Left_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Foot].contact_point);
     Robot.link_[Right_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Foot].contact_point);
     Robot.link_[Left_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Hand].contact_point);
     Robot.link_[Right_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Hand].contact_point);
-    t[tcnt++] = std::chrono::steady_clock::now();
+
     for (int i = 0; i < Robot.contact_index; i++)
     {
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
-    t[tcnt++] = std::chrono::steady_clock::now();
+
     set_robot_init(Robot);
-    t[tcnt] = std::chrono::steady_clock::now();
+
     Robot.contact_force_predict.setZero();
     Robot.contact_calc = true;
 
@@ -3764,11 +3766,12 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
     ans.push_back(hqp_ret[0].get());
     //std::cout<<"c5"<<std::endl;
     t[tcnt++] = std::chrono::steady_clock::now(); //26us
-    MatrixXd Null_task = MatrixQQd::Identity();        // - ans[0].first * Robot.lambda * Jtask_hqp[0] * Robot.A_matrix_inverse * Robot.N_C* Robot.Slc_k_T;
+    MatrixXd Null_task = MatrixQQd::Identity();   // - ans[0].first * Robot.lambda * Jtask_hqp[0] * Robot.A_matrix_inverse * Robot.N_C* Robot.Slc_k_T;
     VectorXd torque_prev;
     torque_prev.setZero(MODEL_DOF);
     std::vector<std::pair<VectorXd, VectorXd>> qp_ans;
     QP_hqp.resize(hqp_size + 2);
+    int task1_idx = tcnt;
     t[tcnt++] = std::chrono::steady_clock::now(); //2us
     //std::cout<<"c6"<<std::endl;
     qp_ans.push_back(hqp_step_calc(QP_hqp[0], Robot_fast, torque_prev, Null_task, ans[0].first, ans[0].second, Robot_fast.fstar_hqp[0], init_qp));
@@ -3788,16 +3791,20 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
         }
     }
     torque_prev = torque_prev + Null_task * ans.back().first * ans.back().second * (Robot_fast.fstar_hqp.back() + qp_ans.back().first);
-    t[tcnt++] = std::chrono::steady_clock::now(); 
-    VectorXd fc_opt = hqp_contact_calc(QP_hqp[hqp_size], Robot_fast, torque_prev, init_qp);
+
+    int damping_idx = tcnt;
     t[tcnt++] = std::chrono::steady_clock::now();
-    //hqp_damping_calc(QP_hqp[hqp_size + 1], Robot_fast, torque_prev, Null_task, init_qp);
+    VectorXd damping_slack = hqp_damping_calc(QP_hqp[hqp_size + 1], Robot_fast, torque_prev, Null_task, init_qp);
+
+    int contact_idx = tcnt;
+    t[tcnt++] = std::chrono::steady_clock::now();
+    VectorXd fc_opt = hqp_contact_calc(QP_hqp[hqp_size], Robot_fast, torque_prev, init_qp);
+
     //AAAAnd Contact Force Redistribution with QP!!
     t[tcnt] = std::chrono::steady_clock::now(); //0us
     init_qp = false;
     //return Robot.torque_grav + ans[0].first * ans[0].second * (fstar_hqp[0] + qp_ans[0].first) + Robot.NwJw * qp_ans[0].second;
-    
-    
+
     /*std::cout << "hqp calc : ";
     for (int i = 0; i < tcnt; i++)
     {
@@ -3817,11 +3824,26 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
         all_time = 0;
         tc = 0;
     }
+
+    // data_out1 << Robot_fast.control_time_;
+    // for (int i = 0; i < qp_ans.size(); i++)
+    // {
+    //     data_out1 << qp_ans[i].first.transpose();
+    // }
+    // data_out1 << damping_slack.transpose() << std::endl;
+    // data_out2 << Robot_fast.control_time_;
+    // data_out2 << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 1] - t[task1_idx]).count()
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 4] - t[task1_idx + 3]).count()
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 7] - t[task1_idx + 6]).count()
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t[damping_idx + 1] - t[damping_idx]).count()
+    //           << std::chrono::duration_cast<std::chrono::microseconds>(t[contact_idx + 1] - t[contact_idx]).count() << std::endl;
+
     return torque_prev + Robot_fast.NwJw * fc_opt + Robot_fast.torque_grav;
 }
 void WholebodyController::copy_robot_fast(RobotData &Robot, RobotData_fast &Robot_fast, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp)
 {
     Robot_fast.torque_grav = gravity_compensation_torque(Robot);
+    Robot_fast.control_time_ = Robot.control_time_;
     Robot_fast.A_matrix_inverse = Robot.A_matrix_inverse;
     Robot_fast.W_inv = Robot.W_inv;
     Robot_fast.N_C = Robot.N_C;
@@ -3834,12 +3856,11 @@ void WholebodyController::copy_robot_fast(RobotData &Robot, RobotData_fast &Robo
 
     Robot_fast.q_dot_ = Robot.q_dot_;
 
-    for(int i=0;i<4;i++)
+    for (int i = 0; i < 4; i++)
     {
         Robot_fast.ee_[i] = Robot.ee_[i];
         Robot_fast.ee_idx[i] = Robot.ee_idx[i];
     }
-
 }
 
 VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp)
