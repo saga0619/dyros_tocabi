@@ -323,6 +323,8 @@ Eigen::Vector2d local2global(double x, double y, double angle);
 
 struct RobotData_fast
 {
+
+  double control_time_;
   Eigen::MatrixVVd A_matrix_inverse;
   Eigen::MatrixXd W_inv;
   Eigen::MatrixXd N_C;

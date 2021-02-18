@@ -8,6 +8,7 @@
 #include <qpOASES.hpp>
 #include "tocabi_controller/osqp_rapper.h"
 #include <vector>
+#include <fstream>
 using namespace Eigen;
 using namespace std;
 using namespace qpOASES;

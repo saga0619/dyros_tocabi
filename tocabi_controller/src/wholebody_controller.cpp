@@ -62,7 +62,7 @@ void WholebodyController::init(RobotData &Robot)
 
     //print_file_name =
 
-    
+    /*
     data_out1 = std::ofstream(print_file_name.c_str());
     data_out2 = std::ofstream(print_file_name2.c_str());
     if (data_out1.is_open())
@@ -73,7 +73,7 @@ void WholebodyController::init(RobotData &Robot)
     else
     {
         std::cout << "Failed to open tocabi_wbc_data.txt" << std::endl;
-    }
+    } */
 }
 
 void WholebodyController::CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix)
