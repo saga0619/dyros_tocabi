@@ -540,8 +540,8 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[17].y = q_ddot_virtual_(1);
     pointpub_msg.polygon.points[17].z = q_ddot_virtual_(2);
 
-    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6, 3).norm();
-    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9, 3).norm();
+    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce(2);
+    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce(8);
     pointpub_msg.polygon.points[18].z = RF_CP_est(2);
 
     point_pub.publish(pointpub_msg);
@@ -1120,14 +1120,45 @@ void StateManager::stateEstimate()
         static Eigen::Vector3d RF_CP_est_holder_before, LF_CP_est_holder_before;
         static Eigen::Vector3d RF_CP_est_before, LF_CP_est_before;
         static Eigen::Vector3d imu_init;
-        RF_CP_est.setZero();
-        LF_CP_est.setZero();
 
         static Eigen::Vector3d pelv_v_before;
         static Eigen::Vector3d pelv_v;
         static Eigen::Vector3d pelv_anga;
         static Eigen::Vector3d pelv_x_before;
         static Eigen::Vector3d pelv_x;
+
+
+        static double dr_static, dl_static;
+
+        if (dc.semode_init)
+        {
+            contact_right = false;
+            contact_left = false;
+            std::cout << "state Estimation Initialized" << std::endl;
+            RF_contact_pos_holder.setZero(); // - RF_contactpoint_internal_pos(2);
+            LF_contact_pos_holder.setZero();// - LF_contactpoint_internal_pos(2);
+            RF_contact_pos_mod.setZero();
+            LF_contact_pos_mod.setZero();
+            RF_CP_est_holder.setZero();
+            LF_CP_est_holder.setZero();
+            RF_CP_est_holder_before.setZero();
+            LF_CP_est_holder_before.setZero();
+
+            RF_CP_est_before.setZero();
+            LF_CP_est_before.setZero();
+            dc.semode_init = false;
+            pelv_v_before.setZero();
+            pelv_x_before.setZero();
+            imu_ang_vel_before.setZero();
+            imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
+            dr_static = 0.5;
+            dl_static = 0.5;
+        }
+
+        RF_CP_est.setZero();
+        LF_CP_est.setZero();
+
+
         RF_contact_pos_mod = RF_CP_est - RF_CP_est_before;
         LF_contact_pos_mod = LF_CP_est - LF_CP_est_before;
 
@@ -1198,25 +1229,6 @@ void StateManager::stateEstimate()
             {
                 std::cout << control_time_ << "  left foot contact disabled" << std::endl;
             }
-        }
-        static double dr_static, dl_static;
-
-        if (dc.semode_init)
-        {
-            std::cout << "state Estimation Initialized" << std::endl;
-            RF_contact_pos_holder(2) = 0.0; // - RF_contactpoint_internal_pos(2);
-            LF_contact_pos_holder(2) = 0.0; // - LF_contactpoint_internal_pos(2);
-            RF_contact_pos_mod.setZero();
-            LF_contact_pos_mod.setZero();
-            RF_CP_est_before.setZero();
-            LF_CP_est_before.setZero();
-            dc.semode_init = false;
-            pelv_v_before.setZero();
-            pelv_x_before.setZero();
-            imu_ang_vel_before.setZero();
-            imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
-            dr_static = 0.5;
-            dl_static = 0.5;
         }
 
         // imu pos estimation part (useless for now... )

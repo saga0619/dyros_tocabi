@@ -30,8 +30,8 @@ void WholebodyController::init(RobotData &Robot)
 
     for (int i = 0; i < MODEL_DOF; i++)
     {
-        Robot.torque_limit(i) = 1500 / NM2CNT_d[i];
-        torque_limit(i) = 1500 / NM2CNT_d[i];
+        Robot.torque_limit(i) = 1000 / NM2CNT_d[i];
+        torque_limit(i) = 1000 / NM2CNT_d[i];
     }
 
     Robot.ee_[0].contact_transition_mode = -1;
@@ -199,6 +199,7 @@ void WholebodyController::set_robot_init(RobotData &Robot)
     Robot.ee_[0].cs_y_length = 0.025;
     Robot.ee_[1].cs_x_length = 0.07;
     Robot.ee_[1].cs_y_length = 0.025;
+
     Robot.ee_[2].cs_x_length = 0.013;
     Robot.ee_[2].cs_y_length = 0.013;
     Robot.ee_[3].cs_x_length = 0.013;
@@ -3296,10 +3297,15 @@ VectorXd WholebodyController::hqp_contact_calc(CQuadraticProgram &qphqp, RobotDa
     ubA.segment(0, MODEL_DOF) = torque_limit - torque_prev - Robot_fast.torque_grav;
     // t[1] = std::chrono::steady_clock::now();
 
+    Eigen::MatrixXd Rf;
+    Rf.setZero(contact_index * 6, contact_index * 6);
     Eigen::MatrixXd Af;
     Af.setZero(contact_index * constraint_per_contact, contact_index * 6);
     for (int i = 0; i < contact_index; i++)
     {
+        Rf.block(0 + i * 6, 0 + i * 6, 3, 3) = Robot_fast.ee_[Robot_fast.ee_idx[i]].rotm.inverse();
+        Rf.block(3 + i * 6, 3 + i * 6, 3, 3) = Robot_fast.ee_[Robot_fast.ee_idx[i]].rotm.inverse();
+
         Af(i * constraint_per_contact + 0, 2 + 6 * i) = -Robot_fast.ee_[Robot_fast.ee_idx[i]].cs_x_length;
         Af(i * constraint_per_contact + 0, 4 + 6 * i) = -1.0;
         Af(i * constraint_per_contact + 1, 2 + 6 * i) = -Robot_fast.ee_[Robot_fast.ee_idx[i]].cs_x_length;
@@ -3334,24 +3340,25 @@ VectorXd WholebodyController::hqp_contact_calc(CQuadraticProgram &qphqp, RobotDa
     // Sf(1, 8) = 1;
     // t[2] = std::chrono::steady_clock::now();
     Eigen::MatrixXd Atemp;
-    Atemp = Af * Robot_fast.J_C_INV_T.rightCols(MODEL_DOF);
+    Atemp = Af *Rf* Robot_fast.J_C_INV_T.rightCols(MODEL_DOF);
     // t[3] = std::chrono::steady_clock::now();
     //A.block(MODEL_DOF, 0, Robot.contact_index * constraint_per_contact, task_dof) = Atemp * Ntorque_task;
     A.block(MODEL_DOF, 0, contact_index * constraint_per_contact, contact_dof) = Atemp * Robot_fast.NwJw;
     // t[4] = std::chrono::steady_clock::now();
 
     lbA.segment(MODEL_DOF, contact_index * constraint_per_contact) =
-        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav));
+        Af *Rf* (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav));
     ubA.segment(MODEL_DOF, contact_index * constraint_per_contact) =
-        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav));
+        Af * Rf*(Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav));
 
-    // t[5] = std::chrono::steady_clock::now();
+
     for (int i = 0; i < contact_index; i++)
     {
         for (int j = 0; j < constraint_per_contact - 1; j++)
-            ubA(MODEL_DOF + i * constraint_per_contact + j) += 1E+8;
+            ubA(MODEL_DOF + i * constraint_per_contact + j) += 1E+6;
 
         ubA(MODEL_DOF + i * constraint_per_contact + 10) += -100;
+        lbA(MODEL_DOF + i * constraint_per_contact + 10) += -1E+6;
     }
 
     MatrixXd H;
@@ -3412,8 +3419,16 @@ std::pair<VectorXd, VectorXd> WholebodyController::hqp_step_calc(CQuadraticProgr
     // t[1] = std::chrono::steady_clock::now();
     Eigen::MatrixXd Af;
     Af.setZero(contact_index * constraint_per_contact, contact_index * 6);
+
+    Eigen::MatrixXd Rf;
+    Rf.setZero(contact_index * 6, contact_index * 6);
+
     for (int i = 0; i < contact_index; i++)
     {
+
+        Rf.block(0 + i * 6, 0 + i * 6, 3, 3) = Robot_fast.ee_[Robot_fast.ee_idx[i]].rotm.inverse();
+        Rf.block(3 + i * 6, 3 + i * 6, 3, 3) = Robot_fast.ee_[Robot_fast.ee_idx[i]].rotm.inverse();
+
         Af(i * constraint_per_contact + 0, 2 + 6 * i) = -Robot_fast.ee_[Robot_fast.ee_idx[i]].cs_x_length;
         Af(i * constraint_per_contact + 0, 4 + 6 * i) = -1.0;
         Af(i * constraint_per_contact + 1, 2 + 6 * i) = -Robot_fast.ee_[Robot_fast.ee_idx[i]].cs_x_length;
@@ -3447,24 +3462,25 @@ std::pair<VectorXd, VectorXd> WholebodyController::hqp_step_calc(CQuadraticProgr
     // Sf(1, 8) = 1;
     // t[2] = std::chrono::steady_clock::now();
     Eigen::MatrixXd Atemp;
-    Atemp = Af * Robot_fast.J_C_INV_T.rightCols(MODEL_DOF);
+    Atemp = Af *Rf* Robot_fast.J_C_INV_T.rightCols(MODEL_DOF);
     // t[3] = std::chrono::steady_clock::now();
     A.block(MODEL_DOF, 0, contact_index * constraint_per_contact, task_dof) = Atemp * Ntorque_task;
     A.block(MODEL_DOF, task_dof, contact_index * constraint_per_contact, contact_dof) = Atemp * Robot_fast.NwJw;
     // t[4] = std::chrono::steady_clock::now();
     lbA.segment(MODEL_DOF, contact_index * constraint_per_contact) =
-        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav + Ntorque_task * f_star));
+        Af * Rf*(Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav + Ntorque_task * f_star));
 
     ubA.segment(MODEL_DOF, contact_index * constraint_per_contact) =
-        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav + Ntorque_task * f_star));
+        Af *Rf* (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav + Ntorque_task * f_star));
 
     // t[5] = std::chrono::steady_clock::now();
     for (int i = 0; i < contact_index; i++)
     {
         for (int j = 0; j < constraint_per_contact - 1; j++)
-            ubA(MODEL_DOF + i * constraint_per_contact + j) += 1E+8;
+            ubA(MODEL_DOF + i * constraint_per_contact + j) += 1E+6;
 
         ubA(MODEL_DOF + i * constraint_per_contact + 10) += -100;
+        lbA(MODEL_DOF + i * constraint_per_contact + 10) += -1E+6;
     }
 
     // t[6] = std::chrono::steady_clock::now();
