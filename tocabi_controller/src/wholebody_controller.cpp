@@ -3343,7 +3343,7 @@ VectorXd WholebodyController::hqp_contact_calc(CQuadraticProgram &qphqp, RobotDa
     lbA.segment(MODEL_DOF, contact_index * constraint_per_contact) =
         Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav));
     ubA.segment(MODEL_DOF, contact_index * constraint_per_contact) =
-        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav + Ntorque_task * f_star));
+        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav));
 
     // t[5] = std::chrono::steady_clock::now();
     for (int i = 0; i < contact_index; i++)
