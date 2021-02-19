@@ -1035,9 +1035,11 @@ void TocabiController::dynamicsThreadLow()
 
                 wbc_.set_contact(tocabi_, 1, 1);
 
-                wbc_.copy_robot_fast(tocabi_, tocabi_fast_, Jtask_hqp, fstar_hqp);
+                //wbc_.copy_robot_fast(tocabi_, tocabi_fast_, Jtask_hqp, fstar_hqp);
 
-                torque_task = wbc_.task_control_torque_hqp_threaded(tocabi_fast_, tocabi_.init_qp);
+                //torque_task = wbc_.task_control_torque_hqp_threaded(tocabi_fast_, tocabi_.init_qp);
+
+                torque_task = wbc_.task_control_torque_hqp2(tocabi_, Jtask_hqp,fstar_hqp);
 
                 //torque_task = wbc_.task_control_torque_hqp(tocabi_, Jtask_hqp, fstar_hqp);
                 torque_grav.setZero();

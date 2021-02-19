@@ -138,6 +138,9 @@ public:
   VectorXd hqp_damping_calc(CQuadraticProgram &qphqp, RobotData_fast &Robot_fast, VectorXd torque_prev, MatrixXd &Null_task, bool init);
   std::pair<VectorXd, VectorXd> hqp_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, VectorXd torque_before, MatrixXd &Null_task, MatrixXd &Jkt, MatrixXd &lambda, VectorXd f_star, bool init);
   std::pair<VectorXd, VectorXd> hqp_step_calc(CQuadraticProgram &qphqp, RobotData_fast &Robot_fast, VectorXd torque_prev, MatrixXd &Null_task, MatrixXd &Jkt, MatrixXd &lambda, VectorXd f_star, bool init);
+  
+  VectorQd task_control_torque_hqp2(RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp);
+  VectorQd hqp2_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, MatrixXd &Jtask, VectorXd fstar, bool init);
 
   // Get Task Control Torque task jacobian and f_star must be defined.
   VectorQd task_control_torque_custom_force_feedback(RobotData &Robot, MatrixXd J_task, VectorXd f_star_, MatrixXd selection_matrix, VectorXd desired_force, VectorXd ft_hand);
