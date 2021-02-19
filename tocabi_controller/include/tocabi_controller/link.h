@@ -300,6 +300,7 @@ struct EndEffector
   Eigen::Vector6d contact_force;
   Eigen::Vector6d contact_force_ft;
   Eigen::Matrix3d rotm;
+  Eigen::Vector3d zmp;
   double contact_accuracy;
   double contact_time;
   int contact_transition_mode; //-1 nothing to do, 0 disabling, 1 enabling

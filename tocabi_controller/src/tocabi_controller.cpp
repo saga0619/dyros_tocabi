@@ -704,6 +704,7 @@ void TocabiController::dynamicsThreadLow()
     strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
     current_time = buf;
     dc.print_file_name = path + "/tocabi_control_data" + current_time + ".txt";
+    dc.print_file_name2 = path + "/tocabi_control_data2" + current_time + ".txt";
     
     wbc_.print_file_name = path + "/tocabi_wbc_slack_data" + current_time + ".txt";
     wbc_.print_file_name2 = path + "/tocabi_wbc_hqp_time_data" + current_time + ".txt";
@@ -1081,7 +1082,7 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.J_task.block(15, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM_p;
                 tocabi_.J_task.block(18, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM_r;*/
 
-                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].x_init + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].x_init;
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
@@ -1122,10 +1123,10 @@ void TocabiController::dynamicsThreadLow()
                 fstar_hqp[1].resize(12);
                 //fstar_hqp[1].segment(0, 3) = tocabi_.link_[Left_Hand].pos_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].v + tocabi_.link_[Pelvis].v);
                 fstar_hqp[1].segment(0, 3) = tocabi_.link_[Left_Hand].pos_p_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].x_traj - l_pos_local)) + tocabi_.link_[Left_Hand].pos_d_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].v_traj - l_v_local));
-                fstar_hqp[1].segment(3, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Pelvis].w);
+                fstar_hqp[1].segment(3, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Upper_Body].w);
                 //fstar_hqp[1].segment(6, 3) = tocabi_.link_[Right_Hand].pos_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].v + tocabi_.link_[Pelvis].v);
                 fstar_hqp[1].segment(6, 3) = tocabi_.link_[Right_Hand].pos_p_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Right_Hand].x_traj - r_pos_local)) + tocabi_.link_[Right_Hand].pos_d_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Right_Hand].v_traj - r_v_local));
-                fstar_hqp[1].segment(9, 3) = tocabi_.link_[Right_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].w + tocabi_.link_[Pelvis].w);
+                fstar_hqp[1].segment(9, 3) = tocabi_.link_[Right_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].w + tocabi_.link_[Upper_Body].w);
 
                 // tocabi_.link_[Left_Hand].x_init_local = tocabi_.link_[Left_Hand].x_init - tocabi_.link_[Pelvis].x_init;
                 //tocabi_.link_[Right_Hand].x_init_local = tocabi_.link_[Right_Hand].x_init - tocabi_.link_[Pelvis].x_init;
@@ -1190,12 +1191,12 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.J_task.block(15, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM_p;
                 tocabi_.J_task.block(18, 0, 3, MODEL_DOF_VIRTUAL) = tocabi_.link_[Right_Hand].Jac_COM_r;*/
 
-                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].xpos + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos;
+                tocabi_.link_[COM_id].x_desired = tc.ratio * tocabi_.link_[Left_Foot].x_init + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].x_init;
                 tocabi_.link_[COM_id].x_desired(2) = tc.height;
                 tocabi_.link_[COM_id].Set_Trajectory_from_quintic(tocabi_.control_time_, tc.command_time, tc.command_time + tc.traj_time);
 
-                double start = tc.ratio * tocabi_.link_[Left_Foot].xpos(1) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].xpos(1);
-                double end = (1.0 - tc.ratio) * tocabi_.link_[Left_Foot].xpos(1) + (tc.ratio) * tocabi_.link_[Right_Foot].xpos(1);
+                double start = tc.ratio * tocabi_.link_[Left_Foot].x_init(1) + (1.0 - tc.ratio) * tocabi_.link_[Right_Foot].x_init(1);
+                double end = (1.0 - tc.ratio) * tocabi_.link_[Left_Foot].x_init(1) + (tc.ratio) * tocabi_.link_[Right_Foot].x_init(1);
                 double length = start - end;
 
                 tocabi_.link_[COM_id].x_traj(1) = start - length * 0.5 + cos((tocabi_.control_time_ - tc.command_time) * 2.0 * 3.141592 / tc.traj_time) * length * 0.5;
@@ -1242,11 +1243,23 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[Left_Hand].v_traj(2) = -0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time) * 2.0 * 3.141592 / tc.traj_time;
                 tocabi_.link_[Right_Hand].v_traj(2) = +0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time) * 2.0 * 3.141592 / tc.traj_time;
 
+
+                //tocabi_.link_[Left_Hand].pos_p_gain<<200.0,200.0,200.0;
+                //tocabi_.link_[Right_Hand].pos_p_gain<<200.0,200.0,200.0;
+
+                //tocabi_.link_[Left_Hand].pos_d_gain<<20.0,20.0,20.0;
+                //tocabi_.link_[Right_Hand].pos_d_gain<<20.0,20.0,20.0;
+
+                //tocabi_.link_[Left_Hand].rot_d_gain<<20.0,20.0,20.0;
+                //tocabi_.link_[Right_Hand].rot_d_gain<<20.0,20.0,20.0;
+
+                
+
                 fstar_hqp[1].segment(0, 3) = tocabi_.link_[Left_Hand].pos_p_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].x_traj - l_pos_local)) + tocabi_.link_[Left_Hand].pos_d_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].v_traj - l_v_local));
-                fstar_hqp[1].segment(3, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Pelvis].w);
+                fstar_hqp[1].segment(3, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Upper_Body].w);
                 //fstar_hqp[1].segment(6, 3) = tocabi_.link_[Right_Hand].pos_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].v + tocabi_.link_[Pelvis].v);
                 fstar_hqp[1].segment(6, 3) = tocabi_.link_[Right_Hand].pos_p_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Right_Hand].x_traj - r_pos_local)) + tocabi_.link_[Right_Hand].pos_d_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Right_Hand].v_traj - r_v_local));
-                fstar_hqp[1].segment(9, 3) = tocabi_.link_[Right_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].w + tocabi_.link_[Pelvis].w);
+                fstar_hqp[1].segment(9, 3) = tocabi_.link_[Right_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Right_Hand].w + tocabi_.link_[Upper_Body].w);
 
                 //fstar_hqp[1].segment(0,3) = tocabi_.link_[Left_Hand].
                 //tocabi_.link_[Left_Hand].x_desired = tocabi_.link_[Upper_Body].xpos + tocabi_.link_[Upper_Body].rotm *
@@ -1275,12 +1288,20 @@ void TocabiController::dynamicsThreadLow()
                 wbc_.copy_robot_fast(tocabi_, tocabi_fast_, Jtask_hqp, fstar_hqp);
 
                 //print trajectory info
-                dc.data_out << control_time_
-                            << tocabi_.link_[COM_id].x_traj.transpose() << tocabi_.link_[COM_id].xpos.transpose()
-                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].r_traj).transpose() << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].Rotm).transpose()
-                            << tocabi_.link_[Left_Hand].x_traj.transpose() << l_pos_local.transpose()
-                            << tocabi_.link_[Right_Hand].x_traj.transpose() << r_pos_local.transpose()
-                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].r_traj).transpose() << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].Rotm).transpose() << std::endl;
+                tocabi_.data_print = true;
+
+                dc.data_out << control_time_<<" \t"
+                            << tocabi_.link_[COM_id].x_traj.transpose()<<" \t" << tocabi_.link_[COM_id].xpos.transpose()<<" \t"
+                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].r_traj).transpose()<<" \t" << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].Rotm).transpose()<<" \t"
+                            << tocabi_.link_[Left_Hand].x_traj.transpose() <<" \t"<< l_pos_local.transpose()<<" \t"
+                            << tocabi_.link_[Right_Hand].x_traj.transpose()<<" \t" << r_pos_local.transpose()<<" \t"
+                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].r_traj).transpose()<<" \t" << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].Rotm).transpose() << std::endl;
+                
+                dc.data_out2 << control_time_<<" \t"
+                            << tocabi_.ee_[0].zmp(0) - tocabi_.ee_[0].cp_(0)<<" \t" << tocabi_.ee_[0].zmp(1)-tocabi_.ee_[0].cp_(0) <<" \t"
+                            << tocabi_.ee_[1].zmp(0) -tocabi_.ee_[1].cp_(0)<<" \t" << tocabi_.ee_[1].zmp(1)- tocabi_.ee_[0].cp_(1) <<" \t"
+                            << tocabi_.ContactForce.transpose()<<" \t"
+                            << dc.torque_desired.transpose()<<std::endl;
 
                 dc.trigger_hqp = true;
 
@@ -2314,7 +2335,7 @@ void TocabiController::dynamicsThreadLow()
 
             if (dc.print_data_ready)
             {
-                dc.data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
+                //dc.data_out << control_time_ << "\t" << tocabi_.link_[COM_id].xpos(1) << "\t" << tocabi_.link_[COM_id].x_traj(1) << std::endl;
             }
 
             if (tocabi_.lambda_calc)
@@ -2622,6 +2643,13 @@ void TocabiController::tuiThread()
         {
             dc.tocabi_.data_print_switch = true;
             dc.data_out = std::ofstream(dc.print_file_name.c_str());
+            dc.data_out<<fixed;
+            dc.data_out.precision(6);
+            dc.data_out.width(15);
+            dc.data_out2 = std::ofstream(dc.print_file_name2.c_str());
+            dc.data_out2<<fixed;
+            dc.data_out2.precision(6);
+            dc.data_out2.width(15);
             if (dc.data_out.is_open())
             {
                 std::cout << "Start Logging Data .... to " << dc.print_file_name << std::endl;

@@ -301,5 +301,6 @@ public:
 
 static std::ofstream data_out1;
 static std::ofstream data_out2;
+static bool print_data_wbc = false;
 
 #endif // WALKING_CONTROLLER_H

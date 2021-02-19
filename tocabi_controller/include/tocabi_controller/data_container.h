@@ -68,7 +68,9 @@ public:
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;
+  std::string print_file_name2;
   std::ofstream data_out;
+  std::ofstream data_out2;
 
   //Tui Var..
   bool state_end;
