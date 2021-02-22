@@ -1146,7 +1146,6 @@ void StateManager::stateEstimate()
 
             RF_CP_est_before.setZero();
             LF_CP_est_before.setZero();
-            dc.semode_init = false;
             pelv_v_before.setZero();
             pelv_x_before.setZero();
             imu_ang_vel_before.setZero();
@@ -1229,6 +1228,15 @@ void StateManager::stateEstimate()
             {
                 std::cout << control_time_ << "  left foot contact disabled" << std::endl;
             }
+        }
+
+        if(dc.semode_init)
+        {
+
+            LF_contact_pos_holder(2) = 0.0;
+            RF_contact_pos_holder(2) = 0.0;
+            dc.semode_init = false;
+
         }
 
         // imu pos estimation part (useless for now... )

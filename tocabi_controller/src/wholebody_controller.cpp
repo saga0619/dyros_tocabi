@@ -3,6 +3,7 @@
 #include "ros/ros.h"
 #include <vector>
 #include <future>
+#include <numeric>
 
 //Left Foot is first! LEFT = 0, RIGHT = 1 !
 // #include "cvxgen/solver.h"
@@ -3519,146 +3520,6 @@ std::pair<VectorXd, VectorXd> WholebodyController::hqp_step_calc(CQuadraticProgr
     }
 }
 
-VectorQd WholebodyController::hqp2_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, MatrixXd &Jtask, VectorXd fstar, bool init)
-{
-    int task_dof = fstar.size();
-    int contact_index = Robot.contact_index;
-    int contact_dof = contact_index * 6;
-    int variable_size = MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof + task_dof;
-    //qddot torque contactforce slack
-    int constraint_per_contact = 11;
-    int constraint_size = MODEL_DOF_VIRTUAL + task_dof + contact_dof + contact_index * constraint_per_contact + MODEL_DOF;
-
-    Eigen::MatrixXd A;
-    A.setZero(constraint_size, variable_size);
-    Eigen::VectorXd lbA, ubA;
-    lbA.setZero(constraint_size);
-    ubA.setZero(constraint_size);
-
-    //A*qddot + h + Jc^T * F_c = S^T * torque
-    A.block(0, 0, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL) = Robot.A_matrix;
-    A.block(0, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL, MODEL_DOF) = -Robot.Slc_k_T;
-    A.block(0, MODEL_DOF_VIRTUAL + MODEL_DOF, MODEL_DOF_VIRTUAL, contact_dof) = Robot.J_C.transpose();
-
-
-    lbA.segment(0, MODEL_DOF_VIRTUAL) = -Robot.G;
-    ubA.segment(0, MODEL_DOF_VIRTUAL) = -Robot.G;
-
-    //std::cout<<"t1"<<std::endl;
-    Eigen::MatrixXd Itask;
-    Itask.setIdentity(task_dof,task_dof);
-    //J1 * qddot + j1dot * qdot = fstar + w1
-    A.block(MODEL_DOF_VIRTUAL, 0, task_dof, MODEL_DOF_VIRTUAL) = Jtask;
-    A.block(MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof, task_dof) = -Itask;
-
-    lbA.segment(MODEL_DOF_VIRTUAL, task_dof) = fstar;
-    ubA.segment(MODEL_DOF_VIRTUAL, task_dof) = fstar;
-    //std::cout<<"t1"<<std::endl;
-
-    //Jc * qddot + Jc * qdot = 0
-
-    A.block(MODEL_DOF_VIRTUAL + task_dof, 0, contact_dof, MODEL_DOF_VIRTUAL) = Robot.J_C;
-
-    //contact constraint;
-    Eigen::MatrixXd Af;
-    Af.setZero(contact_index * constraint_per_contact, contact_index * 6);
-    Eigen::MatrixXd Rf;
-    Rf.setZero(contact_index * 6, contact_index * 6);
-    for (int i = 0; i < contact_index; i++)
-    {
-
-        Rf.block(0 + i * 6, 0 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
-        Rf.block(3 + i * 6, 3 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
-
-        Af(i * constraint_per_contact + 0, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_x_length;
-        Af(i * constraint_per_contact + 0, 4 + 6 * i) = -1.0;
-        Af(i * constraint_per_contact + 1, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_x_length;
-        Af(i * constraint_per_contact + 1, 4 + 6 * i) = 1.0;
-
-        Af(i * constraint_per_contact + 2, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_y_length;
-        Af(i * constraint_per_contact + 2, 3 + 6 * i) = -1.0;
-        Af(i * constraint_per_contact + 3, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_y_length;
-        Af(i * constraint_per_contact + 3, 3 + 6 * i) = 1.0;
-
-        Af(i * constraint_per_contact + 4, 0 + 6 * i) = 1.0;
-        Af(i * constraint_per_contact + 4, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
-        Af(i * constraint_per_contact + 5, 0 + 6 * i) = -1.0;
-        Af(i * constraint_per_contact + 5, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
-
-        Af(i * constraint_per_contact + 6, 1 + 6 * i) = 1.0;
-        Af(i * constraint_per_contact + 6, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
-        Af(i * constraint_per_contact + 7, 1 + 6 * i) = -1.0;
-        Af(i * constraint_per_contact + 7, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
-
-        Af(i * constraint_per_contact + 8, 5 + 6 * i) = 1.0;
-        Af(i * constraint_per_contact + 8, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
-        Af(i * constraint_per_contact + 9, 5 + 6 * i) = -1.0;
-        Af(i * constraint_per_contact + 9, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
-
-        Af(i * constraint_per_contact + 10, 2 + 6 * i) = 1.0;
-    }
-
-    //std::cout<<"t1"<<std::endl;
-    Eigen::MatrixXd Atemp;
-    Atemp = Af * Rf * Robot.J_C_INV_T.rightCols(MODEL_DOF);
-    int contact_index_start = MODEL_DOF_VIRTUAL + task_dof + contact_dof;
-    // t[3] = std::chrono::steady_clock::now();
-    A.block(contact_index_start, MODEL_DOF_VIRTUAL, contact_index * constraint_per_contact, MODEL_DOF) = Atemp;
-
-    // t[4] = std::chrono::steady_clock::now();
-    lbA.segment(contact_index_start, contact_index * constraint_per_contact) =
-        Af * Rf * (Robot.P_C);
-
-    ubA.segment(contact_index_start, contact_index * constraint_per_contact) =
-        Af * Rf * (Robot.P_C);
-
-    // t[5] = std::chrono::steady_clock::now();
-    for (int i = 0; i < contact_index; i++)
-    {
-        for (int j = 0; j < constraint_per_contact - 1; j++)
-            ubA(contact_index_start + i * constraint_per_contact + j) += 1E+6;
-
-        ubA(contact_index_start + i * constraint_per_contact + 10) += -100;
-        lbA(contact_index_start + i * constraint_per_contact + 10) += -1E+6;
-    }
-
-    //std::cout<<"t1"<<std::endl;
-    int tlimit_index = contact_index_start + constraint_per_contact * contact_index;
-
-    A.block(tlimit_index, MODEL_DOF_VIRTUAL, MODEL_DOF, MODEL_DOF) = MatrixQQd::Identity();
-
-    ubA.segment(tlimit_index, MODEL_DOF) = torque_limit;
-    lbA.segment(tlimit_index, MODEL_DOF) = -torque_limit;
-
-    MatrixXd H;
-    VectorXd g;
-    H.setZero(variable_size, variable_size);
-    g.setZero(variable_size);
-
-    //std::cout<<"dc1"<<std::endl;
-    H.block(MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof, task_dof) = MatrixXd::Identity(task_dof, task_dof);
-
-    //std::cout<<"t1"<<std::endl;
-    if (init)
-    {
-        qphqp.InitializeProblemSize(variable_size, constraint_size);
-    }
-    qphqp.EnableEqualityCondition(0.0001);
-    qphqp.UpdateMinProblem(H, g);
-    qphqp.UpdateSubjectToAx(A, lbA, ubA);
-
-    //std::cout<<"t1"<<std::endl;
-    VectorXd qpres;
-    if (qphqp.SolveQPoases(100, qpres))
-    {
-        return qpres.segment(MODEL_DOF, MODEL_DOF);
-    }
-    else
-    {
-        return VectorQd::Zero(MODEL_DOF);
-    }
-}
-
 VectorXd WholebodyController::hqp_damping_calc(CQuadraticProgram &qphqp, RobotData_fast &Robot_fast, VectorXd torque_prev, MatrixXd &Null_task, bool init)
 {
     //std::cout<<"dc1"<<std::endl;
@@ -3672,6 +3533,8 @@ VectorXd WholebodyController::hqp_damping_calc(CQuadraticProgram &qphqp, RobotDa
     A.setZero(constraint_size, variable_size);
     lbA.setZero(MODEL_DOF + contact_index * constraint_per_contact);
     ubA.setZero(MODEL_DOF + contact_index * constraint_per_contact);
+
+    Eigen::VectorXd torque_damping = -Robot_fast.q_dot_ * 0.1;
     //std::cout<<"dc1"<<std::endl;
     //Torque Limit constraint
     //Eigen::MatrixXd Ntorque_task = Null_task * Jkt * lambda;
@@ -3679,8 +3542,8 @@ VectorXd WholebodyController::hqp_damping_calc(CQuadraticProgram &qphqp, RobotDa
     A.block(0, 0, MODEL_DOF, MODEL_DOF) = Null_task;
     //std::cout<<"dc1"<<std::endl;
     A.block(0, MODEL_DOF, MODEL_DOF, contact_dof) = Robot_fast.NwJw;
-    lbA.segment(0, MODEL_DOF) = -torque_limit - torque_prev - Robot_fast.torque_grav;
-    ubA.segment(0, MODEL_DOF) = torque_limit - torque_prev - Robot_fast.torque_grav;
+    lbA.segment(0, MODEL_DOF) = -torque_limit - torque_prev - Robot_fast.torque_grav - Null_task * torque_damping;
+    ubA.segment(0, MODEL_DOF) = torque_limit - torque_prev - Robot_fast.torque_grav - Null_task * torque_damping;
     //std::cout<<"dc1"<<std::endl;
     // t[1] = std::chrono::steady_clock::now();
     Eigen::MatrixXd Af;
@@ -3721,7 +3584,7 @@ VectorXd WholebodyController::hqp_damping_calc(CQuadraticProgram &qphqp, RobotDa
     A.block(MODEL_DOF, MODEL_DOF, contact_index * constraint_per_contact, contact_dof) = Atemp * Robot_fast.NwJw;
     // t[4] = std::chrono::steady_clock::now();
     lbA.segment(MODEL_DOF, contact_index * constraint_per_contact) =
-        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav));
+        Af * (Robot_fast.P_C - Robot_fast.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot_fast.torque_grav + Null_task * torque_damping));
     // t[5] = std::chrono::steady_clock::now();
     for (int i = 0; i < contact_index * constraint_per_contact; i++)
         ubA(MODEL_DOF + i) = 1E+6;
@@ -3734,7 +3597,7 @@ VectorXd WholebodyController::hqp_damping_calc(CQuadraticProgram &qphqp, RobotDa
     //std::cout<<"dc1"<<std::endl;
     H.block(0, 0, MODEL_DOF, MODEL_DOF) = MatrixXd::Identity(MODEL_DOF, MODEL_DOF);
     //H = Robot.NwJw.transpose() * Robot.J_C_INV_T.rightCols(MODEL_DOF).transpose() * S_contact * Robot.J_C_INV_T.rightCols(MODEL_DOF) * Robot.NwJw;
-    g.segment(0, MODEL_DOF) = -Robot_fast.q_dot_ * 0.1;
+    //g.segment(0, MODEL_DOF) = -Robot_fast.q_dot_ * 0.1;
     //g = Robot.NwJw.transpose() * (Robot.J_C_INV_T.rightCols(MODEL_DOF).transpose() * (S_contact * (Robot.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot.torque_grav) - Robot.P_C)));
     // t[7] = std::chrono::steady_clock::now();
     //std::cout<<"dc1"<<std::endl;
@@ -3954,15 +3817,387 @@ std::pair<VectorXd, VectorXd> WholebodyController::hqp_step_calc(CQuadraticProgr
     }
 }
 
+std::pair<VectorXd, VectorXd> WholebodyController::hqp2_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp, bool init)
+{
+    int heirarchy = Jtask_hqp.size();
+    std::vector<int> task_dof;
+    for (int i = 0; i < heirarchy; i++)
+    {
+        task_dof.push_back(fstar_hqp[i].size());
+    }
+
+    int contact_index = Robot.contact_index;
+    int contact_dof = contact_index * 6;
+    //qacc torque contact_force fstar_slack
+    int variable_size = MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof + task_dof.back();
+    //qddot torque contactforce slack
+    int constraint_per_contact = 11;
+    int total_td = 0;
+    for (int i = 0; i < task_dof.size(); i++)
+    {
+        total_td += task_dof[i];
+    }
+    int constraint_size = MODEL_DOF_VIRTUAL + total_td + contact_dof + contact_index * constraint_per_contact + MODEL_DOF;
+
+    Eigen::MatrixXd A;
+    A.setZero(constraint_size, variable_size);
+    Eigen::VectorXd lbA, ubA;
+    lbA.setZero(constraint_size);
+    ubA.setZero(constraint_size);
+
+    //A*qddot + h + Jc^T * F_c = S^T * torque
+    A.block(0, 0, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL) = Robot.A_matrix;
+    A.block(0, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL, MODEL_DOF) = -Robot.Slc_k_T;
+    A.block(0, MODEL_DOF_VIRTUAL + MODEL_DOF, MODEL_DOF_VIRTUAL, contact_dof) = Robot.J_C.transpose();
+
+    lbA.segment(0, MODEL_DOF_VIRTUAL) = -Robot.G;
+    ubA.segment(0, MODEL_DOF_VIRTUAL) = -Robot.G;
+
+    //std::cout<<"t1"<<std::endl;
+    //J1 * qddot + j1dot * qdot = fstar + w1
+
+    Eigen::MatrixXd Itask;
+    for (int i = 0; i < heirarchy; i++)
+    {
+        Itask.setIdentity(task_dof[i], task_dof[i]);
+        int td_start = 0;
+        for (int j = 0; j < i; j++)
+        {
+            td_start += task_dof[j];
+        }
+        //std::cout<<"tdstart = "<<td_start<<std::endl;
+        A.block(MODEL_DOF_VIRTUAL + td_start, 0, task_dof[i], MODEL_DOF_VIRTUAL) = Jtask_hqp[i];
+
+        if ((i + 1) == heirarchy)
+            A.block(MODEL_DOF_VIRTUAL + td_start, MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof[i], task_dof[i]) = -Itask;
+
+        lbA.segment(MODEL_DOF_VIRTUAL + td_start, task_dof[i]) = fstar_hqp[i];
+        ubA.segment(MODEL_DOF_VIRTUAL + td_start, task_dof[i]) = fstar_hqp[i];
+    }
+    //std::cout<<"t1"<<std::endl;
+
+    //Jc * qddot + Jc * qdot = 0
+
+    int contact_space_constraint = MODEL_DOF_VIRTUAL + total_td;
+
+    A.block(contact_space_constraint, 0, contact_dof, MODEL_DOF_VIRTUAL) = Robot.J_C;
+
+    //contact constraint;
+    Eigen::MatrixXd Af;
+    Af.setZero(contact_index * constraint_per_contact, contact_index * 6);
+    Eigen::MatrixXd Rf;
+    Rf.setZero(contact_index * 6, contact_index * 6);
+    for (int i = 0; i < contact_index; i++)
+    {
+
+        Rf.block(0 + i * 6, 0 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
+        Rf.block(3 + i * 6, 3 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
+
+        Af(i * constraint_per_contact + 0, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_x_length;
+        Af(i * constraint_per_contact + 0, 4 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 1, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_x_length;
+        Af(i * constraint_per_contact + 1, 4 + 6 * i) = 1.0;
+
+        Af(i * constraint_per_contact + 2, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_y_length;
+        Af(i * constraint_per_contact + 2, 3 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 3, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_y_length;
+        Af(i * constraint_per_contact + 3, 3 + 6 * i) = 1.0;
+
+        Af(i * constraint_per_contact + 4, 0 + 6 * i) = 1.0;
+        Af(i * constraint_per_contact + 4, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+        Af(i * constraint_per_contact + 5, 0 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 5, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+
+        Af(i * constraint_per_contact + 6, 1 + 6 * i) = 1.0;
+        Af(i * constraint_per_contact + 6, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+        Af(i * constraint_per_contact + 7, 1 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 7, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+
+        Af(i * constraint_per_contact + 8, 5 + 6 * i) = 1.0;
+        Af(i * constraint_per_contact + 8, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
+        Af(i * constraint_per_contact + 9, 5 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 9, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
+
+        Af(i * constraint_per_contact + 10, 2 + 6 * i) = 1.0;
+    }
+
+    //std::cout<<"t1"<<std::endl;
+    Eigen::MatrixXd Atemp;
+    Atemp = Af * Rf; // * Robot.J_C_INV_T.rightCols(MODEL_DOF);
+    int contact_index_start = contact_space_constraint + contact_dof;
+    // t[3] = std::chrono::steady_clock::now();
+    A.block(contact_index_start, MODEL_DOF_VIRTUAL + MODEL_DOF, contact_index * constraint_per_contact, contact_dof) = Atemp;
+
+    // t[4] = std::chrono::steady_clock::now();
+    // lbA.segment(contact_index_start, contact_index * constraint_per_contact) =
+    //     Af * Rf * (Robot.P_C);
+
+    // ubA.segment(contact_index_start, contact_index * constraint_per_contact) =
+    //     Af * Rf * (Robot.P_C);
+
+    // t[5] = std::chrono::steady_clock::now();
+    for (int i = 0; i < contact_index; i++)
+    {
+        for (int j = 0; j < constraint_per_contact - 1; j++)
+            ubA(contact_index_start + i * constraint_per_contact + j) += 1E+6;
+
+        ubA(contact_index_start + i * constraint_per_contact + 10) += -100;
+        lbA(contact_index_start + i * constraint_per_contact + 10) += -1E+6;
+    }
+
+    //std::cout<<"t1"<<std::endl;
+    int tlimit_index = contact_index_start + constraint_per_contact * contact_index;
+
+    A.block(tlimit_index, MODEL_DOF_VIRTUAL, MODEL_DOF, MODEL_DOF) = MatrixQQd::Identity();
+
+    ubA.segment(tlimit_index, MODEL_DOF) = torque_limit;
+    lbA.segment(tlimit_index, MODEL_DOF) = -torque_limit;
+
+    MatrixXd H;
+    VectorXd g;
+    H.setZero(variable_size, variable_size);
+    g.setZero(variable_size);
+
+    H = MatrixXd::Identity(variable_size, variable_size) * 1E-4;
+
+    //std::cout<<"dc1"<<std::endl;
+    H.block(MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof.back(), task_dof.back()).setIdentity(); // = MatrixXd::Identity(task_dof, task_dof);
+
+    //H.block(0,0 , MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL).setIdentity();
+
+    //std::cout<<"t1"<<std::endl;
+    if (init)
+    {
+        qphqp.InitializeProblemSize(variable_size, constraint_size);
+    }
+    qphqp.EnableEqualityCondition(0.0001);
+    qphqp.UpdateMinProblem(H, g);
+    qphqp.UpdateSubjectToAx(A, lbA, ubA);
+
+    //std::cout<<"t1"<<std::endl;
+    VectorXd qpres;
+    if (qphqp.SolveQPoases(100, qpres))
+    {
+        std::pair<VectorXd, VectorXd> ret(qpres.segment(MODEL_DOF_VIRTUAL, MODEL_DOF), qpres.segment(MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof.back()));
+        return ret;
+    }
+    else
+    {
+        std::pair<VectorXd, VectorXd> ret(VectorXd::Zero(MODEL_DOF), VectorXd::Zero(task_dof.back()));
+        return ret;
+    }
+}
+
+VectorQd WholebodyController::hqp2_contact_calc(CQuadraticProgram &qphqp, RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp, bool init)
+{
+
+    int heirarchy = Jtask_hqp.size();
+    std::vector<int> task_dof;
+    for (int i = 0; i < heirarchy; i++)
+    {
+        task_dof.push_back(fstar_hqp[i].size());
+    }
+
+    //std::cout << "h : " << heirarchy << " fstar size : " << fstar_hqp.size() << std::endl;
+
+    int contact_index = Robot.contact_index;
+    int contact_dof = contact_index * 6;
+    //qacc torque contact_force fstar_slack
+    int variable_size = MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof;
+    //qddot torque contactforce slack
+    int constraint_per_contact = 11;
+    int total_td = 0;
+    for (int i = 0; i < task_dof.size(); i++)
+    {
+        total_td += task_dof[i];
+    }
+
+    //std::cout << "total dof : " << total_td << std::endl;
+
+    int constraint_size = MODEL_DOF_VIRTUAL + total_td + contact_dof + contact_index * constraint_per_contact + MODEL_DOF;
+
+    Eigen::MatrixXd A;
+    A.setZero(constraint_size, variable_size);
+    Eigen::VectorXd lbA, ubA;
+    lbA.setZero(constraint_size);
+    ubA.setZero(constraint_size);
+
+    //A*qddot + h + Jc^T * F_c = S^T * torque
+    A.block(0, 0, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL) = Robot.A_matrix;
+    A.block(0, MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL, MODEL_DOF) = -Robot.Slc_k_T;
+    A.block(0, MODEL_DOF_VIRTUAL + MODEL_DOF, MODEL_DOF_VIRTUAL, contact_dof) = Robot.J_C.transpose();
+
+    lbA.segment(0, MODEL_DOF_VIRTUAL) = -Robot.G;
+    ubA.segment(0, MODEL_DOF_VIRTUAL) = -Robot.G;
+
+    //std::cout<<"t1"<<std::endl;
+    //J1 * qddot + j1dot * qdot = fstar + w1
+
+    for (int i = 0; i < heirarchy; i++)
+    {
+        int td_start = 0;
+        for (int j = 0; j < i; j++)
+        {
+            td_start += task_dof[j];
+        }
+        //std::cout<<"tdstart = "<<td_start<<std::endl;
+        A.block(MODEL_DOF_VIRTUAL + td_start, 0, task_dof[i], MODEL_DOF_VIRTUAL) = Jtask_hqp[i];
+
+        //if ((i + 1) == heirarchy)
+        //A.block(MODEL_DOF_VIRTUAL + td_start, MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof[i], task_dof[i]) = -Itask;
+
+        lbA.segment(MODEL_DOF_VIRTUAL + td_start, task_dof[i]) = fstar_hqp[i];
+        ubA.segment(MODEL_DOF_VIRTUAL + td_start, task_dof[i]) = fstar_hqp[i];
+
+        //std::cout << "task stacking ...  : " << MODEL_DOF_VIRTUAL + td_start << " with " << task_dof[i] << "dof , size of fstar : "<<fstar_hqp[i].size() << std::endl;
+    }
+    //std::cout<<"t1"<<std::endl;
+
+    //Jc * qddot + Jc * qdot = 0
+
+    int contact_space_constraint = MODEL_DOF_VIRTUAL + total_td;
+    //     std::cout << "contact_space_constraint index start ... ...  : "  <<contact_space_constraint<< std::endl;
+
+    A.block(contact_space_constraint, 0, contact_dof, MODEL_DOF_VIRTUAL) = Robot.J_C;
+
+    //contact constraint;
+    Eigen::MatrixXd Af;
+    Af.setZero(contact_index * constraint_per_contact, contact_index * 6);
+    Eigen::MatrixXd Rf;
+    Rf.setZero(contact_index * 6, contact_index * 6);
+    for (int i = 0; i < contact_index; i++)
+    {
+
+        Rf.block(0 + i * 6, 0 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
+        Rf.block(3 + i * 6, 3 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
+
+        Af(i * constraint_per_contact + 0, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_x_length;
+        Af(i * constraint_per_contact + 0, 4 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 1, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_x_length;
+        Af(i * constraint_per_contact + 1, 4 + 6 * i) = 1.0;
+
+        Af(i * constraint_per_contact + 2, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_y_length;
+        Af(i * constraint_per_contact + 2, 3 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 3, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_y_length;
+        Af(i * constraint_per_contact + 3, 3 + 6 * i) = 1.0;
+
+        Af(i * constraint_per_contact + 4, 0 + 6 * i) = 1.0;
+        Af(i * constraint_per_contact + 4, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+        Af(i * constraint_per_contact + 5, 0 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 5, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+
+        Af(i * constraint_per_contact + 6, 1 + 6 * i) = 1.0;
+        Af(i * constraint_per_contact + 6, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+        Af(i * constraint_per_contact + 7, 1 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 7, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio;
+
+        Af(i * constraint_per_contact + 8, 5 + 6 * i) = 1.0;
+        Af(i * constraint_per_contact + 8, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
+        Af(i * constraint_per_contact + 9, 5 + 6 * i) = -1.0;
+        Af(i * constraint_per_contact + 9, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].friction_ratio_z;
+
+        Af(i * constraint_per_contact + 10, 2 + 6 * i) = 1.0;
+    }
+
+    //std::cout<<"t1"<<std::endl;
+    Eigen::MatrixXd Atemp;
+    Atemp = Af * Rf; // * Robot.J_C_INV_T.rightCols(MODEL_DOF);
+    int contact_index_start = contact_space_constraint + contact_dof;
+    // t[3] = std::chrono::steady_clock::now();
+    A.block(contact_index_start, MODEL_DOF_VIRTUAL + MODEL_DOF, contact_index * constraint_per_contact, contact_dof) = Atemp;
+    //std::cout << "contact index start ... ...  : "  <<contact_index_start<< std::endl;
+
+    // t[4] = std::chrono::steady_clock::now();
+    // lbA.segment(contact_index_start, contact_index * constraint_per_contact) =
+    //     Af * Rf * (Robot.P_C);
+
+    // ubA.segment(contact_index_start, contact_index * constraint_per_contact) =
+    //     Af * Rf * (Robot.P_C);
+
+    // t[5] = std::chrono::steady_clock::now();
+    for (int i = 0; i < contact_index; i++)
+    {
+        for (int j = 0; j < constraint_per_contact - 1; j++)
+            ubA(contact_index_start + i * constraint_per_contact + j) += 1E+6;
+
+        ubA(contact_index_start + i * constraint_per_contact + 10) += -100;
+        lbA(contact_index_start + i * constraint_per_contact + 10) += -1E+6;
+    }
+
+    //std::cout<<"t1"<<std::endl;
+    int tlimit_index = contact_index_start + constraint_per_contact * contact_index;
+
+    A.block(tlimit_index, MODEL_DOF_VIRTUAL, MODEL_DOF, MODEL_DOF) = MatrixQQd::Identity();
+    //std::cout << "tlimit_index start ... ...  : "  <<tlimit_index<< std::endl;
+    ubA.segment(tlimit_index, MODEL_DOF) = torque_limit * 100;
+    lbA.segment(tlimit_index, MODEL_DOF) = -torque_limit * 100;
+
+    MatrixXd H;
+    VectorXd g;
+    H.setZero(variable_size, variable_size);
+    g.setZero(variable_size);
+
+    H = MatrixXd::Identity(variable_size, variable_size) * 1E-4;
+
+    //std::cout<<"dc1"<<std::endl;
+    H.block(MODEL_DOF_VIRTUAL + MODEL_DOF, MODEL_DOF_VIRTUAL + MODEL_DOF, contact_dof, contact_dof).setIdentity(); // = MatrixXd::Identity(task_dof, task_dof);
+
+    for (int i = 0; i < contact_index; i++)
+        H(MODEL_DOF_VIRTUAL + MODEL_DOF + i * 6 + 2, MODEL_DOF_VIRTUAL + MODEL_DOF + i * 6 + 2) = 1E-4;
+    //H.block(0,0 , MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL).setIdentity();
+
+    //std::cout<<"t1"<<std::endl;
+    if (init)
+    {
+        qphqp.InitializeProblemSize(variable_size, constraint_size);
+    }
+    qphqp.EnableEqualityCondition(0.0001);
+    qphqp.UpdateMinProblem(H, g);
+    qphqp.UpdateSubjectToAx(A, lbA, ubA);
+
+    //std::cout<<"t1"<<std::endl;
+    VectorXd qpres;
+    if (qphqp.SolveQPoases(100, qpres))
+    {
+        //std::pair<VectorXd, VectorXd> ret(qpres.segment(MODEL_DOF_VIRTUAL, MODEL_DOF), qpres.segment(MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof.back()));
+        return qpres.segment(MODEL_DOF_VIRTUAL, MODEL_DOF);
+    }
+    else
+    {
+        //std::pair<VectorXd, VectorXd> ret(VectorXd::Zero(MODEL_DOF), VectorXd::Zero(task_dof.back()));
+        return VectorXd::Zero(MODEL_DOF);
+    }
+}
+
 VectorQd WholebodyController::task_control_torque_hqp2(RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp)
 {
-    QP_hqp.resize(1);
-    VectorQd torque_ret = hqp2_step_calc(QP_hqp[0],Robot,Jtask_hqp[0],fstar_hqp[0],Robot.init_qp);
+    int he = Jtask_hqp.size(); // he = 4?
 
+    QP_hqp.resize(he + 1);
+    std::pair<VectorXd, VectorXd> ret;
+
+    // for(int i=0;i<fstar_hqp.size();i++)
+    //    std::cout << fstar_hqp[i].transpose()<<std::endl;
+
+    for (int i = 0; i < he; i++)
+    {
+        std::vector<MatrixXd> jsub(&Jtask_hqp[0], &Jtask_hqp[i] + 1);
+        std::vector<VectorXd> fsub(&fstar_hqp[0], &fstar_hqp[i] + 1);
+
+        ret = hqp2_step_calc(QP_hqp[i], Robot, jsub, fsub, Robot.init_qp);
+        fstar_hqp[i] = fstar_hqp[i] + ret.second;
+    }
+    // ret = hqp2_damping_calc(QP_hqp[he], Robot, Jtask_hqp, fstar_hqp, Robot.init_qp);
+    // fstar_hqp.push_back(ret.second);
+
+    // for(int i=0;i<fstar_hqp.size();i++)
+    //    std::cout << fstar_hqp[i].transpose()<<std::endl;
+
+    VectorQd torque_qp = hqp2_contact_calc(QP_hqp[he], Robot, Jtask_hqp, fstar_hqp, Robot.init_qp);
 
     Robot.init_qp = false;
 
-    return torque_ret;
+    return ret.first;
 }
 
 VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Robot_fast, bool &init_qp)
