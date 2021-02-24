@@ -705,7 +705,7 @@ void TocabiController::dynamicsThreadLow()
     current_time = buf;
     dc.print_file_name = path + "/tocabi_control_data" + current_time + ".txt";
     dc.print_file_name2 = path + "/tocabi_control_data2" + current_time + ".txt";
-    
+
     wbc_.print_file_name = path + "/tocabi_wbc_slack_data" + current_time + ".txt";
     wbc_.print_file_name2 = path + "/tocabi_wbc_hqp_time_data" + current_time + ".txt";
     std::stringstream ss;
@@ -963,7 +963,7 @@ void TocabiController::dynamicsThreadLow()
                 /* 
                 For Task Control, NEVER USE tocabi_controller.cpp.
                 Use dyros_cc, CustomController for task control. */
-                 int task_number = 21;
+                int task_number = 21;
 
                 std::vector<MatrixXd> Jtask_hqp;
                 std::vector<VectorXd> fstar_hqp;
@@ -1171,14 +1171,17 @@ void TocabiController::dynamicsThreadLow()
 
                 //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver); // + wbc_.contact_torque_calc_from_QP(tocabi_, torque_grav);
                 //wbc_.calc_winv(tocabi_);
+                //std::cout << "tm2" << std::endl;
                 wbc_.set_contact(tocabi_, 1, 1);
+                //std::cout << "tm2" << std::endl;
 
                 wbc_.copy_robot_fast(tocabi_, tocabi_fast_, Jtask_hqp, fstar_hqp);
+                //std::cout << "tm2" << std::endl;
 
                 dc.trigger_hqp = true;
 
                 //torque_task = wbc_.task_control_torque_hqp(tocabi_, Jtask_hqp, fstar_hqp);
-                torque_grav = tocabi_fast_.torque_grav;
+                //torque_grav = tocabi_fast_.torque_grav;
                 tocabi_.contact_redistribution_mode = 2;
 
                 //wbc_.contact_torque_calc_from_QP(tocabi_, torque_task);
@@ -1271,7 +1274,6 @@ void TocabiController::dynamicsThreadLow()
                 tocabi_.link_[Left_Hand].v_traj(2) = -0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time) * 2.0 * 3.141592 / tc.traj_time;
                 tocabi_.link_[Right_Hand].v_traj(2) = +0.5 * hand_z_diff * sin((tocabi_.control_time_ - tc.command_time) * 2 * 3.141592 / tc.traj_time) * 2.0 * 3.141592 / tc.traj_time;
 
-
                 //tocabi_.link_[Left_Hand].pos_p_gain<<200.0,200.0,200.0;
                 //tocabi_.link_[Right_Hand].pos_p_gain<<200.0,200.0,200.0;
 
@@ -1280,8 +1282,6 @@ void TocabiController::dynamicsThreadLow()
 
                 //tocabi_.link_[Left_Hand].rot_d_gain<<20.0,20.0,20.0;
                 //tocabi_.link_[Right_Hand].rot_d_gain<<20.0,20.0,20.0;
-
-                
 
                 fstar_hqp[1].segment(0, 3) = tocabi_.link_[Left_Hand].pos_p_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].x_traj - l_pos_local)) + tocabi_.link_[Left_Hand].pos_d_gain.cwiseProduct(tocabi_.link_[Upper_Body].Rotm * (tocabi_.link_[Left_Hand].v_traj - l_v_local));
                 fstar_hqp[1].segment(3, 3) = tocabi_.link_[Left_Hand].rot_d_gain.cwiseProduct(-tocabi_.link_[Left_Hand].w + tocabi_.link_[Upper_Body].w);
@@ -1311,25 +1311,48 @@ void TocabiController::dynamicsThreadLow()
 
                 //torque_task = wbc_.task_control_torque(tocabi_, tocabi_.J_task, tocabi_.f_star, tc.solver); // + wbc_.contact_torque_calc_from_QP(tocabi_, torque_grav);
                 //wbc_.calc_winv(tocabi_);
+
+                std::chrono::steady_clock::time_point tp_qp = std::chrono::steady_clock::now();
                 wbc_.set_contact(tocabi_, 1, 1);
+                static double max_time = 0;
+                static double all_time = 0;
+                static double aall_time = 0;
+                static int tcc = 0;
+
+                double cctime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tp_qp).count();
+                all_time += cctime;
+                aall_time += cctime;
+
+                if (cctime > max_time)
+                    max_time = cctime;
+                static int tc = 0;
+                tc++;
+                tcc++;
+                if (tc > 2000)
+                {
+                    std::cout << "sc avg compute time : " << all_time / tc << "us"
+                              << "total : " << aall_time / tcc << " max : " << max_time << std::endl;
+                    all_time = 0;
+                    tc = 0;
+                }
 
                 wbc_.copy_robot_fast(tocabi_, tocabi_fast_, Jtask_hqp, fstar_hqp);
 
                 //print trajectory info
                 tocabi_.data_print = true;
 
-                dc.data_out << control_time_<<" \t"
-                            << tocabi_.link_[COM_id].x_traj.transpose()<<" \t" << tocabi_.link_[COM_id].xpos.transpose()<<" \t"
-                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].r_traj).transpose()<<" \t" << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].Rotm).transpose()<<" \t"
-                            << tocabi_.link_[Left_Hand].x_traj.transpose() <<" \t"<< l_pos_local.transpose()<<" \t"
-                            << tocabi_.link_[Right_Hand].x_traj.transpose()<<" \t" << r_pos_local.transpose()<<" \t"
-                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].r_traj).transpose()<<" \t" << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].Rotm).transpose() << std::endl;
-                
-                dc.data_out2 << control_time_<<" \t"
-                            << tocabi_.ee_[0].zmp(0) - tocabi_.ee_[0].cp_(0)<<" \t" << tocabi_.ee_[0].zmp(1)-tocabi_.ee_[0].cp_(0) <<" \t"
-                            << tocabi_.ee_[1].zmp(0) -tocabi_.ee_[1].cp_(0)<<" \t" << tocabi_.ee_[1].zmp(1)- tocabi_.ee_[0].cp_(1) <<" \t"
-                            << tocabi_.ContactForce.transpose()<<" \t"
-                            << dc.torque_desired.transpose()<<std::endl;
+                dc.data_out << control_time_ << " \t"
+                            << tocabi_.link_[COM_id].x_traj.transpose() << " \t" << tocabi_.link_[COM_id].xpos.transpose() << " \t"
+                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].r_traj).transpose() << " \t" << DyrosMath::rot2Euler_tf(tocabi_.link_[Pelvis].Rotm).transpose() << " \t"
+                            << tocabi_.link_[Left_Hand].x_traj.transpose() << " \t" << l_pos_local.transpose() << " \t"
+                            << tocabi_.link_[Right_Hand].x_traj.transpose() << " \t" << r_pos_local.transpose() << " \t"
+                            << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].r_traj).transpose() << " \t" << DyrosMath::rot2Euler_tf(tocabi_.link_[Upper_Body].Rotm).transpose() << std::endl;
+
+                dc.data_out2 << control_time_ << " \t"
+                             << tocabi_.ee_[0].zmp(0) - tocabi_.ee_[0].cp_(0) << " \t" << tocabi_.ee_[0].zmp(1) - tocabi_.ee_[0].cp_(1) << " \t"
+                             << tocabi_.ee_[1].zmp(0) - tocabi_.ee_[1].cp_(0) << " \t" << tocabi_.ee_[1].zmp(1) - tocabi_.ee_[1].cp_(1) << " \t"
+                             << tocabi_.ContactForce.transpose() << " \t"
+                             << dc.torque_desired.transpose() << std::endl;
 
                 dc.trigger_hqp = true;
 
@@ -2671,11 +2694,11 @@ void TocabiController::tuiThread()
         {
             dc.tocabi_.data_print_switch = true;
             dc.data_out = std::ofstream(dc.print_file_name.c_str());
-            dc.data_out<<fixed;
+            dc.data_out << fixed;
             dc.data_out.precision(6);
             dc.data_out.width(15);
             dc.data_out2 = std::ofstream(dc.print_file_name2.c_str());
-            dc.data_out2<<fixed;
+            dc.data_out2 << fixed;
             dc.data_out2.precision(6);
             dc.data_out2.width(15);
             if (dc.data_out.is_open())

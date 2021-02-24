@@ -291,9 +291,9 @@ void WholebodyController::set_robot_init_multithread(RobotData &Robot)
     Robot.ee_[3].sensor_xpos = Robot.link_[Right_Hand].xpos_sensor;
 
     Robot.ee_[0].cs_x_length = 0.10;
-    Robot.ee_[0].cs_y_length = 0.04;
+    Robot.ee_[0].cs_y_length = 0.024;
     Robot.ee_[1].cs_x_length = 0.10;
-    Robot.ee_[1].cs_y_length = 0.04;
+    Robot.ee_[1].cs_y_length = 0.024;
     Robot.ee_[2].cs_x_length = 0.013;
     Robot.ee_[2].cs_y_length = 0.013;
     Robot.ee_[3].cs_x_length = 0.013;
@@ -304,7 +304,7 @@ void WholebodyController::set_robot_init_multithread(RobotData &Robot)
     Robot.ee_[2].minimum_press_force = 40;
     Robot.ee_[3].minimum_press_force = 40;
 
-    Robot.friction_ratio = 0.24;
+    Robot.friction_ratio = 0.18;
 
     Robot.ee_[0].friction_ratio = Robot.friction_ratio;
     Robot.ee_[1].friction_ratio = Robot.friction_ratio;
@@ -3601,6 +3601,9 @@ VectorXd WholebodyController::hqp_damping_calc(CQuadraticProgram &qphqp, RobotDa
     //g = Robot.NwJw.transpose() * (Robot.J_C_INV_T.rightCols(MODEL_DOF).transpose() * (S_contact * (Robot.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot.torque_grav) - Robot.P_C)));
     // t[7] = std::chrono::steady_clock::now();
     //std::cout<<"dc1"<<std::endl;
+    lbA = lbA.array() - 1.0E-6;
+    ubA = ubA.array() + 1.0E-6;
+
     if (init)
     {
         qphqp.InitializeProblemSize(variable_size, constraint_size);
@@ -3612,7 +3615,8 @@ VectorXd WholebodyController::hqp_damping_calc(CQuadraticProgram &qphqp, RobotDa
     VectorXd qpres;
     if (qphqp.SolveQPoases(100, qpres))
     {
-        return qpres;
+
+        return qpres.segment(0, MODEL_DOF);
     }
     else
     {
@@ -3695,6 +3699,10 @@ VectorXd WholebodyController::hqp_contact_calc(CQuadraticProgram &qphqp, RobotDa
     g.setZero(variable_size);
     g = Robot.NwJw.transpose() * (Robot.J_C_INV_T.rightCols(MODEL_DOF).transpose() * (S_contact * (Robot.J_C_INV_T.rightCols(MODEL_DOF) * (torque_prev + Robot.torque_grav) - Robot.P_C)));
     // t[7] = std::chrono::steady_clock::now();
+
+    lbA = lbA.array() - 1.0E-6;
+    ubA = ubA.array() + 1.0E-6;
+
     if (init)
     {
         qphqp.InitializeProblemSize(variable_size, constraint_size);
@@ -3953,6 +3961,9 @@ std::pair<VectorXd, VectorXd> WholebodyController::hqp2_step_calc(CQuadraticProg
     ubA.segment(tlimit_index, MODEL_DOF) = torque_limit;
     lbA.segment(tlimit_index, MODEL_DOF) = -torque_limit;
 
+    lbA = lbA.array() - 1.0E-6;
+    ubA = ubA.array() + 1.0E-6;
+
     MatrixXd H;
     VectorXd g;
     H.setZero(variable_size, variable_size);
@@ -4068,8 +4079,8 @@ VectorQd WholebodyController::hqp2_contact_calc(CQuadraticProgram &qphqp, RobotD
     for (int i = 0; i < contact_index; i++)
     {
 
-        Rf.block(0 + i * 6, 0 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
-        Rf.block(3 + i * 6, 3 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.inverse();
+        Rf.block(0 + i * 6, 0 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.transpose();
+        Rf.block(3 + i * 6, 3 + i * 6, 3, 3) = Robot.ee_[Robot.ee_idx[i]].rotm.transpose();
 
         Af(i * constraint_per_contact + 0, 2 + 6 * i) = -Robot.ee_[Robot.ee_idx[i]].cs_x_length;
         Af(i * constraint_per_contact + 0, 4 + 6 * i) = -1.0;
@@ -4129,8 +4140,11 @@ VectorQd WholebodyController::hqp2_contact_calc(CQuadraticProgram &qphqp, RobotD
 
     A.block(tlimit_index, MODEL_DOF_VIRTUAL, MODEL_DOF, MODEL_DOF) = MatrixQQd::Identity();
     //std::cout << "tlimit_index start ... ...  : "  <<tlimit_index<< std::endl;
-    ubA.segment(tlimit_index, MODEL_DOF) = torque_limit * 100;
-    lbA.segment(tlimit_index, MODEL_DOF) = -torque_limit * 100;
+    ubA.segment(tlimit_index, MODEL_DOF) = torque_limit;
+    lbA.segment(tlimit_index, MODEL_DOF) = -torque_limit;
+
+    lbA = lbA.array() - 1E-6;
+    ubA = ubA.array() + 1E-6;
 
     MatrixXd H;
     VectorXd g;
@@ -4151,13 +4165,13 @@ VectorQd WholebodyController::hqp2_contact_calc(CQuadraticProgram &qphqp, RobotD
     {
         qphqp.InitializeProblemSize(variable_size, constraint_size);
     }
-    qphqp.EnableEqualityCondition(0.0001);
+    qphqp.EnableEqualityCondition(1E-5);
     qphqp.UpdateMinProblem(H, g);
     qphqp.UpdateSubjectToAx(A, lbA, ubA);
 
     //std::cout<<"t1"<<std::endl;
     VectorXd qpres;
-    if (qphqp.SolveQPoases(100, qpres))
+    if (qphqp.SolveQPoases(500, qpres))
     {
         //std::pair<VectorXd, VectorXd> ret(qpres.segment(MODEL_DOF_VIRTUAL, MODEL_DOF), qpres.segment(MODEL_DOF_VIRTUAL + MODEL_DOF + contact_dof, task_dof.back()));
         return qpres.segment(MODEL_DOF_VIRTUAL, MODEL_DOF);
@@ -4178,13 +4192,15 @@ VectorQd WholebodyController::task_control_torque_hqp2(RobotData &Robot, std::ve
 
     // for(int i=0;i<fstar_hqp.size();i++)
     //    std::cout << fstar_hqp[i].transpose()<<std::endl;
-
+    std::chrono::steady_clock::time_point ht[10];
+    int h_idx = 0;
     for (int i = 0; i < he; i++)
     {
         std::vector<MatrixXd> jsub(&Jtask_hqp[0], &Jtask_hqp[i] + 1);
         std::vector<VectorXd> fsub(&fstar_hqp[0], &fstar_hqp[i] + 1);
-
+        ht[h_idx++] = std::chrono::steady_clock::now();
         ret = hqp2_step_calc(QP_hqp[i], Robot, jsub, fsub, Robot.init_qp);
+        ht[h_idx++] = std::chrono::steady_clock::now();
         fstar_hqp[i] = fstar_hqp[i] + ret.second;
     }
     // ret = hqp2_damping_calc(QP_hqp[he], Robot, Jtask_hqp, fstar_hqp, Robot.init_qp);
@@ -4193,7 +4209,16 @@ VectorQd WholebodyController::task_control_torque_hqp2(RobotData &Robot, std::ve
     // for(int i=0;i<fstar_hqp.size();i++)
     //    std::cout << fstar_hqp[i].transpose()<<std::endl;
 
+    ht[h_idx++] = std::chrono::steady_clock::now();
     VectorQd torque_qp = hqp2_contact_calc(QP_hqp[he], Robot, Jtask_hqp, fstar_hqp, Robot.init_qp);
+    ht[h_idx++] = std::chrono::steady_clock::now();
+
+    data_out2 << Robot.control_time_ << " \t"
+              << std::chrono::duration_cast<std::chrono::microseconds>(ht[1] - ht[0]).count() << " \t"
+              << std::chrono::duration_cast<std::chrono::microseconds>(ht[3] - ht[2]).count() << " \t"
+              << std::chrono::duration_cast<std::chrono::microseconds>(ht[5] - ht[4]).count() << " \t"
+              << std::chrono::duration_cast<std::chrono::microseconds>(ht[7] - ht[6]).count() << " \t"
+              << std::chrono::duration_cast<std::chrono::microseconds>(ht[9] - ht[8]).count() << " \t" << std::endl;
 
     Robot.init_qp = false;
 
@@ -4249,12 +4274,17 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
     }
     torque_prev = torque_prev + Null_task * ans.back().first * ans.back().second * (Robot_fast.fstar_hqp.back() + qp_ans.back().first);
 
+
+    Null_task = Null_task * (MatrixQQd::Identity() - ans.back().first * ans.back().second * Robot_fast.Jtask_hqp.back() * Robot_fast.A_matrix_inverse * Robot_fast.N_C.rightCols(MODEL_DOF));
     int damping_idx = tcnt;
     t[tcnt++] = std::chrono::steady_clock::now();
     VectorXd damping_slack = hqp_damping_calc(QP_hqp[hqp_size + 1], Robot_fast, torque_prev, Null_task, init_qp);
 
     int contact_idx = tcnt;
+    Eigen::VectorXd torque_damping = -Robot_fast.q_dot_ * 0.1;
+
     t[tcnt++] = std::chrono::steady_clock::now();
+    torque_prev = torque_prev + Null_task * (torque_damping + damping_slack);
     VectorXd fc_opt = hqp_contact_calc(QP_hqp[hqp_size], Robot_fast, torque_prev, init_qp);
 
     //AAAAnd Contact Force Redistribution with QP!!
@@ -4269,18 +4299,29 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
     }
 
     
-    std::cout << "  total : " << std::chrono::duration_cast<std::chrono::microseconds>(t[tcnt] - t[0]).count() << std::endl;
+    std::cout << "  total : " << std::chrono::duration_cast<std::chrono::microseconds>(ts[tcnt] - t[0]).count() << std::endl;
     */
-    static double all_time = 0;
-    all_time += std::chrono::duration_cast<std::chrono::microseconds>(t[tcnt] - t[5]).count();
-    static int tc = 0;
-    tc++;
-    if (tc > 2000)
-    {
-        std::cout << " avg compute time : " << all_time / tc << "us" << std::endl;
-        all_time = 0;
-        tc = 0;
-    }
+    // static double max_time = 0;
+    // static double all_time = 0;
+    // static double aall_time = 0;
+    // static int tcc = 0;
+
+    // double cctime = std::chrono::duration_cast<std::chrono::microseconds>(t[5] - t[0]).count();
+    // all_time += cctime;
+    // aall_time += cctime;
+
+    // if (cctime > max_time)
+    //     max_time = cctime;
+    // static int tc = 0;
+    // tc++;
+    // tcc++;
+    // if (tc > 2000)
+    // {
+    //     std::cout << " avg compute time : " << all_time / tc << "us"
+    //               << "total : " << aall_time / tcc << " max : " << max_time << std::endl;
+    //     all_time = 0;DK
+    //     tc = 0;
+    // }
 
     data_out1 << Robot_fast.control_time_ << " \t";
     for (int i = 0; i < qp_ans.size(); i++)
@@ -4288,8 +4329,9 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
         data_out1 << qp_ans[i].first.transpose() << " \t";
     }
     data_out1 << damping_slack.transpose() << std::endl;
+    Robot_fast.com_time = std::chrono::duration_cast<std::chrono::microseconds>(t[damping_idx + 1] - t[damping_idx]).count();
 
-    data_out2 << Robot_fast.control_time_ << " \t"
+    data_out2 << Robot_fast.control_time_<<" "
               << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 1] - t[task1_idx]).count() << " \t"
               << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 4] - t[task1_idx + 3]).count() << " \t"
               << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 7] - t[task1_idx + 6]).count() << " \t"
@@ -4328,10 +4370,11 @@ VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot, std::vec
     int tcnt = 0;
     t[tcnt++] = std::chrono::steady_clock::now();
     set_contact_multithread(Robot, 1, 1);
-    t[tcnt++] = std::chrono::steady_clock::now(); //200us
     //std::cout<<"c1"<<std::endl;
     int hqp_size = Jtask_hqp.size();
     std::vector<std::future<std::pair<MatrixXd, MatrixXd>>> hqp_ret;
+
+    t[tcnt++] = std::chrono::steady_clock::now(); //200us
     for (int i = 0; i < hqp_size; i++)
     {
         //MatrixXd tempMa = Robot.A_matrix_inverse * Robot.N_C;
@@ -4384,13 +4427,24 @@ VectorQd WholebodyController::task_control_torque_hqp(RobotData &Robot, std::vec
     //     std::cout << std::chrono::duration_cast<std::chrono::microseconds>(t[i + 1] - t[i]).count() << "\t";
     // }
     // std::cout << "  total : " << std::chrono::duration_cast<std::chrono::microseconds>(t[tcnt] - t[0]).count() << std::endl;
+    static double max_time = 0;
     static double all_time = 0;
-    all_time += std::chrono::duration_cast<std::chrono::microseconds>(t[tcnt] - t[1]).count();
+    static double aall_time = 0;
+    static int tcc = 0;
+
+    double cctime = std::chrono::duration_cast<std::chrono::microseconds>(t[5] - t[0]).count();
+    all_time += cctime;
+    aall_time += cctime;
+
+    if (cctime > max_time)
+        max_time = cctime;
     static int tc = 0;
     tc++;
+    tcc++;
     if (tc > 2000)
     {
-        std::cout << " avg compute time : " << all_time / tc << "us" << std::endl;
+        std::cout << " avg compute time : " << all_time / tc << "us"
+                  << "total : " << aall_time / tcc << " max : " << max_time << std::endl;
         all_time = 0;
         tc = 0;
     }

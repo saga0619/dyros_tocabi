@@ -536,7 +536,7 @@ void StateManager::adv2ROS(void)
     pointpub_msg.polygon.points[16].y = dc.tocabi_.link_[Pelvis].v(1);
     pointpub_msg.polygon.points[16].z = dc.tocabi_.link_[Pelvis].v(2);
 
-    pointpub_msg.polygon.points[17].x =q_ddot_virtual_(0);
+    pointpub_msg.polygon.points[17].x = q_ddot_virtual_(0);
     pointpub_msg.polygon.points[17].y = q_ddot_virtual_(1);
     pointpub_msg.polygon.points[17].z = q_ddot_virtual_(2);
 

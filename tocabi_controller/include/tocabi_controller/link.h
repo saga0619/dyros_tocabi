@@ -335,6 +335,8 @@ struct RobotData_fast
   Eigen::MatrixXd J_C_INV_T;
   Eigen::MatrixXd qr_V2;
 
+  double com_time;
+
   Eigen::VectorQd q_dot_;
 
   EndEffector ee_[ENDEFFECTOR_NUMBER];
@@ -385,6 +387,8 @@ struct RobotData
 
   Eigen::VectorXd ContactForce;
   Eigen::VectorXd ContactForce_qp;
+  Eigen::VectorXd torque_qp;
+  Eigen::VectorXd qacc_qp;
   Eigen::Vector12d ContactForce_FT;
   Eigen::Vector12d ContactForce_FT_raw;
   Eigen::Vector12d CF_temp;
@@ -403,6 +407,8 @@ struct RobotData
   Eigen::Vector3d CP_;
   Eigen::Vector3d CP_desired;
   Eigen::VectorXd TaskForce;
+
+  double com_time;
 
   std::future<std::pair<Eigen::MatrixXd, Eigen::MatrixXd>> winv_ret;
 
