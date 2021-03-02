@@ -762,6 +762,7 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
 
     double defaultGain = 0.0;
     double compliantGain = 2.5;
+    double rejectionGain = -20.0;//-3.5;
     double compliantTick = 0.15 * Hz_;
 
     for (int i = 0; i < 12; i++)
@@ -787,7 +788,18 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
             }
             else
             {
-                dobGain = defaultGain;
+                if (walking_tick <t_start_real + t_double1 + t_rest_temp) // the period for lifting the right foot
+                {
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_rest_temp, t_start_real + t_double1 + t_rest_temp, 0.0, 0.0, 0.0, rejectionGain, 0.0, 0.0)(0);
+                } // the period for lifting the right foot
+                else if(walking_tick <t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp))
+                {
+                    dobGain = rejectionGain;
+                }
+                else
+                {
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp) / 2.0, t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp, rejectionGain, 0.0, 0.0, 0.0, 0.0, 0.0)(0);
+                }
             }
 
             desired_leg_q(i) = desired_leg_q(i) - dobGain * dob_hat(i);
@@ -813,7 +825,18 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
             }
             else
             {
-                dobGain = defaultGain;
+                if (walking_tick <t_start_real + t_double1 + t_rest_temp) // the period for lifting the right foot
+                {
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_rest_temp, t_start_real + t_double1 + t_rest_temp, 0.0, 0.0, 0.0, rejectionGain, 0.0, 0.0)(0);
+                } // the period for lifting the right foot
+                else if(walking_tick <t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp))
+                {
+                    dobGain = rejectionGain;
+                }
+                else
+                {
+                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp) / 2.0, t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp, rejectionGain, 0.0, 0.0, 0.0, 0.0, 0.0)(0);
+                }
             }
 
             desired_leg_q(i) = desired_leg_q(i) - dobGain * dob_hat(i);
