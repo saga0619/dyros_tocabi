@@ -104,7 +104,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     elmofz[TOCABI::R_Forearm_Joint].req_length = 0.14;
 
     elmofz[TOCABI::L_Shoulder1_Joint].req_length = 0.18;
-    elmofz[TOCABI::L_Shoulder2_Joint].req_length = 0.17;
+    elmofz[TOCABI::L_Shoulder2_Joint].req_length = 0.15;
     elmofz[TOCABI::R_Shoulder2_Joint].req_length = 0.08;
 
     elmofz[TOCABI::R_Shoulder3_Joint].req_length = 0.03;
@@ -993,7 +993,7 @@ void RealRobotInterface::ethercatThread()
 
                                         ElmoConnected = true;
 
-                                        if (slave == 1 || slave == 2 || slave == 19 || slave == 20)
+                                        if (slave == 1 || slave == 2 || slave == 19 || slave == 20 || slave == 15)
                                         {
                                             hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                         }
