@@ -993,7 +993,7 @@ void RealRobotInterface::ethercatThread()
 
                                         ElmoConnected = true;
 
-                                        if (slave == 1 || slave == 2 || slave == 19 || slave == 20 || slave == 15)
+                                        if (slave == 1 || slave == 2 || slave == 19 || slave == 20 || slave == 16)
                                         {
                                             hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                         }
