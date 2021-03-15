@@ -7,6 +7,8 @@
 #include "tocabi_controller/tocabi.h"
 #include <rbdl/addons/urdfreader/urdfreader.h>
 #include <mutex>
+#include <future>
+#include <atomic>
 
 extern std::mutex mtx_rbdl;
 
@@ -298,6 +300,7 @@ struct EndEffector
   Eigen::Vector6d contact_force;
   Eigen::Vector6d contact_force_ft;
   Eigen::Matrix3d rotm;
+  Eigen::Vector3d zmp;
   double contact_accuracy;
   double contact_time;
   int contact_transition_mode; //-1 nothing to do, 0 disabling, 1 enabling
@@ -318,6 +321,36 @@ public:
 };
 
 Eigen::Vector2d local2global(double x, double y, double angle);
+
+struct RobotData_fast
+{
+
+  double control_time_;
+  Eigen::MatrixVVd A_matrix_inverse;
+  Eigen::MatrixXd W_inv;
+  Eigen::MatrixXd N_C;
+  Eigen::MatrixXd P_C;
+  Eigen::VectorQd torque_grav;
+  Eigen::MatrixXd NwJw;
+  Eigen::MatrixXd J_C_INV_T;
+  Eigen::MatrixXd qr_V2;
+
+  double com_time;
+
+  Eigen::VectorQd q_dot_;
+
+  EndEffector ee_[ENDEFFECTOR_NUMBER];
+  
+  int ee_idx[4];
+
+  std::vector<Eigen::VectorXd> fstar_hqp;
+  std::vector<Eigen::MatrixXd> Jtask_hqp;
+
+  int contact_index;
+
+  Eigen::VectorQd torque_control;
+
+};
 
 struct RobotData
 {
@@ -354,6 +387,8 @@ struct RobotData
 
   Eigen::VectorXd ContactForce;
   Eigen::VectorXd ContactForce_qp;
+  Eigen::VectorXd torque_qp;
+  Eigen::VectorXd qacc_qp;
   Eigen::Vector12d ContactForce_FT;
   Eigen::Vector12d ContactForce_FT_raw;
   Eigen::Vector12d CF_temp;
@@ -372,6 +407,10 @@ struct RobotData
   Eigen::Vector3d CP_;
   Eigen::Vector3d CP_desired;
   Eigen::VectorXd TaskForce;
+
+  double com_time;
+
+  std::future<std::pair<Eigen::MatrixXd, Eigen::MatrixXd>> winv_ret;
 
   bool zmp_feedback_control = false;
   bool check = false;
@@ -398,6 +437,10 @@ struct RobotData
   double d_time_;
 
   double friction_ratio;
+
+  bool data_print_switch = false;
+
+  bool data_print = false;
 
   double start_time_[4];
   double end_time_[4];
@@ -442,6 +485,7 @@ struct RobotData
 
   Eigen::MatrixXd Lambda_c;
   Eigen::MatrixXd N_C;
+  Eigen::VectorXd P_C;
   Eigen::MatrixVVd I37;
 
   Eigen::VectorXd contact_force_predict;

@@ -35,7 +35,6 @@ public:
   Eigen::Vector12d desired_leg_q_dot_;
   Eigen::Vector12d desired_leg_q_temp;
   Eigen::Vector3d com_local;
-
   Eigen::Vector3d H_leg1;
 
   Eigen::Vector12d dob_debug;

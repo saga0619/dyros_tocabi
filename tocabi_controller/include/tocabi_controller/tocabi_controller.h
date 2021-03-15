@@ -60,6 +60,7 @@ private:
   StateManager &s_;
   DynamicsManager &d_;
   RobotData &tocabi_;
+  RobotData_fast tocabi_fast_;
 
   bool connected;
 
@@ -80,6 +81,7 @@ private:
   bool tc_command = false;
 
   int task_que_left = 0;
+  int dynthread2_cnt = 0;
 
   int dym_hz, stm_hz;
   /*

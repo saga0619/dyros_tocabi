@@ -228,6 +228,14 @@ namespace DyrosMath
     return AB;
   }
 
+  static Eigen::Vector3d multiplyIsometry3dVector3d(Eigen::Isometry3d A,
+                                      Eigen::Vector3d B)
+  {
+    Eigen::Vector3d AB;
+    AB = A.linear()*B + A.translation();
+    return AB;
+  }
+
   static Eigen::Isometry3d inverseIsometry3d(Eigen::Isometry3d A)
   {
     Eigen::Isometry3d A_inv;
@@ -943,6 +951,54 @@ static Eigen::MatrixXd pinv_glsSVD(Eigen::MatrixXd A, Eigen::MatrixXd &U, double
         Rpsinv2.setZero();
         Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
         return qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose();
+      }
+    }
+  }
+  static std::pair<Eigen::MatrixXd, Eigen::MatrixXd> pinv_QR_pair(Eigen::MatrixXd &A)
+  {
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(A);
+    //qr.setThreshold(10e-10);
+    int rank = qr.rank();
+
+    int cols, rows;
+
+    cols = A.cols();
+    rows = A.rows();
+
+    if (rank == 0)
+    {
+      std::cout << "WARN::Input Matrix seems to be zero matrix" << std::endl;
+      std::pair<Eigen::MatrixXd, Eigen::MatrixXd> ret(A,A);
+      return ret;
+    }
+    else
+    {
+      if (cols > rows)
+      {
+        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+        Eigen::MatrixXd Rpsinv2(rows, cols);
+
+        Rpsinv2.setZero();
+        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+
+        Eigen::MatrixXd P;
+        P = qr.householderQ().transpose();
+
+        std::pair<Eigen::MatrixXd, Eigen::MatrixXd> ret((qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose()).transpose(), P.block(rank, 0, P.rows() - rank, P.cols()));
+        return ret;
+      }
+      else
+      {
+        Eigen::MatrixXd R = qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+        Eigen::MatrixXd Rpsinv2(cols, rows);
+        Rpsinv2.setZero();
+        Rpsinv2.topLeftCorner(rank, rank) = R.inverse();
+
+        Eigen::MatrixXd P;
+        P = qr.householderQ().transpose();
+
+        std::pair<Eigen::MatrixXd, Eigen::MatrixXd> ret((qr.colsPermutation() * Rpsinv2 * qr.householderQ().transpose()).transpose(), P.block(rank, 0, P.rows() - rank, P.cols()));
+        return ret;
       }
     }
   }

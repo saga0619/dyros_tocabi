@@ -87,6 +87,60 @@ int osQuadraticProgram::setup(const MatrixXd &ObjectiveMatrix, const VectorXd &O
 
     return 1; //work->info->status_val;
 }
+
+int osQuadraticProgram::setup(const MatrixXd &ObjectiveMatrix, const VectorXd &ObjectiveVector, const MatrixXd &ConstraintMatrix, const VectorXd &alb, const VectorXd &aub)
+{
+    //check matrix 
+
+    
+
+    osqp_cleanup(work);
+
+    variable_number = ObjectiveVector.size();
+
+    constraint_a = alb.size();
+
+    constraint_number = constraint_a;
+
+    Eigen::MatrixXd A_new(constraint_number, variable_number);
+
+    A_new.block(0, 0, constraint_a, variable_number) = ConstraintMatrix;
+    A_new.block(constraint_a, 0, variable_number, variable_number) = MatrixXd::Identity(variable_number, variable_number);
+
+    SparseMatrix<double, Eigen::ColMajor, c_int> ConstraintMatrix_s = A_new.sparseView();
+
+    SparseMatrix<double, Eigen::ColMajor, c_int> ObjectiveMatrix_s = ObjectiveMatrix.sparseView();
+    SparseMatrix<double, Eigen::ColMajor, c_int> P_uppertriangle = ObjectiveMatrix_s.triangularView<Eigen::Upper>();
+
+    VectorXd clb(constraint_number);
+    clb.segment(0, constraint_a) = alb; //.cwiseMax(-OSQP_INFTY);
+    VectorXd cub(constraint_number);
+    cub.segment(0, constraint_a) = aub; //.cwiseMax(-OSQP_INFTY);
+
+    data->n = variable_number;
+    data->m = constraint_number;
+
+    objective_matrix = {P_uppertriangle.outerIndexPtr()[variable_number], variable_number, variable_number, const_cast<c_int *>(P_uppertriangle.outerIndexPtr()), const_cast<c_int *>(P_uppertriangle.innerIndexPtr()), const_cast<double *>(P_uppertriangle.valuePtr()), -1};
+    constraint_matrix = {ConstraintMatrix_s.outerIndexPtr()[variable_number], constraint_number, variable_number, const_cast<c_int *>(ConstraintMatrix_s.outerIndexPtr()), const_cast<c_int *>(ConstraintMatrix_s.innerIndexPtr()), const_cast<double *>(ConstraintMatrix_s.valuePtr()), -1};
+
+    data->P = &objective_matrix;
+    data->q = const_cast<double *>(ObjectiveVector.data());
+    data->A = &constraint_matrix;
+    data->l = clb.data();
+    data->u = cub.data();
+    //OSQP_ERROR_MESSAGE;
+
+    osqp_set_default_settings(settings);
+    settings->eps_prim_inf = 1.0E-2;
+    settings->verbose = false;
+    settings->alpha = 1.0; // Change alpha parameter
+
+    osqp_setup(&work, data, settings);
+
+    return 1; //work->info->status_val;
+}
+
+
 int osQuadraticProgram::hotstart(const MatrixXd &ObjectiveMatrix, const VectorXd &ObjectiveVector, const MatrixXd &ConstraintMatrix, const VectorXd &alb, const VectorXd &aub, const VectorXd &lb, const VectorXd &ub)
 {
 

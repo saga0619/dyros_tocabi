@@ -134,8 +134,8 @@ void CQuadraticProgram::PrintSubjectTox()
 void CQuadraticProgram::EnableEqualityCondition(const double Tolerance)
 {
     _options.enableEqualities = BT_TRUE;
-    real_t Tolerance_equal = Tolerance;
-    _options.boundRelaxation = Tolerance_equal;
+    //real_t Tolerance_equal = Tolerance;
+    //_options.boundRelaxation = Tolerance_equal;
 }
 
 void CQuadraticProgram::DisableEqualityCondition()
@@ -244,7 +244,7 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
     if (scs != SUCCESSFUL_RETURN)
     {
         std::cout << "QP SOLVE FAILED" << std::endl;
-        PrintMinProb();
+        //PrintMinProb();
 
         int size_H_ = _H.cols();
         VectorXcd _H_eigen = _H.eigenvalues();
