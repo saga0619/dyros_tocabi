@@ -66,8 +66,6 @@ void Walking_controller::walkingCompute(RobotData &Robot)
             q_w(4) = desired_init_leg_q(26);
         }
 
-        desired_leg_q_temp_ = desired_leg_q;
-
         if (dob == 1)
         {
             inverseKinematicsdob(Robot);
@@ -225,7 +223,7 @@ void Walking_controller::setInitPose(RobotData &Robot, Eigen::VectorQd &leg_q)
     if (walking_tick == 0)
     {
         Eigen::VectorQd q_temp;
-        q_temp << 0.0, 0.00, -0.35, 1.0, -0.65, 0.00, 0.0, 0.00, -0.35, 1.0, -0.65, 0.00, 0.0, 0.0, 0.0, 0.3, 0.3, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.3, -0.3, -1.5, 1.27, 1.0, 0, 1.0, 0;
+        q_temp << 0.0, 0.00, -0.595, 1.24, -0.65, 0.00, 0.0, 0.00, -0.595, 1.24, -0.65, 0.00, 0.0, 0.0, 0.0, 0.2, 0.5, 1.5, -1.27, -1, 0, -1, 0, 0, 0, -0.2, -0.5, -1.5, 1.27, 1.0, 0, 1.0, 0;
 
         //q_temp.setZero();
         //q_target = Robot.q_;
@@ -771,7 +769,7 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
     double compliantTick = 0.05 * Hz_;
 
     memcpy(rejectionGain_, rejectionGainSim, sizeof(rejectionGainSim));
-    std::cout << "reject" << rejectionGain_[0] <<" "<< rejectionGain_[1] <<" "<< rejectionGain_[2] <<" " << rejectionGain_[3] <<" "<< rejectionGain_[4] <<" "<< rejectionGain_[5] <<" "<< rejectionGain_[6] <<" "<< rejectionGain_[7] <<" "<< rejectionGain_[8] <<" "<< rejectionGain_[9] <<" "<< rejectionGain_[10] <<" "<< rejectionGain_[11] <<" "<< std::endl;
+    
     if(current_step_num != 0)
     {
         for (int i = 0; i < 12; i++)
@@ -797,6 +795,7 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
                 }
                 else
                 {
+
                     if (walking_tick <t_start_real + t_double1 + t_rest_temp) // the period for lifting the right foot
                     {
                         dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_rest_temp, t_start_real + t_double1 + t_rest_temp, 0.0, 0.0, 0.0, rejectionGain_[i], 0.0, 0.0)(0);
@@ -816,19 +815,8 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
             }
             else
             {
-                if (walking_tick <t_start_real + t_double1 + t_rest_temp) // the period for lifting the right foot
-                {
-                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_rest_temp, t_start_real + t_double1 + t_rest_temp, 0.0, 0.0, 0.0, rejectionGain, 0.0, 0.0)(0);
-                } // the period for lifting the right foot
-                else if(walking_tick <t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp))
-                {
-                    dobGain = rejectionGain;
-                }
-                else
-                {
-                    dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp) / 2.0, t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp, rejectionGain, 0.0, 0.0, 0.0, 0.0, 0.0)(0);
-                }
-            }
+                dobGain = defaultGain;
+
                 if (foot_step(current_step_num, 6) == 1)
                 {
                     if (walking_tick < t_start + t_total - t_rest_last - t_double2 - compliantTick)
@@ -859,6 +847,7 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
                         dobGain = DyrosMath::QuinticSpline(walking_tick, t_start_real + t_double1 + (t_total - t_rest_init - t_rest_last - t_double1 - t_double2 - t_imp) / 2.0, t_start + t_total - t_rest_last - t_double2 - t_imp - t_rest_temp, rejectionGain_[i], 0.0, 0.0, 0.0, 0.0, 0.0)(0);
                     }
                 }
+
                 dob_debug(1) = dobGain;
                 desired_leg_q(i) = desired_leg_q(i) - dobGain * dob_hat(i);
             }
@@ -868,31 +857,31 @@ void Walking_controller::inverseKinematicsdob(RobotData &Robot)
 
 void Walking_controller::ankleOriControl(RobotData &Robot)
 {
-                Eigen::Isometry3d RF_LF;
-                Eigen::Isometry3d LF_RF;
+    Eigen::Isometry3d RF_LF;
+    Eigen::Isometry3d LF_RF;
 
-                RF_LF.linear() = Robot.link_[Right_Foot].Rotm.transpose() * Robot.link_[Left_Foot].Rotm; 
-                RF_LF.translation() = Robot.link_[Right_Foot].Rotm.transpose() * Robot.link_[Left_Foot].xipos; 
+    RF_LF.linear() = Robot.link_[Right_Foot].Rotm.transpose() * Robot.link_[Left_Foot].Rotm; 
+    RF_LF.translation() = Robot.link_[Right_Foot].Rotm.transpose() * Robot.link_[Left_Foot].xipos; 
 
-                LF_RF.linear() = Robot.link_[Left_Foot].Rotm.transpose() * Robot.link_[Right_Foot].Rotm; 
-                LF_RF.translation() = Robot.link_[Left_Foot].Rotm.transpose() * Robot.link_[Right_Foot].xipos;
+    LF_RF.linear() = Robot.link_[Left_Foot].Rotm.transpose() * Robot.link_[Right_Foot].Rotm; 
+    LF_RF.translation() = Robot.link_[Left_Foot].Rotm.transpose() * Robot.link_[Right_Foot].xipos;
 
-                RF_LFe = DyrosMath::rot2Euler(RF_LF.linear());
-                LF_RFe = DyrosMath::rot2Euler(LF_RF.linear());
-                RF_trajectory_float.linear().setIdentity();
-                LF_trajectory_float.linear().setIdentity();
+    RF_LFe = DyrosMath::rot2Euler(RF_LF.linear());
+    LF_RFe = DyrosMath::rot2Euler(LF_RF.linear());
+    RF_trajectory_float.linear().setIdentity();
+    LF_trajectory_float.linear().setIdentity();
 
-                Eigen::Matrix3d SWF_SUF_R;
-                if(foot_step(current_step_num,6) == 1 && contactMode == 2)
-                {
-                    SWF_SUF_ori= -0.9 * LF_RFe;
-                    RF_trajectory_float.linear() = DyrosMath::rotateWithY(SWF_SUF_ori(1)) * DyrosMath::rotateWithX(SWF_SUF_ori(0));;//DyrosMath::Euler2rot_tf(SWF_SUF_ori);
-                }
-                else if(foot_step(current_step_num,6) == 0 && contactMode == 3)
-                {
-                    SWF_SUF_ori = -0.9 * RF_LFe;
-                    LF_trajectory_float.linear() = DyrosMath::rotateWithY(SWF_SUF_ori(1)) * DyrosMath::rotateWithX(SWF_SUF_ori(0));//DyrosMath::Euler2rot_tf(SWF_SUF_ori);
-                }
+    Eigen::Matrix3d SWF_SUF_R;
+    if(foot_step(current_step_num,6) == 1 && contactMode == 2)
+    {
+        SWF_SUF_ori= -0.9 * LF_RFe;
+        RF_trajectory_float.linear() = DyrosMath::rotateWithY(SWF_SUF_ori(1)) * DyrosMath::rotateWithX(SWF_SUF_ori(0));;//DyrosMath::Euler2rot_tf(SWF_SUF_ori);
+    }
+    else if(foot_step(current_step_num,6) == 0 && contactMode == 3)
+    {
+        SWF_SUF_ori = -0.9 * RF_LFe;
+        LF_trajectory_float.linear() = DyrosMath::rotateWithY(SWF_SUF_ori(1)) * DyrosMath::rotateWithX(SWF_SUF_ori(0));//DyrosMath::Euler2rot_tf(SWF_SUF_ori);
+    }
 
     /*
     Eigen::Vector2d k, kv;
@@ -1464,3 +1453,4 @@ void Walking_controller::updateInitTime()
 {
     walking_tick++;
 }
+

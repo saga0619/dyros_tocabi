@@ -34,6 +34,7 @@ public:
   Eigen::Vector12d desired_leg_q_prev;
   Eigen::Vector12d desired_leg_q_dot_;
   Eigen::Vector12d desired_leg_q_temp;
+  Eigen::Vector12d desired_leg_q_temp_;
   Eigen::Vector3d com_local;
   Eigen::Vector3d H_leg1;
 
