@@ -72,6 +72,8 @@
 
 #define EC_TIMEOUTMON 500
 
+#define MAX_TORQUE 1500
+
 extern volatile bool shutdown_tocabi_bool;
 
 const double CNT2RAD[ELMO_DOF] =
