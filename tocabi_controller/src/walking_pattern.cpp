@@ -505,8 +505,8 @@ void WalkingPattern::cpReferencePatternGeneration()
         }
         else
         {
-            zmp_refx(i) = (capturePoint_refx(i - 1)) - (capturePoint_refx(i) - capturePoint_refx(i - 1)) * Hz_ / (lipm_w);
-            zmp_refy(i) = (capturePoint_refy(i - 1)) - (capturePoint_refy(i) - capturePoint_refy(i - 1)) * Hz_ / (lipm_w);
+            zmp_refx(i - 1) = (capturePoint_refx(i - 1)) - (capturePoint_refx(i) - capturePoint_refx(i - 1)) * Hz_ / (lipm_w);
+            zmp_refy(i - 1) = (capturePoint_refy(i - 1)) - (capturePoint_refy(i) - capturePoint_refy(i - 1)) * Hz_ / (lipm_w);
         }
     }
 }

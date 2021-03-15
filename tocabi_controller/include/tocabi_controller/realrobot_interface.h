@@ -310,7 +310,7 @@ namespace EtherCAT_Elmo
             uint16_t statusWord;
             //int8_t modeOfOperationDisplay;
             int32_t velocityActualValue;
-            int16_t torqueActualValue;
+            int16_t  ;
             //int16_t torqueDemandValue;
             int32_t positionExternal;
         };

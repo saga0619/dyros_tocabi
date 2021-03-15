@@ -697,7 +697,7 @@ void StateManager::storeState()
     dc.q_ext_ = q_ext_;
     dc.torque_elmo_ = torque_elmo_;
 
-    //dc.q_dot_est_ = q_dot_est;
+    dc.q_dot_est_ = q_dot_est;
 
     dc.tau_nonlinear_ = tau_nonlinear_;
 
@@ -1344,6 +1344,7 @@ void StateManager::stateEstimate()
         {
             std::cout << "whatthefuck" << std::endl;
         }
+   
 
         if (dc.single_foot_only)
         {
@@ -1493,8 +1494,8 @@ void StateManager::jointVelocityEstimate()
     A_dt = I - dt * A_dt;
 
     double L, L1;
-    L = 0.002*10;
-    L1 = 0.1*10;
+    L = 0.01;
+    L1 = 0.01;
 
     if (velEst == false)
     {
@@ -1552,8 +1553,11 @@ void StateManager::jointVelocityEstimate1()
     A_dt = I - dt * A_dt;
 
     double L, L1;
-    L = 0.003;
-    L1 = 0.003;
+   // L = 0.003;
+   // L1 = 0.003;
+
+    L = 0.01;
+    L1 = 0.01;
 
     if (velEst == false)
     {
