@@ -1379,9 +1379,9 @@ void RealRobotInterface::ethercatThread()
                                         ElmoMode[i] = EM_TORQUE;
                                         dc.t_gain = to_ratio;
 
-                                        txPDO[i]->maxTorque = (uint16)(MAX_TORQUE * to_ratio);
+                                        //txPDO[i]->maxTorque = (uint16)(MAX_TORQUE * to_ratio);
 
-                                        //ELMO_torque[i] = to_ratio * ELMO_torque[i];
+                                        ELMO_torque[i] = to_ratio * ELMO_torque[i];
                                     }
                                     else if (dc.torqueOff)
                                     {
@@ -1399,9 +1399,9 @@ void RealRobotInterface::ethercatThread()
 
                                         dc.t_gain = to_ratio;
 
-                                        txPDO[i]->maxTorque = (uint16)(MAX_TORQUE * to_ratio);
+                                        //txPDO[i]->maxTorque = (uint16)(MAX_TORQUE * to_ratio);
 
-                                        //ELMO_torque[i] = to_ratio * ELMO_torque[i];
+                                        ELMO_torque[i] = to_ratio * ELMO_torque[i];
                                     }
                                     else
                                     {
