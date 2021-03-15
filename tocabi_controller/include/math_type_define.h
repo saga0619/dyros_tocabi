@@ -14,7 +14,6 @@
 #include <chrono>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2_eigen/tf2_eigen.h>
-#include <tf_conversions/tf_eigen.h>
 #include <vector>
 
 #define MODEL_DOF 33
@@ -330,14 +329,11 @@ namespace DyrosMath
 
   static Eigen::Matrix3d Euler2rot_tf(Eigen::Vector3d eulr)
   {
-    tf::Quaternion q;
-    q.setRPY(eulr(2), eulr(1), eulr(0));
-    tf::Matrix3x3 m(q);
-
+    //tf2::Quaternion q(eulr(2), eulr(1), eulr(0));
+    //tf2::Matrix3x3 m(q);
+	  
     Eigen::Matrix3d Mat_temp;
     
-    tf::matrixTFToEigen(m, Mat_temp);
-
     //tf2::
     return Mat_temp;
   }
