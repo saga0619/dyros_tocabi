@@ -1316,7 +1316,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
 
-                                if (fz_group2_check && fz_group1_check && fz_group3_check)
+                                if (fz_group2_check && fz_group1_check )
                                 {
                                     fz_group++;
                                     elmo_zp.open(zp_path, ios_base::out);
