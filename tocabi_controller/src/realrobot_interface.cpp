@@ -108,7 +108,7 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     elmofz[TOCABI::R_Shoulder2_Joint].req_length = 0.08;
 
     elmofz[TOCABI::R_Shoulder3_Joint].req_length = 0.03;
-    elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.04;
+    elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.035;
 
     elmofz[TOCABI::R_Wrist2_Joint].req_length = 0.05;
     elmofz[TOCABI::L_Wrist2_Joint].req_length = 0.05;
