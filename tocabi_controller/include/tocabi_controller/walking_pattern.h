@@ -134,6 +134,9 @@ public:
     Eigen::Vector3d RF_trajectory_euler_float;
     Eigen::Vector3d LF_trajectory_euler_support;
     Eigen::Vector3d RF_trajectory_euler_support;
+    Eigen::Vector3d SWF_SUF_ori;
+    Eigen::Vector3d RF_LFe;
+    Eigen::Vector3d LF_RFe;
 
     Eigen::Vector4d PELV_firstinit;
 

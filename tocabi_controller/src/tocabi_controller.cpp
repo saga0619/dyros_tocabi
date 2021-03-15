@@ -885,7 +885,6 @@ void TocabiController::dynamicsThreadLow()
         torque_task.setZero(MODEL_DOF);
         torque_add.setZero();
         TorqueContact.setZero();
-        //dc.positionControl = true;
 
         if (dc.signal_gravityCompensation)
         {
