@@ -31,6 +31,6 @@
     <param name="run_mode" value="$(arg run_mode)"/>
   </node>
 
-  <node name="pinocchio_tocabi" pkg ="pinocchio_tocabi" type="node" output="screen">
+  <node name="tocabi_pinocchio" pkg ="tocabi_pinocchio" type="tocabi_pinocchio.py" output="screen">
   </node>
 </launch>

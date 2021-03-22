@@ -539,7 +539,7 @@ void WalkingPattern::setCpPosition()
         capturePoint_offsety(i) = 0.00;
         capturePoint_offsety(i) = 0.01;
         //    capturePoint_offsetx(i) = 0.04;
-        capturePoint_offsetx(i) = 0.04;
+        capturePoint_offsetx(i) = 0.01;
     }
 
     if (com_control == 0)
@@ -1083,22 +1083,139 @@ void WalkingPattern::supportToFloatPattern()
     }
     else
     {
-        if (com_control == 0)
+        PELV_trajectory_float.translation()(0) = com_refx(walking_tick);
+        PELV_trajectory_float.translation()(1) = com_refy(walking_tick);
+
+        Eigen::Isometry3d SF_float, SFR_float, SPR_float, PSR_float, SW_SUP;
+        Eigen::Vector4d com_float, comR_float, pelvR_float, pelvSR_float;
+
+        if(current_step_num >= 1)
         {
-            PELV_trajectory_float.translation()(0) = com_refx(walking_tick);
-            PELV_trajectory_float.translation()(1) = com_refy(walking_tick);
+            SF_float.setIdentity();
+            SF_float.translation()(0) = foot_step(current_step_num - 1, 0);
+            SF_float.translation()(1) = foot_step(current_step_num - 1, 1);
+            SF_float.translation()(2) = RF_float_init.translation()(2);
+
+            SFR_float.linear() = SUF_float_current.linear();
+            SFR_float.translation()(0) = SUF_float_current.translation()(0);
+            SFR_float.translation()(1) = SUF_float_current.translation()(1);
+            SFR_float.translation()(2) = SUF_float_current.translation()(2);
+
+            Eigen::Vector4d SUF_float_temp;
+            SUF_float_temp(3) = 1.0;
+            SUF_float_temp.segment<3>(0) = SUF_float_current.translation();
+            SPR_float.linear() = PELV_float_current.linear().inverse() * SUF_float_current.linear();
+            SPR_float.translation() = PELV_float_current.inverse() * SUF_float_current.translation();
+
+            PSR_float = SPR_float.inverse();
+
+            if(walking_tick >= t_total + t_last - 4 && current_step_num == total_step_num)
+            {
+                com_float(0) = com_refx(t_total + t_last - 4);
+                com_float(1) = com_refy(t_total + t_last - 4);
+            }
+            else
+            {
+                com_float(0) = com_refx(walking_tick);
+                com_float(1) = com_refy(walking_tick);            
+            }
+            
+            com_float(2) = PELV_float_current.translation()(2);
+            com_float(3) = 1.0;
+
+            comR_float(0) = COM_float_current.translation()(0);
+            comR_float(1) = COM_float_current.translation()(1);
+            comR_float(2) = COM_float_current.translation()(2);
+            comR_float(3) = 1.0;
+
+            pelvR_float(0) = PELV_float_current.translation()(0);
+            pelvR_float(1) = PELV_float_current.translation()(1);
+            pelvR_float(2) = PELV_float_current.translation()(2);
+            pelvR_float(3) = 1.0;
+
+            pelvSR_float.segment<3>(0) = PSR_float.translation();
+            pelvSR_float(3) = 1.0;
+
+            com_sup = SF_float.inverse() * com_float;
+            comR_sup = SF_float.inverse() * comR_float;
+            pelvR_sup = SF_float.inverse() * pelvR_float;
+            pelvPR_sup.segment<3>(0) = pelvSR_float.segment<3>(0);
+            pelvPR_sup(0) -= SUP_foot(0);
         }
         else
         {
-            PELV_trajectory_float.translation()(0) = (PELV_float_current).translation()(0) + kp * (com_refx(walking_tick) - COM_float_current.translation()(0)); //(PELV_first_init.inverse()*COM_float_current).translation()(0));
-            PELV_trajectory_float.translation()(1) = (PELV_float_current).translation()(1) + kp * (com_refy(walking_tick) - COM_float_current.translation()(1)); //(PELV_first_init.inverse()*COM_float_current).translation()(1));
-        }
-        PELVD_trajectory_float.translation()(0) = com_refdx(walking_tick);
-        PELVD_trajectory_float.translation()(1) = com_refdy(walking_tick);
-        PELVD_trajectory_float.translation()(2) = 0.0;
+            SF_float.setIdentity();
+            SF_float.translation()(0) = foot_step(current_step_num, 0);
+            SF_float.translation()(1) = foot_step(current_step_num + 1, 1);
+            SF_float.translation()(2) = RF_float_init.translation()(2);
 
-        PELV_trajectory_float.translation()(2) = PELV_first_init.translation()(2);
-        PELV_trajectory_float.linear() = PELV_first_init.linear();
+            SFR_float.linear() = SUF_float_current.linear();
+            SFR_float.translation()(0) = SUF_float_current.translation()(0);
+            SFR_float.translation()(1) = SUF_float_current.translation()(1);
+            SFR_float.translation()(2) = SUF_float_current.translation()(2);
+
+            Eigen::Vector4d SUF_float_temp;
+            SUF_float_temp(3) = 1.0;
+            SUF_float_temp.segment<3>(0) = SUF_float_current.translation();
+            SPR_float.linear() = PELV_float_current.linear().inverse() * SUF_float_current.linear();
+            SPR_float.translation() = PELV_float_current.inverse() * SUF_float_current.translation();
+
+            PSR_float = SPR_float.inverse();
+
+            com_float(0) = com_refx(walking_tick);
+            com_float(1) = com_refy(walking_tick);
+            com_float(2) = PELV_float_current.translation()(2);
+            com_float(3) = 1.0;
+
+            comR_float(0) = COM_float_current.translation()(0);
+            comR_float(1) = COM_float_current.translation()(1);
+            comR_float(2) = COM_float_current.translation()(2);
+            comR_float(3) = 1.0;
+
+            pelvR_float(0) = PELV_float_current.translation()(0);
+            pelvR_float(1) = PELV_float_current.translation()(1);
+            pelvR_float(2) = PELV_float_current.translation()(2);
+            pelvR_float(3) = 1.0;
+
+            pelvSR_float.segment<3>(0) = PSR_float.translation();
+            pelvSR_float(3) = 1.0;
+
+            com_sup = SF_float.inverse() * com_float;
+            comR_sup = SF_float.inverse() * comR_float;
+            pelvR_sup = SF_float.inverse() * pelvR_float;
+            pelvPR_sup.segment<3>(0) = pelvSR_float.segment<3>(0);
+        }
+
+        if(walking_tick == t_last && current_step_num > 1)
+        {
+            Eigen::Isometry3d SUF_float_temp;
+            Eigen::Vector4d SW_SUP_temp;
+            SW_SUP_temp(3) = 1.0;
+            SW_SUP_temp.segment<3>(0) = SWF_float_current.translation();
+
+            SUF_float_temp.linear().setIdentity();
+            SUF_float_temp.translation() = SUF_float_current.translation();
+
+            SW_SUP.linear() = SUF_float_current.linear() * SWF_float_current.linear();
+            SW_SUP.translation() = (SUF_float_temp.inverse() * SW_SUP_temp).segment<3>(0);
+            
+            SUP_foot(0) = SUP_foot(0) + (foot_step(current_step_num -1 , 0) - foot_step(current_step_num - 2, 0)) - SW_SUP.translation()(0);
+        }
+        else if(walking_tick == t_last && current_step_num == 1)
+        {
+            Eigen::Isometry3d SUF_float_temp;
+            Eigen::Vector4d SW_SUP_temp;
+            SW_SUP_temp(3) = 1.0;
+            SW_SUP_temp.segment<3>(0) = SWF_float_current.translation();
+
+            SUF_float_temp.linear().setIdentity();
+            SUF_float_temp.translation() = SUF_float_current.translation();
+
+            SW_SUP.linear() = SUF_float_current.linear() * SWF_float_current.linear();
+            SW_SUP.translation() = (SUF_float_temp.inverse() * SW_SUP_temp).segment<3>(0);
+            
+            SUP_foot(0) = SUP_foot(0) + foot_step(current_step_num -1 , 0) - SW_SUP.translation()(0);
+        }        
     }
 }
 

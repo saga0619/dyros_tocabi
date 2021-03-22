@@ -139,6 +139,11 @@ public:
     Eigen::Vector3d LF_RFe;
 
     Eigen::Vector4d PELV_firstinit;
+    Eigen::Vector4d com_sup;
+    Eigen::Vector4d comR_sup;
+    Eigen::Vector4d pelvR_sup;
+    Eigen::Vector4d pelvPR_sup;
+    Eigen::Vector4d SUP_foot;
 
     Eigen::Vector3d foot_distance;
     double zc;
