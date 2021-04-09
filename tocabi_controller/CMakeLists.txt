@@ -33,6 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   eigen_conversions
+  mujoco_ros_msgs
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
