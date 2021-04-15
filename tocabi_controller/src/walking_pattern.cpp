@@ -505,8 +505,8 @@ void WalkingPattern::cpReferencePatternGeneration()
         }
         else
         {
-            zmp_refx(i) = (capturePoint_refx(i - 1)) - (capturePoint_refx(i) - capturePoint_refx(i - 1)) * Hz_ / (lipm_w);
-            zmp_refy(i) = (capturePoint_refy(i - 1)) - (capturePoint_refy(i) - capturePoint_refy(i - 1)) * Hz_ / (lipm_w);
+            zmp_refx(i - 1) = (capturePoint_refx(i - 1)) - (capturePoint_refx(i) - capturePoint_refx(i - 1)) * Hz_ / (lipm_w);
+            zmp_refy(i - 1) = (capturePoint_refy(i - 1)) - (capturePoint_refy(i) - capturePoint_refy(i - 1)) * Hz_ / (lipm_w);
         }
     }
 }
@@ -537,9 +537,9 @@ void WalkingPattern::setCpPosition()
     for (int i = 0; i < total_step_num + 3; i++)
     {
         capturePoint_offsety(i) = 0.00;
-        //  capturePoint_offsety(i) = 0.02;
+        capturePoint_offsety(i) = 0.01;
         //    capturePoint_offsetx(i) = 0.04;
-        capturePoint_offsetx(i) = 0.00;
+        capturePoint_offsetx(i) = 0.04;
     }
 
     if (com_control == 0)

@@ -7,10 +7,10 @@
 
 const char *homedir;
 
-std::atomic_bool atb_q = true;
-std::atomic_bool atb_elmo = true;
+std::atomic<bool> atb_q{true};
+std::atomic<bool> atb_elmo{true};
 
-double rising_time = 3.0;
+double rising_time = 5.0;
 bool elmo_init = true;
 bool elmo_init_lower = false;
 bool elmo_init_upper = false;
@@ -104,11 +104,11 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     elmofz[TOCABI::R_Forearm_Joint].req_length = 0.14;
 
     elmofz[TOCABI::L_Shoulder1_Joint].req_length = 0.18;
-    elmofz[TOCABI::L_Shoulder2_Joint].req_length = 0.17;
+    elmofz[TOCABI::L_Shoulder2_Joint].req_length = 0.15;
     elmofz[TOCABI::R_Shoulder2_Joint].req_length = 0.08;
 
     elmofz[TOCABI::R_Shoulder3_Joint].req_length = 0.03;
-    elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.04;
+    elmofz[TOCABI::L_Shoulder3_Joint].req_length = 0.035;
 
     elmofz[TOCABI::R_Wrist2_Joint].req_length = 0.05;
     elmofz[TOCABI::L_Wrist2_Joint].req_length = 0.05;
@@ -895,7 +895,7 @@ void RealRobotInterface::ethercatThread()
                             {
                                 int time_diff = (int)((control_time_real_ - control_time_before_) * 1.0E+6);
 
-                                if ((time_diff > dc.ctime * 1.05) || (time_diff < dc.ctime * 0.95))
+                                if (((time_diff > dc.ctime * 1.05) || (time_diff < dc.ctime * 0.95))&&operation_ready)
                                 {
                                     std::cout << cred << "Warning : Time is not OK, time diff is : " << time_diff << std::endl;
                                     std::cout << "current time : " << control_time_real_ << std::endl;
@@ -993,12 +993,12 @@ void RealRobotInterface::ethercatThread()
 
                                         ElmoConnected = true;
 
-                                        if (slave == 1 || slave == 2 || slave == 19 || slave == 20)
+                                        if (slave == 1 || slave == 2 || slave == 19 || slave == 20 || slave == 16)
                                         {
                                             hommingElmo[slave - 1] = !hommingElmo[slave - 1];
                                         }
 
-                                        txPDO[slave - 1]->maxTorque = (uint16)1500; // originaly 1000
+                                        txPDO[slave - 1]->maxTorque = (uint16)MAX_TORQUE; // originaly 1000
                                         ElmoMode[slave - 1] = EM_TORQUE;
                                         torqueDemandElmo[slave - 1] = 0.0;
                                     }
@@ -1316,7 +1316,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
 
-                                if (fz_group2_check && fz_group1_check && fz_group3_check)
+                                if (fz_group2_check && fz_group1_check )
                                 {
                                     fz_group++;
                                     elmo_zp.open(zp_path, ios_base::out);
@@ -1379,6 +1379,8 @@ void RealRobotInterface::ethercatThread()
                                         ElmoMode[i] = EM_TORQUE;
                                         dc.t_gain = to_ratio;
 
+                                        //txPDO[i]->maxTorque = (uint16)(MAX_TORQUE * to_ratio);
+
                                         ELMO_torque[i] = to_ratio * ELMO_torque[i];
                                     }
                                     else if (dc.torqueOff)
@@ -1396,6 +1398,8 @@ void RealRobotInterface::ethercatThread()
                                         to_ratio = DyrosMath::minmax_cut(1.0 - to_calib - (control_time_real_ - dc.torqueOffTime) / rising_time, 0.0, 1.0);
 
                                         dc.t_gain = to_ratio;
+
+                                        //txPDO[i]->maxTorque = (uint16)(MAX_TORQUE * to_ratio);
 
                                         ELMO_torque[i] = to_ratio * ELMO_torque[i];
                                     }
@@ -1547,7 +1551,7 @@ void RealRobotInterface::ethercatThread()
                             }
                             tp[9] = std::chrono::steady_clock::now();
                             td[4] = tp[8] - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
-                            if (td[4].count() * 1E+6 > 500)
+                            if ((td[4].count() * 1E+6 > 500)&&operation_ready)
                             {
                                 std::cout << "Loop time exceeded : " << std::endl;
                                 std::cout << "sleep_until" << std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count() << std::endl;

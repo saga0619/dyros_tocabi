@@ -456,7 +456,7 @@
     name="R_Foot_Link">
     <inertial>
       <origin
-        xyz="-0.0162 0.00008 -0.1209"
+        xyz="0.0162 0.00008 -0.1209"
         rpy="0 0 0" />
       <mass
         value="2.326" />
@@ -911,7 +911,7 @@
     name="L_Foot_Link">
     <inertial>
       <origin
-        xyz="-0.0162 0.00008 -0.1209"
+        xyz="0.0162 0.00008 -0.1209"
         rpy="0 0 0" />
       <mass
         value="2.326" />

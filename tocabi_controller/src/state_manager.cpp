@@ -287,18 +287,18 @@ void StateManager::stateThread(void)
                 int t2us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - tn).count();
                 tn = std::chrono::steady_clock::now();
 
-                // if (((control_time_ - control_time_c_stamp) < 1.01) && ((control_time_ - control_time_c_stamp) > 0.99))
-                // {
-                // }
-                // else
-                // {
-                //     std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
-                //     for (int i = 0; i < 9; i++)
-                //     {
-                //         std::cout << i << " : " << tdu[i] / 2000.0 * 1000000.0 << "\t";
-                //     }
-                //     std::cout << std::endl;
-                // }
+                if (((control_time_ - control_time_c_stamp) < 1.01) && ((control_time_ - control_time_c_stamp) > 0.99))
+                {
+                }
+                else
+                {
+                    //std::cout << "State Thread is not 2000 hz : " << t2us / 1000000.0 << " \t";
+                    //for (int i = 0; i < 9; i++)
+                    //{
+                    //    std::cout << i << " : " << tdu[i] / 2000.0 * 1000000.0 << "\t";
+                    //}
+                    //std::cout << std::endl;
+                }
 
                 for (int i = 0; i < 9; i++)
                 {
@@ -528,20 +528,20 @@ void StateManager::adv2ROS(void)
     //pointpub_msg.polygon.points[14].y = dc.tocabi_.ZMP_eqn_calc(1);
     //pointpub_msg.polygon.points[14].z = dc.tocabi_.ZMP_eqn_calc(2);
 
-    pointpub_msg.polygon.points[15].x = LF_CF_FT.segment(0, 3).norm();
-    pointpub_msg.polygon.points[15].y = LF_CF_FT.segment(3, 3).norm();
-    pointpub_msg.polygon.points[15].z = RF_CP_est(2);
+    pointpub_msg.polygon.points[15].x = dc.tocabi_.link_[COM_id].v(0);
+    pointpub_msg.polygon.points[15].y = dc.tocabi_.link_[COM_id].v(1);
+    pointpub_msg.polygon.points[15].z = dc.tocabi_.link_[COM_id].v(2);
 
-    pointpub_msg.polygon.points[16].x = dc.tocabi_.ContactForce.segment(0, 3).norm();
-    pointpub_msg.polygon.points[16].y = dc.tocabi_.ContactForce.segment(3, 3).norm();
-    pointpub_msg.polygon.points[16].z = link_local[Right_Foot].v(2);
+    pointpub_msg.polygon.points[16].x = dc.tocabi_.link_[Pelvis].v(0);
+    pointpub_msg.polygon.points[16].y = dc.tocabi_.link_[Pelvis].v(1);
+    pointpub_msg.polygon.points[16].z = dc.tocabi_.link_[Pelvis].v(2);
 
-    pointpub_msg.polygon.points[17].x = RF_CF_FT.segment(0, 3).norm();
-    pointpub_msg.polygon.points[17].y = RF_CF_FT.segment(3, 3).norm();
-    pointpub_msg.polygon.points[17].z = link_local[Right_Foot].xpos(2);
+    pointpub_msg.polygon.points[17].x = q_ddot_virtual_(0);
+    pointpub_msg.polygon.points[17].y = q_ddot_virtual_(1);
+    pointpub_msg.polygon.points[17].z = q_ddot_virtual_(2);
 
-    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce.segment(6, 3).norm();
-    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce.segment(9, 3).norm();
+    pointpub_msg.polygon.points[18].x = dc.tocabi_.ContactForce(2);
+    pointpub_msg.polygon.points[18].y = dc.tocabi_.ContactForce(8);
     pointpub_msg.polygon.points[18].z = RF_CP_est(2);
 
     point_pub.publish(pointpub_msg);
@@ -697,7 +697,7 @@ void StateManager::storeState()
     dc.q_ext_ = q_ext_;
     dc.torque_elmo_ = torque_elmo_;
 
-    //dc.q_dot_est_ = q_dot_est;
+    dc.q_dot_est_ = q_dot_est;
 
     dc.tau_nonlinear_ = tau_nonlinear_;
 
@@ -1071,9 +1071,10 @@ void StateManager::qdotLPF()
         q_ddot_virtual_lpf_ = DyrosMath::lpf(q_ddot_virtual_local_, q_ddot_virtual_before_, 2000, 200);
 
         q_ddot_virtual_before_ = q_ddot_virtual_lpf_;
-
-        //q_dot_virtual_local_ = q_dot_virtual_lpf_;
+        q_dot_virtual_before = q_dot_virtual_lpf_;
+        q_dot_virtual_local_ = q_dot_virtual_lpf_;
         q_dot_virtual_ = q_dot_virtual_local_;
+        q_ddot_virtual_ = q_ddot_virtual_lpf_;
     }
     else
     {
@@ -1119,13 +1120,44 @@ void StateManager::stateEstimate()
         static Eigen::Vector3d RF_CP_est_holder_before, LF_CP_est_holder_before;
         static Eigen::Vector3d RF_CP_est_before, LF_CP_est_before;
         static Eigen::Vector3d imu_init;
-        RF_CP_est.setZero();
-        LF_CP_est.setZero();
 
         static Eigen::Vector3d pelv_v_before;
         static Eigen::Vector3d pelv_v;
+        static Eigen::Vector3d pelv_anga;
         static Eigen::Vector3d pelv_x_before;
         static Eigen::Vector3d pelv_x;
+
+
+        static double dr_static, dl_static;
+
+        if (dc.semode_init)
+        {
+            contact_right = false;
+            contact_left = false;
+            std::cout << "state Estimation Initialized" << std::endl;
+            RF_contact_pos_holder.setZero(); // - RF_contactpoint_internal_pos(2);
+            LF_contact_pos_holder.setZero();// - LF_contactpoint_internal_pos(2);
+            RF_contact_pos_mod.setZero();
+            LF_contact_pos_mod.setZero();
+            RF_CP_est_holder.setZero();
+            LF_CP_est_holder.setZero();
+            RF_CP_est_holder_before.setZero();
+            LF_CP_est_holder_before.setZero();
+
+            RF_CP_est_before.setZero();
+            LF_CP_est_before.setZero();
+            pelv_v_before.setZero();
+            pelv_x_before.setZero();
+            imu_ang_vel_before.setZero();
+            imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
+            dr_static = 0.5;
+            dl_static = 0.5;
+        }
+
+        RF_CP_est.setZero();
+        LF_CP_est.setZero();
+
+
         RF_contact_pos_mod = RF_CP_est - RF_CP_est_before;
         LF_contact_pos_mod = LF_CP_est - LF_CP_est_before;
 
@@ -1197,23 +1229,14 @@ void StateManager::stateEstimate()
                 std::cout << control_time_ << "  left foot contact disabled" << std::endl;
             }
         }
-        static double dr_static, dl_static;
 
-        if (dc.semode_init)
+        if(dc.semode_init)
         {
-            std::cout << "state Estimation Initialized" << std::endl;
-            RF_contact_pos_holder(2) = 0.0; // - RF_contactpoint_internal_pos(2);
-            LF_contact_pos_holder(2) = 0.0; // - LF_contactpoint_internal_pos(2);
-            RF_contact_pos_mod.setZero();
-            LF_contact_pos_mod.setZero();
-            RF_CP_est_before.setZero();
-            LF_CP_est_before.setZero();
+
+            LF_contact_pos_holder(2) = 0.0;
+            RF_contact_pos_holder(2) = 0.0;
             dc.semode_init = false;
-            pelv_v_before.setZero();
-            pelv_x_before.setZero();
-            imu_init = link_local[Pelvis].Rotm * imu_lin_acc;
-            dr_static = 0.5;
-            dl_static = 0.5;
+
         }
 
         // imu pos estimation part (useless for now... )
@@ -1321,6 +1344,7 @@ void StateManager::stateEstimate()
         {
             std::cout << "whatthefuck" << std::endl;
         }
+   
 
         if (dc.single_foot_only)
         {
@@ -1349,11 +1373,18 @@ void StateManager::stateEstimate()
 
         pelv_x = alpha * (pelv_v * dt + imu_acc_dat * dt * dt * 0.5 + pelv_x_before) + (1 - alpha) * (-mod_base_pos);
         pelv_x_before = pelv_x;
+
+        pelv_anga = (q_dot_virtual_.segment<3>(3) - imu_ang_vel_before)*2000;
+        imu_ang_vel_before = q_dot_virtual_.segment<3>(3);
+
         for (int i = 0; i < 3; i++)
         {
             q_virtual_(i) = -mod_base_pos(i);
             q_dot_virtual_(i) = pelv_v(i);
-        }
+            q_ddot_virtual_(i) = imu_acc_dat(i);
+            q_ddot_virtual_(i+3) = pelv_anga(i);
+        }    
+
         fr_msg.data[6] = pelv_v[0];
         fr_msg.data[7] = pelv_v[1];
         fr_msg.data[8] = pelv_v[2];
@@ -1463,8 +1494,8 @@ void StateManager::jointVelocityEstimate()
     A_dt = I - dt * A_dt;
 
     double L, L1;
-    L = 0.002;
-    L1 = 0.1;
+    L = 0.01;
+    L1 = 0.01;
 
     if (velEst == false)
     {
@@ -1522,8 +1553,11 @@ void StateManager::jointVelocityEstimate1()
     A_dt = I - dt * A_dt;
 
     double L, L1;
-    L = 0.003;
-    L1 = 0.003;
+   // L = 0.003;
+   // L1 = 0.003;
+
+    L = 0.01;
+    L1 = 0.01;
 
     if (velEst == false)
     {
