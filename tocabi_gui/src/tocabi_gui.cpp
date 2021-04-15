@@ -95,6 +95,10 @@ void MyQGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         arm_pd_gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/dg/armpdgain", 100);
         waist_pd_gain_pub = nh_.advertise<std_msgs::Float32MultiArray>("/tocabi/dg/waistpdgain", 100);
 
+        pose_calibration_pub = nh_.advertise<std_msgs::Int8>("/tocabi/dg/avatar/pose_calibration_flag", 100);
+
+        vr_slider_pub = nh_.advertise<std_msgs::Float32MultiArray >("/tocabi/dg/vr_caliabration_param", 100);
+
         taskgain_msg.pgain.resize(6);
         taskgain_msg.dgain.resize(6);
 
@@ -104,6 +108,10 @@ void MyQGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         walkingslidercommand_msg.data[2] = 0;
         walkingslidercommand_msg.data[3] = 18*M_PI/180;
         walkingslidercommand_msg.data[4] = 0.07;
+
+        vr_slider_msg.data.resize(2);
+        vr_slider_msg.data[0] = 0.5;
+        vr_slider_msg.data[1] = 0.5;
 
         gain_msg.data.resize(33);
         com_walking_pd_gain_msg.data.resize(6);
@@ -230,6 +238,8 @@ void MyQGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         connect(ui_.walking_angvel_slider_2, SIGNAL(valueChanged(int)), this, SLOT(walkingangvelcb(int) ));
         connect(ui_.knee_target_angle_slider_2, SIGNAL(valueChanged(int)), this, SLOT(kneetargetanglecb(int) ));
         connect(ui_.foot_height_slider_2, SIGNAL(valueChanged(int)), this, SLOT(footheightcb(int) ));
+        connect(ui_.vr_eye_distance_slider, SIGNAL(valueChanged(int)), this, SLOT(vr_eye_distance_cb(int) ));
+        connect(ui_.vr_eye_depth_slider, SIGNAL(valueChanged(int)), this, SLOT(vr_eye_depth_cb(int) ));
 
         connect(ui_.send_upperbody_mode_button, SIGNAL(pressed()), this, SLOT(sendupperbodymodecb()));
         connect(ui_.send_next_swing_leg_button, SIGNAL(pressed()), this, SLOT(sendnextswinglegcb()));
@@ -246,6 +256,12 @@ void MyQGraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
         connect(ui_.arm_gain_send_button, SIGNAL(pressed()), this, SLOT(sendarmgaincb()));
         connect(ui_.waist_gain_send_button, SIGNAL(pressed()), this, SLOT(sendwaistgaincb()));
+
+        connect(ui_.still_pose_button,  SIGNAL(pressed()), this, SLOT(sendstillposecalibration()));
+        connect(ui_.T_pose_button,  SIGNAL(pressed()), this, SLOT(sendtposecalibration()));
+        connect(ui_.forward_pose_button,  SIGNAL(pressed()), this, SLOT(sendforwardposecalibration()));
+        connect(ui_.reset_pose_button,  SIGNAL(pressed()), this, SLOT(sendresetposecalibration()));
+        connect(ui_.load_saved_cali_button,  SIGNAL(pressed()), this, SLOT(sendloadsavedcalibration()));
 
         if (mode == "simulation")
         {
@@ -1603,6 +1619,22 @@ void TocabiGui::wheelEvent(QWheelEvent *event)
         walkingslidercommand_pub.publish(walkingslidercommand_msg);
     }
 
+    void TocabiGui::vr_eye_depth_cb(int value)
+    {
+        double scale = value;
+
+        vr_slider_msg.data[0] =  scale/100;
+        vr_slider_pub.publish(vr_slider_msg);
+    }
+
+    void TocabiGui::vr_eye_distance_cb(int value)
+    {
+        double scale = value;
+
+        vr_slider_msg.data[1] =  scale/100;
+        vr_slider_pub.publish(vr_slider_msg);
+    }
+
     void TocabiGui::sendupperbodymodecb()
     {
         upperbodymode_msg.data = ui_.upperbody_mode->currentIndex()+1;
@@ -1739,7 +1771,36 @@ void TocabiGui::wheelEvent(QWheelEvent *event)
 
         waist_pd_gain_pub.publish(waist_pd_gain_msg);
     }
-
+    void TocabiGui::sendstillposecalibration()
+    {
+        pose_calibration_msg.data  = 1;
+        
+        pose_calibration_pub.publish(pose_calibration_msg);
+    }
+    void TocabiGui::sendtposecalibration()
+    {
+        pose_calibration_msg.data  = 2;
+        
+        pose_calibration_pub.publish(pose_calibration_msg);
+    }
+    void TocabiGui::sendforwardposecalibration()
+    {
+        pose_calibration_msg.data  = 3;
+        
+        pose_calibration_pub.publish(pose_calibration_msg);
+    }
+    void TocabiGui::sendresetposecalibration()
+    {
+        pose_calibration_msg.data  = 4;
+        
+        pose_calibration_pub.publish(pose_calibration_msg);
+    }
+    void TocabiGui::sendloadsavedcalibration()
+    {
+        pose_calibration_msg.data  = 5;
+        
+        pose_calibration_pub.publish(pose_calibration_msg);
+    }
     void TocabiGui::torqueCommand()
     {
     }

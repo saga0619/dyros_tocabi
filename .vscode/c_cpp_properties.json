@@ -10,7 +10,7 @@
                 "/opt/ros/kinetic/include/**",
                 "/home/dg/catkin_ws/src/mujoco_ros_sim/mujoco_ros/include/**",
                 "/home/dg/catkin_ws/src/dyros_tocabi/tocabi_controller/include/**",
-                "/home/dg/catkin_ws/src/dyros_tocabi/tocabi_gui/include/**",
+                "/home/dg/catkin_ws/src/tocabi_gui/include/**",
                 "/usr/include/**",
                 "/usr/local/include/soem"
             ],

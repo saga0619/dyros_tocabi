@@ -21,6 +21,7 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/Int8.h>
 #include <geometry_msgs/PolygonStamped.h>
 #include <std_msgs/String.h>
 #include <QMetaType>
@@ -211,6 +212,8 @@ protected slots:
     virtual void walkingangvelcb(int value);
     virtual void kneetargetanglecb(int value);
     virtual void footheightcb(int value);
+    virtual void vr_eye_depth_cb(int value);
+    virtual void vr_eye_distance_cb(int value);
 
     virtual void sendupperbodymodecb();
     virtual void sendnextswinglegcb();
@@ -227,6 +230,13 @@ protected slots:
 
     virtual void sendarmgaincb();
     virtual void sendwaistgaincb();
+
+    virtual void sendstillposecalibration();
+    virtual void sendtposecalibration();
+    virtual void sendforwardposecalibration();
+    virtual void sendresetposecalibration();
+    virtual void sendloadsavedcalibration();
+
 
     virtual void torqueCommand();
     void handletaskmsg();
@@ -324,9 +334,15 @@ public:
     ros::Publisher waist_pd_gain_pub;
     std_msgs::Float32MultiArray waist_pd_gain_msg;
 
+    ros::Publisher pose_calibration_pub;
+    std_msgs::Int8 pose_calibration_msg;
+
     ros::Subscriber sysstatesub;
 
     ros::Subscriber imusub;
+
+    ros::Publisher vr_slider_pub;
+    std_msgs::Float32MultiArray vr_slider_msg;
 
     //void guiLogCallback(const std_msgs::StringConstPtr &msg);
     std::string logtext;
