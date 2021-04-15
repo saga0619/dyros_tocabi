@@ -16,7 +16,7 @@
       <param name="ctime" value="$(arg ctime)"/>
       <param name="ifname" value="$(arg ifname)"/>
       <param name="ifname2" value="eno2"/>
-      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_with_qb.urdf"/>
+      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_with_allegro_qb.urdf"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
       <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_positionPDgain.yaml" />
       <rosparam command="load" file="$(find tocabi_description)/setting/setting_realrobot_parameters.yaml" />
