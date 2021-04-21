@@ -36,7 +36,9 @@ public:
   ros::NodeHandle nh;
 
 
-  std::atomic_bool atb_dc = {false};
+  std::atomic<bool> atb_dc{false};
+
+  std::atomic<bool> trigger_hqp{false};
 
   //Basic var
   bool simulation = true;
@@ -66,7 +68,9 @@ public:
   std::string sim_mode;
   std::string mode;
   std::string print_file_name;
+  std::string print_file_name2;
   std::ofstream data_out;
+  std::ofstream data_out2;
 
   //Tui Var..
   bool state_end;
@@ -128,6 +132,7 @@ public:
   //Kinematics Information :
   //MODEL Tocabi;
   RobotData tocabi_;
+  RobotData_fast tocabi_fast_;
   WholebodyController wbc_;
   Walking_controller wkc_;
 

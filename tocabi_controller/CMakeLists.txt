@@ -32,6 +32,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   tf
+  mujoco_ros
   eigen_conversions
   mujoco_ros_msgs
 )
