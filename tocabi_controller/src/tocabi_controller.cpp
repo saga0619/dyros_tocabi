@@ -13,13 +13,8 @@ std::mutex mtx_dc;
 std::mutex mtx_terminal;
 std::mutex mtx_ncurse;
 
-<<<<<<< HEAD
-std::atomic_bool task_recv = {false};
-std::atomic_bool taskque_recv = {false};
-=======
 std::atomic<bool> task_recv{false};
 std::atomic<bool> taskque_recv{false};
->>>>>>> origin/master
 
 std::chrono::duration<double> td_gs[5];
 

@@ -15,6 +15,11 @@ void CQuadraticProgram::Initialize()
     _num_cons = 1;
 }
 
+void CQuadraticProgram::SetPrintLevel( qpOASES::PrintLevel printLevel)
+{
+    _QPprob.setPrintLevel(printLevel);
+}
+
 void CQuadraticProgram::InitializeProblemSize(const int &num_var, const int &num_cons)
 {
     _QPprob = SQProblem(num_var, num_cons);
@@ -37,6 +42,7 @@ void CQuadraticProgram::InitializeProblemSize(const int &num_var, const int &num
     _ub.resize(_num_var);
     _ub.setZero();
     _bInitialized = false;
+    // _QPprob.setPrintLevel(PL_NONE); //test
 }
 
 void CQuadraticProgram::UpdateMinProblem(const MatrixXd &H, const VectorXd &g)
@@ -179,19 +185,19 @@ int CQuadraticProgram::SolveQPoases(const int &num_max_iter, VectorXd &solv, boo
     }
     int_t nWSR = num_max_iter;
 
-    //_options.printLevel = PL_NONE;
     if (MPC)
         _options.setToMPC();
   
     //_options.boundTolerance = 1E-6;
     _options.boundRelaxation = 1E-4;
-    _options.printLevel = PL_LOW;
+    // _options.printLevel = PL_LOW;
+    _options.printLevel = PL_NONE;
+
     _QPprob.setOptions(_options);
 
     returnValue m_status;
     if (_bInitialized == false) //init
     {
-        std::cout << "QP init" << std::endl;
         if (_bool_constraint_Ax == true && _bool_constraint_x == true)
         {
             m_status = _QPprob.init(H_realt, g_realt, A_realt, lb_realt, ub_realt, lbA_realt, ubA_realt, nWSR);

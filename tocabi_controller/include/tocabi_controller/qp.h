@@ -38,7 +38,8 @@ public:
   void DisableEqualityCondition();
   VectorXd SolveQPoases(const int &num_max_iter, bool MPC = true);
   int SolveQPoases(const int &num_max_iter, VectorXd &solv, bool MPC = true);
-
+  void SetPrintLevel(qpOASES::PrintLevel printLevel);
+  
 private:
   SQProblem _QPprob;
   Options _options;

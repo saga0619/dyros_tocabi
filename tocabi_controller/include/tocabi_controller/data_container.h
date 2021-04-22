@@ -36,13 +36,12 @@ public:
   ros::NodeHandle nh;
 
 
-<<<<<<< HEAD
-  std::atomic_bool atb_dc = {false};
-=======
-  std::atomic<bool> atb_dc{false};
+  // std::atomic_bool atb_dc = {false};
+  // std::atomic<bool> atb_dc{false};
 
   std::atomic<bool> trigger_hqp{false};
->>>>>>> origin/master
+
+  std::atomic_bool atb_dc = {false};
 
   //Basic var
   bool simulation = true;
