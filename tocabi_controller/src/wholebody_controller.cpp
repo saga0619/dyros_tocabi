@@ -4682,6 +4682,7 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
 
     return torque_prev + Robot_fast.NwJw * fc_opt + Robot_fast.torque_grav;
 }
+
 void WholebodyController::copy_robot_fast(RobotData &Robot, RobotData_fast &Robot_fast, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp)
 {
     Robot_fast.torque_grav = gravity_compensation_torque(Robot);
