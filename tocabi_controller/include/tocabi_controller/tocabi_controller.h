@@ -189,7 +189,7 @@ private:
   Eigen::Vector3d com_vel_desired_pre_pelvis_;
   // Pevlis related variables
   Eigen::Vector3d pelv_pos_current_;
-  Eigen::Vector3d pelv_vel_current_;
+  Eigen::Vector6d pelv_vel_current_;
   Eigen::Matrix3d pelv_rot_current_;
   Eigen::Vector3d pelv_rpy_current_;
   Eigen::Matrix3d pelv_rot_current_yaw_aline_;
@@ -197,7 +197,7 @@ private:
   Eigen::Matrix3d pelv_yaw_rot_current_from_global_;
 
   Eigen::Vector3d pelv_pos_init_;
-  Eigen::Vector3d pelv_vel_init_;
+  Eigen::Vector6d pelv_vel_init_;
   Eigen::Matrix3d pelv_rot_init_;
   Eigen::Vector3d pelv_rpy_init_;
   Eigen::Matrix3d pelv_rot_init_yaw_aline_;

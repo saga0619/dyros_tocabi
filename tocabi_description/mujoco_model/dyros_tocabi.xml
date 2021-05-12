@@ -417,7 +417,7 @@
 
     <keyframe>
         <!-- Initial Position Setting 0.94783-->
-        <key name="front" time="0" qpos ="0 0 0.92683 1 0 0 0 
+        <key name="front" time="0" qpos ="0 0 0.94 1 0 0 0 
 								0.0 0.0 -0.24 0.6 -0.36 0.0 
 								0.0 0.0 -0.24 0.6 -0.36 0.0
 								0 0 0 0 0
