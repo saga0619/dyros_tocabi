@@ -148,4 +148,4 @@ target_link_libraries(tocabi_controller
   )
 
 add_dependencies(tocabi_controller_lib ${catkin_EXPORTED_TARGETS})
-add_dependencies(tocabi_controller &{catkin_EXPORTED_TARGETS})
+add_dependencies(tocabi_controller ${catkin_EXPORTED_TARGETS})
