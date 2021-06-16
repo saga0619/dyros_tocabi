@@ -64,8 +64,8 @@
         <mesh name="neck" file="neck.STL" />
         <mesh name="head" file="head.STL" />
         <!-- <mesh name="hand" file="wrist2joint.STL" scale="0.001 0.001 0.001"/> -->
-        <mesh name="R_hand" file="allegro_right_hand_base_link.STL" />
-        <mesh name="L_hand" file="allegro_left_hand_base_link.STL" />
+        <mesh name="R_hand" file="allegro_hand_model.STL" />
+        <mesh name="L_hand" file="QBhand_assembly_left.STL" scale="0.001 0.001 0.001" />
         <mesh name="Foot_Link" file="Foot_Link.STL"/>
 
 
@@ -280,7 +280,7 @@
                                                     <body name="L_Wrist2_Link" pos="0 0.046 0" quat="0 0 -0.707107 0.707107">
                                                         <inertial pos="0.00063 0.0636 0.00178" mass="0.1" fullinertia="0.000865450 0.000696917 0.015377823 0 0 0" />
                                                         <joint name="L_Wrist2_Joint" pos="0 0 0" axis="0 1 0" limited="true" range="-2.094 2.094" class="Upper"/>
-                                                        <geom class="viz" pos="0.01 0 -0.11" quat="-0.5 -0.5 -0.5 -0.5" rgba="0.20313 0.20313 0.20313 1" mesh="L_hand" />
+                                                        <geom class="viz" pos="0.27 -0.06 -0.37" quat="0.707107 -0.707107 0 0" rgba="0.20313 0.20313 0.20313 1" mesh="L_hand" />
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="cls"/>
                                                         <!-- <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" /> -->
                                                         <site class="FTsensor" name="LH_FT" pos="0 0 -0.035"/>
@@ -335,7 +335,7 @@
                                                     <body name="R_Wrist2_Link" pos="0 -0.046 0" quat="0 0 0.707107 0.707107">
                                                         <inertial pos="0.00063 -0.0636 0.00178" quat="0.5 0.5 -0.5 0.5" mass="0.1" fullinertia="0.000865450 0.000696917 0.015377823 0 0 0" />
                                                         <joint name="R_Wrist2_Joint" pos="0 0 0" axis="0 -1 0" limited="true" range="-2.094 2.094" class="Upper"/>
-                                                        <geom class="viz" pos="0.01 0 -0.11" quat="0 0.7071068 -0.7071068 0" rgba="0.20313 0.20313 0.20313 1" mesh="R_hand" />
+                                                        <geom class="viz" pos="0.130 0.05 -0.01" quat="0 0 -707107 707107" rgba="0.20313 0.20313 0.20313 1" mesh="R_hand" />
                                                         <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="cls" />
                                                         <!-- <geom size="0.03 0.03 0.01" pos="0 0 -0.025" type="box" class="viz" rgba="0.20313 0.20313 0.20313 1" /> -->
                                                         <site class="FTsensor" name="RH_FT" pos="0 0 -0.035"/>

@@ -65,7 +65,7 @@
         <mesh name="head" file="head.STL" />
         <!-- <mesh name="hand" file="wrist2joint.STL" scale="0.001 0.001 0.001"/> -->
         <mesh name="R_hand" file="allegro_right_hand_base_link.STL" />
-        <mesh name="L_hand" file="allegro_left_hand_base_link.STL" />
+        <mesh name="L_hand" file="QBhand_assembly_left.STL" />
         <mesh name="Foot_Link" file="Foot_Link.STL"/>
 
 
