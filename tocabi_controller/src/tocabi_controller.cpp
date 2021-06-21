@@ -564,6 +564,7 @@ void TocabiController::dynamicsThreadHigh()
     }
     std::cout << cyellow << "Dynamics High Thread : End !" << creset << std::endl;
 }
+
 void TocabiController::testThread()
 {
     std::cout << "TC test thread " << std::endl;
@@ -832,15 +833,15 @@ void TocabiController::dynamicsThreadLow()
             }
             if (dc.print_delay_info)
             {
-                //std::cout << "td1 : " << td[0].count() * 1000 << "  td2 : " << td[1].count() * 1000 << "  td3 : " << td[2].count() * 1000 << "  td4 : " << td[3].count() * 1000 << "  td5 : " << td[4].count() * 1000 << std::endl;
+                // std::cout << "td1 : " << td[0].count() * 1000 << "  td2 : " << td[1].count() * 1000 << "  td3 : " << td[2].count() * 1000 << "  td4 : " << td[3].count() * 1000 << "  td5 : " << td[4].count() * 1000 << "  td6 : " << td[5].count() * 1000 << std::endl;
             }
             dynthread_cnt = 0;
             est = 0;
         }
         GetTaskCommand();
-
+        
         wbc_.update(tocabi_);
-
+        
         if (control_time_ == 0)
         {
             std::cout << "Gain ?" << std::endl;
@@ -2375,6 +2376,7 @@ void TocabiController::dynamicsThreadLow()
                 torque_grav.setZero();
                 try
                 {
+                    tp[3] = std::chrono::steady_clock::now();
                     mycontroller.computeSlow();
                 }
                 catch (exception &e)
@@ -2419,7 +2421,7 @@ void TocabiController::dynamicsThreadLow()
         }
 
         TorqueDesiredLocal = torque_grav + torque_task;
-
+        
         if (dc.signal_contactTorqueRedistribution)
         {
             dc.signal_contactTorqueRedistribution = false;

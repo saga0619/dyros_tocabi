@@ -903,7 +903,7 @@ void StateManager::updateKinematics(RigidBodyDynamics::Model &model_l, Link *lin
     link_p[COM_id].Jac.block(0, 0, 3, MODEL_DOF + 6) = jacobian_com.block(0, 0, 3, MODEL_DOF + 6) / com_.mass;
     link_p[COM_id].Jac.block(3, 0, 3, MODEL_DOF + 6) = link_p[Pelvis].Jac.block(3, 0, 3, MODEL_DOF + 6);
 
-    link_p[COM_id].Jac_COM_p = jacobian_com / com_.mass;
+    link_p[COM_id].Jac_COM_p = jacobian_com/com_.mass;
 
     link_p[COM_id].xpos = com_.pos;
     //link_p[COM_id].xpos(2) = link_p[Pelvis].xpos(2);
@@ -1427,20 +1427,20 @@ void StateManager::stateEstimate()
         }
         if (problem_is_here)
         {
-            std::cout << cred << "WARNING :: PELV POSITION TRACKING ERROR :: BEFORE : " << pelv_pos_before.transpose() << "  NOW : " << currentPelvPos.transpose() << creset << std::endl;
+            // std::cout << cred << "WARNING :: PELV POSITION TRACKING ERROR :: BEFORE : " << pelv_pos_before.transpose() << "  NOW : " << currentPelvPos.transpose() << creset << std::endl;
 
-            std::cout << "INFO : " << -mod_base_pos.transpose() << " RF ratio : " << rf_s_ratio << " LF ratio : " << lf_s_ratio << " RF ratio bf : " << rf_b << " LF ratio bf : " << lf_b << std::endl;
-            std::cout << " RF fix cp : " << RF_fixed_contact_pos.transpose() << " RF cp hd : " << RF_contact_pos_holder.transpose() << " LF fix cp : " << LF_fixed_contact_pos.transpose() << " RF cp hdl : " << LF_contact_pos_holder.transpose() << std::endl;
+            // std::cout << "INFO : " << -mod_base_pos.transpose() << " RF ratio : " << rf_s_ratio << " LF ratio : " << lf_s_ratio << " RF ratio bf : " << rf_b << " LF ratio bf : " << lf_b << std::endl;
+            // std::cout << " RF fix cp : " << RF_fixed_contact_pos.transpose() << " RF cp hd : " << RF_contact_pos_holder.transpose() << " LF fix cp : " << LF_fixed_contact_pos.transpose() << " RF cp hdl : " << LF_contact_pos_holder.transpose() << std::endl;
 
-            std::cout << " RF fix cp : " << rf1.transpose() << " RF cp hd : " << rf2.transpose() << " LF fix cp : " << rf3.transpose() << " RF cp hdl : " << rf4.transpose() << std::endl;
+            // std::cout << " RF fix cp : " << rf1.transpose() << " RF cp hd : " << rf2.transpose() << " LF fix cp : " << rf3.transpose() << " RF cp hdl : " << rf4.transpose() << std::endl;
 
-            std::cout << q_virtual_local_.transpose() << std::endl;
-            std::cout << q_v_before.transpose() << std::endl;
+            // std::cout << q_virtual_local_.transpose() << std::endl;
+            // std::cout << q_v_before.transpose() << std::endl;
 
-            std::cout << "imu now : " << imu_quat.transpose() << "\t imu before : " << quat_before.transpose() << std::endl;
+            // std::cout << "imu now : " << imu_quat.transpose() << "\t imu before : " << quat_before.transpose() << std::endl;
 
-            std::cout << "lf z : " << LF_CF_FT(2) / (-com_.mass * GRAVITY) << "\t"
-                      << " rf z : " << RF_CF_FT(2) / (-com_.mass * GRAVITY) << " lfz before : " << lfzb << " rfz before : " << rfzb << std::endl;
+            // std::cout << "lf z : " << LF_CF_FT(2) / (-com_.mass * GRAVITY) << "\t"
+            //           << " rf z : " << RF_CF_FT(2) / (-com_.mass * GRAVITY) << " lfz before : " << lfzb << " rfz before : " << rfzb << std::endl;
 
             //q_virtual_.segment(0, 3) = pelv_pos_before;
             //currentPelvPos = pelv_pos_before;

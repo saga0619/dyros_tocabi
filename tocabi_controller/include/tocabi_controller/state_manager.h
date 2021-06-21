@@ -126,7 +126,7 @@ public:
   Eigen::VectorQVQd q_virtual_local_yaw_initialized;
   Eigen::VectorVQd q_dot_virtual_local_;
   Eigen::VectorVQd q_ddot_virtual_local_;
-
+  
   double roll, pitch, yaw;
   double yaw_radian;
   double yaw_init;

@@ -37,7 +37,6 @@ public:
 
 
   std::atomic<bool> atb_dc{false};
-
   std::atomic<bool> trigger_hqp{false};
 
   //Basic var
@@ -113,7 +112,7 @@ public:
   Link link_[LINK_NUMBER + 1];
 
   double roll, pitch, yaw;
-
+  
   Eigen::MatrixVVd A_;
   Eigen::MatrixVVd A_inv;
   Eigen::MatrixVVd Motor_inertia;
@@ -201,6 +200,7 @@ public:
   bool elmoinstability = false;
   bool spalarm = false; // support polygon alarm bool
   bool semode = false;  // state estimation running or not.
+
   bool semode_init = true;
 
   bool safetyison = false;
