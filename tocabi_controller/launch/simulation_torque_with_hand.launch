@@ -20,7 +20,7 @@
       <param name="debug" value="$(arg debug)" />
       <param name="rviz_pub" value="$(arg rviz)"/>
       <param name="pub_mode" value="$(arg pub_mode)"/>
-      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_with_alegro_qb.urdf"/>
+      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi_with_qb.urdf"/>
       <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
       <rosparam command="load" file="$(find tocabi_description)/setting/setting_simulation_positionPDgain.yaml" />
       <rosparam command="load" file="$(find tocabi_description)/setting/setting_simulation_parameters.yaml" />

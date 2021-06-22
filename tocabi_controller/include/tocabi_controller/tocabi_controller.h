@@ -135,6 +135,7 @@ private:
   Eigen::VectorQd stablePDControl(double kp, double kd, Eigen::VectorQd current_q, Eigen::VectorQd current_q_dot, Eigen::VectorQd estimated_q_ddot, Eigen::VectorQd desired_q_next_step); // without velocity reference
   Eigen::VectorQd stablePDControl(double kp, double kd, Eigen::VectorQd current_q, Eigen::VectorQd current_q_dot, Eigen::VectorQd estimated_q_ddot, Eigen::VectorQd desired_q_next_step, Eigen::VectorQd desired_q_dot_next_step); // with velocity reference
 
+  bool GravMinMax(VectorQd torque);
   void computeZmp();
   void savePreData();
 

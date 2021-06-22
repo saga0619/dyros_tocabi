@@ -839,9 +839,9 @@ void TocabiController::dynamicsThreadLow()
             est = 0;
         }
         GetTaskCommand();
-        
+
         wbc_.update(tocabi_);
-        
+
         if (control_time_ == 0)
         {
             std::cout << "Gain ?" << std::endl;
@@ -2421,7 +2421,7 @@ void TocabiController::dynamicsThreadLow()
         }
 
         TorqueDesiredLocal = torque_grav + torque_task;
-        
+
         if (dc.signal_contactTorqueRedistribution)
         {
             dc.signal_contactTorqueRedistribution = false;
@@ -2490,6 +2490,9 @@ void TocabiController::dynamicsThreadLow()
         std::chrono::duration<double> elapsed_time = std::chrono::steady_clock::now() - dyn_loop_start;
 
         est += elapsed_time.count();
+
+        if (dc.mode == "realrobot")
+            GravMinMax(tocabi_.torque_grav);
 
         if (dc.showdata)
         {
@@ -2924,6 +2927,89 @@ void TocabiController::trajectoryplannar()
         }
     }
     std::cout << cyellow << "Planner Thread End!" << creset << std::endl;
+}
+
+bool TocabiController::GravMinMax(VectorQd torque)
+{
+    static bool loading = false;
+    char gf_[] = "/home/dyros/.tocabi_bootlog/minmax_log";
+    char gf_v[] = "/home/dyros/.tocabi_bootlog/minmax_view";
+    static double tminmax[66];
+    // torque,
+
+    if (!loading)
+    {
+        std::ifstream ifs(gf_, std::ios::binary);
+
+        if (!ifs.is_open())
+        {
+            std::cout << "GMM read failed " << std::endl;
+        }
+        else
+        {
+            for (int i = 0; i < 66; i++)
+            {
+                ifs.read(reinterpret_cast<char *>(&tminmax[i]), sizeof(double));
+            }
+
+            ifs.close();
+        }
+        loading = true;
+    }
+
+    bool record = false;
+    for (int i = 0; i < 33; i++)
+    {
+        if (tminmax[i] > torque[i])
+        {
+            record = true;
+
+            tminmax[i] = torque[i];
+        }
+
+        if (tminmax[i + 33] < torque[i])
+        {
+            record = true;
+
+            tminmax[i + 33] = torque[i];
+        }
+    }
+
+    if (record)
+    {
+        std::ofstream ofs(gf_, std::ios::binary);
+        std::ofstream ofs_view(gf_v);
+        if (!ofs.is_open())
+        {
+            std::cout << "GMM write failed " << std::endl;
+        }
+        else
+        {
+            for (int i = 0; i < 66; i++)
+                ofs.write(reinterpret_cast<char const *>(&tminmax[i]), sizeof(double));
+            ofs.close();
+        }
+
+        if (!ofs_view.is_open())
+        {
+            std::cout << "GMM view write failed " << std::endl;
+        }
+        else
+        {
+            ofs_view << "MIN VALUE : " << std::endl;
+            for (int i = 0; i < 33; i++)
+            {
+                ofs_view << tminmax[i] << std::endl;
+            }
+            ofs_view << "MAX VALUE : " << std::endl;
+            for (int i = 0; i < 33; i++)
+            {
+                ofs_view << tminmax[i + 33] << std::endl;
+            }
+        }
+    }
+
+    return true;
 }
 
 void TocabiController::initialize()
