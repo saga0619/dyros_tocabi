@@ -964,10 +964,7 @@ void RealRobotInterface::ethercatThread()
                                         positionElmo(slave - 1) = rxPDO[slave - 1]->positionActualValue * CNT2RAD[slave - 1] * Dr[slave - 1];
 
                                         hommingElmo[slave - 1] =
-                                            (((uint32_t)ec_slave[slave].inputs[4]) +
-                                             ((uint32_t)ec_slave[slave].inputs[5] << 8) +
-                                             ((uint32_t)ec_slave[slave].inputs[6] << 16) +
-                                             ((uint32_t)ec_slave[slave].inputs[7] << 24));
+                                            (((uint32_t)ec_slave[slave].inputs[6] << 16)&((uint32_t)1));
 
                                         stateElmo[slave - 1] =
                                             (((uint16_t)ec_slave[slave].inputs[8]) +
