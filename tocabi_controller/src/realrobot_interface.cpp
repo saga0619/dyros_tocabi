@@ -34,6 +34,9 @@ RealRobotInterface::RealRobotInterface(DataContainer &dc_global) : dc(dc_global)
     zplog_path = dc.homedir + "/elmostart_log";
     ft_init_path = dc.homedir + "/ftinit_log";
 
+    st_log_path = dc.homedir + "/state_log";
+    torque_log_path = dc.homedir + "/torque_log";
+
     torque_desired.setZero();
 
     positionElmo.setZero();
@@ -895,7 +898,7 @@ void RealRobotInterface::ethercatThread()
                             {
                                 int time_diff = (int)((control_time_real_ - control_time_before_) * 1.0E+6);
 
-                                if (((time_diff > dc.ctime * 1.05) || (time_diff < dc.ctime * 0.95))&&operation_ready)
+                                if (((time_diff > dc.ctime * 1.05) || (time_diff < dc.ctime * 0.95)) && operation_ready)
                                 {
                                     std::cout << cred << "Warning : Time is not OK, time diff is : " << time_diff << std::endl;
                                     std::cout << "current time : " << control_time_real_ << std::endl;
@@ -964,7 +967,7 @@ void RealRobotInterface::ethercatThread()
                                         positionElmo(slave - 1) = rxPDO[slave - 1]->positionActualValue * CNT2RAD[slave - 1] * Dr[slave - 1];
 
                                         hommingElmo[slave - 1] =
-                                            (((uint32_t)ec_slave[slave].inputs[6] << 16)&((uint32_t)1));
+                                            (((uint32_t)ec_slave[slave].inputs[6] << 16) & ((uint32_t)1));
 
                                         stateElmo[slave - 1] =
                                             (((uint16_t)ec_slave[slave].inputs[8]) +
@@ -1313,7 +1316,7 @@ void RealRobotInterface::ethercatThread()
                                     }
                                 }
 
-                                if (fz_group2_check && fz_group1_check )
+                                if (fz_group2_check && fz_group1_check)
                                 {
                                     fz_group++;
                                     elmo_zp.open(zp_path, ios_base::out);
@@ -1509,6 +1512,10 @@ void RealRobotInterface::ethercatThread()
                                 checkSafety(i, dc.safety_limit[i], 10.0 * dc.ctime / 1E+6); //if angular velocity exceeds 0.5rad/s, Hold to current Position ///
                             }
 
+                            logTorque();
+                            for (int i = 0; i < MODEL_DOF; i++)
+                                stateElmo_before[i] = stateElmo[i];
+
                             //Torque off if emergency off received
                             if (dc.emergencyoff)
                             {
@@ -1548,7 +1555,7 @@ void RealRobotInterface::ethercatThread()
                             }
                             tp[9] = std::chrono::steady_clock::now();
                             td[4] = tp[8] - (st_start_time + cycle_count * cycletime); //timestamp for send time consumption.
-                            if ((td[4].count() * 1E+6 > 500)&&operation_ready)
+                            if ((td[4].count() * 1E+6 > 500) && operation_ready)
                             {
                                 std::cout << "Loop time exceeded : " << std::endl;
                                 std::cout << "sleep_until" << std::chrono::duration_cast<std::chrono::microseconds>(tp[1] - tp[0]).count() << std::endl;
@@ -1690,6 +1697,42 @@ double RealRobotInterface::elmoJointMove(double init, double angle, double start
     }
 
     return des_pos;
+}
+
+void RealRobotInterface::logTorque()
+{
+    static bool log_first = true;
+
+    if (log_first)
+    {
+        std::cout << "torque log init" << std::endl;
+        log_first = false;
+        t_out_log.open(torque_log_path, std::fstream out);
+
+        st_log.open(st_log_path, std::fstream out);
+    }
+    char buff[256];
+    char buff2[256];
+    int jj = 0;
+    sprintf(buff, "%8.3f %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d \n", control_time_, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque, txPDO[jj++]->targetTorque);
+
+    bool stateLog = false;
+
+    for (int i = 0; i < MODEL_DOF; i++)
+    {
+        if (stateElmo_before[i] != stateElmo[i])
+            stateLog = true;
+    }
+
+    if (stateLog)
+    {
+        st_log << control_time_;
+        for (int i = 0; i < MODEL_DOF; i++)
+            st_log << " " << stateElmo[i];
+        st_log << endl;
+    }
+
+    t_out_log.put(buff);
 }
 
 void RealRobotInterface::imuThread()

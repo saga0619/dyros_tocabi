@@ -430,9 +430,14 @@ public:
     fstream elmo_zp;
     fstream elmo_zp_log;
     fstream ft_init_log;
+    fstream st_log;
+
+    fstream t_out_log;
     std::string ft_init_path;
     std::string zp_path, zplog_path, pack_path;
-
+    std::string st_log_path;
+    std::string torque_log_path;
+    
     int checkfirst = -1;
     int checkfirst_before = -1;
     int al = 111;
@@ -545,6 +550,8 @@ private:
 
     double elmoJointMove(double init, double angle, double start_time, double traj_time);
 
+    void logTorque();
+    
     Eigen::Vector6d RealConstant;
 
     bool sim_runnung;
