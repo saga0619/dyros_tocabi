@@ -5,7 +5,7 @@
   <arg name="gui" default="false"/>
   <arg name="run_mode" default="realrobot"/>
   <arg name="urdfDampingmodel" default="false"/>
-  <arg name="ifname" default="enp4s0"/>
+  <arg name="ifname" default="eno2"/>
   <arg name="ctime" default="500"/>
   
   <group if="$(arg controller)">
