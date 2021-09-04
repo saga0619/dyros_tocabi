@@ -1,0 +1,25 @@
+<launch>
+  <arg name="debug" default="false"/>
+  <arg name="rviz" default="false"/>
+  <arg name="controller" default="true" />
+  <arg name="gui" default="true"/>
+  <arg name="run_mode" default="simulation"/>
+  <arg name="pub_mode" default="true"/>
+  <arg name="urdfDampingmodel" default="false"/>
+
+  <group if="$(arg controller)">
+    <node name="qptest" pkg="tocabi_controller" type="qp_test" output="screen" required="true">
+      <param name="sim_mode" value="torque"/>
+      <param name="run_mode" value="$(arg run_mode)"/>
+      <param name="debug" value="$(arg debug)" />
+      <param name="rviz_pub" value="$(arg rviz)"/>
+      <param name="pub_mode" value="$(arg pub_mode)"/>
+      <param name="urdf_path" type="string" value="$(find tocabi_description)/robots/dyros_tocabi.urdf"/>
+      <param name="urdfAnkleRollDamping" value="$(arg urdfDampingmodel)"/>
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_simulation_positionPDgain.yaml" />
+      <rosparam command="load" file="$(find tocabi_description)/setting/setting_simulation_parameters.yaml" />
+      <rosparam command="load" file="$(find tocabi_description)/setting/safety_limit.yaml" />
+    </node>
+  </group>
+
+</launch>

@@ -100,9 +100,9 @@ void TocabiController::PositionCommandCallback(const tocabi_controller::position
         }
     }
 }
-VectorQd TocabiController::positionCommandExt(double control_time, double traj_time, VectorQd current_pos, VectorQd desired_pos)
-{
-}
+// VectorQd TocabiController::positionCommandExt(double control_time, double traj_time, VectorQd current_pos, VectorQd desired_pos)
+// {
+// }
 
 void TocabiController::VelocityCommandCallback(const tocabi_controller::VelocityCommandConstPtr &msg)
 {
@@ -582,11 +582,11 @@ void TocabiController::testThread()
         std::cout << "Original Matrix : " << std::endl;
         std::cout << tocabi_.W << std::endl
                   << std::endl;
-        DyrosMath::pinv_SVD(tocabi_.W);
+        DyrosMath::pinv_QR(tocabi_.W);
 
         std::chrono::duration<double> d1 = std::chrono::steady_clock::now() - tp1;
         std::chrono::steady_clock::time_point tp2 = std::chrono::steady_clock::now();
-        DyrosMath::pinv_glsSVD(tocabi_.W);
+        DyrosMath::pinv_QR(tocabi_.W);
 
         std::chrono::duration<double> d2 = std::chrono::steady_clock::now() - tp2;
 
@@ -2956,4 +2956,5 @@ Eigen::Vector3d TocabiController::velRegulation(Eigen::Vector3d traj_before, Eig
             }
         }
     }
+    return res_traj;
 }

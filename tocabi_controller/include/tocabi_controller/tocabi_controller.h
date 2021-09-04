@@ -44,7 +44,7 @@ public:
   void customgainhandle();
   void CPpatternGen();
   Eigen::Vector3d velRegulation(Eigen::Vector3d traj_before, Eigen::Vector3d traj_now, Eigen::Vector3d acc_max);
-  VectorQd positionCommandExt(double control_time, double traj_time, VectorQd current_pos, VectorQd desired_pos);
+  // VectorQd positionCommandExt(double control_time, double traj_time, VectorQd current_pos, VectorQd desired_pos);
 
   ros::Subscriber task_command;
   ros::Subscriber task_command_que;

@@ -320,7 +320,7 @@ public:
   void rotate(double angle);
 };
 
-Eigen::Vector2d local2global(double x, double y, double angle);
+// Eigen::Vector2d local2global(double x, double y, double angle);
 
 struct RobotData_fast
 {

@@ -126,19 +126,23 @@ void Link::Set_Contact(Eigen::VectorQVQd &q_virtual_, Eigen::VectorVQd &q_dot_vi
 {
     j_temp.setZero();
     mtx_rbdl.lock();
+    std::cout<<"2"<<std::endl;
     RigidBodyDynamics::CalcPointJacobian6D(*model, q_virtual_, id, Contact_position, j_temp, false);
     xpos_contact = RigidBodyDynamics::CalcBodyToBaseCoordinates(*model, q_virtual_, id, Contact_position, false);
 
+    std::cout<<"2"<<std::endl;
     mtx_rbdl.unlock();
     // Jac_Contact.block<3,MODEL_DOF+6>(0,0)=fj_.block<3,MODEL_DOF+6>(3,0)*E_T_;
     // Jac_Contact.block<3,MODEL_DOF+6>(3,0)=fj_.block<3,MODEL_DOF+6>(0,0)*E_T_;
     Jac_Contact.block<3, MODEL_DOF + 6>(0, 0) = j_temp.block<3, MODEL_DOF + 6>(3, 0);
     Jac_Contact.block<3, MODEL_DOF + 6>(3, 0) = j_temp.block<3, MODEL_DOF + 6>(0, 0);
 
+    std::cout<<"2"<<std::endl;
     v_contact = Jac_Contact.block(0, 0, 3, MODEL_DOF_VIRTUAL) * q_dot_virtual;
 
     w_contact = Jac_Contact.block(3, 0, 3, MODEL_DOF_VIRTUAL) * q_dot_virtual;
 
+    std::cout<<"2"<<std::endl;
     // Jac_Contact.block<3,3>(0,3)= -
     // DyrosMath::skm(RigidBodyDynamics::CalcBodyToBaseCoordinates(model_,q_virtual_,id,Contact_position,false)
     // - link_[0].xpos);
@@ -335,6 +339,6 @@ std::ostream &operator<<(std::ostream &os, const Link &lk)
     return os;
 }
 
-Eigen::Vector2d local2global(double x, double y, double angle)
-{
-}
+// Eigen::Vector2d local2global(double x, double y, double angle)
+// {
+// }

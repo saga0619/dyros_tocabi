@@ -45,42 +45,28 @@ void WholebodyController::init(RobotData &Robot)
 
     bool verbose = false; //set verbose true for State Manager initialization info
     bool urdfmode;
-    ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
-    std::string urdf_path, desc_package_path;
+    // ros::param::get("/tocabi_controller/urdfAnkleRollDamping", urdfmode);
+    // std::string urdf_path, desc_package_path;
 
-    ros::param::get("/tocabi_controller/urdf_path", desc_package_path);
+    // ros::param::get("/tocabi_controller/urdf_path", desc_package_path);
 
-    if (urdfmode)
-    {
-        urdf_path = desc_package_path + "/dyros_tocabi_ankleRollDamping.urdf";
-    }
-    else
-    {
-        urdf_path = desc_package_path + "/dyros_tocabi.urdf";
-    }
+    // if (urdfmode)
+    // {
+    //     urdf_path = desc_package_path + "/dyros_tocabi_ankleRollDamping.urdf";
+    // }
+    // else
+    // {
+    //     urdf_path = desc_package_path + "/dyros_tocabi.urdf";
+    // }
 
-    RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &(Robot.model_virtual), true, verbose);
+    // RigidBodyDynamics::Addons::URDFReadFromFile(desc_package_path.c_str(), &(Robot.model_virtual), true, verbose);
 
-    //print_file_name =
-
-    /*
-    data_out1 = std::ofstream(print_file_name.c_str());
-    data_out2 = std::ofstream(print_file_name2.c_str());
-    if (data_out1.is_open())
-    {
-        std::cout << "Start WBC Data logging.... to " << print_file_name << std::endl;
-        data_out1 << "Start WBC Data Print" << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed to open tocabi_wbc_data.txt" << std::endl;
-    } */
 }
 
 void WholebodyController::CalcAMatrix(RobotData &Robot, MatrixXd &A_matrix)
 {
-    A_matrix.setZero(MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL);
-    RigidBodyDynamics::CompositeRigidBodyAlgorithm(Robot.model_virtual, Robot.q_virtual_, A_matrix, true);
+    // A_matrix.setZero(MODEL_DOF_VIRTUAL, MODEL_DOF_VIRTUAL);
+    // RigidBodyDynamics::CompositeRigidBodyAlgorithm(Robot.model_virtual, Robot.q_virtual_, A_matrix, true);
 }
 
 void WholebodyController::update(RobotData &Robot)
@@ -463,16 +449,23 @@ void WholebodyController::set_contact(RobotData &Robot, bool left_foot, bool rig
 
     Robot.J_C.setZero(Robot.contact_index * 6, MODEL_DOF_VIRTUAL);
 
+    std::cout<<"1"<<std::endl;
     Robot.link_[Left_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Foot].contact_point);
+    std::cout<<"1"<<std::endl;
     Robot.link_[Right_Foot].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Foot].contact_point);
+    std::cout<<"1"<<std::endl;
     Robot.link_[Left_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Left_Hand].contact_point);
+    std::cout<<"1"<<std::endl;
     Robot.link_[Right_Hand].Set_Contact(Robot.q_virtual_, Robot.q_dot_virtual_, Robot.link_[Right_Hand].contact_point);
+
+    std::cout<<"1"<<std::endl;
 
     for (int i = 0; i < Robot.contact_index; i++)
     {
         Robot.J_C.block(i * 6, 0, 6, MODEL_DOF_VIRTUAL) = Robot.link_[Robot.contact_part[i]].Jac_Contact;
     }
 
+    std::cout<<"1"<<std::endl;
     set_robot_init(Robot);
 
     Robot.contact_force_predict.setZero();
@@ -722,6 +715,8 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, Eigen::Matri
         Robot.qp2nd = true;
         return task_control_torque_QP3(Robot, J_task, f_star_);
     }
+
+    return VectorQd::Zero();
 }
 
 VectorQd WholebodyController::task_control_torque_QP(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
@@ -1154,7 +1149,7 @@ VectorQd WholebodyController::task_control_torque_QP2(RobotData &Robot, Eigen::M
 
     //Task Control Torque;
     Robot.J_task = J_task;
-    Robot.J_task_inv = (DyrosMath::pinv_glsSVD(J_task.transpose())).transpose();
+    Robot.J_task_inv = (DyrosMath::pinv_SVD(J_task.transpose())).transpose();
     Robot.J_task_T.resize(MODEL_DOF + 6, Robot.task_dof);
     Robot.J_task_T.setZero();
     Robot.lambda_inv.resize(Robot.task_dof, Robot.task_dof);
@@ -1416,7 +1411,7 @@ VectorQd WholebodyController::task_control_torque_QP3(RobotData &Robot, Eigen::M
 
     //Task Control Torque;
     Robot.J_task = J_task;
-    Robot.J_task_inv = (DyrosMath::pinv_glsSVD(J_task.transpose())).transpose();
+    Robot.J_task_inv = (DyrosMath::pinv_SVD(J_task.transpose())).transpose();
     Robot.J_task_T.resize(MODEL_DOF + 6, Robot.task_dof);
     Robot.J_task_T.setZero();
     Robot.lambda_inv.resize(Robot.task_dof, Robot.task_dof);
@@ -1780,7 +1775,7 @@ VectorQd WholebodyController::task_control_torque_QP2_with_contactforce_feedback
 
     //Task Control Torque;
     Robot.J_task = J_task;
-    Robot.J_task_inv = (DyrosMath::pinv_glsSVD(J_task.transpose())).transpose();
+    Robot.J_task_inv = (DyrosMath::pinv_QR(J_task.transpose())).transpose();
     Robot.J_task_T.resize(MODEL_DOF + 6, Robot.task_dof);
     Robot.J_task_T.setZero();
     Robot.lambda_inv.resize(Robot.task_dof, Robot.task_dof);
@@ -2200,7 +2195,7 @@ VectorQd WholebodyController::task_control_torque_QP_gravity(RobotData &Robot)
     return task_torque; // + gravity_torque;
 }
 
-VectorXd WholebodyController::check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
+void WholebodyController::check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_)
 {
     MatrixXd J_com = Robot.link_[COM_id].Jac_COM_p;
     MatrixXd lambda_com_inv = J_com * Robot.A_matrix_inverse * Robot.N_C * J_com.transpose();
@@ -2226,9 +2221,10 @@ VectorXd WholebodyController::check_fstar(RobotData &Robot, Eigen::MatrixXd J_ta
         std::cout << "Control command out of support polygon! " << std::endl;
     }
 }
-VectorQd WholebodyController::contact_torque_calc_from_QP2(RobotData &Robot, VectorQd command_torque)
-{
-}
+// VectorQd WholebodyController::contact_torque_calc_from_QP2(RobotData &Robot, VectorQd command_torque)
+// {
+//     return VectorQd::Zero();
+// }
 VectorQd WholebodyController::contact_torque_calc_from_QP(RobotData &Robot, VectorQd command_torque)
 {
 
@@ -2840,10 +2836,13 @@ VectorQd WholebodyController::CP_control_init(RobotData &Robot, double dT)
     CP_ref[1] = Robot.link_[Left_Foot].xpos.segment(0, 2) - CP_displace;
     CP_ref[2] = Robot.link_[Right_Foot].xpos.segment(0, 2) + CP_displace;
     CP_ref[3] = Robot.com_.pos.segment(0, 2);
+
+    return VectorQd::Zero();
 }
 
 VectorQd WholebodyController::CP_controller()
 {
+    return VectorQd::Zero();
 }
 
 Vector6d WholebodyController::zmp_controller(RobotData &Robot, Vector2d ZMP, double height)
@@ -3719,6 +3718,8 @@ VectorXd WholebodyController::hqp_contact_calc(CQuadraticProgram &qphqp, RobotDa
     {
         Robot.qp_error = true;
     }
+
+    return qpres.setZero();
 }
 
 std::pair<VectorXd, VectorXd> WholebodyController::hqp_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, VectorXd torque_prev, MatrixXd &Null_task, MatrixXd &Jkt, MatrixXd &lambda, VectorXd f_star, bool init)
@@ -3808,21 +3809,21 @@ std::pair<VectorXd, VectorXd> WholebodyController::hqp_step_calc(CQuadraticProgr
     // t[9] = std::chrono::steady_clock::now();
     if (qphqp.SolveQPoases(100, qpres))
     {
-        std::pair<VectorXd, VectorXd> ret(qpres.segment(0, task_dof), qpres.segment(task_dof, contact_dof));
-        // t[10] = std::chrono::steady_clock::now();
-        // std::cout << "hqp qp prepare : ";
-        // for (int i = 0; i < 10; i++)
-        // {
-        //     std::cout << i << " : " << std::chrono::duration_cast<std::chrono::microseconds>(t[i + 1] - t[i]).count() << "\t";
-        // }
-        // std::cout << "total : " << std::chrono::duration_cast<std::chrono::microseconds>(t[10] - t[0]).count() << "\t";
-        // std::cout << std::endl;
-        return ret;
     }
     else
     {
         Robot.qp_error = true;
     }
+    std::pair<VectorXd, VectorXd> ret(qpres.segment(0, task_dof), qpres.segment(task_dof, contact_dof));
+    // t[10] = std::chrono::steady_clock::now();
+    // std::cout << "hqp qp prepare : ";
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     std::cout << i << " : " << std::chrono::duration_cast<std::chrono::microseconds>(t[i + 1] - t[i]).count() << "\t";
+    // }
+    // std::cout << "total : " << std::chrono::duration_cast<std::chrono::microseconds>(t[10] - t[0]).count() << "\t";
+    // std::cout << std::endl;
+    return ret;
 }
 
 std::pair<VectorXd, VectorXd> WholebodyController::hqp2_step_calc(CQuadraticProgram &qphqp, RobotData &Robot, std::vector<MatrixXd> &Jtask_hqp, std::vector<VectorXd> &fstar_hqp, bool init)
@@ -4274,7 +4275,6 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
     }
     torque_prev = torque_prev + Null_task * ans.back().first * ans.back().second * (Robot_fast.fstar_hqp.back() + qp_ans.back().first);
 
-
     Null_task = Null_task * (MatrixQQd::Identity() - ans.back().first * ans.back().second * Robot_fast.Jtask_hqp.back() * Robot_fast.A_matrix_inverse * Robot_fast.N_C.rightCols(MODEL_DOF));
     int damping_idx = tcnt;
     t[tcnt++] = std::chrono::steady_clock::now();
@@ -4331,7 +4331,7 @@ VectorQd WholebodyController::task_control_torque_hqp_threaded(RobotData_fast Ro
     data_out1 << damping_slack.transpose() << std::endl;
     Robot_fast.com_time = std::chrono::duration_cast<std::chrono::microseconds>(t[damping_idx + 1] - t[damping_idx]).count();
 
-    data_out2 << Robot_fast.control_time_<<" "
+    data_out2 << Robot_fast.control_time_ << " "
               << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 1] - t[task1_idx]).count() << " \t"
               << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 4] - t[task1_idx + 3]).count() << " \t"
               << std::chrono::duration_cast<std::chrono::microseconds>(t[task1_idx + 7] - t[task1_idx + 6]).count() << " \t"
@@ -4487,7 +4487,7 @@ VectorQd WholebodyController::task_control_torque(RobotData &Robot, MatrixXd J_t
     Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
     Robot.Q_T_ = Robot.Q.transpose();
     Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
-    Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
+    Robot.Q_temp_inv = DyrosMath::pinv_SVD(Robot.Q_temp);
 
     //_F=lambda*(f_star);
     //Jtemp=J_task_inv_T*Slc_k_T;
@@ -4663,7 +4663,7 @@ VectorQd WholebodyController::task_control_torque_force_control(RobotData &Robot
     Robot.Q = Robot.J_task_inv_T * Robot.Slc_k_T;
     Robot.Q_T_ = Robot.Q.transpose();
     Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
-    Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
+    Robot.Q_temp_inv = DyrosMath::pinv_SVD(Robot.Q_temp);
     //_F=lambda*(f_star);
     //Jtemp=J_task_inv_T*Slc_k_T;
     //Jtemp_2 = DyrosMath::pinv_SVD(Jtemp);
@@ -4940,7 +4940,7 @@ VectorQd WholebodyController::task_control_torque_with_acc_cr(RobotData &Robot, 
     Robot.Q_T_ = Robot.Q.transpose();
 
     Robot.Q_temp = Robot.Q * Robot.W_inv * Robot.Q_T_;
-    Robot.Q_temp_inv = DyrosMath::pinv_glsSVD(Robot.Q_temp);
+    Robot.Q_temp_inv = DyrosMath::pinv_QR(Robot.Q_temp);
 
     VectorQd torque_task_acc;
     VectorQd torque_task;
@@ -6387,10 +6387,11 @@ void WholebodyController::ForceRedistributionTwoContactMod(double eta_cust, doub
     //ForceRedistribution(11) = (1.0-eta)/eta*ForceRedistribution(5);
 }
 
-Vector3d WholebodyController::COM_traj_with_zmp(RobotData &Robot)
-{
-    double tc = sqrt(Robot.com_.pos(2) / 9.81);
+// Vector3d WholebodyController::COM_traj_with_zmp(RobotData &Robot)
+// {
+//     double tc = sqrt(Robot.com_.pos(2) / 9.81);
 
-    //rk_.link_[COM_id].x_traj(1) = ()
-    //rk_.link_[COM_id].a_traj = 9.81/rk_.com_.pos(2)*()
-}
+//     //rk_.link_[COM_id].x_traj(1) = ()
+//     //rk_.link_[COM_id].a_traj = 9.81/rk_.com_.pos(2)*()
+//     return Vector3d::Zero
+// }

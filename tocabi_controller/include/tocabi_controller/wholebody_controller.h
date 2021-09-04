@@ -6,7 +6,7 @@
 #include "tocabi_controller/redsvd.h"
 #include "tocabi_controller/qp.h"
 #include <qpOASES.hpp>
-#include "tocabi_controller/osqp_rapper.h"
+// #include "tocabi_controller/osqp_rapper.h"
 #include <vector>
 #include <fstream>
 using namespace Eigen;
@@ -86,7 +86,7 @@ public:
 
   //get contact redistribution torque with Quadratic programing
   VectorQd contact_torque_calc_from_QP(RobotData &Robot, VectorQd command_torque);
-  VectorQd contact_torque_calc_from_QP2(RobotData &Robot, VectorQd command_torque);
+  // VectorQd contact_torque_calc_from_QP2(RobotData &Robot, VectorQd command_torque);
 
   // Get Contact Redistribution Torque with QP. Wall contact mode.
   //VectorQd contact_torque_calc_from_QP_wall(VectorQd command_torque, double wall_friction_ratio);
@@ -119,7 +119,7 @@ public:
   VectorQd task_control_torque_QP2_with_contactforce_feedback(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   VectorQd task_control_torque_QP_gravity(RobotData &Robot);
   VectorQd task_control_torque_with_acc_cr(RobotData &Robot, MatrixXd J_task, VectorXd f_star_acc, VectorXd f_star_feedback);
-  VectorXd check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
+  void check_fstar(RobotData &Robot, Eigen::MatrixXd J_task, Eigen::VectorXd f_star_);
   Vector2d fstar_regulation(RobotData &Robot, Vector3d f_star);
   /*
   * Get Task Control Torque 
@@ -180,7 +180,7 @@ public:
   Vector3d getfstar_acc_rot(RobotData &Robot, int link_id);
 
   VectorQd get_joint_acceleration(RobotData &Robot, VectorQd commnad_torque);
-  Vector3d COM_traj_with_zmp(RobotData &Robot);
+  // Vector3d COM_traj_with_zmp(RobotData &Robot);
   void getSupportPolygon(RobotData &Robot, std::vector<Eigen::Vector2d> &edge_point_list);
   //zmp controller
   void getJkt(RobotData &Robot, MatrixXd &J_task, MatrixXd &Jkt);
@@ -286,8 +286,8 @@ public:
 
   std::vector<CQuadraticProgram> QP_hqp;
 
-  osQuadraticProgram QP_contact;
-  osQuadraticProgram QP_torque3_;
+  // osQuadraticProgram QP_contact;
+  // osQuadraticProgram QP_torque3_;
   VectorXd result_temp;
 
 private:
