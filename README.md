@@ -1,5 +1,15 @@
 # DYROS TOCABI CONTROLLER 
 
+======================================================
+
+DEPRECATED Currently using [dyros_tocabi_v2](https://github.com/saga0619/dyros_tocabi_v2)
+
+==========================================================
+
+
+
+
+
 # Building
 ## Prerequisites
 ### 0. All-in-one Prerequisites installer 
